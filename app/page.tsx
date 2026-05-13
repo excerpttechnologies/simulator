@@ -1,8 +1,8 @@
-// "use client"
-// // @ts-nocheck
+"use client"
+// @ts-nocheck
 
-// import { useState, useEffect, useCallback, useRef, Suspense } from "react"
-// import * as THREE from "three"
+import { useState, useEffect, useCallback, useRef, Suspense } from "react"
+import * as THREE from "three"
 
 // // ═══════════════════════════════════════════════════════════════════════════════
 // // TYPES & DATA
@@ -7195,19 +7195,27 @@
 //       root.traverse((obj: THREE.Object3D) => { byName[obj.name] = obj; });
 
 //       console.log('GLB loaded! Nodes found:', Object.keys(byName).slice(0, 10));
-//       const turret   = (byName['Bone']    ?? new THREE.Group()) as THREE.Group;
-//       const shoulder = (byName['Bone001'] ?? new THREE.Group()) as THREE.Group;
-//       const upperArm = (byName['Bone002'] ?? new THREE.Group()) as THREE.Group;
-//       const elbow    = (byName['Bone003'] ?? new THREE.Group()) as THREE.Group;
-//       const foreArm  = (byName['Bone004'] ?? new THREE.Group()) as THREE.Group;
-//       const wrist    = (byName['Bone005'] ?? new THREE.Group()) as THREE.Group;
-//       const gripper  = (byName['Bone006'] ?? new THREE.Group()) as THREE.Group;
+//       // FIX 1: Use correct joint names from verified GLB hierarchy
+//       const baseRotation   = (byName['Joint_Base_Rotation']   ?? new THREE.Group()) as THREE.Group;
+//       const zLift          = (byName['Joint_Z_Lift']          ?? new THREE.Group()) as THREE.Group;
+//       const shoulderA      = (byName['Joint_Shoulder_A']      ?? new THREE.Group()) as THREE.Group;
+//       const elbowA         = (byName['Joint_Elbow_A']         ?? new THREE.Group()) as THREE.Group;
+//       const extensionA     = (byName['Joint_Extension_A']     ?? new THREE.Group()) as THREE.Group;
+//       const shoulderB      = (byName['Joint_Shoulder_B']      ?? new THREE.Group()) as THREE.Group;
+//       const elbowB         = (byName['Joint_Elbow_B']         ?? new THREE.Group()) as THREE.Group;
+//       const extensionB     = (byName['Joint_Extension_B']     ?? new THREE.Group()) as THREE.Group;
 
 //       console.log('Bones bound:', { 
 //         turret: !!byName['Bone'], 
-//         shoulder: !!byName['Bone001'], 
-//         elbow: !!byName['Bone003'],
-//         gripper: !!byName['Bone006']
+//       console.log('Joints bound:', {
+//         baseRotation: !!byName['Joint_Base_Rotation'],
+//         zLift: !!byName['Joint_Z_Lift'],
+//         shoulderA: !!byName['Joint_Shoulder_A'],
+//         elbowA: !!byName['Joint_Elbow_A'],
+//         extensionA: !!byName['Joint_Extension_A'],
+//         shoulderB: !!byName['Joint_Shoulder_B'],
+//         elbowB: !!byName['Joint_Elbow_B'],
+//         extensionB: !!byName['Joint_Extension_B']
 //       });
 
 //       const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
@@ -7220,64 +7228,50 @@
 //       const wristToGrip = 0.210 * scale;
 
 //   function runIK(tgt: THREE.Vector3): void {
-//   // 1. Base yaw — corrected for GLB inversion (root.rotation.y = π)
+//   // FIX 2: Base rotation on Y axis (SCARA theta axis)
 //   const baseWP = new THREE.Vector3();
 //   root.getWorldPosition(baseWP);
 //   const dx = tgt.x - baseWP.x;
 //   const dz = tgt.z - baseWP.z;
-//   let rawYaw = Math.atan2(dx, dz) + Math.PI;
+//   let rawYaw = Math.atan2(dx, dz);
 //   rawYaw = normalizeAngle(rawYaw);
+//   // Clamp base rotation to prevent unrealistic inversion
+//   baseRotation.rotation.y = Math.max(-Math.PI, Math.min(Math.PI, rawYaw));
 
-//   // Shortest-path turret with ±90° clamp
-//   const restY = 0;
-//   let delta = normalizeAngle(rawYaw - turret.rotation.y);
-//   delta = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, delta));
-//   turret.rotation.y = normalizeAngle(turret.rotation.y + delta);
+//   // FIX 3: Z-lift - apply vertical motion via position.y
+//   const targetZ = tgt.y;
+//   const currentZ = zLift.position.y;
+//   zLift.position.y = THREE.MathUtils.lerp(currentZ, Math.max(0, Math.min(0.35, targetZ)), 0.1);
 
-//   // 2. Convert target to turret-local
-//   const localTgt = turret.worldToLocal(tgt.clone());
+//   // FIX 4: Shoulder/Elbow rotation on Y axis
+//   // Convert target to base-local coordinates
+//   const localTgt = baseRotation.worldToLocal(tgt.clone());
 
-//   // 3. Geometry (scale-aware)
-//   const L1 = 0.730 * scale;
-//   const L2 = 1.350 * scale;
-//   const shoulderH = 0.618 * scale;
-//   const wristToGrip = 0.210 * scale;
-
-//   // 4. 2D IK in shoulder plane (reach = horizontal, dy = vertical)
+//   // SCARA kinematics - 2D planar motion
 //   const reach = Math.hypot(localTgt.x, localTgt.z);
-//   const dy = localTgt.y - shoulderH - wristToGrip;
+//   const L1 = 0.730 * scale; // Upper arm length
+//   const L2 = 1.350 * scale; // Forearm length
 
-//   let D = Math.hypot(reach, dy);
-//   // Clamp to reachable workspace
-//   const Dmin = Math.abs(L1 - L2) + 0.02;
-//   const Dmax = L1 + L2 - 0.02;
-//   D = Math.max(Dmin, Math.min(Dmax, D));
+//   // Clamp reach to workspace
+//   const clampedReach = Math.max(Math.abs(L1 - L2), Math.min(L1 + L2, reach));
 
-//   // 5. Elbow angle — law of cosines (FIXED denominator)
-//   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
-//   const elbowInner = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
-//   // Elbow-UP convention: forearm bends so wrist is above shoulder line
-//   const elbowAngle = -(Math.PI - elbowInner);
+//   // Shoulder angle (first joint) — law of cosines
+//   const cosShoulder = (L1*L1 + clampedReach*clampedReach - L2*L2) / (2 * L1 * clampedReach);
+//   const shoulderAngle = Math.acos(Math.max(-1, Math.min(1, cosShoulder)));
+//   const targetAngle = Math.atan2(localTgt.z, localTgt.x);
+//   const shoulderFinal = targetAngle - shoulderAngle;
 
-//   // 6. Shoulder angle — FIXED formula: cosShoulder = (L1² + D² - L2²) / (2·L1·D)
-//   const cosShoulder = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
-//   const shoulderInner = Math.acos(Math.max(-1, Math.min(1, cosShoulder)));
-//   const targetAngle = Math.atan2(reach, dy);
-//   let shoulderAngle = targetAngle - shoulderInner;
-//   // Industrial safe zone: forward-reach only
-//   shoulderAngle = Math.max(0, Math.min(Math.PI / 2.2, shoulderAngle));
+//   // Elbow angle (second joint) — law of cosines
+//   const cosElbow = (L1*L1 + L2*L2 - clampedReach*clampedReach) / (2 * L1 * L2);
+//   const elbowAngle = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
 
-//   // 7. Apply on Z axis (Blender-exported bones bend on Z)
-//   shoulder.rotation.z = shoulderAngle;
-//   elbow.rotation.z = elbowAngle;
+//   // FIX 5: Apply rotations on Y axis with joint limits
+//   shoulderA.rotation.y = Math.max(-Math.PI/2, Math.min(Math.PI/2, shoulderFinal));
+//   elbowA.rotation.y = Math.max(-0.8*Math.PI, Math.min(0.8*Math.PI, Math.PI - elbowAngle));
 
-//   // 8. Wrist keeps blade horizontal — compensate for cumulative pitch
-//   const totalPitch = shoulderAngle + elbowAngle;
-//   let wristAngle = -totalPitch;
-//   // Apply industrial -15° tilt during low-Y placement (chuck height ≈ 0.93)
-//   const isPlacing = Math.abs(localTgt.y - 0.93) < 0.25;
-//   if (isPlacing) wristAngle += -0.26; // -15° downward tilt for flush placement
-//   wrist.rotation.z = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, wristAngle));
+//   // Mirror to arm B for dual-arm operation
+//   shoulderB.rotation.y = shoulderA.rotation.y;
+//   elbowB.rotation.y = elbowA.rotation.y;
 // }
 
 // function normalizeAngle(angle: number): number {
@@ -7295,14 +7289,18 @@
 
 //       function getJoints(): JointData {
 //         return {
-//           base:     { c: turret.rotation.y },
-//           shoulder: { c: shoulder.rotation.x },
-//           elbow:    { c: elbow.rotation.x },
-//           wrist:    { c: wrist.rotation.x },
+//           base:     { c: baseRotation.rotation.y },
+//           zLift:    { c: zLift.position.y },
+//           shoulderA: { c: shoulderA.rotation.y },
+//           elbowA:   { c: elbowA.rotation.y },
+//           extensionA: { c: extensionA.position.z },
+//           shoulderB: { c: shoulderB.rotation.y },
+//           elbowB:   { c: elbowB.rotation.y },
+//           extensionB: { c: extensionB.position.z },
 //         };
 //       }
 
-//       // ── BONE BINDING TEST ──
+//       // ── JOINT TEST ──
 //       console.log('=== ROBOT BONE TEST ===');
 //       console.log('turret:',   turret.name,   '| parent:', turret.parent?.name);
 //       console.log('shoulder:', shoulder.name, '| parent:', shoulder.parent?.name);
@@ -8914,15 +8912,26 @@
 //   this.mesh.visible = true;
 //   this.mesh.scale.setScalar(1);
 
-//   // Pre-snap to gripper world position to avoid 1-frame jump
-//   const gp = new THREE.Vector3();
-//   robot.gripper.getWorldPosition(gp);
-//   this.mesh.position.set(gp.x, gp.y + 0.05, gp.z);
-//   this.mesh.updateMatrixWorld(true);
+//   // FIX 6: Snap wafer to extension_A world position before parenting
+//   const forkWorldPos = new THREE.Vector3();
+//   const forkWorldQuat = new THREE.Quaternion();
+//   robot.extensionA.getWorldPosition(forkWorldPos);
+//   robot.extensionA.getWorldQuaternion(forkWorldQuat);
+//
+//   // Apply fork offset (0.4m along X-axis in fork frame)
+//   const offset = new THREE.Vector3(0.4, 0.004, 0);
+//   offset.applyQuaternion(forkWorldQuat);
+//   forkWorldPos.add(offset);
 
-//   // CRITICAL: gripper.attach() preserves world transform during reparenting
-//   // This is what the master prompt mandates — NOT scene.add() during transport
-//   robot.gripper.attach(this.mesh);
+//   // FIX 7: Prevent wafer clipping - lift above fork surface
+//   forkWorldPos.y += 0.002;
+
+//   // Snap position before parenting
+//   this.mesh.position.copy(forkWorldPos);
+//   this.mesh.quaternion.copy(forkWorldQuat);
+
+//   // Parent to extension_A for automatic world-space following
+//   robot.extensionA.attach(this.mesh);
 
 //   // Local offset on gripper (bottom-center origin assumption)
 //   this.mesh.position.set(0, 0.05, 0);
@@ -8942,7 +8951,7 @@
 //   setTimeout(() => { if (robot.statusPL) robot.statusPL.intensity = 1.2; }, 300);
 // }
 // // ─── 2. detachAt — reset scale, snap to correct chuck height ─────────────────
-// ddetachAt(worldPos: THREE.Vector3): void {
+// detachAt(worldPos: THREE.Vector3): void {
 //   if (!this.carrierRobot) return;
 
 //   // Preserve current world transform when reparenting back to scene
@@ -9841,17 +9850,28 @@
 // // ── 1. Tick every wafer state machine ──
 // this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
 
-// // ── 2. Carried wafers follow the gripper in world space ──
-// // ── 2. Carried wafers — visibility only; transform handled by parent (gripper) ──
-// // ── Carried wafers: rely on parenting, do NOT lerp/override position ──
+// // ── 2. Carried wafers follow the gripper via world-space transform sync ──
+// // FIX 8: Every frame, sync wafer world position to extension_A
 // this.wSMs.forEach((sm) => {
 //   if (sm.carrierRobot && sm.launched && !sm.done) {
-//     // Ensure wafer is visible (parenting already sets world transform)
 //     sm.mesh.visible = true;
 //     sm.mesh.scale.setScalar(1);
-//     // Gentle rotation for visual interest (does not affect position/orientation)
-//     sm.mesh.rotation.y += 0.04;
-//     // No position lerp here – the wafer moves exactly with the gripper
+//     
+//     // Get fork (extension_A) world transform
+//     const forkWorldPos = new THREE.Vector3();
+//     const forkWorldQuat = new THREE.Quaternion();
+//     sm.carrierRobot.extensionA.getWorldPosition(forkWorldPos);
+//     sm.carrierRobot.extensionA.getWorldQuaternion(forkWorldQuat);
+
+//     // Apply fork offset
+//     const offset = new THREE.Vector3(0.4, 0.004, 0);
+//     offset.applyQuaternion(forkWorldQuat);
+//     forkWorldPos.add(offset);
+//     forkWorldPos.y += 0.002; // Prevent clipping
+
+//     // Smooth interpolation (no snapping)
+//     sm.mesh.position.lerp(forkWorldPos, 0.15);
+//     sm.mesh.quaternion.slerp(forkWorldQuat, 0.15);
 //   }
 // });
 
@@ -17507,12 +17527,6513 @@
 
 
 
-"use client";
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+// "use client";
+// import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import * as THREE from "three";
-import Link from "next/link";
+// import { useEffect, useRef, useState, useCallback } from "react";
+// import * as THREE from "three";
+// import Link from "next/link";
+
+// // and remove the require() inside buildRobotGLB — use the import instead
+
+// // ─── TYPES ───────────────────────────────────────────────────────────────────
+
+// interface ProcessStep {
+//   id: string;
+//   name: string;
+//   short: string;
+//   temp: number | null;
+//   time: number;
+//   color: number;
+//   type: string;
+//   x: number;
+//   z: number;
+// }
+
+// interface RobotObject {
+//   group: THREE.Group;
+//   turret: THREE.Group;
+//   shoulder: THREE.Group;
+//   upperArm: THREE.Group;
+//   elbow: THREE.Group;
+//   foreArm: THREE.Group;
+//   wrist: THREE.Group;
+//   gripper: THREE.Group;
+//   statusPL: THREE.PointLight;
+//   basePos: THREE.Vector3;
+//   runIK: (tgt: THREE.Vector3) => void;
+//   getJoints: () => JointData;
+//   worldPos: () => THREE.Vector3;
+// }
+
+// interface JointData {
+//   base: { c: number };
+//   shoulder: { c: number };
+//   elbow: { c: number };
+//   wrist: { c: number };
+// }
+
+// interface WaferUIState {
+//   wi: number;
+//   name: string;
+//   state: string;
+//   stepIdx: number;
+//   stepName: string;
+//   processTimer: number;
+//   stepTime: number;
+//   done: boolean;
+//   launched: boolean;
+// }
+
+// interface UIState {
+//   wafers: WaferUIState[];
+//   simTime: number;
+//   fps: number;
+//   active: number;
+//   completed: number;
+//   jointsA: JointData | null;
+//   jointsEFEM: JointData | null;
+//   jointsC: JointData | null;
+// }
+
+// interface LogEntry {
+//   id: number;
+//   msg: string;
+//   cls: "pick" | "place" | "move" | "";
+// }
+
+// interface TooltipState {
+//   visible: boolean;
+//   x: number;
+//   y: number;
+//   name: string;
+//   temp: string;
+//   meta: string;
+//   tempColor: string;
+// }
+
+// interface CameraPreset {
+//   theta: number;
+//   phi: number;
+//   radius: number;
+//   cx: number;
+//   cy: number;
+//   cz: number;
+// }
+
+// // ─── CONSTANTS ────────────────────────────────────────────────────────────────
+// const MODULE_FLOOR_Y = 0.3;   // ← single knob for ALL module heights
+// const SP = 4.0;
+// const TOP_Z = -SP;
+// const BOT_Z = SP;
+// const DEG = Math.PI / 180;
+// const NUM_WAFERS = 4;
+// const PLACE_DELAY = 0.3;
+// // ─── PICK ALIGNMENT THRESHOLDS ───────────────────────────────────────────────
+// const PICK_APPROACH_DIST    = 2.5;    // realistic for your scale
+// const PICK_SNAP_DIST        = 1.5;    // begin snap when within 1.5 units
+// const PICK_ATTACH_DIST      = 0.8;    // attach when reasonably close
+// const PICK_ANGULAR_TOL_DEG  = 45.0;   // loose tolerance — IK isn't precise yet
+// const PICK_SOFT_IK_BLEND    = 0.18;
+// const PICK_POS_SNAP_BLEND   = 0.25;
+// const GRIPPER_OFFSET_EULER  = new THREE.Euler(0, 0, 0);  // no offset — bones are skinned // blade faces down
+
+// const EFEM_X = -15;
+// const EFEM_Z = 0;
+// const ALL_STEPS: ProcessStep[] = [
+//   { id: "foup",      name: "FOUP Input",              short: "FOUP", temp: null, time: 3, color: 0x4488ff, type: "foup",  x: -20, z: 1    },
+//   { id: "dehy",      name: "Dehydration Bake 150°C",  short: "DEHY", temp: 150,  time: 6, color: 0xff2200, type: "hot",   x: -11, z: TOP_Z },
+//   { id: "hmds",      name: "HMDS Vapor Prime",        short: "HMDS", temp: 110,  time: 5, color: 0xff8800, type: "hot",   x: -6,  z: TOP_Z },
+//   { id: "chill1",    name: "Chill Plate #1  22°C",    short: "CP-1", temp: 22,   time: 3, color: 0x00ccff, type: "cold",  x: -1,  z: TOP_Z },
+//   { id: "prcoat",    name: "PR Coat (COT)",           short: "COT",  temp: null, time: 8, color: 0xcc00ff, type: "coat",  x: 4,   z: TOP_Z },
+//   { id: "pab",       name: "Post-Apply Bake 118°C",   short: "PAB",  temp: 118,  time: 5, color: 0xff5500, type: "hot",   x: 9,   z: TOP_Z },
+//   { id: "chill2",    name: "Chill Plate #2  22°C",    short: "CP-2", temp: 22,   time: 3, color: 0x00aaee, type: "cold",  x: 14,  z: TOP_Z },
+//   { id: "iface_out", name: "Interface → Scanner",     short: "IF→",  temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19,  z: -3    },
+//   { id: "scanner",   name: "Scanner 193nm Exposure",  short: "SCAN", temp: null, time: 9, color: 0xee00cc, type: "scan",  x: 28,  z: 0     },
+//   { id: "iface_in",  name: "Interface ← Scanner",     short: "IF←",  temp: null, time: 2, color: 0xffaa00, type: "iface", x: 19,  z: 3     },
+//   { id: "peb",       name: "Post-Exposure Bake 120°C",short: "PEB",  temp: 120,  time: 5, color: 0xff3300, type: "hot",   x: 14,  z: BOT_Z },
+//   { id: "develop",   name: "Developer Module (DEV)",  short: "DEV",  temp: null, time: 6, color: 0x00ff88, type: "wet",   x: 9,   z: BOT_Z },
+//   { id: "rinse",     name: "DI Water Rinse",          short: "RINSE",temp: null, time: 4, color: 0x0088ff, type: "wet",   x: 4,   z: BOT_Z },
+//   { id: "spindry",   name: "Spin Dry + N₂ Purge",     short: "DRY",  temp: null, time: 4, color: 0x00eeff, type: "dry",   x: -1,  z: BOT_Z },
+//   { id: "chill3",    name: "Chill Plate #3  22°C",    short: "CP-3", temp: 22,   time: 3, color: 0x22ddbb, type: "cold",  x: -6,  z: BOT_Z },
+//   { id: "hardbake",  name: "Hard Bake  130°C",        short: "HBAK", temp: 130,  time: 5, color: 0xff1100, type: "hot",   x: -11, z: BOT_Z },
+// ];
+ 
+// const WAFER_COLORS = [0xc9a574, 0xc9a574, 0xc9a574, 0xc9a574];
+// const WAFER_NAMES  = ["W-001", "W-002", "W-003", "W-004"];
+// const W_CSS = ["#c9a574", "#c9a574", "#c9a574", "#c9a574"];
+
+
+// const WAFER_UI_TINTS = ["#ffaa00", "#00eeff", "#dd44ff", "#44ffaa"];
+
+
+// // function buildWafer(color: number): THREE.Group {
+// //   const g = new THREE.Group();
+
+// //   // ── SCALE: reduced from 0.88 → 0.45 (half size) ──
+// //   const R = 0.75;       // wafer radius (was 0.88)
+// //   const H = 0.035;      // wafer thickness (was 0.055)
+// //   const PR_R = 0.73;    // PR layer radius (was 0.84)
+// //   const PR_H = 0.018;   // PR layer thickness (was 0.025)
+// //   const EDGE_R = 0.75;  // edge ring radius (was 0.88)
+// //   const EDGE_T = 0.025; // edge tube thickness (was 0.032)
+
+// //   // Iridescent base disk
+// //   const disk = new THREE.Mesh(
+// //     new THREE.CylinderGeometry(R, R, H, 96),
+// //     new THREE.MeshPhysicalMaterial({
+// //       color: 0x8899cc,
+// //       roughness: 0.05,
+// //       metalness: 0.6,
+// //       clearcoat: 0.4,
+// //       clearcoatRoughness: 0.2,
+// //       envMapIntensity: 1.0,
+// //       emissive: 0x112244,
+// //       emissiveIntensity: 0.15,
+// //     })
+// //   );
+// //   disk.castShadow = true;
+// //   g.add(disk);
+
+// //   // Holographic PR layer
+// //   const pr = new THREE.Mesh(
+// //     new THREE.CylinderGeometry(PR_R, PR_R, PR_H, 80),
+// //     new THREE.MeshPhysicalMaterial({
+// //       color,
+// //       roughness: 0.12,
+// //       metalness: 0.05,
+// //       clearcoat: 0.6,
+// //       clearcoatRoughness: 0.1,
+// //       emissive: color,
+// //       emissiveIntensity: 0.9,
+// //       transparent: true,
+// //       opacity: 0.9,
+// //       envMapIntensity: 0.7,
+// //     })
+// //   );
+// //   pr.position.y = H / 2 + PR_H / 2 - 0.002;
+// //   g.add(pr);
+// //   g.userData.prLayer = pr;
+
+// //   // Smaller die array (scaled to new wafer)
+// //   for (let dx = -2; dx <= 2; dx++) {
+// //     for (let dz = -2; dz <= 2; dz++) {
+// //       if (dx * dx + dz * dz > 5) continue;
+// //       const dieColor = new THREE.Color(color).multiplyScalar(1.3);
+// //       const die = new THREE.Mesh(
+// //         new THREE.BoxGeometry(0.11, 0.003, 0.11),
+// //         new THREE.MeshStandardMaterial({
+// //           color: dieColor,
+// //           roughness: 0.06,
+// //           metalness: 0.9,
+// //           emissive: color,
+// //           emissiveIntensity: 0.3,
+// //         })
+// //       );
+// //       die.position.set(dx * 0.13, H / 2 + 0.003, dz * 0.13);
+// //       g.add(die);
+// //     }
+// //   }
+
+// //   // Neon edge ring
+// //   const edge = new THREE.Mesh(
+// //     new THREE.TorusGeometry(EDGE_R, EDGE_T, 16, 96),
+// //     new THREE.MeshStandardMaterial({
+// //       color: 0xaabbee,
+// //       roughness: 0.02,
+// //       metalness: 0.99,
+// //       emissive: color,
+// //       emissiveIntensity: 0.5,
+// //     })
+// //   );
+// //   edge.rotation.x = Math.PI / 2;
+// //   g.add(edge);
+
+// //   // Alignment rings (smaller)
+// //   for (let r = 0.1; r <= 0.4; r += 0.08) {
+// //     const circ = new THREE.Mesh(
+// //       new THREE.TorusGeometry(r, 0.0015, 6, 60),
+// //       new THREE.MeshStandardMaterial({
+// //         color: 0x8899dd,
+// //         emissive: color,
+// //         emissiveIntensity: 0.6,
+// //         roughness: 0.08,
+// //         metalness: 0.1,
+// //       })
+// //     );
+// //     circ.rotation.x = Math.PI / 2;
+// //     circ.position.y = H / 2 + 0.001;
+// //     g.add(circ);
+// //   }
+
+// //   // Notch
+// //   const notch = new THREE.Mesh(
+// //     new THREE.BoxGeometry(0.04, 0.03, 0.022),
+// //     new THREE.MeshStandardMaterial({
+// //       color: 0x8899cc,
+// //       roughness: 0.08,
+// //       metalness: 0.9,
+// //       emissive: 0x4466aa,
+// //       emissiveIntensity: 0.4,
+// //     })
+// //   );
+// //   notch.position.set(R, 0, 0);
+// //   g.add(notch);
+
+// //   // Glow ring (smaller)
+// //   const glowGeo = new THREE.TorusGeometry(R + 0.02, 0.008, 12, 36);
+// //   const glowMat = new THREE.MeshStandardMaterial({
+// //     color: color,
+// //     emissive: color,
+// //     emissiveIntensity: 1.5,
+// //     roughness: 0.3,
+// //     transparent: true,
+// //     opacity: 0.6,
+// //     depthWrite: false,
+// //   });
+// //   const glow = new THREE.Mesh(glowGeo, glowMat);
+// //   glow.rotation.x = Math.PI / 2;
+// //   glow.position.y = H / 2 + 0.002;
+// //   g.add(glow);
+// //   g.userData.glowRing = glow;
+
+// //   return g;
+// // }
+// function buildWafer(prTint: number): THREE.Group {
+//   const g = new THREE.Group();
+ 
+//   const R = 0.75;
+//   const H = 0.035;
+//   const PR_R = 0.73;
+//   const PR_H = 0.018;
+ 
+//   // ── Polished silicon disk (NEUTRAL GREY — semiconductor realistic) ──
+//   const disk = new THREE.Mesh(
+//     new THREE.CylinderGeometry(R, R, H, 96),
+//     new THREE.MeshPhysicalMaterial({
+//       color: 0x9aa4b0,           // silicon grey
+//       roughness: 0.18,
+//       metalness: 0.85,
+//       clearcoat: 0.6,
+//       clearcoatRoughness: 0.15,
+//       envMapIntensity: 0.9,
+//     })
+//   );
+//   disk.castShadow = true;
+//   g.add(disk);
+ 
+//   // ── Photoresist layer — light brown (tint slightly per wafer for ID only) ──
+//   const baseResist = new THREE.Color(0xc9a574); // light photoresist brown
+//   const tintColor = new THREE.Color(prTint).multiplyScalar(0.15).add(baseResist);
+ 
+//   const pr = new THREE.Mesh(
+//     new THREE.CylinderGeometry(PR_R, PR_R, PR_H, 80),
+//     new THREE.MeshPhysicalMaterial({
+//       color: tintColor,
+//       roughness: 0.25,
+//       metalness: 0.05,
+//       clearcoat: 0.7,
+//       clearcoatRoughness: 0.1,
+//       transparent: true,
+//       opacity: 0.85,
+//     })
+//   );
+//   pr.position.y = H / 2 + PR_H / 2 - 0.002;
+//   pr.visible = false; // PR appears AFTER coating step
+//   g.add(pr);
+//   g.userData.prLayer = pr;
+//   g.userData.prVisible = false;
+ 
+//   // ── Subtle die grid (very faint) ──
+//   for (let dx = -2; dx <= 2; dx++) {
+//     for (let dz = -2; dz <= 2; dz++) {
+//       if (dx * dx + dz * dz > 5) continue;
+//       const die = new THREE.Mesh(
+//         new THREE.BoxGeometry(0.10, 0.002, 0.10),
+//         new THREE.MeshStandardMaterial({
+//           color: 0xb0b8c2,
+//           roughness: 0.15,
+//           metalness: 0.9,
+//         })
+//       );
+//       die.position.set(dx * 0.13, H / 2 + 0.002, dz * 0.13);
+//       g.add(die);
+//     }
+//   }
+ 
+//   // ── Edge ring (thin, subtle) ──
+//   const edge = new THREE.Mesh(
+//     new THREE.TorusGeometry(R, 0.018, 12, 96),
+//     new THREE.MeshStandardMaterial({
+//       color: 0x8892a0,
+//       roughness: 0.12,
+//       metalness: 0.95,
+//     })
+//   );
+//   edge.rotation.x = Math.PI / 2;
+//   g.add(edge);
+ 
+//   // ── Notch (alignment flat) ──
+//   const notch = new THREE.Mesh(
+//     new THREE.BoxGeometry(0.04, 0.025, 0.018),
+//     new THREE.MeshStandardMaterial({
+//       color: 0x7a8290,
+//       roughness: 0.12,
+//       metalness: 0.9,
+//     })
+//   );
+//   notch.position.set(R, 0, 0);
+//   g.add(notch);
+ 
+//   return g;
+// }
+ 
+// // Helper to enable PR layer after coating step
+// function showPRLayer(waferGroup: THREE.Group, visible: boolean) {
+//   const pr = waferGroup.userData.prLayer as THREE.Mesh | undefined;
+//   if (pr) {
+//     pr.visible = visible;
+//     waferGroup.userData.prVisible = visible;
+//   }
+// }
+
+
+
+
+// const CAMERA_PRESETS: Record<string, CameraPreset> = {
+//  "OVERVIEW":  { theta: Math.PI * 0.13, phi: 0.46, radius: 36, cx: 4,   cy: 2, cz: -2    },
+//   "TOP DOWN":  { theta: Math.PI * 0.13, phi: 0.03, radius: 28, cx: 2,   cy: 0, cz: 0     },
+//   "EFEM":      { theta: Math.PI * 0.62, phi: 0.30, radius: 10, cx: -8,  cy: 0, cz: 0     },
+//   "TOP TRACK": { theta: Math.PI * 0.03, phi: 0.28, radius: 14, cx: 2,   cy: 0, cz: TOP_Z },
+//   "BOT TRACK": { theta: Math.PI * 1.0,  phi: 0.28, radius: 14, cx: 2,   cy: 0, cz: BOT_Z },
+//   "SCANNER":   { theta: Math.PI * 0.88, phi: 0.28, radius: 9,  cx: 16,  cy: 0, cz: 0     },
+//   "PR COAT":   { theta: Math.PI * 0.55, phi: 0.32, radius: 8,  cx: 4,   cy: 0, cz: TOP_Z },
+// };
+
+// const COMPONENT_INFO: Record<string, {
+//   section: string; hardware: string; process: string; specs: Record<string, string>
+// }> = {
+//   "foup":      { section: "EFEM / Loading", hardware: "Polycarbonate/PEEK enclosure with precision-machined door interface. SEMI-standard kinematic coupling. N₂-purged micro-atmosphere.", process: "Mini-environment isolating 300mm wafers. Maintains N₂-purged atmosphere preventing native oxide growth and AMC during transport.", specs: { "Purge Gas": "N₂, 5–10 LPM", "Environment": "ISO Class 1", "Coupling": "SEMI-standard kinematic" } },
+//   "dehy":      { section: "Main Process Track", hardware: "Proximity hotplate with programmable lift pins 0.1mm–1.0mm. Multi-zone heating, thermal uniformity <±0.5%.", process: "Thermally desorbs adsorbed H₂O molecules from wafer surface. Critical prerequisite for primer bonding.", specs: { "Temperature": "150°C", "Time": "60s", "Proximity Gap": "0.1mm", "Uniformity": "<±0.5%" } },
+//   "hmds":      { section: "Main Process Track", hardware: "Vacuum-sealed chamber with HMDS bubbler and N₂ carrier gas. Heated walls prevent condensation.", process: "Silylation: HMDS replaces –OH groups with –Si(CH₃)₃. Converts hydrophilic to hydrophobic, prevents resist peeling.", specs: { "Temperature": "110°C", "Vacuum": "<1 Torr", "Time": "30s", "Contact Angle": ">70° post-prime" } },
+//   "chill1":    { section: "Main Process Track", hardware: "Water-cooled or Peltier aluminium plate with helium-backside gas for thermal conduction.", process: "Rapidly quenches thermal energy. Normalizes wafer temperature for consistent resist viscosity.", specs: { "Target Temp": "22.0°C ±0.1°C", "Time": "45s", "Cooling": "Water/Peltier + He backside" } },
+//   "prcoat":    { section: "Main Process Track", hardware: "High-speed spindle up to 6000 RPM. Programmable dispense arm, suck-back valves, EBR nozzle.", process: "Centrifugal force spreads viscous polymer. h ∝ 1/√ω. EBR removes edge bead.", specs: { "Spin Speed": "1500–3000 RPM", "Acceleration": "20,000 RPM/s", "Dispense": "Dynamic 2.0cc", "EBR Solvent": "PGMEA" } },
+//   "pab":       { section: "Main Process Track", hardware: "Isobaric hotplate with exhaust system for solvent vapor removal.", process: "Evaporates PGMEA solvent. Reduces dark-reactivity, stabilizes thickness.", specs: { "Temperature": "100–120°C", "Time": "60–90s", "Solvent Removed": "~90% PGMEA" } },
+//   "chill2":    { section: "Main Process Track", hardware: "Water-cooled aluminium plate with helium-backside gas.", process: "Stabilizes film before scanner transfer. Ensures identical thermal budget.", specs: { "Target Temp": "22.0°C", "Time": "30s", "Cooling": "Water/Peltier + He backside" } },
+//   "iface_out": { section: "Interface / Scanner", hardware: "High-precision bridge between track and scanner. Centering unit, cooling station.", process: "Sync hub managing timing between asynchronous track and scanner. Ensures consistent Time-to-Exposure (TTE).", specs: { "Function": "Buffer / Sync", "Key Metric": "TTE consistency" } },
+//   "scanner":   { section: "Interface / Scanner", hardware: "193nm ArF excimer laser scanner. High-precision wafer stage. Reticle stage and projection optics.", process: "Generates Photo-Acid Generators via latent image formation at 193nm wavelength.", specs: { "Wavelength": "193nm (ArF)", "Dose": "20–50 mJ/cm²", "NA": "0.93 (dry)" } },
+//   "iface_in":  { section: "Interface / Scanner", hardware: "Return bridge from scanner back to process track.", process: "Returns exposed wafer to track for post-exposure processing.", specs: { "Function": "Scanner → Track handoff" } },
+//   "peb":       { section: "Post-Exposure Sequence", hardware: "High-uniformity hotplate with multi-zone thermal control.", process: "Acid-catalyzed deprotection in CAR resists. 1°C error → 1.5–2.0nm CD shift.", specs: { "Temperature": "110–120°C (critical)", "Time": "60s", "CD Sensitivity": "1.5–2.0 nm/°C" } },
+//   "develop":   { section: "Post-Exposure Sequence", hardware: "Multi-nozzle dispense (stream/spray/puddle) with rotating chuck. Temperature-controlled developer lines.", process: "Selective dissolution of exposed resist in alkaline TMAH. Defines final relief pattern.", specs: { "Developer": "2.38% TMAH", "Puddle Time": "30–60s", "Temperature": "23°C" } },
+//   "rinse":     { section: "Post-Exposure Sequence", hardware: "DI water manifold with rotating chuck and N₂ blow-off.", process: "Removes dissolved resist and developer salts. Prevents water mark defects.", specs: { "Fluid": "DIW + N₂ purge", "Purpose": "Remove developer salts" } },
+//   "spindry":   { section: "Post-Exposure Sequence", hardware: "High-speed spin chuck with N₂ purge nozzle.", process: "Centrifugal drying removes residual rinse water. N₂ purge prevents redeposition.", specs: { "Spin Speed": "4000 RPM", "Gas": "N₂ purge" } },
+//   "chill3":    { section: "Post-Exposure Sequence", hardware: "Water-cooled aluminium plate with helium-backside gas.", process: "Quenches hard bake thermal energy before unloading.", specs: { "Target Temp": "22.0°C", "Time": "45s" } },
+//   "hardbake":  { section: "Post-Exposure Sequence", hardware: "High-temperature hotplate, typically 10–20°C above PAB.", process: "Removes remaining solvent. Thermally cross-links resist for improved etch resistance.", specs: { "Temperature": "130°C", "Time": "60s", "Purpose": "Cross-link polymer" } },
+//   "output":    { section: "EFEM / Loading", hardware: "Output FOUP with N₂ purge. Same mechanical interface as input FOUP.", process: "Stores processed wafers in purged environment pending inspection and metrology.", specs: { "Purge Gas": "N₂", "Capacity": "25 wafers", "Environment": "ISO Class 1" } },
+// };
+
+// // ─── UTILS ───────────────────────────────────────────────────────────────────
+
+// const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
+// const lerp  = (a: number, b: number, t: number) => a + (b - a) * t;
+// const hex2css = (h: number) => `#${h.toString(16).padStart(6, "0")}`;
+// const fmtClock = (s: number) =>
+//   [s / 3600, (s % 3600) / 60, s % 60]
+//     .map((v) => Math.floor(v).toString().padStart(2, "0"))
+//     .join(":");
+
+
+//     // ─── QUATERNION ALIGNMENT MATH ───────────────────────────────────────────────
+
+// const _tmpV1 = new THREE.Vector3();
+// const _tmpV2 = new THREE.Vector3();
+// const _tmpQ1 = new THREE.Quaternion();
+// const _tmpQ2 = new THREE.Quaternion();
+// const _tmpM  = new THREE.Matrix4();
+
+// /** Get world quaternion of any object, including nested GLB hierarchies */
+// function getWorldQuaternion(obj: THREE.Object3D, out: THREE.Quaternion): THREE.Quaternion {
+//   obj.updateWorldMatrix(true, false);
+//   obj.getWorldQuaternion(out);
+//   return out.normalize();
+// }
+
+// /** Compute target gripper quaternion: align gripper -Y (down) to wafer +Y (surface normal) */
+// function computeGripperTargetQuat(
+//   waferObj: THREE.Object3D,
+//   gripperOffsetEuler: THREE.Euler,
+//   out: THREE.Quaternion
+// ): THREE.Quaternion {
+//   // Wafer's world rotation
+//   getWorldQuaternion(waferObj, _tmpQ1);
+//   // Gripper offset (e.g. blade rotated 180° about X to face down)
+//   _tmpQ2.setFromEuler(gripperOffsetEuler);
+//   // targetQ = waferWorldQ * gripperOffsetQ  (order matters!)
+//   out.multiplyQuaternions(_tmpQ1, _tmpQ2).normalize();
+//   return out;
+// }
+
+// /** Angular error in radians between two quaternions via dot product */
+// function angularError(qa: THREE.Quaternion, qb: THREE.Quaternion): number {
+//   const d = Math.abs(qa.dot(qb));
+//   return 2 * Math.acos(Math.min(1, d));   // shortest-path angle
+// }
+
+// /** Damped slerp with shortest-path correction */
+// function softSlerp(current: THREE.Quaternion, target: THREE.Quaternion, t: number) {
+//   if (current.dot(target) < 0) target.set(-target.x, -target.y, -target.z, -target.w);
+//   current.slerp(target, t).normalize();
+// }
+
+// /** Smooth-step easing (cinematic, frame-rate friendly) */
+// function smoothStep(t: number): number {
+//   t = Math.max(0, Math.min(1, t));
+//   return t * t * (3 - 2 * t);
+// }
+// // ─── MATERIAL HELPERS ─────────────────────────────────────────────────────────
+
+// function matGlass(color = 0x88ccff, opacity = 0.22) {
+//   return new THREE.MeshStandardMaterial({
+//     color, roughness: 0.04, metalness: 0.0,
+//     transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false,
+//   });
+// }
+// function matEmissive(color: number, ei = 4.0) {
+//   return new THREE.MeshStandardMaterial({
+//     color, emissive: color, emissiveIntensity: ei, roughness: 0.4,
+//   });
+// }
+// function matPBR(c: number, rough = 0.25, metal = 0.95) {
+//   return new THREE.MeshStandardMaterial({ color: c, roughness: rough, metalness: metal });
+// }
+
+// function addPedestalToModule(moduleGroup: THREE.Group, width = 3.2, depth = 3.2, pedestalHeight = 0.45, edgeColor = 0x00aaff) {
+//   const pedestalMat = new THREE.MeshStandardMaterial({ color: 0x1a2030, roughness: 0.35, metalness: 0.80, emissive: edgeColor, emissiveIntensity: 0.12 });
+//   const pedestal = new THREE.Mesh(new THREE.BoxGeometry(width, pedestalHeight, depth), pedestalMat);
+//   pedestal.position.y = -pedestalHeight / 2;
+//   pedestal.castShadow = true;
+//   pedestal.receiveShadow = true;
+//   moduleGroup.add(pedestal);
+
+//   const strip = new THREE.Mesh(new THREE.BoxGeometry(width, 0.04, 0.06),
+//     new THREE.MeshStandardMaterial({ color: edgeColor, emissive: edgeColor, emissiveIntensity: 3.5, roughness: 0.2, transparent: true, opacity: 0.9 }));
+//   strip.position.set(0, -pedestalHeight + 0.025, depth / 2);
+//   moduleGroup.add(strip);
+//   moduleGroup.userData.plinthStrip = strip;
+
+//   const glbRoot = moduleGroup.userData.glbRoot as THREE.Group;
+//   if (glbRoot) glbRoot.position.y += pedestalHeight;
+// }
+
+// // ─── LIGHTING ─────────────────────────────────────────────────────────────────
+
+// function setupLighting(scene: THREE.Scene) {
+//   // Bright cleanroom background — light blue-white
+//   scene.background = new THREE.Color(0xc8d8e8);
+//   scene.fog = new THREE.FogExp2(0xc8d8e8, 0.0035);
+ 
+//   scene.add(new THREE.AmbientLight(0xffffff, 2.2));
+//   scene.add(new THREE.HemisphereLight(0xffffff, 0xa8b8c8, 1.8));
+ 
+//   const key = new THREE.DirectionalLight(0xffffff, 4.5);
+//   key.position.set(-4, 35, 12);
+//   key.castShadow = true;
+//   key.shadow.mapSize.set(4096, 4096);
+//   key.shadow.camera.near = 1;  key.shadow.camera.far = 160;
+//   key.shadow.camera.left = -65; key.shadow.camera.right = 65;
+//   key.shadow.camera.top = 35;  key.shadow.camera.bottom = -35;
+//   key.shadow.bias = -0.0002;   key.shadow.normalBias = 0.015;
+//   scene.add(key);
+ 
+//   const fill1 = new THREE.DirectionalLight(0xeef4ff, 2.0); fill1.position.set(12, 20, -8);   scene.add(fill1);
+//   const fill2 = new THREE.DirectionalLight(0xddeeff, 1.4); fill2.position.set(32, 14, -18);  scene.add(fill2);
+//   const rim   = new THREE.DirectionalLight(0x88aacc, 0.6); rim.position.set(-12, 5, -30);    scene.add(rim);
+ 
+//   // Soft floor accent lights along the belts
+//   const TOP_Z = -5.5, BOT_Z = 5.5;
+//   [TOP_Z, BOT_Z].forEach((z) => {
+//     for (let x = -18; x <= 22; x += 7) {
+//       const pl = new THREE.PointLight(z === TOP_Z ? 0x88bbff : 0x88ddaa, 0.5, 7);
+//       pl.position.set(x, 0.5, z);
+//       scene.add(pl);
+//     }
+//   });
+// }
+ 
+ 
+// // ─── 2. ENVIRONMENT — clean light floor with subtle grid (replaces buildEnv) ─
+ 
+// function buildEnv(scene: THREE.Scene) {
+//   // CLEAN LIGHT BLUE FLOOR — like reference image
+//   const flMat = new THREE.MeshStandardMaterial({
+//     color: 0x333333,
+//     roughness: 0.35,
+//     metalness: 0.15,
+//     envMapIntensity: 0.4,
+//   });
+//   const fl = new THREE.Mesh(new THREE.PlaneGeometry(180, 90), flMat);
+//   fl.rotation.x = -Math.PI / 2;
+//   fl.position.y = -0.52;
+//   fl.receiveShadow = true;
+//   scene.add(fl);
+ 
+//   // SUBTLE LIGHT GRID — thin lines, low contrast, matches image
+//   const gridCanvas = document.createElement("canvas");
+//   gridCanvas.width = 1024;
+//   gridCanvas.height = 1024;
+//   const gCtx = gridCanvas.getContext("2d")!;
+//   gCtx.fillStyle = "rgba(0,0,0,0)";
+//   gCtx.fillRect(0, 0, 1024, 1024);
+//   gCtx.strokeStyle = "#7090b0";
+//   gCtx.lineWidth = 1.2;
+//   gCtx.globalAlpha = 0.35;
+//   const cell = 64;
+//   for (let x = 0; x <= 1024; x += cell) {
+//     gCtx.beginPath();
+//     gCtx.moveTo(x, 0);
+//     gCtx.lineTo(x, 1024);
+//     gCtx.stroke();
+//   }
+//   for (let y = 0; y <= 1024; y += cell) {
+//     gCtx.beginPath();
+//     gCtx.moveTo(0, y);
+//     gCtx.lineTo(1024, y);
+//     gCtx.stroke();
+//   }
+ 
+//   const gridTex = new THREE.CanvasTexture(gridCanvas);
+//   gridTex.wrapS = THREE.RepeatWrapping;
+//   gridTex.wrapT = THREE.RepeatWrapping;
+//   gridTex.repeat.set(6, 3);
+ 
+//   const grid = new THREE.Mesh(
+//     new THREE.PlaneGeometry(180, 90),
+//     new THREE.MeshBasicMaterial({
+//       map: gridTex,
+//       transparent: true,
+//       opacity: 0.55,
+//       depthWrite: false,
+//     })
+//   );
+//   grid.rotation.x = -Math.PI / 2;
+//   grid.position.y = -0.5;
+//   scene.add(grid);
+ 
+//   // Subtle floor highlights (the bright spots in image)
+//   for (let i = 0; i < 8; i++) {
+//     const spot = new THREE.Mesh(
+//       new THREE.CircleGeometry(0.4 + Math.random() * 0.3, 24),
+//       new THREE.MeshBasicMaterial({
+//         color: 0xffffff,
+//         transparent: true,
+//         opacity: 0.35 + Math.random() * 0.25,
+//         depthWrite: false,
+//       })
+//     );
+//     spot.rotation.x = -Math.PI / 2;
+//     spot.position.set(
+//       -10 + Math.random() * 40,
+//       -0.49,
+//       -8 + Math.random() * 16
+//     );
+//     scene.add(spot);
+//   }
+ 
+//   // Dark navy back wall (matches reference top strip)
+//   const wallMat = new THREE.MeshStandardMaterial({
+//     color: 0x1a2838,
+//     roughness: 0.45,
+//     metalness: 0.2,
+//   });
+//   const wall = new THREE.Mesh(new THREE.PlaneGeometry(180, 8), wallMat);
+//   wall.position.set(6, 4, -32);
+//   scene.add(wall);
+ 
+//   // Lighter blue wall above the dark strip
+//   const wallUpper = new THREE.Mesh(
+//     new THREE.PlaneGeometry(180, 22),
+//     new THREE.MeshStandardMaterial({ color: 0xdce8f2, roughness: 0.6, metalness: 0.05 })
+//   );
+//   wallUpper.position.set(6, 19, -32);
+//   scene.add(wallUpper);
+ 
+//   // ── NO ceiling, NO hex panels — keeps the open clean look ──
+// }
+ 
+
+// // ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
+
+// function addSLabel(scene: THREE.Scene, text: string, x: number, y: number, z: number, color: number) {
+//   const c = document.createElement("canvas"); c.width = 512; c.height = 72;
+//   const ctx = c.getContext("2d")!;
+//   ctx.fillStyle = hex2css(color);
+//   ctx.font = "bold 20px 'Courier New',monospace";
+//   ctx.textAlign = "center"; ctx.shadowColor = hex2css(color); ctx.shadowBlur = 12;
+//   ctx.fillText(text, 256, 46);
+//   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, opacity: 0.85 }));
+//   sp.scale.set(7, 0.95, 1); sp.position.set(x, y, z); scene.add(sp);
+// }
+
+// // ─── CONVEYOR BELT (from code 1, with enhanced animation) ────────────────────
+
+// class ConveyorBelt {
+//   beltSegments: THREE.Mesh[] = [];
+//   rollers: THREE.Mesh[] = [];
+//   beltOffset = 0;
+//   beltLength: number;
+ 
+//   constructor(scene: THREE.Scene, startX: number, endX: number, z: number, color: number) {
+//     this.beltLength = Math.abs(endX - startX);
+//     const centerX = (startX + endX) / 2;
+ 
+//     // ── LOW BELT, sits at floor-ish level, BESIDE modules ──
+//     const LEG_H  = 0.18;             // very short legs
+//     const BELT_Y = LEG_H + 0.04;     // surface around y=0.22 — well below module chuck (~0.93)
+ 
+//     // Short legs
+//     const legMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.3, metalness: 0.85 });
+//     const legSpacing = this.beltLength / 5;
+//     for (let i = 1; i <= 4; i++) {
+//       const lx = startX + i * legSpacing;
+//       [-0.45, 0.45].forEach((lz) => {
+//         const leg = new THREE.Mesh(new THREE.BoxGeometry(0.07, LEG_H, 0.07), legMat);
+//         leg.position.set(lx, LEG_H / 2, z + lz);
+//         scene.add(leg);
+//       });
+//     }
+ 
+//     // Side rails — clean white/grey to match reference
+//     const railMat = new THREE.MeshStandardMaterial({
+//       color: 0xc8d4e0,
+//       roughness: 0.25,
+//       metalness: 0.7,
+//       emissive: color,
+//       emissiveIntensity: 0.15,
+//     });
+//     [-0.55, 0.55].forEach((zOff) => {
+//       const rail = new THREE.Mesh(new THREE.BoxGeometry(this.beltLength, 0.06, 0.10), railMat);
+//       rail.position.set(centerX, BELT_Y + 0.03, z + zOff);
+//       scene.add(rail);
+//     });
+ 
+//     // Belt surface — light coloured, animated stripe texture
+//     const beltCanvas = document.createElement("canvas");
+//     beltCanvas.width = 512; beltCanvas.height = 64;
+//     const bCtx = beltCanvas.getContext("2d")!;
+//     this._drawBelt(bCtx, 0, color);
+//     const beltTex = new THREE.CanvasTexture(beltCanvas);
+//     beltTex.wrapS = THREE.RepeatWrapping; beltTex.wrapT = THREE.RepeatWrapping;
+//     beltTex.repeat.set(this.beltLength / 2, 1);
+ 
+//     const beltMesh = new THREE.Mesh(
+//       new THREE.BoxGeometry(this.beltLength, 0.04, 0.95),
+//       new THREE.MeshStandardMaterial({
+//         color: 0xe8f0f8,
+//         emissive: color,
+//         emissiveIntensity: 0.3,
+//         roughness: 0.35,
+//         metalness: 0.2,
+//         map: beltTex,
+//       })
+//     );
+//     beltMesh.position.set(centerX, BELT_Y, z);
+//     beltMesh.userData.beltTex = beltTex;
+//     beltMesh.userData.beltCanvas = beltCanvas;
+//     beltMesh.userData.beltCtx = bCtx;
+//     beltMesh.userData.beltColor = color;
+//     beltMesh.receiveShadow = true;
+//     scene.add(beltMesh);
+//     this.beltSegments.push(beltMesh);
+ 
+//     // Bright glow strip BELOW belt — gives the neon-line look from reference
+//     const glowStrip = new THREE.Mesh(
+//       new THREE.BoxGeometry(this.beltLength, 0.025, 0.18),
+//       new THREE.MeshStandardMaterial({
+//         color: color,
+//         emissive: color,
+//         emissiveIntensity: 4.5,
+//         roughness: 0.2,
+//         transparent: true,
+//         opacity: 0.9,
+//       })
+//     );
+//     glowStrip.position.set(centerX, BELT_Y - 0.03, z);
+//     scene.add(glowStrip);
+ 
+//     // Animated stripe markers (sliding along belt)
+//     const stripeMat = new THREE.MeshStandardMaterial({
+//       color,
+//       emissive: color,
+//       emissiveIntensity: 0.85,
+//       roughness: 0.35,
+//     });
+//     const numStripes = Math.floor(this.beltLength / 1.6);
+//     for (let i = 0; i <= numStripes; i++) {
+//       const sx = startX + (i / numStripes) * this.beltLength;
+//       const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.045, 0.92), stripeMat);
+//       stripe.position.set(sx, BELT_Y + 0.025, z);
+//       stripe.userData.beltStripe = true;
+//       stripe.userData.baseX = sx;
+//       stripe.userData.startX = startX;
+//       stripe.userData.endX = endX;
+//       scene.add(stripe);
+//       this.rollers.push(stripe);
+//     }
+ 
+//     // End rollers
+//     const rollerMat = new THREE.MeshStandardMaterial({
+//       color: 0xb0c0d0,
+//       roughness: 0.18,
+//       metalness: 0.92,
+//     });
+//     [startX + 0.25, endX - 0.25].forEach((rx) => {
+//       const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.05, 18), rollerMat);
+//       roller.rotation.x = Math.PI / 2;
+//       roller.position.set(rx, BELT_Y, z);
+//       scene.add(roller);
+//     });
+//   }
+ 
+//   private _drawBelt(ctx: CanvasRenderingContext2D, offset: number, color: number) {
+//     ctx.clearRect(0, 0, 512, 64);
+//     // Lighter belt base — matches clean cleanroom feel
+//     const grad = ctx.createLinearGradient(0, 0, 0, 64);
+//     grad.addColorStop(0, "#dde6f0");
+//     grad.addColorStop(0.5, "#e8f0f8");
+//     grad.addColorStop(1, "#dde6f0");
+//     ctx.fillStyle = grad;
+//     ctx.fillRect(0, 0, 512, 64);
+ 
+//     const css = `#${color.toString(16).padStart(6, "0")}`;
+//     ctx.strokeStyle = css; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.55;
+//     const spacing = 56;
+//     for (let x = (offset % spacing) - spacing; x < 512 + spacing; x += spacing) {
+//       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 18, 64); ctx.stroke();
+//     }
+//     ctx.globalAlpha = 1;
+ 
+//     // Edge accents
+//     ctx.strokeStyle = css; ctx.lineWidth = 2; ctx.globalAlpha = 0.7;
+//     ctx.beginPath(); ctx.moveTo(0, 4); ctx.lineTo(512, 4); ctx.stroke();
+//     ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(512, 60); ctx.stroke();
+//     ctx.globalAlpha = 1;
+//   }
+ 
+//   tick(dt: number, speed: number, direction = 1) {
+//     this.beltOffset += dt * speed * direction * 32;
+//     this.rollers.forEach((stripe) => {
+//       if (!stripe.userData.beltStripe) return;
+//       const range = stripe.userData.endX - stripe.userData.startX;
+//       let nx = stripe.userData.baseX + (this.beltOffset * direction * 0.09) % range;
+//       if (nx > stripe.userData.endX) nx -= range;
+//       if (nx < stripe.userData.startX) nx += range;
+//       stripe.position.x = nx;
+//     });
+//     this.beltSegments.forEach((seg) => {
+//       const ctx = seg.userData.beltCtx as CanvasRenderingContext2D;
+//       const tex = seg.userData.beltTex as THREE.CanvasTexture;
+//       const color = seg.userData.beltColor as number;
+//       if (ctx && tex) { this._drawBelt(ctx, this.beltOffset, color); tex.needsUpdate = true; }
+//     });
+//   }
+// }
+// // ─── PARTICLES (from code 2) ──────────────────────────────────────────────────
+// class Particles {
+//   n: number; 
+//   origin: THREE.Vector3; 
+//   active: boolean;
+//   mat: THREE.PointsMaterial; 
+//   pts: THREE.Points; 
+//   geo: THREE.BufferGeometry;
+//   vel: { vx: number; vy: number; vz: number; life: number }[];
+//   colors: Float32Array;
+//   baseColor: THREE.Color;
+  
+//   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n: number, sz = 0.07) {
+//     this.n = n; 
+//     this.origin = pos.clone(); 
+//     this.active = false;
+//     this.baseColor = new THREE.Color(color);
+    
+//     const pa = new Float32Array(n * 3); 
+//     this.colors = new Float32Array(n * 3);
+//     this.vel = [];
+    
+//     for (let i = 0; i < n; i++) {
+//       pa[i * 3]     = pos.x + (Math.random() - 0.5) * 0.9;
+//       pa[i * 3 + 1] = pos.y + 0.5;
+//       pa[i * 3 + 2] = pos.z + (Math.random() - 0.5) * 0.9;
+      
+//       // Color variation
+//       const shade = 0.7 + Math.random() * 0.3;
+//       this.colors[i * 3] = this.baseColor.r * shade;
+//       this.colors[i * 3 + 1] = this.baseColor.g * shade;
+//       this.colors[i * 3 + 2] = this.baseColor.b * shade;
+      
+//       this.vel.push({ 
+//         vx: (Math.random() - 0.5) * 0.55, 
+//         vy: 0.6 + Math.random() * 1.2, 
+//         vz: (Math.random() - 0.5) * 0.55, 
+//         life: Math.random() 
+//       });
+//     }
+    
+//     this.geo = new THREE.BufferGeometry();
+//     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
+//     this.geo.setAttribute("color", new THREE.BufferAttribute(this.colors, 3));
+    
+//     this.mat = new THREE.PointsMaterial({ 
+//       size: sz, 
+//       transparent: true, 
+//       opacity: 0.85, 
+//       sizeAttenuation: true,
+//       blending: THREE.AdditiveBlending,
+//       depthWrite: false,
+//       vertexColors: true,
+//     });
+    
+//     this.pts = new THREE.Points(this.geo, this.mat);
+//     this.pts.visible = false; 
+//     scene.add(this.pts);
+//   }
+
+//   // ⬇️ ADD THESE TWO METHODS ⬇️
+//   on() { 
+//     this.active = true; 
+//     this.pts.visible = true; 
+//   }
+  
+//   off() { 
+//     this.active = false; 
+//     this.pts.visible = false; 
+//   }
+//   // ⬆️ ADD THESE TWO METHODS ⬆️
+
+//   tick(dt: number, spd: number) {
+//     if (!this.active) return;
+//     const pa = this.geo.attributes.position.array as Float32Array;
+//     const ca = this.geo.attributes.color.array as Float32Array;
+    
+//     for (let i = 0; i < this.n; i++) {
+//       const v = this.vel[i]; 
+//       v.life += dt * spd * 0.6;
+      
+//       // Color pulsing
+//       const pulse = 0.5 + 0.5 * Math.sin(v.life * 8);
+//       ca[i * 3] = this.baseColor.r * (0.5 + pulse * 0.5);
+//       ca[i * 3 + 1] = this.baseColor.g * (0.3 + pulse * 0.7);
+//       ca[i * 3 + 2] = this.baseColor.b * (0.7 + pulse * 0.3);
+      
+//       if (v.life > 1.2) {
+//         v.life = 0;
+//         pa[i * 3]     = this.origin.x + (Math.random() - 0.5) * 0.9;
+//         pa[i * 3 + 1] = this.origin.y + 0.5;
+//         pa[i * 3 + 2] = this.origin.z + (Math.random() - 0.5) * 0.9;
+//         v.vx = (Math.random() - 0.5) * 0.55; 
+//         v.vy = 0.6 + Math.random() * 1.2; 
+//         v.vz = (Math.random() - 0.5) * 0.55;
+//       } else {
+//         pa[i * 3]     += v.vx * dt * spd;
+//         pa[i * 3 + 1] += v.vy * dt * spd;
+//         pa[i * 3 + 2] += v.vz * dt * spd;
+//         v.vy -= 0.15 * dt * spd;
+//       }
+//     }
+    
+//     this.geo.attributes.position.needsUpdate = true;
+//     this.geo.attributes.color.needsUpdate = true;
+//   }
+// }
+
+// // ─── HEAT VAPOR PARTICLES (for hot plates) ───────────────────────────────────
+
+// class HeatVapor {
+//   pts: THREE.Points;
+//   geo: THREE.BufferGeometry;
+//   origin: THREE.Vector3;
+//   n: number;
+//   active = false;
+//   vel: { vy: number; life: number; ox: number; oz: number; size: number }[] = [];
+//   sizes: Float32Array;
+ 
+//   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n = 80) {
+//     this.n = n;
+//     this.origin = pos.clone();
+//     const pa = new Float32Array(n * 3);
+//     this.sizes = new Float32Array(n);
+ 
+//   for (let i = 0; i < n; i++) {
+//   pa[i * 3] = pos.x;
+//   pa[i * 3 + 1] = pos.y;
+//   pa[i * 3 + 2] = pos.z;
+//   this.sizes[i] = 0.06 + Math.random() * 0.04;
+//   this.vel.push({
+//     vy: 0.5 + Math.random() * 0.4,        // gentler rise
+//     life: Math.random(),
+//     ox: (Math.random() - 0.5) * 0.25,     // tight ±0.25 spread (was ±0.7)
+//     oz: (Math.random() - 0.5) * 0.25,     // tight ±0.25 spread (was ±0.7)
+//     size: 0.06 + Math.random() * 0.04,
+//   });
+// }
+ 
+//     this.geo = new THREE.BufferGeometry();
+//     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
+ 
+//     const mat = new THREE.PointsMaterial({
+//     color,
+//     size: 0.10,                              // smaller particles (was 0.22)
+//     transparent: true,
+//     opacity: 0.45,                           // softer (was 0.65)                             // more visible
+//       sizeAttenuation: true,
+//       blending: THREE.AdditiveBlending,
+//       depthWrite: false,
+//     });
+//     this.pts = new THREE.Points(this.geo, mat);
+//     this.pts.visible = false;
+//     scene.add(this.pts);
+//   }
+ 
+//   on()  { this.active = true;  this.pts.visible = true;  }
+//   off() { this.active = false; this.pts.visible = false; }
+ 
+//   tick(dt: number, spd: number) {
+//     if (!this.active) return;
+//     const pa = this.geo.attributes.position.array as Float32Array;
+ 
+//     for (let i = 0; i < this.n; i++) {
+//       const v = this.vel[i];
+//       v.life += dt * spd * 0.55;
+ 
+//       if (v.life > 1.8) {
+//         // Respawn AT the module top
+//         v.life = 0;
+//         pa[i * 3]     = this.origin.x + v.ox * 0.3;
+//         pa[i * 3 + 1] = this.origin.y;
+//         pa[i * 3 + 2] = this.origin.z + v.oz * 0.3;
+//       } else {
+//         // Rise upward with sideways wobble (like real heat shimmer)
+//         pa[i * 3]     += Math.sin(v.life * 4 + i) * 0.008 * spd;
+//         pa[i * 3 + 1] += v.vy * dt * spd;
+//         pa[i * 3 + 2] += Math.cos(v.life * 4 + i) * 0.008 * spd;
+//       }
+//     }
+//     this.geo.attributes.position.needsUpdate = true;
+//   }
+// }
+ 
+// // ─── HMDS VAPOR (swirling fog inside chamber) ────────────────────────────────
+
+// class HMDSFog {
+//   group: THREE.Group; 
+//   fogShells: THREE.Mesh[] = []; 
+//   active = false;
+
+//   constructor(scene: THREE.Scene, pos: THREE.Vector3) {
+//     this.group = new THREE.Group(); 
+//     this.group.position.copy(pos); 
+//     scene.add(this.group);
+//     this.group.visible = false;
+//     for (let i = 0; i < 4; i++) {
+//       const r = 0.7 + i * 0.15;
+//       const fog = new THREE.Mesh(
+//         new THREE.SphereGeometry(r, 24, 16),
+//         new THREE.MeshStandardMaterial({ 
+//           color: 0xff9933, 
+//           emissive: 0xff7700, 
+//           emissiveIntensity: 0.3, 
+//           transparent: true, 
+//           opacity: 0.05 + i * 0.02, 
+//           depthWrite: false, 
+//           side: THREE.DoubleSide 
+//         })
+//       );
+//       this.group.add(fog); 
+//       this.fogShells.push(fog);
+//     }
+//   }
+
+//   // ⬇️ ADD THESE ⬇️
+//   on() { 
+//     this.active = true; 
+//     this.group.visible = true; 
+//   }
+  
+//   off() { 
+//     this.active = false; 
+//     this.group.visible = false; 
+//   }
+//   // ⬆️ ADD THESE ⬆️
+
+//   tick(dt: number, spd: number, time: number) {
+//     if (!this.active) return;
+//     this.fogShells.forEach((s, i) => {
+//       s.rotation.y += dt * spd * (0.4 + i * 0.15) * (i % 2 ? 1 : -1);
+//       s.rotation.x = Math.sin(time * 0.8 + i) * 0.1;
+//       const mat = s.material as THREE.MeshStandardMaterial;
+//       mat.opacity = 0.05 + i * 0.02 + Math.sin(time * 1.5 + i) * 0.02;
+//     });
+//   }
+// }
+
+// // ─── ENVIRONMENT BUILD ───────────────────────────────────────────────────────
+
+// // function buildEnv(scene: THREE.Scene) {
+// //   // Floor
+// //   const flMat = new THREE.MeshStandardMaterial({ color: 0xdde8f0, roughness: 0.06, metalness: 0.3 });
+// //   const fl = new THREE.Mesh(new THREE.PlaneGeometry(160, 80), flMat);
+// //   fl.rotation.x = -Math.PI / 2; fl.position.y = -0.52; fl.receiveShadow = true; scene.add(fl);
+
+// //   // Grid
+// //   const grid = new THREE.GridHelper(160, 80, 0x8899aa, 0xaabbc0);
+// //   grid.position.y = -0.5;
+// //   (grid.material as THREE.Material).transparent = true;
+// //   (grid.material as THREE.Material).opacity = 0.18;
+// //   scene.add(grid);
+
+// //   // Back wall
+// //   const wallMat = new THREE.MeshStandardMaterial({ color: 0xe8eff5, roughness: 0.7, metalness: 0.05 });
+// //   const wall = new THREE.Mesh(new THREE.PlaneGeometry(160, 28), wallMat);
+// //   wall.position.set(6, 13, -30); scene.add(wall);
+
+// //   // Ceiling with FFU panels
+// //   const ceilMat = new THREE.MeshStandardMaterial({ color: 0xf5f9ff, roughness: 0.9, metalness: 0.0 });
+// //   const ceil = new THREE.Mesh(new THREE.PlaneGeometry(160, 80), ceilMat);
+// //   ceil.rotation.x = Math.PI / 2; ceil.position.y = 18; scene.add(ceil);
+
+// //   for (let x = -22; x <= 38; x += 8) {
+// //     for (let z = -8; z <= 8; z += 6) {
+// //       const ffu = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.18, 5.5),
+// //         new THREE.MeshStandardMaterial({ color: 0xc8d8e8, roughness: 0.5, metalness: 0.4 }));
+// //       ffu.position.set(x, 17.9, z); scene.add(ffu);
+// //     }
+// //   }
+
+// //   // Section labels
+// //   [
+// //     { t: "EFEM / LOADING SECTION",   x: -19, y: 5.5, z: 0,     c: 0x2266cc },
+// //     { t: "MAIN PROCESS TRACK →",     x: 7,   y: 5.5, z: TOP_Z, c: 0x0055cc },
+// //     { t: "← POST-EXPOSURE TRACK",    x: 7,   y: 5.5, z: BOT_Z, c: 0x007755 },
+// //     { t: "SCANNER MODULE",           x: 37,  y: 5.5, z: 0,     c: 0x8800cc },
+// //     { t: "INTERFACE SECTION",        x: 31,  y: 5.5, z: 0,     c: 0xaa8800 },
+// //   ].forEach((o) => addSLabel(scene, o.t, o.x, o.y, o.z, o.c));
+
+// //   // Info box
+// //   buildInfoBox(scene);
+// // // }
+// // function buildEnv(scene: THREE.Scene) {
+// //   // Medium-dark reflective floor
+// //   const flMat = new THREE.MeshStandardMaterial({ 
+// //     color: 0x7a8e9e,
+// //     roughness: 0.12, 
+// //     metalness: 0.42,
+// //     envMapIntensity: 0.6,
+// //   });
+// //   const fl = new THREE.Mesh(new THREE.PlaneGeometry(180, 90), flMat);
+// //   fl.rotation.x = -Math.PI / 2; 
+// //   fl.position.y = -0.52; 
+// //   fl.receiveShadow = true; 
+// //   scene.add(fl);
+
+// //   // Subtle grid with blue accent
+// //   const gridCanvas = document.createElement("canvas");
+// //   gridCanvas.width = 1024; 
+// //   gridCanvas.height = 512;
+// //   const gCtx = gridCanvas.getContext("2d")!;
+// //   gCtx.strokeStyle = "#3355aa";
+// //   gCtx.lineWidth = 1.8;
+// //   gCtx.globalAlpha = 0.25;
+// //   for (let x = 0; x < 1024; x += 64) {
+// //     gCtx.beginPath(); 
+// //     gCtx.moveTo(x, 0); 
+// //     gCtx.lineTo(x, 512); 
+// //     gCtx.stroke();
+// //   }
+// //   for (let y = 0; y < 512; y += 64) {
+// //     gCtx.beginPath(); 
+// //     gCtx.moveTo(0, y); 
+// //     gCtx.lineTo(1024, y); 
+// //     gCtx.stroke();
+// //   }
+  
+// //   const gridTex = new THREE.CanvasTexture(gridCanvas);
+// //   gridTex.wrapS = THREE.RepeatWrapping;
+// //   gridTex.wrapT = THREE.RepeatWrapping;
+// //   gridTex.repeat.set(3, 3);
+  
+// //   const grid = new THREE.Mesh(
+// //     new THREE.PlaneGeometry(180, 90),
+// //     new THREE.MeshStandardMaterial({ 
+// //       map: gridTex, 
+// //       transparent: true, 
+// //       opacity: 0.45, 
+// //       depthWrite: false,
+// //       emissive: 0x3355aa,
+// //       emissiveIntensity: 0.25,
+// //     })
+// //   );
+// //   grid.rotation.x = -Math.PI / 2; 
+// //   grid.position.y = -0.5; 
+// //   scene.add(grid);
+
+// //   // Back wall only — no ceiling, no hex panels
+// //   const wallMat = new THREE.MeshStandardMaterial({ 
+// //     color: 0xc0d4e8, 
+// //     roughness: 0.45, 
+// //     metalness: 0.1,
+// //     emissive: 0x152030,
+// //     emissiveIntensity: 0.12,
+// //   });
+// //   const wall = new THREE.Mesh(new THREE.PlaneGeometry(180, 30), wallMat);
+// //   wall.position.set(6, 14, -32); 
+// //   scene.add(wall);
+
+// //   // ── CEILING AND HEX PANELS REMOVED ──
+// //   // No ceil mesh, no hexagonal FFU panels
+// // }
+// // ─── INFO BOX ────────────────────────────────────────────────────────────────
+
+// function buildInfoBox(scene: THREE.Scene) {
+//   const grp = new THREE.Group();
+//   grp.position.set(50, 0, -8);
+
+//   const boxMat = new THREE.MeshStandardMaterial({ color: 0xffee88, roughness: 0.4, metalness: 0.05, emissive: 0xddcc44, emissiveIntensity: 0.2 });
+//   const box = new THREE.Mesh(new THREE.BoxGeometry(6, 5, 0.12), boxMat);
+//   box.position.y = 2.5; grp.add(box);
+
+//   const borderMat = new THREE.MeshStandardMaterial({ color: 0xcc8800, roughness: 0.3, metalness: 0.3, emissive: 0xaa6600, emissiveIntensity: 0.3 });
+//   const border = new THREE.Mesh(new THREE.BoxGeometry(6.15, 5.15, 0.08), borderMat);
+//   border.position.set(0, 2.5, -0.02); grp.add(border);
+
+//   const c = document.createElement("canvas"); c.width = 400; c.height = 300;
+//   const ctx = c.getContext("2d")!;
+//   ctx.fillStyle = "#ffee44";
+//   ctx.fillRect(0, 0, 400, 300);
+//   ctx.fillStyle = "#cc8800";
+//   ctx.font = "bold 28px 'Courier New',monospace";
+//   ctx.textAlign = "left";
+//   ctx.fillText("Info Box", 14, 40);
+//   ctx.font = "12px 'Courier New',monospace";
+//   ctx.fillStyle = "#554400";
+//   const lines = [
+//     "Process Parameters: 65°C",
+//     "Preset Parameters: 1500°C",
+//     "Chill Coating: 27.5",
+//     "Post-Apply Bake: 118°C",
+//     "Edge Diam: Silicon wafers",
+//   ];
+//   lines.forEach((l, i) => ctx.fillText(l, 14, 75 + i * 24));
+
+//   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: false }));
+//   sp.scale.set(5.8, 4.8, 1); sp.position.set(0, 2.5, 0.12); grp.add(sp);
+
+//   scene.add(grp);
+// }
+
+// // ─── SPIN COAT ANIMATOR (from code 1 — high-fidelity) ────────────────────────
+
+// class SpinCoatAnimator {
+//   group: THREE.Group;
+//   armPivot: THREE.Group;
+//   nozzleArm: THREE.Mesh;
+//   nozzleHead: THREE.Group;
+//   nozzleTip: THREE.Mesh;
+//   spinChuck: THREE.Group;
+//   spinDisc: THREE.Mesh;
+//   resistRings: THREE.Mesh[] = [];
+//   resistGroup: THREE.Group;
+//   bowl: THREE.Mesh;
+//   droplets: THREE.Mesh[] = [];
+//   dropletGroup: THREE.Group;
+
+//   phase: "idle"|"arm_descend"|"dispense"|"spinup"|"coating"|"arm_retract"|"spindown"|"done" = "idle";
+//   phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
+//   resistRadius = 0; coatColor = 0x9922ff; active = false;
+
+//   constructor(scene: THREE.Scene) {
+//     this.group = new THREE.Group(); scene.add(this.group); this.group.visible = false;
+
+//     const bowlMat = new THREE.MeshStandardMaterial({ color: 0xeef3f8, roughness: 0.28, metalness: 0.05 });
+//     this.bowl = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 0.55, 64, 1, true), bowlMat);
+//     this.bowl.position.y = 0.6; this.group.add(this.bowl);
+
+//     for (let i = 0; i < 5; i++) {
+//       const r = 1.1 + i * 0.08;
+//       const ridge = new THREE.Mesh(new THREE.TorusGeometry(r, 0.018, 8, 64),
+//         new THREE.MeshStandardMaterial({ color: 0xdde8f0, roughness: 0.3, metalness: 0.1 }));
+//       ridge.rotation.x = Math.PI / 2; ridge.position.y = 0.38 + i * 0.04; this.group.add(ridge);
+//     }
+
+//     const baseRing = new THREE.Mesh(new THREE.RingGeometry(0.95, 1.55, 64),
+//       new THREE.MeshStandardMaterial({ color: 0xe8eef5, roughness: 0.22, metalness: 0.08, side: THREE.DoubleSide }));
+//     baseRing.rotation.x = -Math.PI / 2; baseRing.position.y = 0.33; this.group.add(baseRing);
+
+//     this.spinChuck = new THREE.Group(); this.group.add(this.spinChuck);
+//     this.spinDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.06, 80),
+//       new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.12, metalness: 0.92 }));
+//     this.spinDisc.position.y = 0.37; this.spinChuck.add(this.spinDisc);
+
+//     for (let i = 0; i < 6; i++) {
+//       const a = (i / 6) * Math.PI * 2;
+//       const port = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.07, 12),
+//         new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3 }));
+//       port.position.set(Math.cos(a) * 0.55, 0.4, Math.sin(a) * 0.55);
+//       this.spinChuck.add(port);
+//     }
+
+//     this.resistGroup = new THREE.Group(); this.resistGroup.position.y = 0.41; this.spinChuck.add(this.resistGroup);
+//     const numRings = 18;
+//     for (let i = 0; i < numRings; i++) {
+//       const r0 = (i / numRings) * 0.88, r1 = ((i + 1) / numRings) * 0.88;
+//       const ring = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 64),
+//         new THREE.MeshStandardMaterial({ color: 0x9922ff, emissive: 0x5511aa, emissiveIntensity: 0.6, roughness: 0.15, metalness: 0.05, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));
+//       ring.rotation.x = -Math.PI / 2; ring.position.y = 0.001 * i;
+//       this.resistGroup.add(ring); this.resistRings.push(ring);
+//     }
+
+//     // Droplets emit from nozzle tip — positioned relative to nozzle head
+// this.dropletGroup = new THREE.Group();
+// this.dropletGroup.position.set(0, 0, 0);
+// this.group.add(this.dropletGroup);
+//    // ── Wall-mounted vertical column ──
+// const column = new THREE.Mesh(
+//   new THREE.CylinderGeometry(0.045, 0.065, 3.2, 12),
+//   new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.12, metalness: 0.95 })
+// );
+// column.position.set(0, 1.6, -1.55);
+// this.group.add(column);
+
+// // ── Wall bracket plate ──
+// const backPlate = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.55, 0.22, 0.18),
+//   new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.18, metalness: 0.92 })
+// );
+// backPlate.position.set(0, 3.18, -1.45);
+// this.group.add(backPlate);
+
+// // ── Horizontal rail arm from column ──
+// const railArm = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.06, 0.06, 1.35),
+//   new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 })
+// );
+// railArm.position.set(0, 3.18, -0.78);
+// this.group.add(railArm);
+
+// // ── Carriage block where arm pivots ──
+// const carriage = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.20, 0.20, 0.20),
+//   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.14, metalness: 0.93 })
+// );
+// carriage.position.set(0, 3.18, -0.10);
+// this.group.add(carriage);
+
+// // ── Overhead horizontal rail (wall to wall) ──
+// const railMat = new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 });
+// const overheadRail = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.07, 0.07), railMat);
+// overheadRail.position.set(0, 3.6, 0);
+// this.group.add(overheadRail);
+
+// // Left wall post
+// const postMat = new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 });
+// const leftPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.0, 0.07), postMat);
+// leftPost.position.set(-1.6, 2.6, 0);
+// this.group.add(leftPost);
+
+// // Right wall post  
+// const rightPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.0, 0.07), postMat);
+// rightPost.position.set(1.6, 2.6, 0);
+// this.group.add(rightPost);
+
+// // Rail carriage block (slides along rail)
+// const nozzleCarriageBlock = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.28, 0.22, 0.22),
+//   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.13, metalness: 0.94 })
+// );
+// nozzleCarriageBlock.position.set(0, 3.49, 0);
+// this.group.add(nozzleCarriageBlock);
+// this.group.userData.nozzleCarriage = nozzleCarriageBlock;
+
+// this.armPivot = new THREE.Group();
+// this.armPivot.position.set(-1.5, 3.49, 0);
+// this.armPivot.rotation.y = 0;
+// this.group.add(this.armPivot); // ← THIS WAS MISSING — nozzle was never in scene
+
+// // Vertical arm hanging down from carriage
+// this.nozzleArm = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.06, 1.55, 0.06),
+//   new THREE.MeshStandardMaterial({ color: 0xc8d8e8, roughness: 0.10, metalness: 0.96 })
+// );
+// this.nozzleArm.position.set(0, -0.77, 0);
+// this.armPivot.add(this.nozzleArm);
+
+// // Nozzle head — at bottom of vertical arm
+// this.nozzleHead = new THREE.Group();
+// this.nozzleHead.position.set(0, -1.6, 0);
+// this.armPivot.add(this.nozzleHead);
+
+// // Single nozzle body (like HTML canvas version)
+// const nozzleBody = new THREE.Mesh(
+//   new THREE.CylinderGeometry(0.10, 0.07, 0.28, 16),
+//   new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.18, metalness: 0.92, emissive: 0x002244, emissiveIntensity: 0.3 })
+// );
+// nozzleBody.position.set(0, 0, 0);
+// this.nozzleHead.add(nozzleBody);
+
+// // Single tip pointing DOWN
+// this.nozzleTip = new THREE.Mesh(
+//   new THREE.CylinderGeometry(0.022, 0.035, 0.10, 12),
+//   new THREE.MeshStandardMaterial({ color: 0x223344, roughness: 0.12, metalness: 0.95 })
+// );
+// this.nozzleTip.position.set(0, -0.19, 0);
+// this.nozzleHead.add(this.nozzleTip);
+
+// // Tip glow dot
+// const tipGlow = new THREE.Mesh(
+//   new THREE.SphereGeometry(0.028, 8, 8),
+//   new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xffaa00, emissiveIntensity: 2.0, roughness: 0.3 })
+// );
+// tipGlow.position.set(0, -0.25, 0);
+// this.nozzleHead.add(tipGlow);
+// this.group.userData.nozzleTipGlow = tipGlow;
+//   }
+
+//   startCoat(wx: number, wz: number, color: number) {
+//     this.coatColor = color; this.group.position.set(wx, 0.72, wz);
+//     this.group.visible = true; this.active = true; this.phase = "arm_descend";
+//     this.phaseT = 0; this.phaseDur = 1.2; this.spinRPM = 0; this.spinAngle = 0; this.resistRadius = 0;
+//     this.resistRings.forEach((r) => {
+//       (r.material as THREE.MeshStandardMaterial).opacity = 0;
+//       (r.material as THREE.MeshStandardMaterial).color.setHex(color);
+//       (r.material as THREE.MeshStandardMaterial).emissive.setHex(color);
+//     });
+//     this.dropletGroup.children.slice().forEach((c) => this.dropletGroup.remove(c));
+//     this.droplets = [];
+//    this.armPivot.position.set(-1.5, 3.49, 0); // parked left on rail
+// this.armPivot.rotation.y = 0;// parked to side
+//   }
+
+//   stopCoat() { this.group.visible = false; this.active = false; this.phase = "idle"; }
+
+//   tick(dt: number, speed: number) {
+//     if (!this.active) return;
+//     const sDt = dt * speed; this.phaseT += sDt;
+//     const t = Math.min(this.phaseT / this.phaseDur, 1);
+
+//     switch (this.phase) {
+//   case "arm_descend": {
+//   const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+//   // Slide along rail from parked (-1.5) to center (0)
+//   this.armPivot.position.x = lerp(-1.5, 0, ease);
+//   // Rail stays at constant height — arm hangs below
+//   this.armPivot.position.y = 3.49;
+//   this.armPivot.position.z = 0;
+//   if (t >= 1) { this.phase = "dispense"; this.phaseT = 0; this.phaseDur = 1.5; }
+//   break;
+// }
+//       case "dispense": {
+//         if (Math.random() < sDt * 18) {
+//          const drop = new THREE.Mesh(
+//   new THREE.SphereGeometry(0.025 + Math.random() * 0.015, 8, 8),
+//   new THREE.MeshStandardMaterial({ color: this.coatColor, emissive: this.coatColor, emissiveIntensity: 0.8, roughness: 0.1, transparent: true, opacity: 0.9 })
+// );
+// // Spawn at nozzle tip world position
+// const tipWorldPos = new THREE.Vector3();
+// this.nozzleTip.getWorldPosition(tipWorldPos);
+// drop.position.copy(tipWorldPos);
+// drop.position.x += (Math.random() - 0.5) * 0.03;
+// drop.position.z += (Math.random() - 0.5) * 0.03;
+// // Convert to group local space
+// this.group.worldToLocal(drop.position);
+// drop.userData.vy = -1.2 - Math.random() * 0.5;
+// drop.userData.life = 0;
+// this.dropletGroup.add(drop);
+// this.droplets.push(drop);
+//         }
+//         this.droplets.forEach((d) => {
+//           d.position.y += d.userData.vy * sDt; d.userData.life += sDt;
+//           if (d.userData.life > 0.35) {
+//             (d.material as THREE.MeshStandardMaterial).opacity -= sDt * 3;
+//             if ((d.material as THREE.MeshStandardMaterial).opacity <= 0) this.dropletGroup.remove(d);
+//           }
+//         });
+//         this.droplets = this.droplets.filter((d) => d.parent === this.dropletGroup);
+//         this.spinRPM = lerp(0, 120, t);
+//         if (t >= 1) { this.phase = "spinup"; this.phaseT = 0; this.phaseDur = 1.0; }
+//         break;
+//       }
+//       case "spinup": {
+//         this.spinRPM = lerp(120, 2400, t * t); this.resistRadius = lerp(0, 0.2, t); this._updateResist();
+//         if (t >= 1) { this.phase = "coating"; this.phaseT = 0; this.phaseDur = 2.8; }
+//         break;
+//       }
+//       case "coating": {
+//         this.spinRPM = 2400; this.resistRadius = lerp(0.2, 0.88, t); this._updateResist();
+//        const armEase = t < 0.3 ? 0 : (t - 0.3) / 0.7;
+// // Slide back out along rail to parked position
+// this.armPivot.position.x = lerp(0, -1.5, armEase);
+// this.armPivot.position.y = 3.49;
+// this.armPivot.position.z = 0;
+//         if (Math.random() < sDt * 12 && this.resistRadius > 0.5) {
+//           const angle = Math.random() * Math.PI * 2;
+//           const drop = new THREE.Mesh(new THREE.SphereGeometry(0.018 + Math.random() * 0.01, 6, 6),
+//             new THREE.MeshStandardMaterial({ color: this.coatColor, emissive: this.coatColor, emissiveIntensity: 0.6, transparent: true, opacity: 0.75 }));
+//           drop.position.set(Math.cos(angle) * 0.88 + this.group.position.x, 0.42, Math.sin(angle) * 0.88 + this.group.position.z);
+//           drop.userData.vx = Math.cos(angle) * (1.5 + Math.random());
+//           drop.userData.vz = Math.sin(angle) * (1.5 + Math.random());
+//           drop.userData.vy = 0.2 + Math.random() * 0.3; drop.userData.life = 0; drop.userData.isFlung = true;
+//           this.dropletGroup.add(drop); this.droplets.push(drop);
+//         }
+//         this.droplets.forEach((d) => {
+//           if (d.userData.isFlung) {
+//             d.position.x += d.userData.vx * sDt; d.position.z += d.userData.vz * sDt;
+//             d.position.y -= d.userData.vy * sDt; d.userData.life += sDt;
+//             if (d.userData.life > 0.3) {
+//               (d.material as THREE.MeshStandardMaterial).opacity -= sDt * 4;
+//               if ((d.material as THREE.MeshStandardMaterial).opacity <= 0) this.dropletGroup.remove(d);
+//             }
+//           }
+//         });
+//         this.droplets = this.droplets.filter((d) => d.parent === this.dropletGroup);
+//         if (t >= 1) { this.resistRadius = 0.88; this._updateResist(true); this.phase = "spindown"; this.phaseT = 0; this.phaseDur = 1.5; }
+//         break;
+//       }
+//       case "spindown": { this.spinRPM = lerp(2400, 0, t); if (t >= 1) { this.phase = "done"; this.phaseT = 0; } break; }
+//       case "done": { this.spinRPM = 0; break; }
+//     }
+//     this.spinAngle += (this.spinRPM / 60) * Math.PI * 2 * sDt;
+//     this.spinChuck.rotation.y = this.spinAngle;
+//   }
+
+//   private _updateResist(full = false) {
+//     const numRings = this.resistRings.length;
+//     const fillFraction = full ? 1 : this.resistRadius / 0.88;
+//     this.resistRings.forEach((ring, i) => {
+//       const ringFrac = (i + 1) / numRings;
+//       const mat = ring.material as THREE.MeshStandardMaterial;
+//       if (ringFrac <= fillFraction) mat.opacity = Math.min(mat.opacity + 0.06, 0.88 - i * 0.003);
+//     });
+//   }
+// }
+
+// // ─── DEV LIQUID ANIMATOR (from code 1 — multi-phase with rinse) ──────────────
+
+// class DevLiquidAnimator {
+//   group: THREE.Group;
+//   nozzle: THREE.Group;
+//   liquidPool: THREE.Mesh;
+//   spraySources: THREE.Group;       // where spray cones live
+//   sprayCones: THREE.Mesh[] = [];   // 3 spray fan cones
+//   droplets: THREE.Mesh[] = [];     // flying droplets
+//   splashes: THREE.Mesh[] = [];     // ground splashes
+//   active = false;
+//   phase: "idle" | "descend" | "spray" | "puddle" | "rinse" | "retract" | "done" = "idle";
+//   phaseT = 0;
+//   phaseDur = 1;
+ 
+//   constructor(scene: THREE.Scene) {
+//     this.group = new THREE.Group();
+//     scene.add(this.group);
+//     this.group.visible = false;
+ 
+//     // ── ARM + NOZZLE HEAD ──
+//     // ── Overhead cross rail (left wall to right wall) ──
+// const crossRail = new THREE.Mesh(
+//   new THREE.BoxGeometry(3.2, 0.08, 0.08),
+//   new THREE.MeshStandardMaterial({ color: 0xc8d8e8, roughness: 0.10, metalness: 0.96 })
+// );
+// crossRail.position.set(0, 3.55, 0);
+// this.group.add(crossRail);
+
+// // ── Left wall upright ──
+// const leftPost = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.07, 1.8, 0.07),
+//   new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 })
+// );
+// leftPost.position.set(-1.55, 2.65, 0);
+// this.group.add(leftPost);
+
+// // ── Right wall upright ──
+// const rightPost = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.07, 1.8, 0.07),
+//   new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 })
+// );
+// rightPost.position.set(1.55, 2.65, 0);
+// this.group.add(rightPost);
+
+// // ── Rail carriage that slides along crossRail ──
+// const railCarriage = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.30, 0.22, 0.30),
+//   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.13, metalness: 0.94 })
+// );
+// railCarriage.position.set(0, 3.44, 0);
+// this.group.add(railCarriage);
+// this.group.userData.railCarriage = railCarriage;
+
+// // ── Nozzle arm hangs from carriage ──
+// // ── Overhead cross rail ──
+// const devRailMat = new THREE.MeshStandardMaterial({ color: 0xc8d8e8, roughness: 0.10, metalness: 0.96 });
+// const devRail = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.07, 0.07), devRailMat);
+// devRail.position.set(0, 3.55, 0);
+// this.group.add(devRail);
+
+// // Left post
+// const devPostMat = new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 });
+// const devLeftPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.9, 0.07), devPostMat);
+// devLeftPost.position.set(-1.55, 2.6, 0);
+// this.group.add(devLeftPost);
+
+// // Right post
+// const devRightPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.9, 0.07), devPostMat);
+// devRightPost.position.set(1.55, 2.6, 0);
+// this.group.add(devRightPost);
+
+// // Rail carriage
+// const devCarriage = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.28, 0.20, 0.22),
+//   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.13, metalness: 0.94 })
+// );
+// devCarriage.position.set(1.4, 3.44, 0); // starts parked right
+// this.group.add(devCarriage);
+// this.group.userData.devCarriage = devCarriage;
+
+// // Nozzle arm hangs from carriage
+// this.nozzle = new THREE.Group();
+// this.nozzle.position.set(1.4, 3.44, 0); // parked right
+// this.group.add(this.nozzle);
+
+// // Vertical arm
+// const arm = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.06, 1.6, 0.06),
+//   new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.1, metalness: 0.95 })
+// );
+// arm.position.y = -0.8;
+// this.nozzle.add(arm);
+
+// // Single nozzle head
+// const head = new THREE.Mesh(
+//   new THREE.CylinderGeometry(0.12, 0.08, 0.26, 16),
+//   new THREE.MeshStandardMaterial({
+//     color: 0x556677, roughness: 0.18, metalness: 0.92,
+//     emissive: 0x003366, emissiveIntensity: 0.4,
+//   })
+// );
+// head.position.y = -1.68;
+// this.nozzle.add(head);
+
+// // Single spray tip pointing down
+// const devTip = new THREE.Mesh(
+//   new THREE.CylinderGeometry(0.020, 0.032, 0.09, 12),
+//   new THREE.MeshStandardMaterial({ color: 0x223344, metalness: 0.95, roughness: 0.12 })
+// );
+// devTip.position.set(0, -1.83, 0);
+// this.nozzle.add(devTip);
+// this.group.userData.devNozzleTip = devTip;
+
+// // Blue glow at tip
+// const devTipGlow = new THREE.Mesh(
+//   new THREE.SphereGeometry(0.025, 8, 8),
+//   new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x0088ff, emissiveIntensity: 3.0, roughness: 0.2 })
+// );
+// devTipGlow.position.set(0, -1.90, 0);
+// this.nozzle.add(devTipGlow);
+// this.group.userData.devTipGlow = devTipGlow;
+ 
+//     // ── SPRAY CONES (visible fan-shaped sprays) ──
+//  this.spraySources = new THREE.Group();
+// this.spraySources.position.set(0, -1.92, 0); // at tip height relative to nozzle
+// this.nozzle.add(this.spraySources); // moves with nozzle arm // child of nozzle so it moves with arm
+ 
+//     [-0.10, 0, 0.10].forEach((ox) => {
+//       // Cone geometry pointing down — wide at bottom, narrow at top
+//       const coneGeo = new THREE.ConeGeometry(0.28, 1.4, 18, 1, true);
+//       const coneMat = new THREE.MeshStandardMaterial({
+//         color: 0x44ccff,
+//         emissive: 0x0088dd,
+//         emissiveIntensity: 0.7,
+//         transparent: true,
+//         opacity: 0,                  // fade in during spray phase
+//         side: THREE.DoubleSide,
+//         depthWrite: false,
+//       });
+//       const cone = new THREE.Mesh(coneGeo, coneMat);
+//       cone.rotation.x = Math.PI;     // point downward
+//     // Cones hang below nozzle head — position relative to nozzle group
+// cone.position.set(0, -0.5, 0); // hangs below tip, single cone; // below arm bottom
+// this.spraySources.add(cone);
+//       this.sprayCones.push(cone);
+//     });
+ 
+//     // ── LIQUID POOL ON WAFER ──
+//     this.liquidPool = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.86, 0.86, 0.012, 64),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x33cc88,
+//         roughness: 0.05,
+//         metalness: 0.05,
+//         transparent: true,
+//         opacity: 0,
+//         emissive: 0x22aa66,
+//         emissiveIntensity: 0.4,
+//       })
+//     );
+//     this.liquidPool.position.y = 0.41;
+//     this.group.add(this.liquidPool);
+//   }
+ 
+//   startDev(wx: number, wz: number) {
+//  this.group.position.set(wx, 0, wz);
+// this.group.visible = true;
+// this.active = true;
+// this.phase = "descend";
+// this.phaseT = 0;
+// this.phaseDur = 0.8;
+// // Reset nozzle to parked position (right side of rail)
+// this.nozzle.position.set(1.4, 3.44, 0);
+// const dc = this.group.userData.devCarriage as THREE.Mesh;
+// if (dc) dc.position.set(1.4, 3.44, 0);
+// (this.liquidPool.material as THREE.MeshStandardMaterial).opacity = 0;
+//     (this.liquidPool.material as THREE.MeshStandardMaterial).color.setHex(0x33cc88);
+//     this.sprayCones.forEach((c) => {
+//       (c.material as THREE.MeshStandardMaterial).opacity = 0;
+//     });
+//   }
+ 
+//   stopDev() {
+//     this.group.visible = false;
+//     this.active = false;
+//     this.phase = "idle";
+//     // clear droplets
+//     this.droplets.forEach((d) => this.group.remove(d));
+//     this.droplets = [];
+//     this.splashes.forEach((s) => this.group.remove(s));
+//     this.splashes = [];
+//   }
+ 
+//   tick(dt: number, speed: number) {
+//     if (!this.active) return;
+//     const sDt = dt * speed;
+//     this.phaseT += sDt;
+//     const t = Math.min(this.phaseT / this.phaseDur, 1);
+//     const poolMat = this.liquidPool.material as THREE.MeshStandardMaterial;
+ 
+//     switch (this.phase) {
+ 
+//   case "descend": {
+//   // Phase A (0→0.5): slide along rail from right to center
+//   // Phase B (0.5→1): lower arm down to spray height
+//   if (t < 0.5) {
+//     const slideT = t / 0.5;
+//     const slideE = slideT < 0.5 ? 2*slideT*slideT : 1-2*(1-slideT)*(1-slideT);
+//     this.nozzle.position.x = lerp(1.4, 0, slideE);
+//     this.nozzle.position.y = 3.44;
+//     const dc = this.group.userData.devCarriage as THREE.Mesh;
+//     if (dc) dc.position.x = lerp(1.4, 0, slideE);
+//   } else {
+//     const dropT = (t - 0.5) / 0.5;
+//     const dropE = dropT < 0.5 ? 2*dropT*dropT : 1-2*(1-dropT)*(1-dropT);
+//     this.nozzle.position.x = 0;
+//     this.nozzle.position.y = lerp(3.44, 1.85, dropE);
+//     const dc = this.group.userData.devCarriage as THREE.Mesh;
+//     if (dc) dc.position.x = 0;
+//   }
+//   if (t >= 1) {
+//     this.phase = "spray";
+//           this.phaseT = 0;
+//           this.phaseDur = 2.5;
+//           // Set spray color BLUE (developer)
+//           this.sprayCones.forEach((c) => {
+//             (c.material as THREE.MeshStandardMaterial).color.setHex(0x33ccee);
+//             (c.material as THREE.MeshStandardMaterial).emissive.setHex(0x0099dd);
+//           });
+//           poolMat.color.setHex(0x33cc88);
+//         }
+//         break;
+//       }
+ 
+//       case "spray": {
+//         // Animate spray cone opacity (pulsing)
+//         const pulse = 0.4 + 0.5 * Math.abs(Math.sin(this.phaseT * 14));
+//         this.sprayCones.forEach((c, i) => {
+//           const m = c.material as THREE.MeshStandardMaterial;
+//           m.opacity = 0.35 + pulse * 0.4;
+//           // Slight scale wobble for "spray fan" look
+//           c.scale.set(
+//             0.85 + 0.2 * Math.sin(this.phaseT * 9 + i),
+//             1,
+//             0.85 + 0.2 * Math.cos(this.phaseT * 9 + i)
+//           );
+//         });
+ 
+//         // Build up liquid pool on wafer
+//         poolMat.opacity = Math.min(t * 0.85, 0.85);
+ 
+//         // Spawn flying droplets
+//         if (Math.random() < sDt * 60) {
+//           const sourceIdx = Math.floor(Math.random() * 3);
+//           const ox = [-0.10, 0, 0.10][sourceIdx];
+//           const drop = new THREE.Mesh(
+//             new THREE.SphereGeometry(0.018 + Math.random() * 0.015, 6, 6),
+//             new THREE.MeshStandardMaterial({
+//               color: 0x55ddff,
+//               emissive: 0x33aadd,
+//               emissiveIntensity: 0.6,
+//               transparent: true,
+//               opacity: 0.9,
+//             })
+//           );
+//           drop.position.set(
+//             ox + (Math.random() - 0.5) * 0.05,
+//             1.55,
+//             (Math.random() - 0.5) * 0.05
+//           );
+//           drop.userData.vy = -3.2 - Math.random() * 0.8;
+//           drop.userData.vx = (Math.random() - 0.5) * 0.4;
+//           drop.userData.vz = (Math.random() - 0.5) * 0.4;
+//           drop.userData.life = 0;
+//           this.group.add(drop);
+//           this.droplets.push(drop);
+//         }
+ 
+//         // Update droplets
+//         this.droplets.forEach((d) => {
+//           d.position.x += d.userData.vx * sDt;
+//           d.position.z += d.userData.vz * sDt;
+//           d.position.y += d.userData.vy * sDt;
+//           d.userData.life += sDt;
+//           // Splash when reaching wafer level
+//           if (d.position.y <= 0.42) {
+//             const splash = new THREE.Mesh(
+//               new THREE.RingGeometry(0.02, 0.08, 16),
+//               new THREE.MeshStandardMaterial({
+//                 color: 0x55ddff,
+//                 emissive: 0x33aadd,
+//                 emissiveIntensity: 0.8,
+//                 transparent: true,
+//                 opacity: 0.7,
+//                 side: THREE.DoubleSide,
+//               })
+//             );
+//             splash.rotation.x = -Math.PI / 2;
+//             splash.position.set(d.position.x, 0.43, d.position.z);
+//             splash.userData.life = 0;
+//             this.group.add(splash);
+//             this.splashes.push(splash);
+//             this.group.remove(d);
+//           }
+//         });
+//         this.droplets = this.droplets.filter((d) => d.parent === this.group);
+ 
+//         // Update splashes (expand and fade)
+//         this.splashes.forEach((s) => {
+//           s.userData.life += sDt;
+//           const lt = s.userData.life;
+//           s.scale.setScalar(1 + lt * 4);
+//           (s.material as THREE.MeshStandardMaterial).opacity = Math.max(0, 0.7 - lt * 2.5);
+//           if (lt > 0.35) this.group.remove(s);
+//         });
+//         this.splashes = this.splashes.filter((s) => s.parent === this.group);
+ 
+//         if (t >= 1) {
+//           this.phase = "puddle";
+//           this.phaseT = 0;
+//           this.phaseDur = 1.8;
+//           this.sprayCones.forEach((c) => {
+//             (c.material as THREE.MeshStandardMaterial).opacity = 0;
+//           });
+//         }
+//         break;
+//       }
+ 
+//       case "puddle": {
+//         // Sit and develop — pool changes color (green → darker)
+//         poolMat.color.lerp(new THREE.Color(0x22aa66), sDt * 0.6);
+//         if (t >= 1) {
+//           this.phase = "rinse";
+//           this.phaseT = 0;
+//           this.phaseDur = 1.5;
+//         }
+//         break;
+//       }
+ 
+//       case "rinse": {
+//         // Switch to blue rinse spray
+//         const pulse = 0.5 + 0.5 * Math.abs(Math.sin(this.phaseT * 14));
+//         this.sprayCones.forEach((c) => {
+//           const m = c.material as THREE.MeshStandardMaterial;
+//           m.color.setHex(0x66bbff);
+//           m.emissive.setHex(0x3399ff);
+//           m.opacity = 0.3 + pulse * 0.4;
+//         });
+ 
+//         // Pool drains
+//         poolMat.color.lerp(new THREE.Color(0x66bbff), sDt * 1.2);
+//         poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 0.6);
+ 
+//         if (t >= 1) {
+//           this.phase = "retract";
+//           this.phaseT = 0;
+//           this.phaseDur = 0.6;
+//         }
+//         break;
+//       }
+ 
+//   case "retract": {
+//   // Phase A (0→0.5): lift back to rail
+//   // Phase B (0.5→1): slide back right to park
+//   if (t < 0.5) {
+//     const liftT = t / 0.5;
+//     this.nozzle.position.y = lerp(1.85, 3.44, liftT);
+//     this.nozzle.position.x = 0;
+//   } else {
+//     const slideT = (t - 0.5) / 0.5;
+//     this.nozzle.position.y = 3.44;
+//     this.nozzle.position.x = lerp(0, 1.4, slideT);
+//     const dc = this.group.userData.devCarriage as THREE.Mesh;
+//     if (dc) dc.position.x = lerp(0, 1.4, slideT);
+//   }
+//         this.sprayCones.forEach((c) => {
+//           (c.material as THREE.MeshStandardMaterial).opacity = Math.max(
+//             0,
+//             (c.material as THREE.MeshStandardMaterial).opacity - sDt * 3
+//           );
+//         });
+//         if (t >= 1) {
+//           this.phase = "done";
+//           this.phaseT = 0;
+//         }
+//         break;
+//       }
+ 
+//       case "done": break;
+//     }
+//   }
+// }
+ 
+
+// // ─── MODULE BUILDER ───────────────────────────────────────────────────────────
+
+// function buildModule(mod: ProcessStep): THREE.Group {
+//   const grp = new THREE.Group();
+//   grp.position.set(mod.x, 0, mod.z);
+//   grp.userData.id = mod.id;
+
+//   const W = 2.9, D = 2.9;
+//   const H = 1.2;                     // INCREASED HEIGHT
+//   const PLINTH_H = 0.45;             // THICK BASE BOX
+
+//   const themes = { /* same as before */ };
+//   const th = themes[mod.type] ?? { base: 0xaabbcc, edge: 0x4477aa, glass: mod.color };
+
+//   // ---- PEDESTAL (visible box under module) ----
+//   const plinthMat = new THREE.MeshStandardMaterial({ color: 0x1a2030, roughness: 0.35, metalness: 0.80, emissive: th.edge, emissiveIntensity: 0.12 });
+//   const plinth = new THREE.Mesh(new THREE.BoxGeometry(W + 0.32, PLINTH_H, D + 0.32), plinthMat);
+//   plinth.position.y = -PLINTH_H / 2;
+//   plinth.castShadow = true;
+//   plinth.receiveShadow = true;
+//   grp.add(plinth);
+
+//   const edgeStrip = new THREE.Mesh(new THREE.BoxGeometry(W + 0.32, 0.04, 0.06),
+//     new THREE.MeshStandardMaterial({ color: th.edge, emissive: th.edge, emissiveIntensity: 3.5, roughness: 0.2, transparent: true, opacity: 0.9 }));
+//   edgeStrip.position.set(0, -PLINTH_H + 0.025, (D + 0.32) / 2);
+//   grp.add(edgeStrip);
+//   grp.userData.plinthStrip = edgeStrip;
+
+//   // ---- MAIN BODY (taller) ----
+//   const bodyMat = new THREE.MeshStandardMaterial({ color: th.base, roughness: 0.2, metalness: 0.75, emissive: th.edge, emissiveIntensity: 0.15 });
+//   const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), bodyMat);
+//   body.position.y = H / 2;
+//   body.castShadow = true; body.receiveShadow = true;
+//   grp.add(body);
+
+//   // Top plate & chuck – adjust Y positions using new H
+//   const topPl = new THREE.Mesh(new THREE.BoxGeometry(W - 0.04, 0.07, D - 0.04),
+//     new THREE.MeshStandardMaterial({ color: 0xe0e8f0, roughness: 0.05, metalness: 0.98 }));
+//   topPl.position.y = H + 0.035;
+//   grp.add(topPl);
+
+//   const discMat = new THREE.MeshStandardMaterial({ color: mod.color, roughness: 0.12, metalness: 0.6, emissive: mod.color, emissiveIntensity: 0.55 });
+//   const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.96, 0.96, 0.07, 80), discMat);
+//   disc.position.y = H + 0.04;
+//   grp.add(disc);
+
+//   // Concentric rings
+//   for (let r = 0.2; r <= 0.88; r += 0.11) {
+//     const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.004, 4, 72),
+//       new THREE.MeshStandardMaterial({ color: 0x8899cc, emissive: 0x2244aa, emissiveIntensity: 0.4 }));
+//     ring.rotation.x = Math.PI / 2;
+//     ring.position.y = H + 0.078;
+//     grp.add(ring);
+//   }
+
+//   // Inner pulsing ring
+//   const innerRing = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.04, 8, 60), matEmissive(mod.color, 2.5));
+//   innerRing.rotation.x = Math.PI / 2;
+//   innerRing.position.y = H + 0.082;
+//   grp.add(innerRing);
+//   grp.userData.innerRing = innerRing;
+
+//   // LED strip
+//   const led = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.1, 0.07), matEmissive(mod.color, 5.0));
+//   led.position.set(0, H * 0.55, -(D / 2) + 0.05);
+//   grp.add(led);
+//   grp.userData.led = led;
+
+//   // Control panel
+//   const panel = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 0.04),
+//     new THREE.MeshStandardMaterial({ color: 0x0e1c2a, roughness: 0.35, metalness: 0.75 }));
+//   panel.position.set(0, H * 0.32, -(D / 2 + 0.02));
+//   grp.add(panel);
+//   for (let i = 0; i < 5; i++) {
+//     const dt2 = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 10),
+//       matEmissive(i === 0 ? mod.color : i === 1 ? 0x00ff88 : 0x333333, i < 2 ? 3.5 : 0.5));
+//     dt2.position.set(-0.55 + i * 0.28, H * 0.32, -(D / 2) + 0.04);
+//     grp.add(dt2);
+//   }
+
+//   // Temp indicator
+//   if (mod.temp !== null) {
+//     const tempColor = mod.temp > 50 ? 0xff3300 : 0x0099ff;
+//     const tempBar = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 0.06), matEmissive(tempColor, 4.0));
+//     tempBar.position.set(0, H * 0.78, -(D / 2) + 0.05);
+//     grp.add(tempBar);
+//     // ... canvas texture (unchanged)
+//   }
+
+//   // Process light
+//   const pl = new THREE.PointLight(mod.color, 0, 7);
+//   pl.position.set(0, H + 1.8, 0);
+//   grp.add(pl);
+//   grp.userData.processLight = pl;
+
+//   // ... rest of type‑specific code (coils, fins, scanner, foup, wet/dry) – update Y values using new H where needed.
+
+//   // Floating label – higher because module is taller
+//   const labelY = mod.type === "scan" ? H * 6.0 : H + 2.4;
+//   // ... label creation (same as before, just use labelY)
+//   return grp;
+// }
+
+// function addBigLabel(parent: THREE.Group | THREE.Scene, text: string, color: number, x: number, y: number, z: number) {
+//   const lines = text.split("\n");
+//   const c = document.createElement("canvas"); c.width = 400; c.height = 100 * lines.length;
+//   const ctx = c.getContext("2d")!;
+//   ctx.fillStyle = hex2css(color);
+//   ctx.font = "bold 40px 'Courier New',monospace";
+//   ctx.textAlign = "center";
+//   ctx.shadowColor = hex2css(color); ctx.shadowBlur = 16;
+//   lines.forEach((l, i) => ctx.fillText(l, 200, 60 + i * 80));
+//   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true }));
+//   sp.scale.set(4, 2 * lines.length, 1); sp.position.set(x, y, z);
+//   parent.add(sp);
+// }
+
+// // ─── FLOW ARROWS ─────────────────────────────────────────────────────────────
+
+// function buildFlowArrows(scene: THREE.Scene) {
+//   const arrowMat = new THREE.MeshStandardMaterial({ color: 0xddcc44, emissive: 0xaa9900, emissiveIntensity: 0.8, roughness: 0.4 });
+
+//   function arrow(ax: number, az: number, bx: number, bz: number) {
+//     const dir = new THREE.Vector3(bx - ax, 0, bz - az).normalize();
+//     const len = Math.sqrt((bx - ax) ** 2 + (bz - az) ** 2) - 1.5;
+//     if (len <= 0) return;
+//     const cx = (ax + bx) / 2, cz = (az + bz) / 2;
+//     const shaft = new THREE.Mesh(new THREE.BoxGeometry(len, 0.06, 0.06), arrowMat.clone());
+//     shaft.position.set(cx, 0.7, cz);
+//     shaft.rotation.y = Math.atan2(-(bz - az), bx - ax);
+//     scene.add(shaft);
+//     const head = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.35, 8), arrowMat.clone());
+//     head.position.set(bx - dir.x * 0.8, 0.7, bz - dir.z * 0.8);
+//     head.rotation.set(0, 0, Math.PI / 2);
+//     head.rotation.y = Math.atan2(-(bz - az), bx - ax);
+//     scene.add(head);
+//   }
+
+//   // Filter out 'output' since it was removed — work only with existing steps
+//   const validSteps = ALL_STEPS.filter(s => s.id !== 'output');
+
+//   // FOUP → first process step
+//   const foupStep = validSteps.find(s => s.id === 'foup')!;
+//   const dehy     = validSteps.find(s => s.id === 'dehy')!;
+//   if (foupStep && dehy) arrow(foupStep.x, foupStep.z, dehy.x, dehy.z);
+
+//   // Top track: dehy → hmds → chill1 → prcoat → pab → chill2 → iface_out
+//   const topIds = ['dehy', 'hmds', 'chill1', 'prcoat', 'pab', 'chill2', 'iface_out'];
+//   const top = topIds.map(id => validSteps.find(s => s.id === id)).filter(Boolean) as ProcessStep[];
+//   for (let i = 0; i < top.length - 1; i++) arrow(top[i].x, top[i].z, top[i+1].x, top[i+1].z);
+
+//   // iface_out → scanner → iface_in
+//   const ifaceOut = validSteps.find(s => s.id === 'iface_out');
+//   const scanner  = validSteps.find(s => s.id === 'scanner');
+//   const ifaceIn  = validSteps.find(s => s.id === 'iface_in');
+//   if (ifaceOut && scanner) arrow(ifaceOut.x, ifaceOut.z, scanner.x, scanner.z);
+//   if (scanner  && ifaceIn) arrow(scanner.x,  scanner.z,  ifaceIn.x,  ifaceIn.z);
+
+//   // Bottom track: iface_in → peb → develop → rinse → spindry → chill3 → hardbake
+//   const botIds = ['iface_in', 'peb', 'develop', 'rinse', 'spindry', 'chill3', 'hardbake'];
+//   const bot = botIds.map(id => validSteps.find(s => s.id === id)).filter(Boolean) as ProcessStep[];
+//   for (let i = 0; i < bot.length - 1; i++) arrow(bot[i].x, bot[i].z, bot[i+1].x, bot[i+1].z);
+
+//   // hardbake → back to FOUP (return path)
+//   const hardbake = validSteps.find(s => s.id === 'hardbake');
+//   if (hardbake && foupStep) arrow(hardbake.x, hardbake.z, foupStep.x, foupStep.z);
+// }
+// // ─── ROBOT BUILDER ───────────────────────────────────────────────────────────
+
+// // function buildRobot(scene: THREE.Scene, basePos: THREE.Vector3, robotColor = 0x445566, ledColor = 0x00ff88): RobotObject {
+// //   const g = new THREE.Group(); g.position.copy(basePos);
+ 
+// //   const M_BODY  = new THREE.MeshStandardMaterial({ color: robotColor, roughness: 0.22, metalness: 0.88 });
+// //   const M_JOINT = new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.16, metalness: 0.92 });
+// //   const M_LED   = matEmissive(ledColor, 2.5);
+// //   const M_ALUM  = new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 });
+// //   const M_DARK  = matPBR(0x151820, 0.35, 0.88);
+ 
+// //   const addM = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0): THREE.Mesh => {
+// //     const m = new THREE.Mesh(geo, mat);
+// //     m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
+// //     parent.add(m); return m;
+// //   };
+ 
+// //   addM(g, new THREE.CylinderGeometry(0.65, 0.82, 0.22, 32), M_ALUM.clone(), 0, 0.11, 0);
+// //   addM(g, new THREE.CylinderGeometry(0.55, 0.65, 0.62, 32), M_BODY.clone(), 0, 0.52, 0);
+// //   const ledRing = addM(g, new THREE.TorusGeometry(0.53, 0.028, 8, 48), M_LED.clone(), 0, 0.8, 0);
+// //   ledRing.rotation.x = Math.PI / 2;
+ 
+// //   const turret = new THREE.Group(); turret.position.set(0, 0.8, 0); g.add(turret);
+// //   addM(turret, new THREE.CylinderGeometry(0.42, 0.46, 0.40, 24), M_BODY.clone(), 0, 0.20, 0);
+// //   addM(turret, new THREE.CylinderGeometry(0.30, 0.30, 0.24, 18), M_JOINT.clone(), 0, 0.42, 0);
+ 
+// //   const shoulder = new THREE.Group(); shoulder.position.set(0, 0.44, 0); turret.add(shoulder);
+// //   addM(shoulder, new THREE.BoxGeometry(1.28, 0.70, 1.08), M_BODY.clone(), 0, 0, 0);
+// //   addM(shoulder, new THREE.CylinderGeometry(0.44, 0.44, 1.14, 18), M_JOINT.clone(), 0, 0, 0);
+ 
+// //   const upperArm = new THREE.Group(); upperArm.position.set(0, 0.38, 0); shoulder.add(upperArm);
+// //   addM(upperArm, new THREE.BoxGeometry(0.74, 2.3, 0.65), M_BODY.clone(), 0, 1.15, 0);
+// //   for (let i = 0; i < 4; i++) addM(upperArm, new THREE.BoxGeometry(0.76, 0.075, 0.67), M_DARK.clone(), 0, 0.3 + i * 0.6, 0);
+// //   addM(upperArm, new THREE.BoxGeometry(0.12, 2.0, 0.09), M_ALUM.clone(), 0.32, 1.15, 0.30);
+ 
+// //   const elbow = new THREE.Group(); elbow.position.set(0, 2.34, 0); upperArm.add(elbow);
+// //   addM(elbow, new THREE.SphereGeometry(0.44, 28, 18), M_JOINT.clone(), 0, 0, 0);
+// //   addM(elbow, new THREE.CylinderGeometry(0.36, 0.36, 1.14, 18), M_BODY.clone(), 0, 0, 0);
+ 
+// //   const foreArm = new THREE.Group(); elbow.add(foreArm);
+// //   addM(foreArm, new THREE.BoxGeometry(0.6, 1.80, 0.52), M_BODY.clone(), 0, 0.90, 0);
+// //   for (let i = 0; i < 2; i++) addM(foreArm, new THREE.BoxGeometry(0.62, 0.065, 0.54), M_DARK.clone(), 0, 0.25 + i * 0.72, 0);
+// //   addM(foreArm, new THREE.BoxGeometry(0.10, 1.55, 0.08), M_ALUM.clone(), 0.26, 0.90, 0.22);
+ 
+// //   const wrist = new THREE.Group(); wrist.position.set(0, 1.84, 0); foreArm.add(wrist);
+// //   addM(wrist, new THREE.CylinderGeometry(0.30, 0.34, 0.60, 28), M_JOINT.clone(), 0, 0, 0);
+ 
+// //   const gripper = new THREE.Group(); gripper.position.set(0, 0.36, 0); wrist.add(gripper);
+// //   addM(gripper, new THREE.BoxGeometry(0.48, 0.40, 0.48), M_BODY.clone(), 0, 0.20, 0);
+// //   addM(gripper, new THREE.CylinderGeometry(0.22, 0.24, 0.18, 18), M_JOINT.clone(), 0, 0.40, 0);
+ 
+// //   const bladeMat = new THREE.MeshStandardMaterial({ color: 0xd8e4ef, roughness: 0.04, metalness: 0.98 });
+// //   addM(gripper, new THREE.BoxGeometry(1.72, 0.028, 0.68), bladeMat, 0.86, 0.44, 0);
+// //   [-0.28, 0.28].forEach((tz) => addM(gripper, new THREE.BoxGeometry(0.52, 0.022, 0.08), bladeMat, 1.82, 0.44, tz));
+// //   [0.5, 1.1, 1.6].forEach((bx) => addM(gripper, new THREE.CylinderGeometry(0.055, 0.055, 0.035, 12),
+// //     new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3, metalness: 0.7 }), bx, 0.456, 0));
+// //   addM(gripper, new THREE.SphereGeometry(0.045, 8, 8), M_LED.clone(), 0, 0.44, 0.30);
+ 
+// //   const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
+// //   statusPL.position.set(0, 2.4, 0); g.add(statusPL);
+
+// // // Replace the robot builder's runIK function with this improved version
+// // // Also update WaferStateMachine attachTo/detachAt methods
+
+// // // In buildRobot function, replace the runIK implementation:
+
+// // function runIK(tgt: THREE.Vector3) {
+// //   // Step 1 — point the turret toward the target
+// //   const baseWP = new THREE.Vector3();
+// //   g.getWorldPosition(baseWP);
+// //   const dx = tgt.x - baseWP.x;
+// //   const dz = tgt.z - baseWP.z;
+// //   const yaw = Math.atan2(dx, dz);
+// //   turret.rotation.set(0, yaw, 0);
+  
+// //   // Robot geometry constants
+// //   const L1 = 2.34;
+// //   const L2 = 1.84;
+// //   const shoulderOffset = 0.44;
+// //   const wristToGrip = 0.84;
+  
+// //   // Convert target to turret local space
+// //   const localTgt = turret.worldToLocal(tgt.clone());
+  
+// //   // Determine if this is a pick/place operation (lower height)
+// //   const isPickPlace = Math.abs(localTgt.y - 0.93) < 0.2;
+// //   const wristTargetY = localTgt.y + wristToGrip - (isPickPlace ? 0.15 : 0);
+// //   const wristR = Math.sqrt(localTgt.x * localTgt.x + localTgt.z * localTgt.z);
+// //   const sx = wristR;
+// //   const sy = wristTargetY - shoulderOffset;
+  
+// //   // Calculate distance from shoulder to wrist
+// //   let D = Math.sqrt(sx * sx + sy * sy);
+// //   D = Math.min(D, L1 + L2 - 0.05);
+// //   D = Math.max(D, Math.abs(L1 - L2) + 0.05);
+  
+// //   // Law of cosines for elbow angle
+// //   const cosElbow = (D * D - L1 * L1 - L2 * L2) / (2 * L1 * L2);
+// //   const elbowAngle = Math.acos(Math.min(1, Math.max(-1, cosElbow)));
+  
+// //   // Law of cosines for shoulder angle
+// //   const cosShoulder = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+// //   const shoulderInner = Math.acos(Math.min(1, Math.max(-1, cosShoulder)));
+// //   const targetAngle = Math.atan2(sx, sy);
+  
+// //   // Apply joint angles
+// //   let shoulderAngle = targetAngle - shoulderInner;
+// //   shoulderAngle = Math.min(Math.max(shoulderAngle, -Math.PI / 2.5), Math.PI / 2);
+// //   shoulder.rotation.set(shoulderAngle, 0, 0);
+  
+// //   let elbowAngleValue = -(Math.PI - elbowAngle);
+// //   elbowAngleValue = Math.min(Math.max(elbowAngleValue, -Math.PI / 1.8), 0);
+// //   elbow.rotation.set(elbowAngleValue, 0, 0);
+  
+// //   // Keep blade horizontal
+// //   const cumulativePitch = shoulder.rotation.x + elbow.rotation.x;
+// //   let wristAngle = -cumulativePitch;
+  
+// //   // Add micro-adjustments for pick/place
+// //   if (isPickPlace) {
+// //     wristAngle += Math.sin(Date.now() * 0.008) * 0.02;
+// //   }
+  
+// //   wrist.rotation.set(wristAngle, 0, 0);
+// // }
+
+// // /*
+// // // COMMENTED OUT - These are loose code snippets that need to be properly integrated into classes
+
+// // // Replace the _driveRobotTo method in the Sim class:
+// // private _driveRobotTo(rob: RobotObject, tgt: THREE.Vector3, dt: number, mult: number): void {
+// //   // Smooth target interpolation
+// //   if (!rob.group.userData.smoothTarget) {
+// //     rob.group.userData.smoothTarget = tgt.clone();
+// //   }
+  
+// //   const smoothFactor = 0.15;
+// //   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
+// //   rob.runIK(rob.group.userData.smoothTarget);
+// // }
+
+// // // Replace the belt Z constants in _tickWafer - find all occurrences and update:
+// // // Look for: const beltZ = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
+// // // Replace with:
+// // const beltZ = isTop ? TOP_Z + 2.6 : BOT_Z - 2.6;
+
+// // // Also update BELT_Y at the top of _tickWafer:
+// // const BELT_Y = 0.22; // Changed from 0.48
+
+// // // Fix the conveyor belt positions in _build (already have these but ensure they're correct):
+// // this.conveyorTop = new ConveyorBelt(this.scene, -15, 18, TOP_Z + 2.6, 0x0099ff);
+// // this.conveyorBot = new ConveyorBelt(this.scene, -15, 18, BOT_Z - 2.6, 0x00cc66);
+
+// // // Ensure robotD is declared at the top of the Sim class:
+// // // Find the line with the other robot declarations and add robotD:
+// // robotA!: RobotObject; 
+// // robotEFEM!: RobotObject; 
+// // robotB!: RobotObject; 
+// // robotC!: RobotObject; 
+// // robotD!: RobotObject;  // Add this line
+
+// // // Update the _getCarrierForStep method:
+// // private _getCarrierForStep(si: number): RobotObject {
+// //   if (si === 0 || si === 16) return this.robotEFEM;
+// //   if (si >= 1 && si <= 3) return this.robotA;
+// //   if (si >= 4 && si <= 7) return this.robotC;
+// //   if (si >= 8 && si <= 10) return this.robotB;
+// //   if (si >= 11 && si <= 15) return this.robotD;
+// //   return this.robotEFEM;
+// // }
+
+// // // Replace attachTo in WaferStateMachine:
+// // attachTo(robot: RobotObject) {
+// //   this.carrierRobot = robot;
+// //   this.scene.remove(this.mesh);
+// //   robot.gripper.add(this.mesh);
+  
+// //   // Position wafer ON TOP of the blade
+// //   // Blade extends in +X, surface at y=0.44 from gripper origin
+// //   // Wafer should sit at y=0.5 to be slightly above blade surface
+// //   this.mesh.position.set(0.86, 0.5, 0);
+// //   this.mesh.rotation.set(0, 0, 0);
+// //   this.onConveyor = false;
+  
+// //   // Visual feedback - flash the wafer
+// //   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
+// //   if (pr) {
+// //     const mat = pr.material as THREE.MeshStandardMaterial;
+// //     const origEmissive = mat.emissiveIntensity;
+// //     mat.emissive.setHex(0xffffff);
+// //     mat.emissiveIntensity = 2.5;
+// //     setTimeout(() => {
+// //       mat.emissive.setHex(WAFER_COLORS[this.wi]);
+// //       mat.emissiveIntensity = origEmissive;
+// //     }, 200);
+// //   }
+  
+// //   // Also flash the robot's LED
+// //   robot.statusPL.intensity = 3.0;
+// //   setTimeout(() => {
+// //     if (robot.statusPL) robot.statusPL.intensity = 1.2;
+// //   }, 300);
+// // }
+
+// // // Replace detachAt in WaferStateMachine:
+// // detachAt(worldPos: THREE.Vector3) {
+// //   if (!this.carrierRobot) return;
+  
+// //   // Store reference to robot before detaching
+// //   const robot = this.carrierRobot;
+  
+// //   // Remove from robot gripper
+// //   robot.gripper.remove(this.mesh);
+// //   this.scene.add(this.mesh);
+  
+// //   // Position at module chuck height (y=0.93 for wafer chuck)
+// //   this.mesh.position.copy(worldPos);
+// //   this.mesh.position.y = 0.93; // Chuck surface height
+  
+// //   // Slight rotation for visual interest
+// //   this.mesh.rotation.y = Math.random() * Math.PI * 2;
+  
+// //   this.carrierRobot = null;
+  
+// //   // Visual feedback - impact flash
+// //   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
+// //   if (pr) {
+// //     const mat = pr.material as THREE.MeshStandardMaterial;
+// //     mat.emissive.setHex(0xffffff);
+// //     mat.emissiveIntensity = 1.8;
+// //     setTimeout(() => {
+// //       mat.emissive.setHex(WAFER_COLORS[this.wi]);
+// //       mat.emissiveIntensity = 0.7;
+// //     }, 250);
+// //   }
+  
+// //   // Flash the module's LED
+// //   const modObj = (window as any).currentModule?.userData;
+// //   if (modObj?.processLight) {
+// //     const originalIntensity = (modObj.processLight as THREE.PointLight).intensity;
+// //     (modObj.processLight as THREE.PointLight).intensity = 4.0;
+// //     setTimeout(() => {
+// //       if (modObj.processLight) (modObj.processLight as THREE.PointLight).intensity = originalIntensity;
+// //     }, 300);
+// //   }
+// // }
+
+// // // Improve the _driveRobotTo function for smoother motion:
+// // private _driveRobotTo(rob: RobotObject, tgt: THREE.Vector3, dt: number, mult: number) {
+// //   // Smooth target interpolation for visual quality
+// //   if (!rob.group.userData.smoothTarget) {
+// //     rob.group.userData.smoothTarget = tgt.clone();
+// //   }
+  
+// //   // Interpolate target for smoother motion
+// //   const smoothFactor = 0.15;
+// //   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
+  
+// //   // Run IK with smoothed target
+// //   rob.runIK(rob.group.userData.smoothTarget);
+  
+// //   // Add subtle floating motion when idle (not carrying wafer)
+// //   const carried = (rob.group.userData.carriedWafer !== undefined);
+// //   if (!carried && rob.group.userData.isIdle) {
+// //     const time = Date.now() * 0.003;
+// //     const idleOffset = Math.sin(time) * 0.02;
+// //     rob.gripper.position.y = 0.36 + idleOffset * 0.5;
+// //   }
+// // }
+
+// // // Update the _animRobots function to track carried state:
+// // private _animRobots(dt: number) {
+// //   const t = this.simTime;
+// //   if (!this.robotA || !this.robotEFEM || !this.robotB || !this.robotC || !this.robotD) return;
+
+// //   // Helper — find which wafer (if any) this robot is currently carrying
+// //   const findCarried = (r: RobotObject) => {
+// //     const carried = this.wSMs.find((w) => w.launched && !w.done && w.carrierRobot === r);
+// //     // Store carried state on robot group for animation
+// //     r.group.userData.carriedWafer = carried ? true : false;
+// //     return carried;
+// //   };
+
+// //   // Helper — generate an idle hover position above the robot's base
+// //   const idleTgt = (r: RobotObject, phase: number) => {
+// //     const hoverRadius = 2.5;
+// //     const hoverHeight = 2.4;
+// //     return r.basePos.clone().add(new THREE.Vector3(
+// //       hoverRadius + Math.sin(t * 0.28 + phase) * 0.6,
+// //       hoverHeight + Math.sin(t * 0.35 + phase) * 0.25,
+// //       Math.cos(t * 0.22 + phase) * 0.8
+// //     ));
+// //   };
+
+// //   // For each robot, drive to its assigned module (if carrying a wafer)
+// //   // or hover idly near its base.
+// //   const robots: { r: RobotObject; phase: number; mult: number }[] = [
+// //     { r: this.robotEFEM, phase: 0,   mult: 1.15 },
+// //     { r: this.robotA,    phase: 1.2, mult: 1.0  },
+// //     { r: this.robotC,    phase: 2.4, mult: 1.1  },
+// //     { r: this.robotB,    phase: 3.6, mult: 0.95 },
+// //     { r: this.robotD,    phase: 4.8, mult: 1.05 },
+// //   ];
+
+// //   robots.forEach(({ r, phase, mult }) => {
+// //     const carried = findCarried(r);
+// //     r.group.userData.isIdle = !carried;
+    
+// //     const tgt = carried
+// //       ? new THREE.Vector3(
+// //           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].x,
+// //           0.98,  // Slightly above module for pick/place
+// //           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].z
+// //         )
+// //       : idleTgt(r, phase);
+      
+// //     this._driveRobotTo(r, tgt, dt, mult);
+
+// //     // Pulsing status LED
+// //     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8 + phase);
+    
+// //     // Add trailing particles when moving with wafer (optional)
+// //     if (carried && !r.group.userData.trailParticles) {
+// //       // Create particle trail for moving wafer
+// //       r.group.userData.trailParticles = this._createTrailParticles(r);
+// //     }
+// //   });
+// // }
+
+// // // Helper to create visual trail particles (optional but adds polish)
+// // private _createTrailParticles(robot: RobotObject) {
+// //   const particleCount = 30;
+// //   const particles: THREE.Points[] = [];
+// //   const geometry = new THREE.BufferGeometry();
+// //   const positions = new Float32Array(particleCount * 3);
+// //   for (let i = 0; i < particleCount; i++) {
+// //     positions[i*3] = 0;
+// //     positions[i*3+1] = 0;
+// //     positions[i*3+2] = 0;
+// //   }
+// //   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+// //   const material = new THREE.PointsMaterial({
+// //     color: 0x88aaff,
+// //     size: 0.03,
+// //     transparent: true,
+// //     opacity: 0.6,
+// //     blending: THREE.AdditiveBlending
+// //   });
+// //   const particleSystem = new THREE.Points(geometry, material);
+// //   robot.group.add(particleSystem);
+// //   return particleSystem;
+// // }
+
+// // // Fix the belt Z constants in _tickWafer - replace all occurrences:
+// // // Find this line in the case "conveyor_move" block:
+// // // const beltZ = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
+// // // Replace with:
+// // const beltZ = isTop ? TOP_Z + 2.6 : BOT_Z - 2.6;
+
+// // // Also fix the BELT_Y constant at the top of _tickWafer:
+// // const BELT_Y = 0.22; // Changed from 0.48
+
+// // // Add this helper function for smooth pick/place animation
+// // private _animatePickPlace(sm: WaferStateMachine, robot: RobotObject, targetPos: THREE.Vector3, duration: number = 0.4) {
+// //   const startPos = sm.mesh.position.clone();
+// //   const startTime = this.simTime;
+// //   const endTime = startTime + duration;
+  
+// //   const animate = () => {
+// //     const now = this.simTime;
+// //     if (now >= endTime) {
+// //       // Animation complete
+// //       return;
+// //     }
+    
+// //     const t = (now - startTime) / duration;
+// //     // Ease in-out curve
+// //     const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    
+// //     // Interpolate position with arc
+// //     const currentPos = startPos.clone().lerp(targetPos, ease);
+// //     currentPos.y = startPos.y + Math.sin(Math.PI * ease) * 0.15; // Arc motion
+    
+// //     sm.mesh.position.copy(currentPos);
+    
+// //     // Slight rotation during pick/place
+// //     sm.mesh.rotation.y = ease * Math.PI * 0.5;
+    
+// //     requestAnimationFrame(() => animate());
+// //   };
+  
+// //   animate();
+// // }
+// // */
+ 
+// //   function getJoints(): JointData {
+// //     return {
+// //       base:     { c: turret.rotation.y },
+// //       shoulder: { c: shoulder.rotation.x },
+// //       elbow:    { c: elbow.rotation.x },
+// //       wrist:    { c: wrist.rotation.x },
+// //     };
+// //   }
+ 
+// //   scene.add(g);
+// //   return {
+// //     group: g, turret, shoulder, upperArm, elbow, foreArm, wrist, gripper, statusPL,
+// //     basePos: basePos.clone(),
+// //     runIK, getJoints,
+// //     worldPos: () => { const v = new THREE.Vector3(); gripper.getWorldPosition(v); return v; }
+// //   };
+// // }
+
+// const RAIL_Y = 8;
+// const RAIL_START = -22;
+// const RAIL_END = 30;
+
+// function buildGantryRail(scene: THREE.Scene): THREE.Group {
+//   const grp = new THREE.Group();
+//   scene.add(grp);
+//   const beamLen = RAIL_END - RAIL_START;
+//   const beamMat = new THREE.MeshStandardMaterial({ color: 0x4a5568, roughness: 0.18, metalness: 0.92 });
+//   const web = new THREE.Mesh(new THREE.BoxGeometry(beamLen, 0.18, 0.06), beamMat);
+//   web.position.set((RAIL_START + RAIL_END) / 2, RAIL_Y, 0);
+//   grp.add(web);
+//   const topFlange = new THREE.Mesh(new THREE.BoxGeometry(beamLen, 0.07, 0.38), beamMat);
+//   topFlange.position.set((RAIL_START + RAIL_END) / 2, RAIL_Y + 0.12, 0);
+//   grp.add(topFlange);
+//   const botFlange = new THREE.Mesh(new THREE.BoxGeometry(beamLen, 0.07, 0.38), beamMat);
+//   botFlange.position.set((RAIL_START + RAIL_END) / 2, RAIL_Y - 0.12, 0);
+//   grp.add(botFlange);
+//   const ROPE_SEGS = 60;
+//   const SAG = 0.55;
+//   const ropeY = RAIL_Y - 0.28;
+//   const ropePoints: THREE.Vector3[] = [];
+//   for (let i = 0; i <= ROPE_SEGS; i++) {
+//     const frac = i / ROPE_SEGS;
+//     const x = RAIL_START + frac * beamLen;
+//     const sag = SAG * 4 * frac * (1 - frac);
+//     ropePoints.push(new THREE.Vector3(x, ropeY - sag, 0));
+//   }
+//   const ropeCurve = new THREE.CatmullRomCurve3(ropePoints);
+//   const ropeTube = new THREE.TubeGeometry(ropeCurve, 120, 0.022, 6, false);
+//   const ropeMat = new THREE.MeshStandardMaterial({ color: 0x00d8ff, emissive: 0x00aaff, emissiveIntensity: 2.8, roughness: 0.25, metalness: 0.6, transparent: true, opacity: 0.88 });
+//   grp.add(new THREE.Mesh(ropeTube, ropeMat));
+//   const glowTube = new THREE.TubeGeometry(ropeCurve, 120, 0.065, 6, false);
+//   const glowMat = new THREE.MeshStandardMaterial({ color: 0x00d8ff, emissive: 0x00aaff, emissiveIntensity: 1.2, transparent: true, opacity: 0.18, depthWrite: false, blending: THREE.AdditiveBlending });
+//   grp.add(new THREE.Mesh(glowTube, glowMat));
+//   const strutMat = new THREE.MeshStandardMaterial({ color: 0x3a4455, roughness: 0.3, metalness: 0.88 });
+//   for (let i = 0; i <= 6; i++) {
+//     const frac = i / 6;
+//     const x = RAIL_START + frac * beamLen;
+//     const sag = SAG * 4 * frac * (1 - frac);
+//     const strutH = 0.28 + sag;
+//     const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, strutH, 6), strutMat);
+//     strut.position.set(x, RAIL_Y - 0.12 - strutH / 2, 0);
+//     grp.add(strut);
+//   }
+//   const colH = RAIL_Y + 0.5;
+//   const colMat = new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.2, metalness: 0.95 });
+//   [RAIL_START + 0.3, RAIL_END - 0.3].forEach((cx) => {
+//     const col = new THREE.Mesh(new THREE.BoxGeometry(0.12, colH, 0.12), colMat);
+//     col.position.set(cx, colH / 2 - 0.52, 0);
+//     grp.add(col);
+//     const cap = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 10), new THREE.MeshStandardMaterial({ color: 0x00d8ff, emissive: 0x00aaff, emissiveIntensity: 3.0, roughness: 0.3 }));
+//     cap.position.set(cx, colH - 0.52 + 0.09, 0);
+//     grp.add(cap);
+//   });
+//   const trolley = new THREE.Group();
+//   grp.add(trolley);
+//   grp.userData.trolley = trolley;
+//   const trolleyBody = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.32, 0.52), new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.15, metalness: 0.95 }));
+//   trolleyBody.position.y = RAIL_Y + 0.02;
+//   trolley.add(trolleyBody);
+//   const wheelMat = new THREE.MeshStandardMaterial({ color: 0x223344, roughness: 0.1, metalness: 0.99 });
+//   [[-0.18, -0.14], [0.18, -0.14], [-0.18, 0.14], [0.18, 0.14]].forEach(([wx, wz]) => {
+//     const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.04, 16), wheelMat);
+//     wheel.rotation.x = Math.PI / 2;
+//     wheel.position.set(wx!, RAIL_Y - 0.06, wz!);
+//     trolley.add(wheel);
+//   });
+//   const cableH = 4.8;
+//   const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, cableH, 6), new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x0088ff, emissiveIntensity: 1.8, roughness: 0.3, transparent: true, opacity: 0.75 }));
+//   cable.position.set(0, RAIL_Y - 0.18 - cableH / 2, 0);
+//   trolley.add(cable);
+//   const cableGlow = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, cableH, 6), new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x0088ff, emissiveIntensity: 0.8, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false }));
+//   cableGlow.position.copy(cable.position);
+//   trolley.add(cableGlow);
+//   const led = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), new THREE.MeshStandardMaterial({ color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 4 }));
+//   led.position.set(0, RAIL_Y + 0.12, 0.27);
+//   trolley.add(led);
+//   grp.userData.trolleyLED = led;
+//   const glowBeads: THREE.PointLight[] = [];
+//   for (let i = 0; i < 6; i++) {
+//     const pl = new THREE.PointLight(0x00d8ff, 0.8, 5);
+//     grp.add(pl);
+//     glowBeads.push(pl);
+//   }
+//   grp.userData.glowBeads = glowBeads;
+//   grp.userData.ropeCurve = ropeCurve;
+//   grp.userData.ropeMat = ropeMat;
+//   return grp;
+// }
+
+// function tickGantryRail(grpRail: THREE.Group, robotX: number, simTime: number) {
+//   const trolley = grpRail.userData.trolley as THREE.Group;
+//   const glowBeads = grpRail.userData.glowBeads as THREE.PointLight[];
+//   const ropeCurve = grpRail.userData.ropeCurve as THREE.CatmullRomCurve3;
+//   const ropeMat = grpRail.userData.ropeMat as THREE.MeshStandardMaterial;
+//   const trolleyLED = grpRail.userData.trolleyLED as THREE.Mesh;
+//   if (!trolley) return;
+//   const targetX = Math.max(RAIL_START + 0.5, Math.min(RAIL_END - 0.5, robotX));
+//   trolley.position.x += (targetX - trolley.position.x) * 0.12;
+//   if (ropeMat) ropeMat.emissiveIntensity = 2.2 + 0.8 * Math.sin(simTime * 3.5);
+//   glowBeads.forEach((pl, i) => {
+//     const t = ((simTime * 0.18 + i / glowBeads.length) % 1 + 1) % 1;
+//     const pt = ropeCurve.getPoint(t);
+//     pl.position.copy(pt);
+//     pl.intensity = 0.6 + 0.5 * Math.sin(simTime * 6 + i * 1.4);
+//   });
+//   if (trolleyLED) {
+//     (trolleyLED.material as THREE.MeshStandardMaterial).emissiveIntensity = 3.5 + 1.5 * Math.sin(simTime * 8);
+//   }
+// }
+
+// export class PrCoatOverlay {
+//   plane:    THREE.Mesh;
+//   canvas:   HTMLCanvasElement;
+//   ctx:      CanvasRenderingContext2D;
+//   tex:      THREE.CanvasTexture;
+//   active    = false;
+//   spinAngle = 0;
+//   resistR   = 0;
+//   phase:    "idle" | "dispense" | "spinup" | "coating" | "spindown" | "done" = "idle";
+//   phaseT    = 0;
+//   color:    number;
+//   spinRPM   = 0;
+
+//   constructor(scene: THREE.Scene, x: number, z: number, color: number) {
+//     this.color  = color;
+//     this.canvas = document.createElement("canvas");
+//     this.canvas.width  = 256;
+//     this.canvas.height = 256;
+//     this.ctx    = this.canvas.getContext("2d")!;
+//     this.tex    = new THREE.CanvasTexture(this.canvas);
+
+//     this.plane = new THREE.Mesh(
+//       new THREE.CircleGeometry(0.94, 80),
+//       new THREE.MeshBasicMaterial({
+//         map:         this.tex,
+//         transparent: true,
+//         opacity:     0.0,
+//         depthWrite:  false,
+//         blending:    THREE.AdditiveBlending,
+//       })
+//     );
+//     this.plane.rotation.x = -Math.PI / 2;
+//     this.plane.position.set(x, 0.97, z);
+//     this.plane.renderOrder = 5;
+//     scene.add(this.plane);
+//   }
+
+//   start() {
+//     this.active  = true;
+//     this.phase   = "dispense";
+//     this.phaseT  = 0;
+//     this.resistR = 0;
+//     this.spinRPM = 0;
+//     (this.plane.material as THREE.MeshBasicMaterial).opacity = 1;
+//   }
+
+//   stop() {
+//     this.active  = false;
+//     this.phase   = "idle";
+//     (this.plane.material as THREE.MeshBasicMaterial).opacity = 0;
+//     this.resistR = 0;
+//     this.spinRPM = 0;
+//   }
+
+//   tick(dt: number, speed: number) {
+//     if (!this.active) return;
+//     const sDt = dt * speed;
+//     this.phaseT += sDt;
+
+//     switch (this.phase) {
+//       case "dispense":
+//         this.spinRPM = 0;
+//         this.resistR = Math.min(this.phaseT / 1.5, 1) * 20;
+//         if (this.phaseT > 1.5) { this.phase = "spinup"; this.phaseT = 0; }
+//         break;
+//       case "spinup":
+//         this.spinRPM = 500 * (1 - Math.exp(-this.phaseT * 3));
+//         this.resistR = 20 + (108 - 20) * Math.min(this.phaseT / 1.2, 1);
+//         if (this.phaseT > 1.2) { this.phase = "coating"; this.phaseT = 0; }
+//         break;
+//       case "coating":
+//         this.spinRPM = 3000;
+//         this.resistR = 108;
+//         if (this.phaseT > 3.5) { this.phase = "spindown"; this.phaseT = 0; }
+//         break;
+//       case "spindown":
+//         this.spinRPM = Math.max(0, 3000 * (1 - this.phaseT / 1.2));
+//         if (this.phaseT > 1.2) { this.phase = "done"; this.phaseT = 0; }
+//         break;
+//       case "done":
+//         this.spinRPM = 0;
+//         break;
+//     }
+
+//     this.spinAngle += (this.spinRPM / 60) * Math.PI * 2 * sDt;
+//     this._draw();
+//     this.tex.needsUpdate = true;
+//   }
+
+//   private _draw() {
+//     const C  = 128;
+//     const WR = 118;
+//     const R  = this.resistR;
+//     const ctx = this.ctx;
+//     ctx.clearRect(0, 0, 256, 256);
+
+//     if (R < 1) return;
+
+//     const col = `#${this.color.toString(16).padStart(6, "0")}`;
+//     const rpm = this.spinRPM;
+
+//     if (this.phase === "dispense") {
+//       const blob = Math.min(this.phaseT / 1.5, 1);
+//       const rr   = R * blob;
+//       const g    = ctx.createRadialGradient(C - 6, C - 6, 0, C, C, rr);
+//       g.addColorStop(0, col + "ee");
+//       g.addColorStop(0.4, col + "cc");
+//       g.addColorStop(1, col + "44");
+//       ctx.beginPath();
+//       for (let i = 0; i <= 24; i++) {
+//         const a   = (i / 24) * Math.PI * 2;
+//         const wobble = rr * (1 + 0.12 * Math.sin(a * 5 + 1.3) + 0.08 * Math.sin(a * 3));
+//         i === 0 ? ctx.moveTo(C + Math.cos(a) * wobble, C + Math.sin(a) * wobble)
+//                 : ctx.lineTo(C + Math.cos(a) * wobble, C + Math.sin(a) * wobble);
+//       }
+//       ctx.closePath();
+//       ctx.fillStyle = g;
+//       ctx.fill();
+
+//       ctx.beginPath();
+//       ctx.ellipse(C - rr * 0.22, C - rr * 0.26, rr * 0.28, rr * 0.17, -0.4, 0, Math.PI * 2);
+//       ctx.fillStyle = "rgba(255,235,120,0.28)";
+//       ctx.fill();
+
+//     } else if (this.phase === "spinup") {
+//       const sp = Math.min(this.phaseT / 1.2, 1);
+//       ctx.save();
+//       ctx.translate(C, C);
+//       ctx.rotate(this.spinAngle);
+
+//       const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+//       grad.addColorStop(0,   col + "ee");
+//       grad.addColorStop(0.3, col + "bb");
+//       grad.addColorStop(0.7, col + "55");
+//       grad.addColorStop(1,   col + "22");
+//       ctx.beginPath();
+//       ctx.arc(0, 0, R, 0, Math.PI * 2);
+//       ctx.fillStyle = grad;
+//       ctx.fill();
+
+//       const numArms = 7;
+//       for (let arm = 0; arm < numArms; arm++) {
+//         const baseAngle = (arm / numArms) * Math.PI * 2;
+//         ctx.beginPath();
+//         for (let j = 0; j <= 55; j++) {
+//           const p  = j / 55;
+//           const r  = R * p;
+//           const sa = baseAngle + p * 2.5 * Math.PI;
+//           j === 0 ? ctx.moveTo(0, 0) : ctx.lineTo(Math.cos(sa) * r, Math.sin(sa) * r);
+//         }
+//         ctx.strokeStyle = `rgba(255,220,80,${sp * (1 - sp * 0.4) * 0.55})`;
+//         ctx.lineWidth   = Math.max(0.5, 3.5 - sp * 3);
+//         ctx.stroke();
+//       }
+//       ctx.restore();
+
+//     } else if (this.phase === "coating" || this.phase === "spindown") {
+//       ctx.save();
+//       ctx.translate(C, C);
+//       ctx.rotate(this.spinAngle);
+
+//       const nSectors = 42;
+//       for (let s = 0; s < nSectors; s++) {
+//         const sa  = (s / nSectors) * Math.PI * 2;
+//         const ea  = ((s + 1) / nSectors) * Math.PI * 2;
+//         const hue = (s / nSectors * 300 + this.spinAngle * 20) % 360;
+//         ctx.beginPath();
+//         ctx.moveTo(0, 0);
+//         ctx.arc(0, 0, R * 0.92, sa, ea);
+//         ctx.closePath();
+//         ctx.fillStyle = `hsla(${hue},60%,65%,0.5)`;
+//         ctx.fill();
+//       }
+
+//       const sg = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.92);
+//       sg.addColorStop(0,   "rgba(200,220,255,0.22)");
+//       sg.addColorStop(0.6, "rgba(150,180,255,0.12)");
+//       sg.addColorStop(1,   "rgba(80,120,220,0.06)");
+//       ctx.beginPath();
+//       ctx.arc(0, 0, R * 0.92, 0, Math.PI * 2);
+//       ctx.fillStyle = sg;
+//       ctx.fill();
+
+//       const beadAlpha = this.phase === "spindown" ? Math.max(0, 1 - this.phaseT / 1.2) : 1;
+//       ctx.beginPath();
+//       ctx.arc(0, 0, R, 0, Math.PI * 2);
+//       ctx.strokeStyle = `rgba(240,180,50,${beadAlpha * 0.85})`;
+//       ctx.lineWidth   = 6 + 2;
+//       ctx.stroke();
+//       ctx.beginPath();
+//       ctx.arc(0, 0, R + 3, 0, Math.PI * 2);
+//       ctx.strokeStyle = `rgba(255,200,80,${beadAlpha * 0.3})`;
+//       ctx.lineWidth   = 4;
+//       ctx.stroke();
+
+//       if (rpm > 800) {
+//         const la    = Math.min(rpm / 3000, 1) * 0.4;
+//         const nLines = Math.min(16, Math.floor(rpm / 250));
+//         ctx.globalAlpha = la;
+//         for (let i = 0; i < nLines; i++) {
+//           const a   = (i / nLines) * Math.PI * 2;
+//           const cv  = 0.18;
+//           ctx.beginPath();
+//           ctx.moveTo(0, 0);
+//           ctx.quadraticCurveTo(
+//             Math.cos(a + cv) * R * 0.5, Math.sin(a + cv) * R * 0.5,
+//             Math.cos(a + cv * 2) * R * 0.88, Math.sin(a + cv * 2) * R * 0.88
+//           );
+//           ctx.strokeStyle = `rgba(180,210,255,${i % 2 === 0 ? 1 : 0.3})`;
+//           ctx.lineWidth   = 0.9;
+//           ctx.stroke();
+//         }
+//         ctx.globalAlpha = 1;
+//       }
+//       ctx.restore();
+
+//     } else if (this.phase === "done") {
+//       ctx.save();
+//       ctx.translate(C, C);
+//       const dg = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.92);
+//       dg.addColorStop(0,   col + "cc");
+//       dg.addColorStop(0.5, col + "88");
+//       dg.addColorStop(1,   col + "44");
+//       ctx.beginPath();
+//       ctx.arc(0, 0, R * 0.92, 0, Math.PI * 2);
+//       ctx.fillStyle = dg;
+//       ctx.fill();
+//       ctx.restore();
+//     }
+//   }
+// }
+
+
+// export class DevPuddleOverlay {
+//   poolPlane:  THREE.Mesh;
+//   canvas:     HTMLCanvasElement;
+//   ctx:        CanvasRenderingContext2D;
+//   tex:        THREE.CanvasTexture;
+
+//   swirls:     { angle: number; radius: number; speed: number; alpha: number; color: string }[] = [];
+//   drops:      { x: number; y: number; r: number; alpha: number; vx: number; vy: number; color: string }[] = [];
+
+//   phase: "idle" | "spray" | "puddle" | "rinse" | "drain" | "done" = "idle";
+//   phaseT   = 0;
+//   active   = false;
+//   spinAngle = 0;
+
+//   constructor(scene: THREE.Scene, x: number, z: number) {
+//     this.canvas = document.createElement("canvas");
+//     this.canvas.width  = 256;
+//     this.canvas.height = 256;
+//     this.ctx = this.canvas.getContext("2d")!;
+//     this.tex = new THREE.CanvasTexture(this.canvas);
+
+//     this.poolPlane = new THREE.Mesh(
+//       new THREE.CircleGeometry(0.92, 80),
+//       new THREE.MeshBasicMaterial({
+//         map:         this.tex,
+//         transparent: true,
+//         opacity:     0,
+//         depthWrite:  false,
+//         blending:    THREE.NormalBlending,
+//       })
+//     );
+//     this.poolPlane.rotation.x = -Math.PI / 2;
+//     this.poolPlane.position.set(x, 0.975, z);
+//     this.poolPlane.renderOrder = 6;
+//     scene.add(this.poolPlane);
+//   }
+
+//   start() {
+//     this.active   = true;
+//     this.phase    = "spray";
+//     this.phaseT   = 0;
+//     this.drops    = [];
+//     this.swirls   = [];
+//     this.spinAngle = 0;
+//     (this.poolPlane.material as THREE.MeshBasicMaterial).opacity = 1;
+//   }
+
+//   stop() {
+//     this.active = false;
+//     this.phase  = "idle";
+//     this.drops  = [];
+//     this.swirls = [];
+//     (this.poolPlane.material as THREE.MeshBasicMaterial).opacity = 0;
+//   }
+
+//   tick(dt: number, speed: number) {
+//     if (!this.active) return;
+//     const sDt = dt * speed;
+//     this.phaseT   += sDt;
+//     this.spinAngle += sDt * speed * 0.6;
+
+//     switch (this.phase) {
+//       case "spray":
+//         if (Math.random() < sDt * 35) {
+//           const a = Math.random() * Math.PI * 2;
+//           const r = Math.random() * 0.55;
+//           this.drops.push({
+//             x:     128 + Math.cos(a) * r * 128 * 0.4,
+//             y:     128 + Math.sin(a) * r * 128 * 0.4,
+//             r:     2 + Math.random() * 4,
+//             alpha: 0.9,
+//             vx:    (Math.random() - 0.5) * 2,
+//             vy:    (Math.random() - 0.5) * 2,
+//             color: `hsl(${145 + Math.random() * 30},80%,${40 + Math.random() * 20}%)`,
+//           });
+//         }
+//         if (this.phaseT > 2.5) { this.phase = "puddle"; this.phaseT = 0; }
+//         break;
+
+//       case "puddle":
+//         this.spinAngle += sDt * 0.3;
+//         if (this.phaseT > 2.0) { this.phase = "rinse"; this.phaseT = 0; this.drops = []; }
+//         break;
+
+//       case "rinse":
+//         if (Math.random() < sDt * 55) {
+//           const a = Math.random() * Math.PI * 2;
+//           const r = Math.random() * 0.9;
+//           this.drops.push({
+//             x:     128 + Math.cos(a) * r * 115,
+//             y:     128 + Math.sin(a) * r * 115,
+//             r:     1.5 + Math.random() * 3,
+//             alpha: 0.85,
+//             vx:    (Math.random() - 0.5) * 3,
+//             vy:    (Math.random() - 0.5) * 3,
+//             color: `hsl(${200 + Math.random() * 20},90%,${60 + Math.random() * 20}%)`,
+//           });
+//         }
+//         if (this.phaseT > 1.8) { this.phase = "drain"; this.phaseT = 0; this.swirls = []; }
+//         break;
+
+//       case "drain":
+//         if (this.swirls.length < 8 && Math.random() < sDt * 12) {
+//           this.swirls.push({ angle: Math.random() * Math.PI * 2, radius: 80 + Math.random() * 30, speed: 2 + Math.random() * 3, alpha: 0.7, color: `hsl(210,85%,70%)` });
+//         }
+//         this.swirls.forEach(s => { s.radius *= 0.97 - sDt * 0.5; s.angle += sDt * s.speed; s.alpha -= sDt * 0.4; });
+//         this.swirls = this.swirls.filter(s => s.radius > 4 && s.alpha > 0);
+//         if (this.phaseT > 1.5) { this.phase = "done"; this.phaseT = 0; }
+//         break;
+
+//       case "done":
+//         break;
+//     }
+
+//     this.drops.forEach(d => {
+//       d.x += d.vx * sDt * 8;
+//       d.y += d.vy * sDt * 8;
+//       d.alpha -= sDt * 0.35;
+//     });
+//     this.drops = this.drops.filter(d => d.alpha > 0.02);
+
+//     this._draw();
+//     this.tex.needsUpdate = true;
+//   }
+
+//   private _draw() {
+//     const ctx = this.ctx;
+//     const C   = 128;
+//     const R   = 115;
+//     ctx.clearRect(0, 0, 256, 256);
+
+//     if (this.phase === "idle" || this.phase === "done") return;
+
+//     // Pool background
+//     const poolAlpha =
+//       this.phase === "spray"  ? Math.min(this.phaseT / 1.5, 0.72) :
+//       this.phase === "puddle" ? 0.82 :
+//       this.phase === "rinse"  ? 0.7 + 0.15 * Math.sin(this.phaseT * 6) :
+//       this.phase === "drain"  ? Math.max(0, 0.72 * (1 - this.phaseT / 1.5)) : 0;
+
+//     if (poolAlpha > 0) {
+//       const poolColor =
+//         this.phase === "spray"  ? "#1a6640" :
+//         this.phase === "puddle" ? "#0d4d2e" :
+//         this.phase === "rinse"  ? "#1a4a88" :
+//         "#1a4488";
+
+//       const pg = ctx.createRadialGradient(C - 10, C - 10, 0, C, C, R);
+//       pg.addColorStop(0, poolColor + "ff");
+//       pg.addColorStop(0.7, poolColor + "cc");
+//       pg.addColorStop(1, poolColor + "44");
+
+//       ctx.beginPath();
+//       ctx.arc(C, C, R, 0, Math.PI * 2);
+//       ctx.fillStyle = pg;
+//       ctx.globalAlpha = poolAlpha;
+//       ctx.fill();
+//       ctx.globalAlpha = 1;
+//     }
+
+//     // Swirl pattern (puddle phase)
+//     if (this.phase === "puddle" || this.phase === "spray") {
+//       ctx.save();
+//       ctx.translate(C, C);
+//       ctx.rotate(this.spinAngle);
+//       for (let arm = 0; arm < 5; arm++) {
+//         const baseA = (arm / 5) * Math.PI * 2;
+//         ctx.beginPath();
+//         for (let j = 0; j <= 40; j++) {
+//           const p  = j / 40;
+//           const r  = R * 0.85 * p;
+//           const sa = baseA + p * Math.PI * 1.6;
+//           j === 0 ? ctx.moveTo(0, 0) : ctx.lineTo(Math.cos(sa) * r, Math.sin(sa) * r);
+//         }
+//         ctx.strokeStyle = `rgba(80,210,130,${this.phase === "puddle" ? 0.4 : 0.2})`;
+//         ctx.lineWidth   = 1.8;
+//         ctx.stroke();
+//       }
+//       ctx.restore();
+//     }
+
+//     // Rinse swirl lines
+//     if (this.phase === "rinse") {
+//       ctx.save();
+//       ctx.translate(C, C);
+//       ctx.rotate(-this.spinAngle * 1.4);
+//       for (let arm = 0; arm < 7; arm++) {
+//         const baseA = (arm / 7) * Math.PI * 2;
+//         ctx.beginPath();
+//         for (let j = 0; j <= 40; j++) {
+//           const p  = j / 40;
+//           const r  = R * 0.9 * p;
+//           const sa = baseA + p * Math.PI * 1.8;
+//           j === 0 ? ctx.moveTo(0, 0) : ctx.lineTo(Math.cos(sa) * r, Math.sin(sa) * r);
+//         }
+//         ctx.strokeStyle = `rgba(80,160,255,0.35)`;
+//         ctx.lineWidth   = 1.5;
+//         ctx.stroke();
+//       }
+//       ctx.restore();
+//     }
+
+//     // Drain vortex
+//     if (this.phase === "drain") {
+//       this.swirls.forEach(s => {
+//         ctx.save();
+//         ctx.translate(C, C);
+//         ctx.rotate(s.angle);
+//         ctx.globalAlpha = s.alpha;
+//         ctx.strokeStyle = s.color;
+//         ctx.lineWidth   = 2;
+//         ctx.beginPath();
+//         ctx.arc(0, 0, s.radius, 0, Math.PI * 1.5);
+//         ctx.stroke();
+//         ctx.globalAlpha = 1;
+//         ctx.restore();
+//       });
+//     }
+
+//     // Droplets
+//     this.drops.forEach(d => {
+//       ctx.beginPath();
+//       ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+//       ctx.globalAlpha = d.alpha;
+//       ctx.fillStyle   = d.color;
+//       ctx.fill();
+//       if (d.alpha > 0.5) {
+//         ctx.beginPath();
+//         ctx.arc(d.x, d.y, d.r * 1.6, 0, Math.PI * 2);
+//         ctx.strokeStyle = d.color;
+//         ctx.lineWidth   = 0.7;
+//         ctx.globalAlpha = d.alpha * 0.4;
+//         ctx.stroke();
+//       }
+//       ctx.globalAlpha = 1;
+//     });
+
+//     // Reflective sheen
+//     if (this.phase === "puddle" || this.phase === "rinse") {
+//       const sg = ctx.createRadialGradient(C - 25, C - 30, 0, C, C, R * 0.6);
+//       sg.addColorStop(0, "rgba(255,255,255,0.18)");
+//       sg.addColorStop(0.4, "rgba(200,230,255,0.06)");
+//       sg.addColorStop(1, "rgba(0,0,0,0)");
+//       ctx.beginPath();
+//       ctx.arc(C, C, R, 0, Math.PI * 2);
+//       ctx.fillStyle = sg;
+//       ctx.fill();
+//     }
+//   }
+// }
+
+
+// function buildRobotGLB(
+//   scene: THREE.Scene,
+//   basePos: THREE.Vector3,
+//   ledColor = 0x00ff88,
+//   scale = 0.35,
+//   onReady: (robot: RobotObject) => void
+// ): void {
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/roboticarm.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+//       root.scale.setScalar(scale);
+//       root.rotation.y = Math.PI;
+
+//       root.position.set(0, 0, 0);
+//       scene.add(root);
+
+//       // Validate transforms
+//       root.traverse((obj) => {
+//         if (obj instanceof THREE.Group || (obj as THREE.Mesh).isMesh) {
+//           obj.quaternion.normalize();
+//           const s = obj.scale;
+//           if (Math.abs(s.x - s.y) > 1e-4 || Math.abs(s.y - s.z) > 1e-4) {
+//             console.warn(`[GLB] Non-uniform scale on '${obj.name}':`, s.toArray());
+//           }
+//         }
+//       });
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       const bottomOffset = box.min.y;
+//       const FLOOR_Y = 0.8;
+//       root.position.set(basePos.x, FLOOR_Y - bottomOffset, basePos.z);
+
+//       // Enable shadows + LED emissive
+//       root.traverse((obj: THREE.Object3D) => {
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//           const mesh = obj as THREE.Mesh;
+//           const mat = mesh.material as THREE.MeshStandardMaterial;
+//           if (mat && (mat.name?.includes('LED') || mat.name?.includes('emit'))) {
+//             mat.emissive = new THREE.Color(ledColor);
+//             mat.emissiveIntensity = 2.5;
+//           }
+//         }
+//       });
+
+//       // Index by name
+//       const byName: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj: THREE.Object3D) => { byName[obj.name] = obj; });
+
+//       console.log('NEW ROBOT GLB nodes:', Object.keys(byName));
+
+//       // ── Hide IK gizmos and Bezier curve controllers (Blender helpers) ──
+// // These are rigging aids, not part of the visible robot
+// const HIDDEN_NODES = [
+//   'BezierCircle', 'BezierCircle.001', 'BezierCircle.002', 'BezierCircle.003',
+//   'IK', 'Curve', 'Empty', 'Target', 'Pole',
+// ];
+
+// root.traverse((obj) => {
+//   // Hide any node whose name matches a helper pattern
+//   const name = obj.name || '';
+//   if (HIDDEN_NODES.some(h => name === h || name.startsWith(h))) {
+//     obj.visible = false;
+//     // Also mark as non-pickable for raycasts
+//     if ((obj as THREE.Mesh).isMesh) {
+//       (obj as THREE.Mesh).raycast = () => {};
+//     }
+//   }
+//   // Hide any mesh that's a flat circle/curve (likely a Bezier helper)
+//   if ((obj as THREE.Mesh).isMesh) {
+//     const mesh = obj as THREE.Mesh;
+//     const mat = mesh.material as THREE.MeshStandardMaterial;
+//     // Hide unlit yellow/orange disc meshes typical of rig helpers
+//     if (mat && mat.name && (
+//       mat.name.toLowerCase().includes('curve') ||
+//       mat.name.toLowerCase().includes('helper') ||
+//       mat.name.toLowerCase().includes('gizmo')
+//     )) {
+//       mesh.visible = false;
+//     }
+//   }
+// });
+
+//       // ── Bind to NEW hierarchy ──
+//       // Convention: Main → Arm_01 → Arm_02 → Arm_03 → Hand → fingers
+//       const turret   = (byName['Main']    ?? byName['Robotic Arm'] ?? new THREE.Group()) as THREE.Group;
+//       const shoulder = (byName['Arm_01']  ?? new THREE.Group()) as THREE.Group;
+//       const upperArm = (byName['Arm_02']  ?? new THREE.Group()) as THREE.Group;
+//       const elbow    = (byName['Arm_02']  ?? new THREE.Group()) as THREE.Group;
+//       const foreArm  = (byName['Arm_03']  ?? new THREE.Group()) as THREE.Group;
+//       const wrist    = (byName['Hand']    ?? byName['Hand_a_low.001'] ?? new THREE.Group()) as THREE.Group;
+//       const gripper  = (byName['Hand_a_low.001'] ?? byName['Hand'] ?? new THREE.Group()) as THREE.Group;
+
+//       // Finger references for grip animation
+//       const fingerTop1  = byName['Finger_top_01']  as THREE.Object3D | undefined;
+//       const fingerTop2  = byName['Finger_top_02']  as THREE.Object3D | undefined;
+//       const fingerDown1 = byName['Finger_down_01'] as THREE.Object3D | undefined;
+//       const fingerDown2 = byName['Finger_down_02'] as THREE.Object3D | undefined;
+
+//       // Vertical lift (Updown_low.001) — use as Z lift if needed
+//       const verticalLift = byName['Updown_low.001'] as THREE.Object3D | undefined;
+
+//       // IK target empty (drive this directly if curves attached)
+//       const ikTarget = byName['IK'] as THREE.Object3D | undefined;
+
+//       console.log('NEW ROBOT bindings:', {
+//         turret:   turret.name,
+//         shoulder: shoulder.name,
+//         elbow:    elbow.name,
+//         foreArm:  foreArm.name,
+//         wrist:    wrist.name,
+//         gripper:  gripper.name,
+//         fingers:  [fingerTop1?.name, fingerTop2?.name, fingerDown1?.name, fingerDown2?.name],
+//         ikTarget: ikTarget?.name,
+//         verticalLift: verticalLift?.name,
+//       });
+
+//       const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
+//       statusPL.position.set(0, 2.0, 0);
+//       root.add(statusPL);
+
+//       // Store finger rest poses + IK target reference on root userData
+//       root.userData.fingerTop1  = fingerTop1;
+//       root.userData.fingerTop2  = fingerTop2;
+//       root.userData.fingerDown1 = fingerDown1;
+//       root.userData.fingerDown2 = fingerDown2;
+//       root.userData.fingerRest = {
+//         top1:  fingerTop1  ? { x: fingerTop1.rotation.x,  y: fingerTop1.rotation.y,  z: fingerTop1.rotation.z  } : null,
+//         top2:  fingerTop2  ? { x: fingerTop2.rotation.x,  y: fingerTop2.rotation.y,  z: fingerTop2.rotation.z  } : null,
+//         down1: fingerDown1 ? { x: fingerDown1.rotation.x, y: fingerDown1.rotation.y, z: fingerDown1.rotation.z } : null,
+//         down2: fingerDown2 ? { x: fingerDown2.rotation.x, y: fingerDown2.rotation.y, z: fingerDown2.rotation.z } : null,
+//       };
+//       root.userData.gripperState = 0; // 0 = open, 1 = closed
+//       root.userData.ikTarget = ikTarget;
+
+//       // Geometry constants — measure from actual GLB instead of hardcoding
+//       const armBox = new THREE.Box3().setFromObject(shoulder);
+//       const armSize = new THREE.Vector3();
+//       armBox.getSize(armSize);
+
+//       const L1 = Math.max(armSize.y, 0.7) * scale;
+//       const L2 = L1 * 1.6;
+//       const shoulderH = armBox.min.y * scale + 0.5 * scale;
+//       const wristToGrip = 0.25 * scale;
+
+//       function runIK(tgt: THREE.Vector3): void {
+//         const baseWP = new THREE.Vector3();
+//         root.getWorldPosition(baseWP);
+//         const dx = tgt.x - baseWP.x;
+//         const dz = tgt.z - baseWP.z;
+
+//         // Base yaw — corrected for GLB inversion
+//         let rawYaw = Math.atan2(dx, dz) + Math.PI;
+//         rawYaw = normalizeAngle(rawYaw);
+
+//         const restY = root.userData.turretRestY ?? 0;
+//         let delta = normalizeAngle(rawYaw - turret.rotation.y);
+//         delta = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, delta));
+//         turret.rotation.y = normalizeAngle(turret.rotation.y + delta);
+
+//         // Drive IK target if available (preferred — uses Blender constraints)
+//         if (ikTarget) {
+//           const localTgt = turret.worldToLocal(tgt.clone());
+//           ikTarget.position.lerp(localTgt, 0.15);
+//           return;
+//         }
+
+//         // Fallback: manual elbow-up IK on Z axis
+//         const localTgt = turret.worldToLocal(tgt.clone());
+//         const reach = Math.hypot(localTgt.x, localTgt.z);
+//         const dy = localTgt.y - shoulderH - wristToGrip;
+
+//         let D = Math.hypot(reach, dy);
+//         const Dmin = Math.abs(L1 - L2) + 0.02;
+//         const Dmax = L1 + L2 - 0.02;
+//         D = Math.max(Dmin, Math.min(Dmax, D));
+
+//         const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
+//         const elbowInner = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
+//         const elbowAngle = -(Math.PI - elbowInner);
+
+//         const cosShoulder = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+//         const shoulderInner = Math.acos(Math.max(-1, Math.min(1, cosShoulder)));
+//         const targetAngle = Math.atan2(reach, dy);
+//         let shoulderAngle = targetAngle - shoulderInner;
+//         shoulderAngle = Math.max(0, Math.min(Math.PI / 2.2, shoulderAngle));
+
+//         shoulder.rotation.z = shoulderAngle;
+//         if (foreArm !== elbow) foreArm.rotation.z = elbowAngle;
+//         else elbow.rotation.z = elbowAngle;
+
+//         const totalPitch = shoulderAngle + elbowAngle;
+//         let wristAngle = -totalPitch;
+//         const isPlacing = Math.abs(localTgt.y - 0.93) < 0.25;
+//         if (isPlacing) wristAngle += -0.26; // -15° industrial tilt
+//         wrist.rotation.z = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, wristAngle));
+//       }
+
+//       function getJoints(): JointData {
+//         return {
+//           base:     { c: turret.rotation.y },
+//           shoulder: { c: shoulder.rotation.z },
+//           elbow:    { c: foreArm.rotation.z },
+//           wrist:    { c: wrist.rotation.z },
+//         };
+//       }
+
+//       console.log('=== NEW ROBOT BONE TEST ===');
+//       console.log('turret:',   turret.name);
+//       console.log('shoulder:', shoulder.name);
+//       console.log('foreArm:',  foreArm.name);
+//       console.log('wrist:',    wrist.name);
+//       console.log('gripper:',  gripper.name);
+//       console.log('IK target:', ikTarget?.name ?? 'none');
+
+//       onReady({
+//         group: root, turret, shoulder, upperArm, elbow, foreArm, wrist, gripper,
+//         statusPL, basePos: basePos.clone(), runIK, getJoints,
+//         worldPos: () => { const v = new THREE.Vector3(); gripper.getWorldPosition(v); return v; },
+//       });
+//     },
+//     (progress: any) => {
+//       if (progress.total > 0) {
+//         console.log('GLB loading:', Math.round(progress.loaded / progress.total * 100) + '%');
+//       }
+//     },
+//     (error: any) => {
+//       console.error('GLB FAILED TO LOAD:', error);
+//     }
+//   );
+// }
+
+
+
+// function normalizeAngle(angle: number): number {
+//   while (angle >  Math.PI) angle -= Math.PI * 2;
+//   while (angle < -Math.PI) angle += Math.PI * 2;
+//   return angle;
+// }
+
+
+// function snapGLBToFloor(root: THREE.Group): void {
+//   root.updateMatrixWorld(true);
+//   const box = new THREE.Box3().setFromObject(root);
+//   root.position.y = -0.52 - box.min.y;
+// }
+
+// function buildDehydrationGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   // Placeholder group — returned immediately so buildModule flow isn't blocked
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/dehydration.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       // ── Auto-fit: scale & floor-snap ──
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       // Target footprint ~2.9 x 2.9 (matches procedural module)
+//       const targetW = 2.9;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       // Re-measure after scale, snap bottom to floor (y = -0.5)
+//       const box = new THREE.Box3().setFromObject(root);
+//       const FLOOR_Y = 0.3;
+//       snapGLBToFloor(root);
+
+//       // ── Identify key parts by name (adjust these to match your GLB node names) ──
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+
+//         // Enable shadows on every mesh
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       console.log('Dehydration GLB nodes:', Object.keys(namedParts).slice(0, 30));
+
+//       // Try to auto-find the heating plate (top surface) — common naming patterns
+//       const hotPlate =
+//         namedParts['HotPlate'] ||
+//         namedParts['Hot_Plate'] ||
+//         namedParts['Plate'] ||
+//         namedParts['Heater'] ||
+//         namedParts['Top'];
+
+//       // Try to auto-find indicator lights
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//       // ── Create the orange emission material we'll animate (heating glow) ──
+//      // ── Create the emission material we'll animate (heating glow) ──
+//       // PAB gets a redder, hotter-looking glow than DEHY
+//      // ── Module-specific color schemes ──
+//       // DEHY  → orange-red  (150°C, gentle heat)
+//       // PAB   → deep red    (118°C, post-apply bake — stronger red look)
+//       // HBAK  → bright red  (130°C, cross-link bake — fiercest)
+//       const colorScheme: Record<string, { base: number; emissive: number; light: number; pl: number }> = {
+//         dehy:     { base: 0x1a0a05, emissive: 0xff5500, light: 0xff6622, pl: 0xff5500 },  // orange
+//         pab:      { base: 0x200505, emissive: 0xff1100, light: 0xff2233, pl: 0xff2200 },  // deep red
+//         hardbake: { base: 0x1a0805, emissive: 0xff2200, light: 0xff3300, pl: 0xff3300 },  // bright red
+//       };
+//       const scheme = colorScheme[mod.id] ?? colorScheme.dehy;
+
+//       // ── Hot plate material with module-specific glow ──
+//       if (hotPlate && (hotPlate as THREE.Mesh).isMesh) {
+//         const plateMesh = hotPlate as THREE.Mesh;
+//         const heatMat = new THREE.MeshStandardMaterial({
+//           color: scheme.base,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 1.0,
+//           roughness: 0.55,
+//           metalness: 0.3,
+//         });
+//         plateMesh.material = heatMat;
+//         placeholder.userData.heatMaterial = heatMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       // ── Indicator light materials (emissive) ──
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200,
+//           emissive: 0x00ff44,
+//           emissiveIntensity: 4.0,
+//           roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000,
+//           emissive: 0xff0033,
+//           emissiveIntensity: 1.0,
+//           roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       // ── Process light (point light glowing from the plate) ──
+//       const pl = new THREE.PointLight(0xff5500, 0, 6);
+//       pl.position.set(0, 1.2, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       // Add the loaded model to the placeholder group
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       // Add the floating module label (reuse same logic as buildModule)
+//       addModuleLabel(placeholder, mod);
+
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => {
+//       console.error('Dehydration GLB failed to load:', err);
+//     }
+//   );
+
+//   return placeholder;
+// }
+
+// // ⬇️ PASTE NEW FUNCTION HERE ⬇️
+// function buildHardBakeGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/hardbakeglb.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       const targetW = 2.9;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       const FLOOR_Y = 0.3;
+//       snapGLBToFloor(root);
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       console.log('HardBake GLB nodes:', Object.keys(namedParts).slice(0, 30));
+
+//       const hotPlate =
+//         namedParts['HotPlate'] || namedParts['Hot_Plate'] ||
+//         namedParts['Plate'] || namedParts['Heater'] || namedParts['Top'];
+
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//      // Bright red scheme for HARDBAKE (fiercest of the three bakes)
+//       const scheme = { base: 0x1a0805, emissive: 0xff2200, light: 0xff3300, pl: 0xff3300 };
+
+//       if (hotPlate && (hotPlate as THREE.Mesh).isMesh) {
+//         const heatMat = new THREE.MeshStandardMaterial({
+//           color: scheme.base,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 1.0,
+//           roughness: 0.55,
+//           metalness: 0.3,
+//         });
+//         (hotPlate as THREE.Mesh).material = heatMat;
+//         placeholder.userData.heatMaterial = heatMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200,
+//           emissive: 0x00ff44,
+//           emissiveIntensity: 4.0,
+//           roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000,
+//           emissive: 0xff0033,
+//           emissiveIntensity: 1.0,
+//           roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 7);
+//       pl.position.set(0, 1.2, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => {
+//       console.error('HardBake GLB failed to load:', err);
+//     }
+//   );
+
+//   return placeholder;
+// }
+
+// function buildPrCoatGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/PRCoat.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       // ── Auto-fit: scale & floor-snap ──
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       const targetW = 2.9;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       const FLOOR_Y = 0.3;
+//      snapGLBToFloor(root);
+
+//       // ── Identify named parts ──
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       console.log('PR Coat GLB nodes:', Object.keys(namedParts).slice(0, 30));
+
+//       // Try to auto-find the spin chuck (spinning surface)
+//       const spinChuck =
+//         namedParts['SpinChuck'] || namedParts['Spin_Chuck'] ||
+//         namedParts['Chuck']     || namedParts['Spinner']    ||
+//         namedParts['HotPlate']  || namedParts['Plate']      ||
+//         namedParts['Top'];
+
+//       // Try to auto-find the dispense arm
+//       const dispenseArm =
+//         namedParts['DispenseArm'] || namedParts['Dispense_Arm'] ||
+//         namedParts['Arm']         || namedParts['NozzleArm'];
+
+//       // Indicator lights
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//       // ── PR Coat purple/violet glow scheme ──
+//       const scheme = { base: 0x180a28, emissive: 0xcc00ff, light: 0xee44ff, pl: 0xcc00ff };
+
+//       // ── Spin chuck material with subtle violet glow ──
+//       if (spinChuck && (spinChuck as THREE.Mesh).isMesh) {
+//         const chuckMat = new THREE.MeshStandardMaterial({
+//           color: 0x445566,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 0.3,
+//           roughness: 0.15,
+//           metalness: 0.92,
+//         });
+//         (spinChuck as THREE.Mesh).material = chuckMat;
+//         placeholder.userData.chuckMaterial = chuckMat;
+//         placeholder.userData.spinChuck = spinChuck;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (dispenseArm) {
+//         placeholder.userData.dispenseArm = dispenseArm;
+//         placeholder.userData.armRestY = (dispenseArm as THREE.Object3D).rotation.y;
+//       }
+
+//       // ── Indicator light materials ──
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200,
+//           emissive: 0x00ff44,
+//           emissiveIntensity: 4.0,
+//           roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000,
+//           emissive: 0xff0033,
+//           emissiveIntensity: 1.0,
+//           roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       // ── Process light (violet glow during coating) ──
+//       const pl = new THREE.PointLight(scheme.pl, 0, 7);
+//       pl.position.set(0, 1.2, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => {
+//       console.error('PR Coat GLB failed to load:', err);
+//     }
+//   );
+
+//   return placeholder;
+// }
+
+
+// function buildScannerGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/scaner.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       // Scanner is bigger — target 4.1 wide to match procedural housing
+//       const targetW = 8;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       root.position.y = -0.5 - box.min.y;
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       console.log('Scanner GLB nodes:', Object.keys(namedParts).slice(0, 30));
+
+//       // Try to find UV lens / beam emitter
+//       const lens =
+//         namedParts['Lens'] || namedParts['UVLens'] || namedParts['Beam'] ||
+//         namedParts['Emitter'] || namedParts['Top'];
+
+//       // Indicator lights
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//       // Magenta/UV scheme for scanner
+//       const scheme = { base: 0x180828, emissive: 0xcc00ff, light: 0xff00ee, pl: 0xee00cc };
+
+//       if (lens && (lens as THREE.Mesh).isMesh) {
+//         const lensMat = new THREE.MeshStandardMaterial({
+//           color: scheme.base,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 2.5,
+//           roughness: 0.05,
+//           metalness: 0.7,
+//         });
+//         (lens as THREE.Mesh).material = lensMat;
+//         placeholder.userData.lensMaterial = lensMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       // UV beam cone (synthetic — placed even if GLB has no beam mesh)
+//       const beam = new THREE.Mesh(
+//         new THREE.CylinderGeometry(0.06, 0.32, 2.2, 20, 1, true),
+//         new THREE.MeshStandardMaterial({
+//           color: 0xcc00ff, emissive: 0x9900cc, emissiveIntensity: 2.2,
+//           transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false,
+//         })
+//       );
+//       beam.position.set(0, 1.1, 0);
+//       root.add(beam);
+//       placeholder.userData.uvBeam = beam;
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 10);
+//       pl.position.set(0, 2.0, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => console.error('Scanner GLB failed:', err)
+//   );
+
+//   return placeholder;
+// }
+
+
+
+// function buildChillPlateGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/Chill_plate.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       const targetW = 8;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//      // root.position.y = -0.5 - box.min.y;
+//      snapGLBToFloor(root);
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       console.log(`Chill plate GLB (${mod.id}) nodes:`, Object.keys(namedParts).slice(0, 30));
+
+//       // Try to find the cold plate surface
+//       const plate =
+//         namedParts['ChillPlate'] || namedParts['Chill_Plate'] ||
+//         namedParts['ColdPlate']  || namedParts['Plate'] || namedParts['Top'];
+
+//       // Cooling fins (optional)
+//       const fins =
+//         namedParts['Fins'] || namedParts['CoolFins'] || namedParts['Cooler'];
+
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//       // Cold blue scheme
+//       const scheme = { base: 0x030d1c, emissive: 0x0099ff, light: 0x00ccff, pl: 0x00aaff };
+
+//       if (plate && (plate as THREE.Mesh).isMesh) {
+//         const plateMat = new THREE.MeshStandardMaterial({
+//           color: 0x0a1828,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 0.6,
+//           roughness: 0.18,
+//           metalness: 0.92,
+//         });
+//         (plate as THREE.Mesh).material = plateMat;
+//         placeholder.userData.plateMaterial = plateMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (fins && (fins as THREE.Mesh).isMesh) {
+//         const finMat = new THREE.MeshStandardMaterial({
+//           color: 0x1c2e44, roughness: 0.16, metalness: 0.97,
+//           emissive: 0x0055cc, emissiveIntensity: 0.6,
+//         });
+//         (fins as THREE.Mesh).material = finMat;
+//         placeholder.userData.finMaterial = finMat;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 6);
+//       pl.position.set(0, 1.2, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => console.error(`Chill plate GLB (${mod.id}) failed:`, err)
+//   );
+
+//   return placeholder;
+// }
+
+
+// function buildHMDSGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/HMDS Vapour.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       const targetW = 4.5;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//     snapGLBToFloor(root);
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       console.log('HMDS GLB nodes:', Object.keys(namedParts).slice(0, 30));
+
+//       const chamber =
+//         namedParts['Chamber'] || namedParts['Vessel'] ||
+//         namedParts['Body']    || namedParts['Top']    || namedParts['Plate'];
+
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//       // Orange/amber scheme for HMDS vapor
+//       const scheme = { base: 0x1a0a00, emissive: 0xff8800, light: 0xffaa33, pl: 0xff7700 };
+
+//       if (chamber && (chamber as THREE.Mesh).isMesh) {
+//         const chamberMat = new THREE.MeshStandardMaterial({
+//           color: scheme.base,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 0.6,
+//           roughness: 0.25,
+//           metalness: 0.85,
+//         });
+//         (chamber as THREE.Mesh).material = chamberMat;
+//         placeholder.userData.chamberMaterial = chamberMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 7);
+//       pl.position.set(0, 1.5, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => console.error('HMDS GLB failed:', err)
+//   );
+
+//   return placeholder;
+// }
+
+
+// function buildPostBakeGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/Postbakeglb.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       const targetW = 2.9;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       snapGLBToFloor(root);
+
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       console.log('PostBake GLB nodes:', Object.keys(namedParts).slice(0, 30));
+
+//       const hotPlate =
+//         namedParts['HotPlate'] || namedParts['Hot_Plate'] ||
+//         namedParts['Plate']    || namedParts['Heater']    || namedParts['Top'];
+
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//       // PEB/PAB — deep red-orange scheme
+//       const scheme = { base: 0x200505, emissive: 0xff2200, light: 0xff3300, pl: 0xff2200 };
+
+//       if (hotPlate && (hotPlate as THREE.Mesh).isMesh) {
+//         const heatMat = new THREE.MeshStandardMaterial({
+//           color: scheme.base,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 1.0,
+//           roughness: 0.55,
+//           metalness: 0.3,
+//         });
+//         (hotPlate as THREE.Mesh).material = heatMat;
+//         placeholder.userData.heatMaterial = heatMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 7);
+//       pl.position.set(0, 1.2, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => console.error('PostBake GLB failed:', err)
+//   );
+
+//   return placeholder;
+// }
+
+// function buildDIWaterRinseGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/Diwaterrinse.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       const targetW = 2.9;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       snapGLBToFloor(root);
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       console.log('DIWaterRinse GLB nodes:', Object.keys(namedParts).slice(0, 30));
+
+//       const bowl =
+//         namedParts['Bowl']   || namedParts['Basin']  ||
+//         namedParts['Chuck']  || namedParts['Plate']  || namedParts['Top'];
+
+//       const nozzle =
+//         namedParts['Nozzle'] || namedParts['Arm']    ||
+//         namedParts['Spray']  || namedParts['Head'];
+
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed']   || namedParts['Light_Red']   || namedParts['LED_Red'];
+
+//       // Blue water scheme
+//       const scheme = { base: 0x001428, emissive: 0x0088ff, light: 0x00aaff, pl: 0x0077ff };
+
+//       if (bowl && (bowl as THREE.Mesh).isMesh) {
+//         const bowlMat = new THREE.MeshStandardMaterial({
+//           color: scheme.base,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 0.5,
+//           roughness: 0.18,
+//           metalness: 0.85,
+//         });
+//         (bowl as THREE.Mesh).material = bowlMat;
+//         placeholder.userData.bowlMaterial = bowlMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (nozzle && (nozzle as THREE.Mesh).isMesh) {
+//         const nozzleMat = new THREE.MeshStandardMaterial({
+//           color: 0x223344,
+//           emissive: 0x0055aa,
+//           emissiveIntensity: 0.4,
+//           roughness: 0.15,
+//           metalness: 0.95,
+//         });
+//         (nozzle as THREE.Mesh).material = nozzleMat;
+//         placeholder.userData.nozzleMaterial = nozzleMat;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 7);
+//       pl.position.set(0, 1.2, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => console.error('DIWaterRinse GLB failed:', err)
+//   );
+
+//   return placeholder;
+// }
+
+// function buildDeveloperModuleGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/Developermodule.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       const targetW = 4;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       snapGLBToFloor(root);
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       console.log('DeveloperModule GLB nodes:', Object.keys(namedParts).slice(0, 30));
+
+//       const chuck =
+//         namedParts['Chuck']  || namedParts['SpinChuck'] ||
+//         namedParts['Plate']  || namedParts['Bowl']      || namedParts['Top'];
+
+//       const arm =
+//         namedParts['Arm']    || namedParts['NozzleArm'] ||
+//         namedParts['Nozzle'] || namedParts['Dispense'];
+
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed']   || namedParts['Light_Red']   || namedParts['LED_Red'];
+
+//       // Green developer scheme
+//       const scheme = { base: 0x001a0a, emissive: 0x00ff88, light: 0x00dd66, pl: 0x00cc77 };
+
+//       if (chuck && (chuck as THREE.Mesh).isMesh) {
+//         const chuckMat = new THREE.MeshStandardMaterial({
+//           color: 0x112233,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 0.4,
+//           roughness: 0.15,
+//           metalness: 0.92,
+//         });
+//         (chuck as THREE.Mesh).material = chuckMat;
+//         placeholder.userData.chuckMaterial = chuckMat;
+//         placeholder.userData.spinChuck = chuck;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (arm) {
+//         placeholder.userData.dispenseArm = arm;
+//         placeholder.userData.armRestY = (arm as THREE.Object3D).rotation.y;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 7);
+//       pl.position.set(0, 1.2, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => console.error('DeveloperModule GLB failed:', err)
+//   );
+
+//   return placeholder;
+// }
+
+// // Helper — extract label code from buildModule into reusable function
+
+
+// function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
+//   const CW = 512, CH = 160;
+//   const nc = document.createElement("canvas");
+//   nc.width = CW; nc.height = CH;
+//   const ctx = nc.getContext("2d")!;
+//   ctx.clearRect(0, 0, CW, CH);
+
+//   // ── rounded-rect helper ─────────────────────────────────────────────────
+//   const rr = (x: number, y: number, w: number, h: number, r: number) => {
+//     ctx.beginPath();
+//     ctx.moveTo(x + r, y);
+//     ctx.lineTo(x + w - r, y);
+//     ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+//     ctx.lineTo(x + w, y + h - r);
+//     ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+//     ctx.lineTo(x + r, y + h);
+//     ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+//     ctx.lineTo(x, y + r);
+//     ctx.quadraticCurveTo(x, y, x + r, y);
+//     ctx.closePath();
+//   };
+
+//   // ── dark cleanroom HUD pill background ──────────────────────────────────
+//   ctx.fillStyle = "rgba(8, 14, 24, 0.90)";
+//   rr(20, 20, CW - 40, CH - 40, 18);
+//   ctx.fill();
+
+//   // ── cyan border ─────────────────────────────────────────────────────────
+//   ctx.strokeStyle = "#00d8ff";
+//   ctx.lineWidth = 2.5;
+//   ctx.stroke();
+
+//   // ── inner faint accent border ───────────────────────────────────────────
+//   ctx.strokeStyle = "rgba(0, 216, 255, 0.18)";
+//   ctx.lineWidth = 0.8;
+//   rr(26, 26, CW - 52, CH - 52, 14);
+//   ctx.stroke();
+
+//   // ── short code (big cyan title) ─────────────────────────────────────────
+//   ctx.fillStyle = "#00d8ff";
+//   ctx.font = "bold 50px 'Inter', 'Courier New', monospace";
+//   ctx.textAlign = "center";
+//   ctx.textBaseline = "middle";
+//   ctx.shadowColor = "#00d8ff";
+//   ctx.shadowBlur = 14;
+//   ctx.fillText(mod.short, CW / 2, 60);
+
+//   // ── full name (smaller subtitle) ────────────────────────────────────────
+//   ctx.shadowBlur = 0;
+//   ctx.fillStyle = "#e8f4ff";
+//   ctx.font = "500 19px 'Inter', sans-serif";
+//   ctx.fillText(mod.name, CW / 2, 102);
+
+//   // ── temperature badge ───────────────────────────────────────────────────
+//   if (mod.temp !== null) {
+//     const tempColor = mod.temp > 50 ? "#ff7755" : "#55bbff";
+//     ctx.fillStyle = tempColor;
+//     ctx.font = "bold 16px 'Courier New', monospace";
+//     ctx.shadowColor = tempColor;
+//     ctx.shadowBlur = 8;
+//     ctx.fillText(`${mod.temp}°C`, CW / 2, 130);
+//     ctx.shadowBlur = 0;
+//   }
+
+//   // ── status dots (lower-left) ────────────────────────────────────────────
+//   for (let i = 0; i < 3; i++) {
+//     ctx.fillStyle = i === 0 ? "#00ff88" : "rgba(0, 216, 255, 0.25)";
+//     ctx.beginPath();
+//     ctx.arc(40 + i * 12, CH - 32, 3, 0, Math.PI * 2);
+//     ctx.fill();
+//   }
+
+//   // ── build texture + floating sprite ─────────────────────────────────────
+//   const tex = new THREE.CanvasTexture(nc);
+//   tex.minFilter = THREE.LinearFilter;
+//   tex.magFilter = THREE.LinearFilter;
+
+//   const sp = new THREE.Sprite(
+//     new THREE.SpriteMaterial({
+//       map: tex,
+//       transparent: true,
+//       opacity: 0.96,
+//       depthTest: false,
+//       depthWrite: false,
+//     })
+//   );
+
+//   // ── width/height of label sprite ────────────────────────────────────────
+//   sp.scale.set(4.6, 1.45, 1);
+
+//   // ── float ABOVE module — scanner is taller, so push higher ──────────────
+//   // ── HANG from ceiling rail — uniform Y for all modules ──────────────────
+//   const ceilingY = 7.5;
+//   // Convert world ceiling position to local module space
+//   // (modules are children of grp at world position mod.x, 0, mod.z)
+//   // So local Y = world ceilingY - module's Y position (which is 0)
+//   sp.position.set(0, ceilingY, 0);
+
+//   // ── Suspension rod from ceiling rail down to label ──────────────────────
+//   const rodMat = new THREE.MeshStandardMaterial({
+//     color: 0x556677, metalness: 0.92, roughness: 0.25,
+//     emissive: 0x002244, emissiveIntensity: 0.4,
+//   });
+//   // Rod connects ceiling (y=8) down to top of label (y ≈ 7.5 + 0.7 = 8.2... we put rod above sprite)
+//   const rod = new THREE.Mesh(
+//     new THREE.CylinderGeometry(0.025, 0.025, 0.8, 8),
+//     rodMat
+//   );
+//   rod.position.set(0, ceilingY + 0.4, 0); // sits between rail and label
+//   grp.add(rod);
+
+//   // ── Mounting bracket where rod meets ceiling ────────────────────────────
+//   const bracket = new THREE.Mesh(
+//     new THREE.BoxGeometry(0.18, 0.06, 0.18),
+//     new THREE.MeshStandardMaterial({
+//       color: 0x445566, metalness: 0.9, roughness: 0.3,
+//     })
+//   );
+//   bracket.position.set(0, ceilingY + 0.78, 0);
+//   grp.add(bracket);
+//   // ── always render on top so labels never get hidden ─────────────────────
+//   sp.renderOrder = 999;
+
+//   grp.add(sp);
+//   grp.userData.nameLabel = sp;
+// }
+ 
+// // ── tiny helper — canvas rounded-rect path ──────────────────────────────────
+// function roundRect(
+//   ctx: CanvasRenderingContext2D,
+//   x: number, y: number, w: number, h: number, r: number
+// ): void {
+//   ctx.beginPath();
+//   ctx.moveTo(x + r, y);
+//   ctx.lineTo(x + w - r, y);
+//   ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+//   ctx.lineTo(x + w, y + h - r);
+//   ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+//   ctx.lineTo(x + r, y + h);
+//   ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+//   ctx.lineTo(x, y + r);
+//   ctx.quadraticCurveTo(x, y, x + r, y);
+//   ctx.closePath();
+// }
+// // ─── WAFER STATE MACHINE ─────────────────────────────────────────────────────
+
+// // Replace WaferState type:
+// // ─── WAFER STATE MACHINE ─────────────────────────────────────────────────────
+// type WaferState = 
+//   | "idle"
+//   | "conveyor_move"
+//   | "belt_to_module"
+//   | "processing"
+//   | "module_to_belt"
+//   | "track_approach"
+//   | "track_pick"
+//   | "track_carry"
+//   | "track_place"
+//   | "done";
+// class WaferStateMachine {
+//   wi: number;
+//   mesh: THREE.Group;
+//   scene: THREE.Scene;
+//   stepIdx: number;
+//   state: WaferState;
+//   timer: number;
+//   processTimer: number;
+//   launched: boolean;
+//   done: boolean;
+//   spin: number;
+//   spinning: boolean;
+//   carrierRobot: RobotObject | null;
+//   arcStart = new THREE.Vector3();
+//   arcEnd = new THREE.Vector3();
+//   arcH = 2.5;
+//   moveDur = 1;
+//   moveEl = 0;
+//   targetPos = new THREE.Vector3();
+//   conveyorStart = new THREE.Vector3();
+//   conveyorEnd = new THREE.Vector3();
+//   conveyorDur = 1;
+//   conveyorEl = 0;
+//   onConveyor = false;
+//   entryStart = new THREE.Vector3();
+//   entryEnd   = new THREE.Vector3();
+//   entryEl    = 0;
+//   entryDur   = 0.55;
+//   exitStart  = new THREE.Vector3();
+//   exitEnd    = new THREE.Vector3();
+//   exitEl     = 0;
+//   exitDur    = 0.55;
+
+//   constructor(wi: number, mesh: THREE.Group, scene: THREE.Scene) {
+//     this.wi = wi;
+//     this.mesh = mesh;
+//     this.scene = scene;
+//     this.stepIdx = 0;
+//     this.state = "idle";
+//     this.timer = 0;
+//     this.processTimer = 0;
+//     this.launched = false;
+//     this.done = false;
+//     this.spin = 0;
+//     this.spinning = false;
+//     this.carrierRobot = null;
+//   }
+
+//   startConveyorMove(from: THREE.Vector3, to: THREE.Vector3, speed: number) {
+//     this.conveyorEl = 0;
+//     this.conveyorStart.copy(from);
+//     this.conveyorEnd.copy(to);
+//     const dist = from.distanceTo(to);
+//     this.conveyorDur = Math.max(0.8, dist * 0.055) / speed;
+//     this.onConveyor = true;
+//   }
+
+//   tickConveyor(dt: number): boolean {
+//     this.conveyorEl += dt;
+//     const t = Math.min(this.conveyorEl / this.conveyorDur, 1);
+//     const e = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+//     this.mesh.position.x = lerp(this.conveyorStart.x, this.conveyorEnd.x, e);
+//     this.mesh.position.z = this.conveyorStart.z;
+//     this.mesh.position.y = this.conveyorStart.y;
+//     this.mesh.rotation.y += dt * 1.2;
+//     return t >= 1;
+//   }
+
+// // REPLACE the entire attachTo method with this:
+// // REPLACE attachTo in WaferStateMachine:
+// attachTo(robot: RobotObject): void {
+//   this.carrierRobot = robot;
+//   this.onConveyor = false;
+//   this.mesh.visible = true;
+//   this.mesh.scale.setScalar(1);
+
+//   if (this.mesh.parent !== this.scene) {
+//     const prev = this.mesh.parent;
+//     if (prev) prev.remove(this.mesh);
+//     this.scene.add(this.mesh);
+//   }
+
+//   // ── Compute initial position: FINGER MIDPOINT (matches _animRobots) ──
+//   const ud = robot.group.userData;
+//   const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
+//   const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
+//   const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
+//   const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
+
+//   let tcpPos: THREE.Vector3;
+
+//   if (t1 && d1 && t2 && d2) {
+//     const topWP  = new THREE.Vector3(); t1.getWorldPosition(topWP);
+//     const botWP  = new THREE.Vector3(); d1.getWorldPosition(botWP);
+//     const top2WP = new THREE.Vector3(); t2.getWorldPosition(top2WP);
+//     const bot2WP = new THREE.Vector3(); d2.getWorldPosition(bot2WP);
+//     tcpPos = topWP.clone().add(botWP).add(top2WP).add(bot2WP).multiplyScalar(0.25);
+//   } else if (t1 && d1) {
+//     const topWP = new THREE.Vector3(); t1.getWorldPosition(topWP);
+//     const botWP = new THREE.Vector3(); d1.getWorldPosition(botWP);
+//     tcpPos = topWP.clone().add(botWP).multiplyScalar(0.5);
+//   } else {
+//     // Fallback
+//     tcpPos = new THREE.Vector3();
+//     robot.gripper.getWorldPosition(tcpPos);
+//   }
+
+//   this.mesh.position.copy(tcpPos);
+//   this.mesh.rotation.set(0, this.mesh.rotation.y, 0);
+
+//   console.log('[ATTACH] wafer at finger midpoint:', tcpPos.toArray().map(v => v.toFixed(2)));
+
+//   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
+//   if (pr) {
+//     const mat = pr.material as THREE.MeshStandardMaterial;
+//     mat.emissive.setHex(0xffffff);
+//     mat.emissiveIntensity = 3.5;
+//     setTimeout(() => {
+//       mat.emissive.setHex(WAFER_COLORS[this.wi]);
+//       mat.emissiveIntensity = 0.9;
+//     }, 180);
+//   }
+//   robot.statusPL.intensity = 3.0;
+//   setTimeout(() => { if (robot.statusPL) robot.statusPL.intensity = 1.2; }, 300);
+// }
+// // REPLACE detachAt in WaferStateMachine:
+// detachAt(worldPos: THREE.Vector3): void {
+//   if (!this.carrierRobot) return;
+
+//   // Ensure wafer is in scene
+//   if (this.mesh.parent !== this.scene) {
+//     const prev = this.mesh.parent;
+//     if (prev) prev.remove(this.mesh);
+//     this.scene.add(this.mesh);
+//   }
+//   this.mesh.scale.setScalar(1);
+
+//   // Snap to chuck height
+//   const step = ALL_STEPS.find(
+//     s => Math.abs(s.x - worldPos.x) < 1.5 && Math.abs(s.z - worldPos.z) < 1.5
+//   );
+//   const chuckY = step?.type === 'foup' ? 1.55 : 0.93;
+//   this.mesh.position.set(worldPos.x, chuckY, worldPos.z);
+
+//   // CRITICAL: parallel to floor — only Y rotation allowed
+//   this.mesh.rotation.set(0, Math.random() * Math.PI * 2, 0);
+//   this.mesh.visible = true;
+
+//   this.carrierRobot = null;
+
+//   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
+//   if (pr) {
+//     const mat = pr.material as THREE.MeshStandardMaterial;
+//     mat.emissive.setHex(0xffffff);
+//     mat.emissiveIntensity = 1.8;
+//     setTimeout(() => {
+//       mat.emissive.setHex(WAFER_COLORS[this.wi]);
+//       mat.emissiveIntensity = 0.7;
+//     }, 250);
+//   }
+// }
+// // REPLACE entire detachAt with:
+// detachAt(worldPos: THREE.Vector3): void {
+//   if (!this.carrierRobot) return;
+
+//   this.carrierRobot.gripper.remove(this.mesh);
+//   this.scene.add(this.mesh);
+
+//   // Always reset scale when returning to world space
+//   this.mesh.scale.setScalar(1);
+//   // Snap precisely to chuck: use worldPos.x/z but force correct chuck Y
+//   const chuckY = worldPos.y > 1.2 ? 1.55 : 0.93;   // FOUP slot vs module chuck
+//   this.mesh.position.set(worldPos.x, chuckY, worldPos.z);
+//   this.mesh.rotation.set(0, Math.random() * Math.PI * 2, 0);
+
+//   this.carrierRobot = null;
+//   this.mesh.visible = true;
+
+//   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
+//   if (pr) {
+//     const mat = pr.material as THREE.MeshStandardMaterial;
+//     mat.emissive.setHex(0xffffff);
+//     mat.emissiveIntensity = 1.8;
+//     setTimeout(() => {
+//       mat.emissive.setHex(WAFER_COLORS[this.wi]);
+//       mat.emissiveIntensity = 0.7;
+//     }, 250);
+//   }
+// }
+// }
+
+// // ─── SIMULATION ──────────────────────────────────────────────────────────────
+
+// class Sim {
+//   renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.PerspectiveCamera;
+//   speed: number; paused: boolean; simTime: number; fps: number;
+//   onUI: (ui: UIState) => void; onLog: (entry: LogEntry) => void; onTooltip: (tt: TooltipState) => void;
+//   private _frm = 0; private _lastFpsT = 0; private _lastT = 0; private _animId = 0; private _logSeq = 0;
+//   orbit = { theta: Math.PI * 0.13, phi: 0.34, radius: 42, tT: Math.PI * 0.13, tP: 0.34, tR: 42, cx: 6, cy: 0, cz: 0, tcx: 6, tcy: 0, tcz: 0, drag: false, btn: -1, sx: 0, sy: 0 };
+//   modObjs: Record<string, THREE.Group> = {}; busy: Record<string, number> = {};
+// robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: RobotObject; robotD!: RobotObject;
+//   gantryRail!: THREE.Group;
+//   prCoatOverlay!: PrCoatOverlay;
+//   devOverlay!: DevPuddleOverlay;
+//   wafers: THREE.Group[] = []; wSMs: WaferStateMachine[] = [];
+//   spinCoat!: SpinCoatAnimator; devLiquid!: DevLiquidAnimator;
+// //   conveyorTop!: ConveyorBelt; conveyorBot!: ConveyorBelt;
+//   n2Particles!: Particles; waterParticles!: Particles;
+//   hmdsFog!: HMDSFog;
+//   heatVapors: Record<string, HeatVapor> = {};
+//   private _md!: (e: MouseEvent) => void; private _mu!: () => void;
+//   private _mm!: (e: MouseEvent) => void; private _wh!: (e: WheelEvent) => void;
+//   private _activeCoatWI = -1; private _activeDevWI = -1;
+//   private _raycaster = new THREE.Raycaster();
+
+//   constructor(renderer: THREE.WebGLRenderer, onUI: (ui: UIState) => void, onLog: (e: LogEntry) => void, onTooltip: (tt: TooltipState) => void) {
+//     this.renderer = renderer; this.scene = new THREE.Scene();
+//     this.camera = new THREE.PerspectiveCamera(44, renderer.domElement.clientWidth / renderer.domElement.clientHeight, 0.08, 350);
+//     this.speed = 1; this.paused = false; this.simTime = 0; this.fps = 60;
+//     this.onUI = onUI; this.onLog = onLog; this.onTooltip = onTooltip;
+//     this._build(); this._bindEvents();
+//   }
+
+//   private _addLog(msg: string, cls: LogEntry["cls"] = "") { this.onLog({ id: ++this._logSeq, msg, cls }); }
+
+//   private _build() {
+//     setupLighting(this.scene);
+//     buildEnv(this.scene);
+// ALL_STEPS.forEach((mod) => {
+//   if (mod.id === 'output') return; // single FOUP only
+
+//   let grp: THREE.Group;
+//   if (mod.id === 'dehy' || mod.id === 'pab') {
+//     grp = buildDehydrationGLB(this.scene, mod);
+//   } else if (mod.id === 'hardbake') {
+//     grp = buildHardBakeGLB(this.scene, mod);
+//   } else if (mod.id === 'prcoat') {
+//     grp = buildPrCoatGLB(this.scene, mod);
+//   } else if (mod.id === 'hmds') {
+//     grp = buildHMDSGLB(this.scene, mod);
+//   } else if (mod.id === 'peb') {
+//     grp = buildPostBakeGLB(this.scene, mod);
+//   } else if (mod.id === 'rinse') {
+//     grp = buildDIWaterRinseGLB(this.scene, mod);
+//   } else if (mod.id === 'develop') {
+//     grp = buildDeveloperModuleGLB(this.scene, mod);
+//   } else if (mod.id === 'scanner') {
+//     grp = buildScannerGLB(this.scene, mod);
+//   } else if (mod.type === 'cold') {
+//     grp = buildChillPlateGLB(this.scene, mod);
+//   } else {
+//     grp = buildModule(mod);
+//     this.scene.add(grp);
+//   }
+//   this.modObjs[mod.id] = grp;
+// });
+//     //buildFlowArrows(this.scene);
+//     //this.gantryRail = buildGantryRail(this.scene);
+//     const _prS = ALL_STEPS.find(s => s.id === 'prcoat')!;
+//     this.prCoatOverlay = new PrCoatOverlay(this.scene, _prS.x, _prS.z, WAFER_COLORS[0]);
+//     const _devS = ALL_STEPS.find(s => s.id === 'develop')!;
+//     this.devOverlay = new DevPuddleOverlay(this.scene, _devS.x, _devS.z);
+
+//     // Conveyor belts
+
+//     // Conveyor belts
+//    // Conveyor belts — match new module x-range (-18 → 23)
+//     // Belts on the OUTER side of each track (away from camera centre)
+//     // this.conveyorTop = new ConveyorBelt(this.scene, -22, 27, TOP_Z + 2.6, 0x0099ff);
+//     // this.conveyorBot = new ConveyorBelt(this.scene, -22, 27, BOT_Z - 2.6, 0x00cc66);
+ 
+//     // Robots — sit on the INNER side of each track (toward z=0), so the belt
+//     // is on one side and the robot reaches modules from the other.
+//   // Robot positioned BEHIND modules (negative Z = away from camera, behind the scanner row)
+//     // Y = 0.3 keeps base on floor; X = 4 centers it between FOUP and Scanner
+//    buildRobotGLB(this.scene, new THREE.Vector3( 2, -0.52, 0 ), 0x00d8ff, 2.5, (r) => {
+//       this.robotEFEM = r; 
+//       this.robotA    = r; 
+//       this.robotB    = r; 
+//       this.robotC    = r; 
+//       this.robotD    = r; 
+//     });
+//     // Process animators
+//     this.spinCoat = new SpinCoatAnimator(this.scene);
+//     this.devLiquid = new DevLiquidAnimator(this.scene);
+
+//     // Particle systems
+//     const dryS   = ALL_STEPS.find((s) => s.id === "spindry")!;
+//     const rinseS = ALL_STEPS.find((s) => s.id === "rinse")!;
+//     const hmdsS  = ALL_STEPS.find((s) => s.id === "hmds")!;
+//     this.n2Particles    = new Particles(this.scene, new THREE.Vector3(dryS.x,   1.3, dryS.z),   0x66eeff, 170, 0.072);
+//     this.waterParticles = new Particles(this.scene, new THREE.Vector3(rinseS.x, 1.3, rinseS.z), 0x2299ff, 140, 0.068);
+//     this.hmdsFog        = new HMDSFog(this.scene, new THREE.Vector3(hmdsS.x, 1.3, hmdsS.z));
+
+//     // Heat vapor for hot plates
+//    // Heat vapor for hot plates — color matches each module's heat scheme
+//     const vaporColors: Record<string, number> = {
+//       dehy:     0xffaa66,  // orange vapor
+//       pab:      0xff7755,  // red-orange vapor
+//       hardbake: 0xff5544,  // red vapor
+//       hmds:     0xffcc88,  // amber vapor
+//       peb:      0xff8866,  // warm red vapor
+//     };
+//     ALL_STEPS.filter(s => s.type === "hot").forEach(s => {
+//       const vColor = vaporColors[s.id] ?? 0xffaa66;
+//       this.heatVapors[s.id] = new HeatVapor(this.scene, new THREE.Vector3(s.x, 1.0, s.z), vColor, 50);
+//     });
+
+//     // Wafers
+//     for (let i = 0; i < NUM_WAFERS; i++) {
+//       const w = buildWafer(WAFER_COLORS[i]);
+//       w.visible = false; this.scene.add(w);
+//       this.wafers.push(w); this.wSMs.push(new WaferStateMachine(i, w, this.scene));
+//     }
+//   }
+
+//   private _driveRobotTo(rob: RobotObject, tgt: THREE.Vector3, dt: number, mult: number) {
+//     rob.runIK(tgt);
+//     const we = new THREE.Euler().setFromQuaternion(rob.wrist.quaternion, "XYZ");
+//     we.z = Math.sin(this.simTime * 1.05 * mult) * 0.04;
+//     rob.wrist.quaternion.setFromEuler(we);
+//   }
+
+// private _getFingerMidpoint(robot: RobotObject): THREE.Vector3 {
+//   const ud = robot.group.userData;
+//   const t1 = ud.fingerTop1 as THREE.Object3D | undefined;
+//   const t2 = ud.fingerTop2 as THREE.Object3D | undefined;
+//   const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
+//   const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
+
+//   if (t1 && d1 && t2 && d2) {
+//     const wp1 = new THREE.Vector3(), wp2 = new THREE.Vector3();
+//     const wp3 = new THREE.Vector3(), wp4 = new THREE.Vector3();
+//     t1.getWorldPosition(wp1);
+//     d1.getWorldPosition(wp2);
+//     t2.getWorldPosition(wp3);
+//     d2.getWorldPosition(wp4);
+//     return wp1.clone().add(wp2).add(wp3).add(wp4).multiplyScalar(0.25);
+//   } else if (t1 && d1) {
+//     const wp1 = new THREE.Vector3(), wp2 = new THREE.Vector3();
+//     t1.getWorldPosition(wp1);
+//     d1.getWorldPosition(wp2);
+//     return wp1.clone().add(wp2).multiplyScalar(0.5);
+//   } else {
+//     const pos = new THREE.Vector3();
+//     robot.gripper.getWorldPosition(pos);
+//     return pos;
+//   }
+// }
+//   /** Temporarily disable HMDS + helper collision meshes during pick sequence */
+// private _maskCollisions(mask: boolean) {
+//   const hmds = this.modObjs['hmds'];
+//   if (!hmds) return;
+//   hmds.traverse((obj) => {
+//     if ((obj as THREE.Mesh).isMesh && obj.userData.collidable !== false) {
+//       // Store original raycast behavior, then disable
+//       if (mask) {
+//         obj.userData._origRaycast = obj.raycast;
+//         obj.raycast = () => {};   // no-op disables ghost collisions
+//       } else if (obj.userData._origRaycast) {
+//         obj.raycast = obj.userData._origRaycast;
+//         delete obj.userData._origRaycast;
+//       }
+//     }
+//   });
+// }
+
+// private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
+//   const ud = robot.group.userData;
+//   const current = ud.gripperState as number ?? 0;
+//   const blend = 0.18;
+//   ud.gripperState = lerp(current, targetState, blend);
+//   const g = ud.gripperState as number;
+
+//   const rest = ud.fingerRest as any;
+//   if (!rest) return;
+
+//   // Stronger close angle — fingers really clamp on wafer
+//   const closeAngle = 0.85;  // ~50° — was 0.45 (too weak)
+
+//   const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
+//   const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
+//   const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
+//   const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
+
+//   // ── Try X axis first (most common for gripper finger bend) ──
+//   // Top fingers rotate DOWN, bottom fingers rotate UP — clamping toward center
+//   if (t1 && rest.top1)  t1.rotation.x = rest.top1.x  - g * closeAngle;
+//   if (t2 && rest.top2)  t2.rotation.x = rest.top2.x  - g * closeAngle;
+//   if (d1 && rest.down1) d1.rotation.x = rest.down1.x + g * closeAngle;
+//   if (d2 && rest.down2) d2.rotation.x = rest.down2.x + g * closeAngle;
+
+//   // Vacuum visual feedback
+//   ud.vacuumEngaged = g > 0.7;
+// }
+// private _animRobots(dt: number): void {
+//   const t   = this.simTime;
+//   const r   = this.robotEFEM;
+//   if (!r?.runIK) return;
+ 
+//   // ── One-time init ──
+//   const ud = r.group.userData;
+//   if (!ud.railInit) {
+//     ud.railInit     = true;
+//     ud.railX        = r.basePos.x;
+//     ud.armPhase     = 'idle';
+//     ud.phaseT       = 0;
+//     ud.bezierT      = 0;
+//     ud.dwellTimer   = 0;
+//     ud.gripperState = 0;
+//     ud.turretRestY  = r.turret.rotation.y;
+//     ud.bezierStart  = new THREE.Vector3();
+//     ud.bezierEnd    = new THREE.Vector3();
+//     ud.bezierCP1    = new THREE.Vector3();
+//     ud.bezierCP2    = new THREE.Vector3();
+//   }
+ 
+//   // ── Smooth-step easing ──
+//   const ss = (x: number) => {
+//     x = Math.max(0, Math.min(1, x));
+//     return x * x * (3 - 2 * x);
+//   };
+ 
+//   // ── Cubic Bezier evaluator ──
+//   const evalBez = (out: THREE.Vector3, u: number) => {
+//     const p0 = ud.bezierStart as THREE.Vector3;
+//     const p1 = ud.bezierCP1   as THREE.Vector3;
+//     const p2 = ud.bezierCP2   as THREE.Vector3;
+//     const p3 = ud.bezierEnd   as THREE.Vector3;
+//     const v = 1 - u, v2 = v * v, v3 = v2 * v;
+//     const u2 = u * u, u3 = u2 * u;
+//     out.set(
+//       v3*p0.x + 3*v2*u*p1.x + 3*v*u2*p2.x + u3*p3.x,
+//       v3*p0.y + 3*v2*u*p1.y + 3*v*u2*p2.y + u3*p3.y,
+//       v3*p0.z + 3*v2*u*p1.z + 3*v*u2*p2.z + u3*p3.z,
+//     );
+//   };
+ 
+//   // ── Find active wafer for this robot ──
+//   const carried = this.wSMs.find(
+//     w => w.launched && !w.done && w.carrierRobot === r
+//   );
+//   const waiting = this.wSMs.find(
+//     w => w.launched && !w.done && !w.carrierRobot &&
+//          w.state === 'track_approach' && !(w as any)._picked
+//   );
+//   const target = carried ?? waiting ?? null;
+ 
+//   // ── Carried wafer follows finger midpoint every frame ──
+//   this.wSMs.forEach(sm => {
+//     if (!sm.carrierRobot || !sm.launched || sm.done) return;
+//     const fp = this._getFingerMidpoint(sm.carrierRobot);
+//     sm.mesh.position.lerp(fp, 0.9);
+//     sm.mesh.rotation.x = 0;
+//     sm.mesh.rotation.z = 0;
+//     sm.mesh.rotation.y += dt * 0.35;
+//     sm.mesh.scale.setScalar(1);
+//     sm.mesh.visible = true;
+//   });
+ 
+//   let railTargetX = r.basePos.x;
+//   const SAFE_H    = 2.5;   // transport altitude
+//   const APPROACH  = 0.45;  // hover above chuck
+//   const LIFT_BUMP = 0.06;  // wafer sits just above chuck surface
+ 
+//   if (!target) {
+//     // ── IDLE: gentle patrol hover ──
+//     ud.armPhase = 'idle';
+//     ud.phaseT   = 0;
+//     railTargetX = r.basePos.x + Math.sin(t * 0.18) * 6;
+//     const idleTgt = new THREE.Vector3(
+//       r.group.position.x,
+//       1.6,
+//       r.group.position.z + 1.5 + Math.sin(t * 0.22) * 0.8
+//     );
+//     r.runIK(idleTgt);
+//     this._setGripperState(r, 0, dt);
+ 
+//   } else {
+//     const dropStep   = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
+//     const prevIdx    = Math.max(target.stepIdx - 1, 0);
+//     const prevStep   = ALL_STEPS[prevIdx];
+ 
+//     const pickupX = (target as any)._pickupX as number ?? prevStep.x;
+//     const pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
+//     const isPicked = !!(target as any)._picked;
+ 
+//     // FOUP slot height varies per wafer index
+//     const foupSlotY = 0.7 + target.wi * 0.4;
+//     const pickH  = prevStep.type === 'foup' ? foupSlotY : 0.93;
+//     const dropH  = dropStep.type === 'foup' ? foupSlotY : 0.93;
+ 
+//     railTargetX = clamp(isPicked ? dropStep.x : pickupX, RAIL_START + 1, RAIL_END - 1);
+ 
+//     ud.phaseT = (ud.phaseT as number) + dt * this.speed;
+//     const phaseT = ud.phaseT as number;
+//     const phase  = ud.armPhase as string;
+//     const railX  = ud.railX as number;
+ 
+//     // IK target positions in world space
+//     const above    = new THREE.Vector3(pickupX, pickH + APPROACH + 0.4, pickupZ);
+//     const insert   = new THREE.Vector3(pickupX, pickH + APPROACH,       pickupZ);
+//     const contact  = new THREE.Vector3(pickupX, pickH + LIFT_BUMP,      pickupZ);
+//     const aboveDrop = new THREE.Vector3(dropStep.x, dropH + APPROACH + 0.4, dropStep.z);
+//     const insertDrop = new THREE.Vector3(dropStep.x, dropH + APPROACH,      dropStep.z);
+//     const placePos   = new THREE.Vector3(dropStep.x, dropH + LIFT_BUMP,     dropStep.z);
+ 
+//     if (!isPicked) {
+//       // ═══════ PICK SEQUENCE ═══════
+//       switch (phase) {
+//         case 'idle':
+//         case 'retract':
+//           ud.armPhase = 'approach'; ud.phaseT = 0;
+//           break;
+ 
+//         case 'approach':
+//           r.runIK(above);
+//           this._setGripperState(r, 0, dt);
+//           if (Math.abs(railX - pickupX) < 0.8 && phaseT > 0.5) {
+//             ud.armPhase = 'insert'; ud.phaseT = 0;
+//           }
+//           break;
+ 
+//         case 'insert': {
+//           const p = ss(Math.min(phaseT / 0.8, 1));
+//           r.runIK(new THREE.Vector3().lerpVectors(above, insert, p));
+//           this._setGripperState(r, 0, dt);
+//           if (p >= 1) { ud.armPhase = 'contact'; ud.phaseT = 0; }
+//           break;
+//         }
+ 
+//         case 'contact': {
+//           const p = ss(Math.min(phaseT / 0.5, 1));
+//           r.runIK(new THREE.Vector3().lerpVectors(insert, contact, p));
+//           this._setGripperState(r, 0.3, dt);
+//           if (p >= 1) { ud.armPhase = 'vacuum_dwell'; ud.phaseT = 0; ud.dwellTimer = 0; }
+//           break;
+//         }
+ 
+//         case 'vacuum_dwell': {
+//           ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
+//           r.runIK(contact);
+//           this._setGripperState(r, 1, dt);
+//           if ((ud.dwellTimer as number) >= 0.45) {
+//             // Snap wafer to finger midpoint, attach
+//             target.mesh.position.copy(this._getFingerMidpoint(r));
+//             target.mesh.scale.setScalar(1);
+//             target.attachTo(r);
+//             (target as any)._picked = true;
+//             this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED @ ${prevStep.short}`, 'pick');
+ 
+//             // Build Bezier arc for transport
+//             (ud.bezierStart as THREE.Vector3).copy(contact);
+//             (ud.bezierEnd   as THREE.Vector3).copy(aboveDrop);
+//             (ud.bezierCP1   as THREE.Vector3).set(contact.x,   SAFE_H, contact.z);
+//             (ud.bezierCP2   as THREE.Vector3).set(aboveDrop.x, SAFE_H, aboveDrop.z);
+//             ud.bezierT  = 0;
+//             ud.armPhase = 'lift';
+//             ud.phaseT   = 0;
+//           }
+//           break;
+//         }
+ 
+//         case 'lift': {
+//           const liftTgt = new THREE.Vector3(pickupX, SAFE_H, pickupZ);
+//           const p = ss(Math.min(phaseT / 0.6, 1));
+//           r.runIK(new THREE.Vector3().lerpVectors(contact, liftTgt, p));
+//           this._setGripperState(r, 1, dt);
+//           if (p >= 1) { ud.armPhase = 'transport'; ud.phaseT = 0; ud.bezierT = 0; }
+//           break;
+//         }
+ 
+//         default:
+//           ud.armPhase = 'approach'; ud.phaseT = 0;
+//       }
+ 
+//     } else {
+//       // ═══════ PLACE SEQUENCE ═══════
+//       switch (phase) {
+//         case 'lift':
+//         case 'transport':
+//         case 'carry':
+//         case 'rise': {
+//           ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.42, 1);
+//           const tBez = ss(ud.bezierT as number);
+//           const arc  = new THREE.Vector3();
+//           evalBez(arc, tBez);
+//           r.runIK(arc);
+//           this._setGripperState(r, 1, dt);
+//           if ((ud.bezierT as number) >= 1) { ud.armPhase = 'lower'; ud.phaseT = 0; }
+//           break;
+//         }
+ 
+//         case 'lower': {
+//           const p = ss(Math.min(phaseT / 0.75, 1));
+//           r.runIK(new THREE.Vector3().lerpVectors(aboveDrop, insertDrop, p));
+//           this._setGripperState(r, 1, dt);
+//           if (p >= 1) { ud.armPhase = 'place_contact'; ud.phaseT = 0; }
+//           break;
+//         }
+ 
+//         case 'place_contact': {
+//           const p = ss(Math.min(phaseT / 0.5, 1));
+//           r.runIK(new THREE.Vector3().lerpVectors(insertDrop, placePos, p));
+//           this._setGripperState(r, 1, dt);
+//           if (p >= 1) { ud.armPhase = 'release'; ud.phaseT = 0; }
+//           break;
+//         }
+ 
+//         case 'release': {
+//           r.runIK(placePos);
+//           this._setGripperState(r, 0, dt);
+
+//           // Check finger proximity to target
+//           const fp      = this._getFingerMidpoint(r);
+//           const dropTgt = new THREE.Vector3(dropStep.x, dropH, dropStep.z);
+//           const posErr  = fp.distanceTo(dropTgt);
+//           const timeout = phaseT > 1.8;
+ 
+//           if ((posErr < 0.45 && phaseT > 0.35) || timeout) {
+//             target.detachAt(dropTgt);
+//             this._addLog(`[${WAFER_NAMES[target.wi]}] PLACED @ ${dropStep.short}`, 'place');
+//             target.state        = 'processing';
+//             target.processTimer = 0;
+//             this._onProcessStart(target, dropStep);
+//             this.busy[dropStep.id]      = target.wi;
+//             (target as any)._picked    = false;
+//             (target as any)._pickupX   = undefined;
+//             (target as any)._pickupZ   = undefined;
+//             ud.armPhase = 'retractUp';
+//             ud.phaseT   = 0;
+//           }
+//           break;
+//         }
+ 
+//         case 'retractUp': {
+//           const p = ss(Math.min(phaseT / 0.55, 1));
+//           r.runIK(new THREE.Vector3().lerpVectors(placePos, aboveDrop, p));
+//           this._setGripperState(r, 0, dt);
+//           if (p >= 1) { ud.armPhase = 'retract'; ud.phaseT = 0; }
+//           break;
+//         }
+ 
+//         case 'retract':
+//           r.runIK(aboveDrop);
+//           this._setGripperState(r, 0, dt);
+//           if (phaseT > 0.45) { ud.armPhase = 'idle'; ud.phaseT = 0; }
+//           break;
+ 
+//         default:
+//           ud.armPhase = 'transport'; ud.phaseT = 0;
+//       }
+//     }
+//   }
+ 
+//   // ── Rail slide with decel zone ──
+//   const curRailX  = ud.railX as number;
+//   const dist      = Math.abs(railTargetX - curRailX);
+//   const speedMult = dist < 2.5 ? ss(dist / 2.5) : 1.0;
+//   const maxStep   = 9.0 * this.speed * dt * speedMult;
+//   const dx        = railTargetX - curRailX;
+//   ud.railX        = Math.abs(dx) > maxStep ? curRailX + Math.sign(dx) * maxStep : railTargetX;
+//   r.group.position.x = ud.railX as number;
+ 
+//   // ── LED color based on state ──
+//   const g = (ud.gripperState as number) ?? 0;
+//   if (g > 0.7) {
+//     r.statusPL.color.setHex(0x00ffff);
+//     r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
+//   } else if (carried) {
+//     r.statusPL.color.setHex(0x00ff88);
+//     r.statusPL.intensity = 1.8;
+//   } else {
+//     r.statusPL.color.setHex(0x00d8ff);
+//     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
+//   }
+// }
+ 
+//   private _getCarrierForStep(si: number): RobotObject | null {
+//     return this.robotEFEM ?? null; // single robot handles all steps
+//   }
+// //   private _useConveyor(fromIdx: number, toIdx: number): boolean {
+// //     const topRange = (i: number) => i >= 1 && i <= 7;
+// //     const botRange = (i: number) => i >= 10 && i <= 16;
+// //     return (topRange(fromIdx) && topRange(toIdx)) || (botRange(fromIdx) && botRange(toIdx));
+// //   }
+// private _useConveyor(fromIdx: number, toIdx: number): boolean {
+//   return false;
+// }
+
+//  private _tickWafer(sm: WaferStateMachine, dt: number) {
+//   if (sm.done || !sm.launched) return;
+//   const w = sm.mesh;
+//   if (sm.spinning && !this.paused) { sm.spin += dt * this.speed * 8; w.rotation.y = sm.spin; }
+
+//   const sDt = dt * this.speed;
+//   const BELT_Y = 0.48;
+
+//   switch (sm.state) {
+
+//     // ── IDLE: decide next move ──────────────────────────────────────────────
+//     case "idle": {
+//   if (sm.stepIdx >= ALL_STEPS.length) {
+//   sm.state = "done";
+//   sm.done = true;
+//   // Return visually to FOUP slot it came from
+//   const foup = ALL_STEPS[0];
+//   sm.mesh.position.set(
+//     foup.x + 1.0,                 // back at FOUP door
+//     0.7 + sm.wi * 0.4,            // back to original slot height
+//     foup.z
+//   );
+//   sm.mesh.rotation.set(0, 0, 0);
+//   sm.mesh.visible = true;
+//   this._addLog(`[${WAFER_NAMES[sm.wi]}] → COMPLETE ✓ returned to FOUP slot ${sm.wi + 1}`, "place");
+//         if (this._activeCoatWI === sm.wi) { this.spinCoat.stopCoat(); this._activeCoatWI = -1; }
+//         if (this._activeDevWI === sm.wi)  { this.devLiquid.stopDev();  this._activeDevWI  = -1; }
+//         return;
+//       }
+//       const mod = ALL_STEPS[sm.stepIdx];
+//       if (this.busy[mod.id] !== undefined && this.busy[mod.id] !== sm.wi) return;
+//       this.busy[mod.id] = sm.wi;
+
+//       const prevIdx = sm.stepIdx - 1;
+//       const useConv = sm.stepIdx > 0 && this._useConveyor(prevIdx, sm.stepIdx);
+
+//       if (useConv) {
+//         const prevMod = ALL_STEPS[prevIdx];
+//         const isTop   = mod.z < 0 || prevMod.z < 0;
+//         const beltZ   = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
+
+//         const fromPos = new THREE.Vector3(prevMod.x, BELT_Y, beltZ);
+//         const toPos   = new THREE.Vector3(mod.x,     BELT_Y, beltZ);
+
+//         sm.startConveyorMove(fromPos, toPos, this.speed);
+//         w.position.copy(fromPos);
+//         sm.state = "conveyor_move";
+//         this._addLog(`[${WAFER_NAMES[sm.wi]}] BELT → ${mod.short}`, "move");
+
+//       } else {
+//  const robot = this._getCarrierForStep(sm.stepIdx);
+//   if (!robot || !robot.gripper) return;
+//   if (!this.robotEFEM) return;
+//   if (this.wSMs.some((o) => o !== sm && o.carrierRobot === robot)) return;
+
+//   // Tell the robot to first slide to wafer's CURRENT location to pick it up
+//  // Inside case "idle", in the else branch (robot path), replace from sm.state = "track_approach":
+// const pickupX = sm.stepIdx === 0
+//   ? ALL_STEPS[0].x
+//   : ALL_STEPS[sm.stepIdx - 1].x;
+// const pickupZ = sm.stepIdx === 0
+//   ? ALL_STEPS[0].z
+//   : ALL_STEPS[sm.stepIdx - 1].z;
+
+// // Stash so _animRobots knows where to slide to first
+// (sm as any)._pickupX = pickupX;
+// (sm as any)._pickupZ = pickupZ;
+// (sm as any)._picked  = false;
+
+// // Ensure wafer is visible at the pickup location
+// sm.mesh.visible = true;
+// sm.mesh.position.set(pickupX, 0.95, pickupZ);
+
+// sm.state     = 'track_approach';
+// sm.timer     = 0;
+// sm.targetPos.set(ALL_STEPS[sm.stepIdx].x, 0.95, ALL_STEPS[sm.stepIdx].z);
+// this._addLog(`[${WAFER_NAMES[sm.wi]}] MOVE → ${mod.short}`, 'move');
+//   // Do NOT attachTo here — wait until robot physically arrives at pickup
+// }
+//       break;
+//     }
+
+//     // ── CONVEYOR MOVE: slide along belt surface ─────────────────────────────
+//     case "conveyor_move": {
+//       const done = sm.tickConveyor(sDt);
+//       if (done) {
+//         sm.onConveyor = false;
+//         const mod   = ALL_STEPS[sm.stepIdx];
+//         const isTop = mod.z < 0;
+//         const beltZ = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
+
+//         // Begin entry animation: belt → module chuck
+//         sm.entryEl  = 0;
+//         sm.entryDur = 0.6 / Math.max(this.speed, 1);
+//         sm.entryStart.set(mod.x, BELT_Y, beltZ);
+//         sm.entryEnd.set(mod.x, 0.93, mod.z);
+//         sm.state = "belt_to_module";
+//         this._addLog(`[${WAFER_NAMES[sm.wi]}] ENTER → ${mod.short}`, "pick");
+//       }
+//       break;
+//     }
+
+//     // ── BELT TO MODULE: glide from belt into module ─────────────────────────
+//     case "belt_to_module": {
+//       sm.entryEl += sDt;
+//       const t = Math.min(sm.entryEl / sm.entryDur, 1);
+//       const e = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+//       w.position.x = lerp(sm.entryStart.x, sm.entryEnd.x, e);
+//       w.position.y = lerp(sm.entryStart.y, sm.entryEnd.y, e);
+//       w.position.z = lerp(sm.entryStart.z, sm.entryEnd.z, e);
+//       if (t >= 1) {
+//         w.position.copy(sm.entryEnd);
+//         const mod = ALL_STEPS[sm.stepIdx];
+//         sm.state = "processing";
+//         sm.processTimer = 0;
+//         this._onProcessStart(sm, mod);
+//         this._addLog(`[${WAFER_NAMES[sm.wi]}] PLACE @ ${mod.short}`, "place");
+//       }
+//       break;
+//     }
+
+//     // ── PROCESSING: wafer sits on chuck being processed ─────────────────────
+//     case "processing": {
+//       sm.processTimer += sDt;
+//       const mod = ALL_STEPS[sm.stepIdx];
+//       const mo  = this.modObjs[mod.id];
+
+//       if (mo?.userData.processLight) {
+//         const li: Record<string, number> = { hot: 4.0, cold: 3.2, scan: 6.0, coat: 3.5, wet: 3.0, dry: 3.0, iface: 2.5, foup: 1.5 };
+//         (mo.userData.processLight as THREE.PointLight).intensity =
+//           (li[mod.type] ?? 2.5) + 0.6 * Math.sin(this.simTime * 4);
+//       }
+//       if (mo?.userData.innerRing) {
+//         const mat = (mo.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial;
+//         mat.emissiveIntensity = 2.5 + 1.5 * Math.sin(this.simTime * 6);
+//       }
+//       if (mod.type === "hot" && mo?.userData.coils) {
+//         (mo.userData.coils as THREE.Mesh[]).forEach((coil, idx) => {
+//           const cm = coil.material as THREE.MeshStandardMaterial;
+//           cm.emissiveIntensity = 1.5 + 1.0 * Math.sin(this.simTime * 4 + idx);
+//         });
+//       }
+//       if (mod.id === "prcoat"  && this._activeCoatWI === sm.wi) this.spinCoat.tick(dt, this.speed);
+//       if (mod.id === "develop" && this._activeDevWI  === sm.wi) this.devLiquid.tick(dt, this.speed);
+//       if (mod.id === "scanner" && mo?.userData.uvBeam) {
+//         const beam = mo.userData.uvBeam as THREE.Mesh;
+//         const bmat = beam.material as THREE.MeshStandardMaterial;
+//         bmat.emissiveIntensity = 1.5 + 1.2 * Math.abs(Math.sin(this.simTime * 8));
+//         bmat.opacity = 0.08 + 0.08 * Math.abs(Math.sin(this.simTime * 8));
+//         const pr = w.userData.prLayer as THREE.Mesh;
+//         if (pr) {
+//           (pr.material as THREE.MeshStandardMaterial).emissiveIntensity =
+//             0.7 + 0.5 * Math.abs(Math.sin(this.simTime * 8));
+//         }
+//       }
+
+//       if (sm.processTimer >= mod.time) {
+//         this._onProcessEnd(sm, mod, mo);
+//         if (this.busy[mod.id] === sm.wi) delete this.busy[mod.id];
+
+//         // Check if NEXT step is also on conveyor → exit back to belt first
+//         const nextIdx    = sm.stepIdx + 1;
+//         const nextOnConv = nextIdx < ALL_STEPS.length &&
+//                            this._useConveyor(sm.stepIdx, nextIdx);
+
+//         if (nextOnConv) {
+//           const isTop = mod.z < 0;
+//           const beltZ = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
+
+//           // Exit animation: chuck → belt
+//           sm.exitEl  = 0;
+//           sm.exitDur = 0.6 / Math.max(this.speed, 1);
+//           sm.exitStart.set(mod.x, 0.93, mod.z);
+//           sm.exitEnd.set(mod.x, BELT_Y, beltZ);
+//           sm.state = "module_to_belt";
+//           this._addLog(`[${WAFER_NAMES[sm.wi]}] EXIT ← ${mod.short}`, "move");
+//         } else {
+//           // Robot picks up — advance to next step normally
+//           sm.stepIdx++; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
+//         }
+//       }
+//       break;
+//     }
+
+//     // ── MODULE TO BELT: glide from chuck back out to belt ───────────────────
+//     case "module_to_belt": {
+//       sm.exitEl += sDt;
+//       const t = Math.min(sm.exitEl / sm.exitDur, 1);
+//       const e = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+//       w.position.x = lerp(sm.exitStart.x, sm.exitEnd.x, e);
+//       w.position.y = lerp(sm.exitStart.y, sm.exitEnd.y, e);
+//       w.position.z = lerp(sm.exitStart.z, sm.exitEnd.z, e);
+//       if (t >= 1) {
+//         w.position.copy(sm.exitEnd);
+//         sm.stepIdx++;
+//         sm.state = "idle";
+//         sm.timer = 0;
+//         sm.processTimer = 0;
+//       }
+//       break;
+//     }
+
+//     // ── ROBOT STATES ────────────────────────────────────────────────────────
+// //  case "track_approach": {
+// //   sm.timer += sDt;
+// //   const robot = this._getCarrierForStep(sm.stepIdx);
+// //   if (!robot) { sm.state = "idle"; return; }
+  
+// //   const railX = robot.group.userData.railX ?? robot.basePos.x;
+// //   const picked = (sm as any)._picked;
+// //   const pickupX = (sm as any)._pickupX;
+
+// //   if (!picked) {
+// //     // PHASE 1: slide to pickup location, then attach
+// //     const distToPickup = Math.abs(railX - pickupX);
+// //     if (distToPickup < 0.5 && sm.timer > 0.3) {
+// //       sm.attachTo(robot);
+// //       (sm as any)._picked = true;
+// //       sm.timer = 0;
+// //       this._addLog(`[${WAFER_NAMES[sm.wi]}] PICK ↑ ${ALL_STEPS[Math.max(sm.stepIdx-1,0)].short}`, "pick");
+// //     }
+// //   } else {
+// //     // PHASE 2: slide to drop location, then place
+// //     const mod = ALL_STEPS[sm.stepIdx];
+// //     const distToDrop = Math.abs(railX - mod.x);
+// //     if (distToDrop < 0.5 && sm.timer > 0.3) {
+// //       sm.state = "track_place";
+// //       sm.timer = 0;
+// //     }
+// //   }
+// //   break;
+// // }
+// //     case "track_place": {
+// //       sm.timer += sDt;
+// //       if (sm.timer >= PLACE_DELAY) {
+// //         const mod = ALL_STEPS[sm.stepIdx];
+// //         sm.detachAt(sm.targetPos);
+// //         this._addLog(`[${WAFER_NAMES[sm.wi]}] PLACE @ ${mod.short}`, "place");
+// //         sm.state = "processing"; sm.processTimer = 0;
+// //         this._onProcessStart(sm, mod);
+// //       }
+// //       break;
+// //     }
+
+// case "track_approach": {
+//   // Wafer sits at pickup location until robot grabs it.
+//   // Once _animRobots calls attachTo(), wafer moves with robot automatically.
+//   // Once _animRobots calls detachAt() + sets state='processing', we're done.
+//   sm.timer += sDt;
+//   // Safety timeout — if stuck for 60 sim-seconds, reset to idle
+//   if (sm.timer > 60) {
+//     sm.state = "idle";
+//     sm.timer = 0;
+//     (sm as any)._picked  = false;
+//     (sm as any)._pickupX = undefined;
+//     (sm as any)._pickupZ = undefined;
+//   }
+//   break;
+// }
+
+// // case "track_place": {
+// //   sm.state        = "processing";
+// //   sm.processTimer = 0;
+// //   break;
+// // }
+
+// case "track_place": {
+//   // No-op: handled by _animRobots now. Skip straight to processing if reached.
+//   sm.state = "processing";
+//   sm.processTimer = 0;
+//   break;
+// }
+//   }
+// }
+//   private _onProcessStart(sm: WaferStateMachine, mod: ProcessStep) {
+//     const w = sm.mesh;
+//     if (mod.id === "prcoat") {
+//   sm.spinning = true;
+//   this.prCoatOverlay.start();
+//   if (this._activeCoatWI < 0) {
+//     this._activeCoatWI = sm.wi;
+//     const prS = ALL_STEPS.find(s => s.id === 'prcoat')!;
+//     this.spinCoat.startCoat(prS.x, prS.z, WAFER_COLORS[sm.wi]);
+//   }
+// }
+//     if (mod.id === "develop" && this._activeDevWI < 0) {
+//       this._activeDevWI = sm.wi;
+//       this.devLiquid.startDev(mod.x, mod.z);
+//       this.devOverlay.start();
+//     }
+//     if (mod.id === "spindry" || mod.id === "rinse" || mod.id === "develop") sm.spinning = true;
+//     if (mod.id === "hmds") this.hmdsFog.on();
+//     if (mod.id === "spindry") this.n2Particles.on();
+//     if (mod.id === "rinse") this.waterParticles.on();
+//     if (mod.type === "hot" && this.heatVapors[mod.id]) this.heatVapors[mod.id].on();
+//   }
+
+//   private _onProcessEnd(sm: WaferStateMachine, mod: ProcessStep, mo?: THREE.Group) {
+//     const w = sm.mesh;
+//     if (mo?.userData.processLight) (mo.userData.processLight as THREE.PointLight).intensity = 0;
+//     if (mo?.userData.innerRing) {
+//       const mat = (mo.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial;
+//       mat.emissiveIntensity = 2.5;
+//     }
+//     sm.spinning = false;
+//     if (mod.id === "prcoat") {
+//       // Tint PR layer with wafer's resist color (visual feedback of coating)
+//       const pr = w.userData.prLayer as THREE.Mesh | undefined;
+//       if (pr) {
+//         const mat = pr.material as THREE.MeshStandardMaterial;
+//         mat.opacity = 0.95;
+//         mat.emissiveIntensity = 0.9;
+//       }
+//     }
+//     if (mod.id === "develop" && this._activeDevWI === sm.wi) {
+//       this.devLiquid.stopDev(); this._activeDevWI = -1;
+//       this.devOverlay.stop();
+//     }
+//     if (mod.id === "prcoat") { this.prCoatOverlay.stop(); }
+//     if (mod.id === "hmds") this.hmdsFog.off();
+//     if (mod.id === "spindry") this.n2Particles.off();
+//     if (mod.id === "rinse") this.waterParticles.off();
+//     if (mod.type === "hot" && this.heatVapors[mod.id]) this.heatVapors[mod.id].off();
+//     // Reset liquid overlay
+//     if (mod.type === "wet") {
+//       const liq = w.userData.liquid as THREE.Mesh;
+//       if (liq) (liq.material as THREE.MeshStandardMaterial).opacity = 0;
+//     }
+//     // Reset PR layer emissive after scanner
+//     if (mod.id === "scanner") {
+//       const pr = w.userData.prLayer as THREE.Mesh;
+//       if (pr) (pr.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.7;
+//     }
+//   }
+
+//   // REPLACE _launchWafer with:
+// private _launchWafer(wi: number) {
+//   const sm = this.wSMs[wi];
+//   if (sm.launched) return;
+//   sm.launched = true;
+//   sm.mesh.visible = true;
+//   sm.mesh.scale.setScalar(1);
+//   // Spawn at FOUP door — slightly offset in X so it appears "presented" toward modules
+//   // Each wafer at a different vertical slot height (0.7, 1.1, 1.5, 1.9)
+//   const foup = ALL_STEPS[0];
+//   sm.mesh.position.set(
+//     foup.x + 1.0,                 // forward of FOUP door (+X toward modules)
+//     0.7 + wi * 0.4,               // slot height matches FOUP shelves
+//     foup.z
+//   );
+//   sm.mesh.rotation.set(0, 0, 0);  // horizontal, like real wafer in slot
+//   sm.state = "idle";
+//   this._addLog(`[${WAFER_NAMES[wi]}] LAUNCHED FROM FOUP SLOT ${wi + 1}`, "pick");
+// }
+
+//   private _updateCamera() {
+//     const o = this.orbit;
+//     o.theta = lerp(o.theta, o.tT, 0.075); o.phi = lerp(o.phi, o.tP, 0.075);
+//     o.radius = lerp(o.radius, o.tR, 0.075);
+//     o.cx = lerp(o.cx, o.tcx, 0.075); o.cy = lerp(o.cy, o.tcy, 0.075); o.cz = lerp(o.cz, o.tcz, 0.075);
+//     this.camera.position.set(
+//       o.cx + o.radius * Math.sin(o.phi) * Math.sin(o.theta),
+//       o.cy + o.radius * Math.cos(o.phi),
+//       o.cz + o.radius * Math.sin(o.phi) * Math.cos(o.theta)
+//     );
+//     this.camera.lookAt(o.cx, o.cy, o.cz); this.camera.updateProjectionMatrix();
+//   }
+
+//   setPreset(p: CameraPreset) { this.orbit.tT = p.theta; this.orbit.tP = p.phi; this.orbit.tR = p.radius; this.orbit.tcx = p.cx; this.orbit.tcy = p.cy; this.orbit.tcz = p.cz; }
+
+//   private _buildUI(): UIState {
+//     let active = 0, completed = 0;
+//     const wafers = this.wSMs.map((sm, i) => {
+//       if (sm.launched && !sm.done) active++;
+//       if (sm.done) completed++;
+//       return { wi: sm.wi, name: WAFER_NAMES[i], state: sm.state, stepIdx: sm.stepIdx, stepName: sm.stepIdx < ALL_STEPS.length ? ALL_STEPS[sm.stepIdx].name : "Complete", processTimer: sm.processTimer, stepTime: sm.stepIdx < ALL_STEPS.length ? ALL_STEPS[sm.stepIdx].time : 1, done: sm.done, launched: sm.launched };
+//     });
+//    return { 
+//       wafers, simTime: this.simTime, fps: this.fps, active, completed,
+//       jointsA:    this.robotA    ? this.robotA.getJoints()    : null,
+//       jointsEFEM: this.robotEFEM ? this.robotEFEM.getJoints() : null,
+//       jointsC:    this.robotC    ? this.robotC.getJoints()    : null,
+//     };
+//   }
+
+//   private _loop = () => {
+//     this._animId = requestAnimationFrame(this._loop);
+//     const now = performance.now();
+//     const rawDt = Math.min((now - this._lastT) / 1000, 0.05); this._lastT = now;
+//     this._frm++;
+//     if (now - this._lastFpsT > 1000) { this.fps = Math.round(this._frm * 1000 / (now - this._lastFpsT)); this._frm = 0; this._lastFpsT = now; }
+//     const dt = this.paused ? 0 : rawDt;
+//     if (!this.paused) this.simTime += dt * this.speed;
+//     if (!this.paused) {
+//     //   this.conveyorTop.tick(dt, this.speed, 1);
+//     //   this.conveyorBot.tick(dt, this.speed, -1);
+//       this.n2Particles.tick(dt, this.speed);
+//       this.waterParticles.tick(dt, this.speed);
+//       this.hmdsFog.tick(dt, this.speed, this.simTime);
+//       Object.values(this.heatVapors).forEach(v => v.tick(dt, this.speed));
+//       this.prCoatOverlay?.tick(dt, this.speed);
+//       this.devOverlay?.tick(dt, this.speed);
+//       if (this.gantryRail && this.robotEFEM) {
+//         tickGantryRail(this.gantryRail, this.robotEFEM.group.position.x, this.simTime);
+//       }
+//      const nextIdx = this.wSMs.findIndex((sm) => !sm.launched);
+// if (nextIdx >= 0) {
+//   const prev = this.wSMs[nextIdx - 1];
+//   const canLaunch = nextIdx === 0 || (prev && prev.launched && prev.stepIdx >= 2);
+//   if (canLaunch) this._launchWafer(nextIdx);
+// }
+// // ── 1. Tick every wafer state machine ──
+// this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
+
+// // ── 2. Carried wafers follow the gripper in world space ──
+// // ── 2. Carried wafers — visibility only; transform handled by parent (gripper) ──
+// // ── Carried wafers: follow gripper world pos, but FORCE horizontal orientation ──
+// // ── Carried wafers: position at TOOTH TIP (TCP), not gripper origin ──
+// // ── Carried wafers: position at TOOTH TIP (TCP), not gripper origin ──
+// // ── Carried wafers: position at FINGER MIDPOINT (real gripping zone) ──
+// this.wSMs.forEach((sm) => {
+//   if (!sm.carrierRobot || !sm.launched || sm.done) return;
+
+//   const ud = sm.carrierRobot.group.userData;
+//   const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
+//   const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
+//   const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
+//   const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
+
+//   let targetPos: THREE.Vector3;
+
+//   if (t1 && d1) {
+//     // Use midpoint of finger world positions = exact gripping zone
+//     const topWP = new THREE.Vector3();
+//     const botWP = new THREE.Vector3();
+//     t1.getWorldPosition(topWP);
+//     d1.getWorldPosition(botWP);
+
+//     // Average top + bottom finger = wafer rests between them
+//     targetPos = topWP.clone().add(botWP).multiplyScalar(0.5);
+
+//     // Optionally average all 4 fingers for more stable centering
+//     if (t2 && d2) {
+//       const top2WP = new THREE.Vector3();
+//       const bot2WP = new THREE.Vector3();
+//       t2.getWorldPosition(top2WP);
+//       d2.getWorldPosition(bot2WP);
+//       targetPos = topWP.clone()
+//         .add(botWP)
+//         .add(top2WP)
+//         .add(bot2WP)
+//         .multiplyScalar(0.25);
+//     }
+//   } else {
+//     // Fallback if fingers not found — use gripper position
+//     const gripWP = new THREE.Vector3();
+//     sm.carrierRobot.gripper.getWorldPosition(gripWP);
+//     targetPos = gripWP.clone();
+//   }
+
+//   // Snap wafer to finger midpoint
+//   sm.mesh.position.lerp(targetPos, 0.95);
+
+//   // Lock pitch + roll — wafer always parallel to floor
+//   sm.mesh.rotation.x = 0;
+//   sm.mesh.rotation.z = 0;
+//   sm.mesh.rotation.y += dt * 0.4;
+//   sm.mesh.scale.setScalar(1);
+//   sm.mesh.visible = true;
+// });
+
+// // ── 3. GLB module animations ──
+
+//       // ── Animate Dehydration Bake GLB ──
+//       // ── Animate GLB hot-plate modules (dehy + hardbake) ──
+//       const animateGlbHotPlate = (modId: string, freqMult = 1) => {
+//         const grp = this.modObjs[modId];
+//         if (!grp?.userData.loaded) return;
+//         const idx = ALL_STEPS.findIndex(s => s.id === modId);
+//         const isActive = this.wSMs.some(
+//           (sm) => sm.launched && !sm.done &&
+//                   sm.stepIdx === idx &&
+//                   sm.state === 'processing'
+//         );
+
+//        const heatMat = grp.userData.heatMaterial as THREE.MeshStandardMaterial;
+//         if (heatMat) {
+//           // Stronger red glow for PAB (since it's a hotter bake)
+//           const isPAB = grp.userData.isPAB === true;
+//           const activeMin = isPAB ? 4.5 : 3.5;
+//           const activeAmp = isPAB ? 2.2 : 1.8;
+//           heatMat.emissiveIntensity = isActive
+//             ? activeMin + activeAmp * Math.sin(this.simTime * 3.5 * freqMult)
+//             : (isPAB ? 0.9 : 0.6) + 0.2 * Math.sin(this.simTime * 1.2);
+//         }
+
+//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial;
+//         const redMat = grp.userData.redLight as THREE.MeshStandardMaterial;
+//         if (greenMat && redMat) {
+//           if (isActive) {
+//             greenMat.emissiveIntensity = 3.5 + 1.0 * Math.sin(this.simTime * 4);
+//             redMat.emissiveIntensity = 0.3;
+//           } else {
+//             greenMat.emissiveIntensity = 0.3;
+//             redMat.emissiveIntensity = 2.0 + 0.8 * Math.sin(this.simTime * 2);
+//           }
+//         }
+
+//         const pl = grp.userData.processLight as THREE.PointLight;
+//         if (pl) {
+//           pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(this.simTime * 4) : 0.4;
+//         }
+//       };
+
+//      animateGlbHotPlate('dehy', 1.0);
+//       animateGlbHotPlate('pab', 1.1);
+//       animateGlbHotPlate('hardbake', 1.2);
+
+//       // ── Animate PR Coat GLB (spin chuck + dispense arm + lights) ──
+//       const animatePrCoat = () => {
+//         const grp = this.modObjs['prcoat'];
+//         if (!grp?.userData.loaded) return;
+//         const idx = ALL_STEPS.findIndex(s => s.id === 'prcoat');
+//         const isActive = this.wSMs.some(
+//           (sm) => sm.launched && !sm.done &&
+//                   sm.stepIdx === idx &&
+//                   sm.state === 'processing'
+//         );
+
+//         // Spin the chuck (fast during coating, slow drift when idle)
+//         const spinChuck = grp.userData.spinChuck as THREE.Object3D | undefined;
+//         if (spinChuck) {
+//           spinChuck.rotation.y += (isActive ? 0.45 : 0.005) * this.speed;
+//         }
+
+//         // Swing dispense arm in/out
+//         const arm = grp.userData.dispenseArm as THREE.Object3D | undefined;
+//         const restY = grp.userData.armRestY as number | undefined;
+//         if (arm && restY !== undefined) {
+//           const targetY = isActive
+//             ? restY + Math.PI / 4 + Math.sin(this.simTime * 1.5) * 0.15
+//             : restY;
+//           arm.rotation.y = lerp(arm.rotation.y, targetY, 0.04);
+//         }
+
+//         // Chuck material violet glow pulse
+//         const chuckMat = grp.userData.chuckMaterial as THREE.MeshStandardMaterial | undefined;
+//         if (chuckMat) {
+//           chuckMat.emissiveIntensity = isActive
+//             ? 1.5 + 1.0 * Math.sin(this.simTime * 5)
+//             : 0.25 + 0.1 * Math.sin(this.simTime * 1.2);
+//         }
+
+//         // Indicator lights
+//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
+//         const redMat = grp.userData.redLight as THREE.MeshStandardMaterial | undefined;
+//         if (greenMat && redMat) {
+//           if (isActive) {
+//             greenMat.emissiveIntensity = 3.5 + 1.0 * Math.sin(this.simTime * 4);
+//             redMat.emissiveIntensity = 0.3;
+//           } else {
+//             greenMat.emissiveIntensity = 0.3;
+//             redMat.emissiveIntensity = 2.0 + 0.8 * Math.sin(this.simTime * 2);
+//           }
+//         }
+
+//         // Process point light pulse
+//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
+//         if (pl) {
+//           pl.intensity = isActive ? 3.0 + 1.2 * Math.sin(this.simTime * 5) : 0.3;
+//         }
+//       };
+//       animatePrCoat();
+
+//       const animateDeveloper = () => {
+//         const grp = this.modObjs['develop'];
+//         if (!grp?.userData.loaded) return;
+//         const idx = ALL_STEPS.findIndex(s => s.id === 'develop');
+//         const isActive = this.wSMs.some(
+//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
+//         );
+
+//         // Spin the chuck during developing
+//         const chuck = grp.userData.spinChuck as THREE.Object3D | undefined;
+//         if (chuck) {
+//           chuck.rotation.y += (isActive ? 0.08 : 0.005) * this.speed;
+//         }
+
+//         // Swing dispense arm
+//         const arm = grp.userData.dispenseArm as THREE.Object3D | undefined;
+//         const restY = grp.userData.armRestY as number | undefined;
+//         if (arm && restY !== undefined) {
+//           const targetY = isActive
+//             ? restY + Math.PI / 4 + Math.sin(this.simTime * 1.2) * 0.12
+//             : restY;
+//           arm.rotation.y = lerp(arm.rotation.y, targetY, 0.04);
+//         }
+
+//         const chuckMat = grp.userData.chuckMaterial as THREE.MeshStandardMaterial | undefined;
+//         if (chuckMat) {
+//           chuckMat.emissiveIntensity = isActive
+//             ? 2.0 + 1.2 * Math.abs(Math.sin(this.simTime * 4))
+//             : 0.3 + 0.1 * Math.sin(this.simTime * 0.8);
+//         }
+
+//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
+//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+//         if (greenMat && redMat) {
+//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
+//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+//         }
+
+//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
+//         if (pl) pl.intensity = isActive ? 3.0 + 1.5 * Math.abs(Math.sin(this.simTime * 4)) : 0.3;
+//       };
+//       animateDeveloper();
+
+
+//       const animateDIWaterRinse = () => {
+//         const grp = this.modObjs['rinse'];
+//         if (!grp?.userData.loaded) return;
+//         const idx = ALL_STEPS.findIndex(s => s.id === 'rinse');
+//         const isActive = this.wSMs.some(
+//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
+//         );
+//         const bowlMat = grp.userData.bowlMaterial as THREE.MeshStandardMaterial | undefined;
+//         if (bowlMat) {
+//           bowlMat.emissiveIntensity = isActive
+//             ? 2.5 + 1.2 * Math.abs(Math.sin(this.simTime * 4))
+//             : 0.3 + 0.1 * Math.sin(this.simTime * 0.8);
+//         }
+//         const nozzleMat = grp.userData.nozzleMaterial as THREE.MeshStandardMaterial | undefined;
+//         if (nozzleMat) {
+//           nozzleMat.emissiveIntensity = isActive
+//             ? 1.5 + 0.8 * Math.sin(this.simTime * 5)
+//             : 0.2;
+//         }
+//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
+//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+//         if (greenMat && redMat) {
+//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
+//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+//         }
+//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
+//         if (pl) pl.intensity = isActive ? 3.0 + 1.2 * Math.abs(Math.sin(this.simTime * 4)) : 0.3;
+//       };
+//       animateDIWaterRinse();
+    
+
+//       const animatePostBake = () => {
+//         const grp = this.modObjs['peb'];
+//         if (!grp?.userData.loaded) return;
+//         const idx = ALL_STEPS.findIndex(s => s.id === 'peb');
+//         const isActive = this.wSMs.some(
+//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
+//         );
+//         const heatMat = grp.userData.heatMaterial as THREE.MeshStandardMaterial | undefined;
+//         if (heatMat) {
+//           heatMat.emissiveIntensity = isActive
+//             ? 4.0 + 2.0 * Math.sin(this.simTime * 3.5)
+//             : 0.6 + 0.2 * Math.sin(this.simTime * 1.2);
+//         }
+//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
+//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+//         if (greenMat && redMat) {
+//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
+//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+//         }
+//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
+//         if (pl) pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(this.simTime * 4) : 0.4;
+//       };
+//       animatePostBake();
+
+//       const animateHMDS = () => {
+//         const grp = this.modObjs['hmds'];
+//         if (!grp?.userData.loaded) return;
+//         const idx = ALL_STEPS.findIndex(s => s.id === 'hmds');
+//         const isActive = this.wSMs.some(
+//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
+//         );
+//         const chamberMat = grp.userData.chamberMaterial as THREE.MeshStandardMaterial | undefined;
+//         if (chamberMat) {
+//           chamberMat.emissiveIntensity = isActive
+//             ? 2.5 + 1.5 * Math.abs(Math.sin(this.simTime * 3))
+//             : 0.4 + 0.1 * Math.sin(this.simTime * 0.8);
+//         }
+//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
+//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+//         if (greenMat && redMat) {
+//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
+//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+//         }
+//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
+//         if (pl) pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(this.simTime * 3) : 0.3;
+//       };
+//       animateHMDS();
+
+//       // ── Animate Scanner GLB ──
+//       const animateScanner = () => {
+//         const grp = this.modObjs['scanner'];
+//         if (!grp?.userData.loaded) return;
+//         const idx = ALL_STEPS.findIndex(s => s.id === 'scanner');
+//         const isActive = this.wSMs.some(
+//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
+//         );
+//         const beam = grp.userData.uvBeam as THREE.Mesh | undefined;
+//         if (beam) {
+//           const bmat = beam.material as THREE.MeshStandardMaterial;
+//           bmat.opacity = isActive ? 0.08 + 0.08 * Math.abs(Math.sin(this.simTime * 8)) : 0.02;
+//           bmat.emissiveIntensity = isActive ? 1.5 + 1.2 * Math.abs(Math.sin(this.simTime * 8)) : 0.3;
+//         }
+//         const lensMat = grp.userData.lensMaterial as THREE.MeshStandardMaterial | undefined;
+//         if (lensMat) {
+//           lensMat.emissiveIntensity = isActive ? 3.5 + 2.0 * Math.abs(Math.sin(this.simTime * 10)) : 0.8;
+//         }
+//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
+//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+//         if (greenMat && redMat) {
+//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
+//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+//         }
+//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
+//         if (pl) pl.intensity = isActive ? 5.0 + 2.0 * Math.abs(Math.sin(this.simTime * 8)) : 0.4;
+//       };
+//       animateScanner();
+
+//       // ── Animate Chill Plates GLB ──
+//       const animateChillPlate = (modId: string) => {
+//         const grp = this.modObjs[modId];
+//         if (!grp?.userData.loaded) return;
+//         const idx = ALL_STEPS.findIndex(s => s.id === modId);
+//         const isActive = this.wSMs.some(
+//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
+//         );
+//         const plateMat = grp.userData.plateMaterial as THREE.MeshStandardMaterial | undefined;
+//         if (plateMat) {
+//           plateMat.emissiveIntensity = isActive
+//             ? 2.5 + 1.2 * Math.sin(this.simTime * 2.5)
+//             : 0.4 + 0.15 * Math.sin(this.simTime * 0.8);
+//         }
+//         const finMat = grp.userData.finMaterial as THREE.MeshStandardMaterial | undefined;
+//         if (finMat) {
+//           finMat.emissiveIntensity = isActive ? 1.2 + 0.5 * Math.sin(this.simTime * 3) : 0.4;
+//         }
+//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
+//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+//         if (greenMat && redMat) {
+//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
+//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+//         }
+//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
+//         if (pl) pl.intensity = isActive ? 2.8 + 1.0 * Math.sin(this.simTime * 3) : 0.3;
+//       };
+//       animateChillPlate('chill1');
+//       animateChillPlate('chill2');
+//       animateChillPlate('chill3');
+//     }
+//     this._animRobots(dt); this._updateCamera(); this.onUI(this._buildUI());
+//     this.renderer.render(this.scene, this.camera);
+//   };
+
+//   start() { this._lastT = performance.now(); this._loop(); }
+
+//   reset() {
+//    this.spinCoat.stopCoat(); this._activeCoatWI = -1;
+//     this.devLiquid.stopDev(); this._activeDevWI = -1;
+//     this.prCoatOverlay?.stop();
+//     this.devOverlay?.stop();
+//     this.n2Particles.off(); this.waterParticles.off(); this.hmdsFog.off();
+//     Object.values(this.heatVapors).forEach(v => v.off());
+//     this.wSMs.forEach((sm) => {
+//       if (sm.carrierRobot) sm.detachAt(new THREE.Vector3(ALL_STEPS[0].x, 0.38, ALL_STEPS[0].z));
+//       sm.stepIdx = 0; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
+//       sm.spin = 0; sm.spinning = false; sm.launched = false; sm.done = false; sm.carrierRobot = null;
+//       sm.onConveyor = false; sm.mesh.visible = false; sm.mesh.rotation.y = 0;
+//       sm.mesh.position.set(ALL_STEPS[0].x, 0.38, ALL_STEPS[0].z);
+//       const liq = sm.mesh.userData.liquid as THREE.Mesh;
+//       if (liq) (liq.material as THREE.MeshStandardMaterial).opacity = 0;
+//     });
+//     Object.keys(this.busy).forEach((k) => delete this.busy[k]);
+//     Object.values(this.modObjs).forEach((m) => {
+//       if (m.userData.processLight) (m.userData.processLight as THREE.PointLight).intensity = 0;
+//       if (m.userData.innerRing) ((m.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 2.5;
+//     });
+//     this.simTime = 0; this.paused = false; this._addLog("--- SIMULATION RESET ---", "");
+//   }
+
+//   setBoundingBox(visible: boolean) {
+//     const existing = this.scene.getObjectByName("__boundingBox__");
+//     if (existing) this.scene.remove(existing);
+//     if (!visible) return;
+//     const box = new THREE.Box3();
+//     Object.entries(this.modObjs).forEach(([id, grp]) => { if (id !== "foup") { const b = new THREE.Box3().setFromObject(grp); box.union(b); } });
+//     box.expandByScalar(0.55);
+//     const grp = new THREE.Group(); grp.name = "__boundingBox__";
+//     const size = new THREE.Vector3(); box.getSize(size);
+//     const center = new THREE.Vector3(); box.getCenter(center);
+//     const edgeMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.2, metalness: 0.9 });
+//     const T2 = 0.045;
+//     const addEdge = (sx: number, sy: number, sz: number, px: number, py: number, pz: number) => {
+//       const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), edgeMat);
+//       m.position.set(center.x + px, center.y + py, center.z + pz); grp.add(m);
+//     };
+//     const hw = size.x / 2, hh = size.y / 2, hd = size.z / 2;
+//     [[hh, hd], [hh, -hd], [-hh, hd], [-hh, -hd]].forEach(([y, z]) => addEdge(size.x, T2, T2, 0, y as number, z as number));
+//     [[hh, hw], [hh, -hw], [-hh, hw], [-hh, -hw]].forEach(([y, x]) => addEdge(T2, T2, size.z, x as number, y as number, 0));
+//     [[hw, hd], [hw, -hd], [-hw, hd], [-hw, -hd]].forEach(([x, z]) => addEdge(T2, size.y, T2, x as number, 0, z as number));
+//     this.scene.add(grp);
+//   }
+
+//   toggleLabels(show: boolean) {
+//     Object.values(this.modObjs).forEach((m) => { if (m.userData.nameLabel) (m.userData.nameLabel as THREE.Sprite).visible = show; });
+//   }
+
+//   _bindEvents() {
+//     const el = this.renderer.domElement;
+//     el.addEventListener("mousedown", this._md = (e) => { this.orbit.drag = true; this.orbit.btn = e.button; this.orbit.sx = e.clientX; this.orbit.sy = e.clientY; });
+//     window.addEventListener("mouseup", this._mu = () => { this.orbit.drag = false; });
+//     window.addEventListener("mousemove", this._mm = (e) => {
+//       if (this.orbit.drag) {
+//         const dx = (e.clientX - this.orbit.sx) * 0.005, dy = (e.clientY - this.orbit.sy) * 0.005;
+//         this.orbit.sx = e.clientX; this.orbit.sy = e.clientY;
+//         if (this.orbit.btn === 0) { this.orbit.tT -= dx; this.orbit.tP = clamp(this.orbit.tP - dy, 0.04, Math.PI * 0.46); }
+//         else if (this.orbit.btn === 2) { this.orbit.tcx -= Math.cos(this.orbit.theta) * dx * 40; this.orbit.tcz += Math.sin(this.orbit.theta) * dx * 40; }
+//       }
+//       // Tooltip raycasting
+//       const rect = el.getBoundingClientRect();
+//       const mouse = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+//       this._raycaster.setFromCamera(mouse, this.camera);
+//       const allMeshes: THREE.Object3D[] = [];
+//       Object.values(this.modObjs).forEach((grp) => grp.traverse((c) => { if ((c as THREE.Mesh).isMesh) allMeshes.push(c); }));
+//       const hits = this._raycaster.intersectObjects(allMeshes);
+//       if (hits.length) {
+//         let obj: THREE.Object3D | null = hits[0].object;
+//         while (obj && !obj.userData.id) obj = obj.parent;
+//         const mod = obj ? ALL_STEPS.find((m) => m.id === obj!.userData.id) : null;
+//         if (mod) {
+//           this.onTooltip({ visible: true, x: e.clientX, y: e.clientY, name: mod.name, temp: mod.temp ? mod.temp + "°C" : "—", tempColor: mod.temp ? (mod.temp > 50 ? "#ff6030" : "#0099ff") : "#445566", meta: `TYPE: ${mod.type.toUpperCase()} · DURATION: ${mod.time}s` });
+//           return;
+//         }
+//       }
+//       this.onTooltip({ visible: false, x: 0, y: 0, name: "", temp: "", meta: "", tempColor: "" });
+//     });
+//     el.addEventListener("wheel", this._wh = (e) => { this.orbit.tR = clamp(this.orbit.tR + e.deltaY * 0.022, 4, 85); e.preventDefault(); }, { passive: false });
+//     el.addEventListener("contextmenu", (e) => e.preventDefault());
+//   }
+
+//   destroy() {
+//     cancelAnimationFrame(this._animId);
+//     this.renderer.domElement.removeEventListener("mousedown", this._md);
+//     window.removeEventListener("mouseup", this._mu);
+//     window.removeEventListener("mousemove", this._mm);
+//     this.renderer.domElement.removeEventListener("wheel", this._wh);
+//   }
+// }
+
+// // ─── UI COMPONENTS ────────────────────────────────────────────────────────────
+
+// const T = {
+//   bg:         "rgba(2,6,18,.97)",
+//   border:     "rgba(0,180,255,.10)",
+//   title:      "#00d8ff",
+//   text:       "#c8eeff",
+//   textDim:    "rgba(140,200,255,.38)",
+//   textBright: "#e8f8ff",
+//   accent:     "#00d8ff",
+//   green:      "#00ff88",
+//   orange:     "#ffcc00",
+// };
+
+// function Panel({ title, children, style }: { title: string; children: React.ReactNode; style?: React.CSSProperties }) {
+//   return (
+//     <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 10, padding: "11px 13px", backdropFilter: "blur(20px)", boxShadow: "0 2px 16px rgba(0,80,180,0.08)", ...style }}>
+//       <div style={{ fontSize: 11, letterSpacing: 2.5, color: T.title, textTransform: "uppercase", marginBottom: 8, borderBottom: `1px solid ${T.border}`, paddingBottom: 5, fontWeight: 800 }}>{title}</div>
+//       {children}
+//     </div>
+//   );
+// }
+
+// function Btn({ children, onClick, active = false, style }: { children: React.ReactNode; onClick: () => void; active?: boolean; style?: React.CSSProperties }) {
+//   return (
+//     <button onClick={onClick} style={{
+//       background: active ? "rgba(0,100,200,0.12)" : "rgba(0,80,180,0.06)",
+//       border: `1px solid ${active ? "rgba(0,100,200,0.40)" : "rgba(0,100,200,0.18)"}`,
+//       color: active ? "#0055cc" : "#2a5599",
+//       padding: "6px 12px", borderRadius: 5, cursor: "pointer",
+//       fontFamily: "'Inter', sans-serif", fontSize: 11, letterSpacing: 0.3,
+//       transition: "all .15s", whiteSpace: "nowrap" as const,
+//       fontWeight: active ? 700 : 500, ...style,
+//     }}>{children}</button>
+//   );
+// }
+
+// function JointPanel({ title, joints, prefix }: { title: string; joints: JointData | null; prefix: string }) {
+//   if (!joints) return null;
+//   return (
+//     <Panel title={title}>
+//       {(["base", "shoulder", "elbow", "wrist"] as const).map((k) => (
+//         <div key={`${prefix}-${k}`} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 11, color: T.textDim, borderBottom: `1px solid rgba(0,100,180,.12)`, fontWeight: 600 }}>
+//           <span>{k.toUpperCase()}</span>
+//           <span style={{ color: T.accent, fontFamily: "'Courier New',monospace", fontWeight: 600 }}>{((joints[k]?.c ?? 0) / DEG).toFixed(1)}°</span>
+//         </div>
+//       ))}
+//     </Panel>
+//   );
+// }
+
+// // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
+
+// export default function EFEMSimulator() {
+//   const mountRef = useRef<HTMLDivElement>(null);
+//   const simRef   = useRef<Sim | null>(null);
+//   const [loading, setLoading]   = useState(true);
+//   const [loadPct, setLoadPct]   = useState(0);
+//   const [loadMsg, setLoadMsg]   = useState("INITIALIZING...");
+//   const [paused, setPaused]     = useState(false);
+//   const [speed, setSpeed]       = useState(1);
+//   const [showBox, setShowBox]   = useState(false);
+//   const [labels, setLabels]     = useState(true);
+//   const [ui, setUI]             = useState<UIState>({ wafers: [], simTime: 0, fps: 60, active: 0, completed: 0, jointsA: null, jointsEFEM: null, jointsC: null });
+//   const [logs, setLogs]         = useState<LogEntry[]>([]);
+//   const [tooltip, setTooltip]   = useState<TooltipState>({ visible: false, x: 0, y: 0, name: "", temp: "", meta: "", tempColor: "" });
+//   const [selectedComp, setSelectedComp] = useState<string | null>(null);
+//   const [activeTab, setActiveTab] = useState<"flow"|"log"|"joints">("flow");
+
+//   const addLog = useCallback((entry: LogEntry) => { setLogs((prev) => [entry, ...prev].slice(0, 30)); }, []);
+//   const handleTooltip = useCallback((tt: TooltipState) => setTooltip(tt), []);
+
+//   useEffect(() => {
+//     if (!mountRef.current) return;
+//     const el = mountRef.current;
+//     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", logarithmicDepthBuffer: true });
+//     renderer.setSize(el.clientWidth, el.clientHeight);
+//     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
+//     renderer.toneMapping = THREE.ACESFilmicToneMapping;
+//     renderer.toneMappingExposure = 1.4;
+//     renderer.shadowMap.enabled = true;
+//     renderer.shadowMap.type = THREE.PCFShadowMap;
+//     el.appendChild(renderer.domElement);
+
+//     const sim = new Sim(renderer, setUI, addLog, handleTooltip);
+//     simRef.current = sim;
+
+//     const resize = () => {
+//       if (!mountRef.current) return;
+//       renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+//       sim.camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+//       sim.camera.updateProjectionMatrix();
+//     };
+//     window.addEventListener("resize", resize);
+
+//     const MSGS = [
+//       "INITIALIZING RENDER ENGINE", "BUILDING PBR MATERIALS",
+//       "CONSTRUCTING MODULE GEOMETRY", "CALIBRATING EFEM ROBOTS",
+//       "BUILDING CONVEYOR BELT SYSTEM", "ADDING FLOW ARROWS & INFO BOX",
+//       "SETTING UP PARTICLE SYSTEMS", "CONFIGURING SHADERS",
+//       "LOADING CLEANROOM ENVIRONMENT", "LAUNCHING WAFER SIMULATION"
+//     ];
+//     let pct = 0;
+//     const iv = setInterval(() => {
+//       pct += 3.2; setLoadPct(pct);
+//       setLoadMsg(MSGS[Math.min(Math.floor(pct / 11), MSGS.length - 1)] + "...");
+//       if (pct >= 100) { clearInterval(iv); setTimeout(() => { setLoading(false); sim.start(); }, 400); }
+//     }, 48);
+
+//     return () => {
+//       clearInterval(iv);
+//       window.removeEventListener("resize", resize);
+//       sim.destroy(); renderer.dispose();
+//       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
+//     };
+//   }, [addLog, handleTooltip]);
+
+//   useEffect(() => { if (simRef.current) simRef.current.speed = speed; }, [speed]);
+//   useEffect(() => { simRef.current?.setBoundingBox(showBox); }, [showBox]);
+//   useEffect(() => { simRef.current?.toggleLabels(labels); }, [labels]);
+
+//   const handlePause = () => { const np = !paused; setPaused(np); if (simRef.current) simRef.current.paused = np; };
+//   const handleReset = () => { simRef.current?.reset(); setPaused(false); };
+
+//   const LEGEND = [
+//     { label: "Robot",                  color: "#8899aa", shape: "robot" },
+//     { label: "Hot Plates",             color: "#ff3300", shape: "rect"  },
+//     { label: "Chill Plate",            color: "#0099ff", shape: "rect"  },
+//     { label: "Liquid Dispense Module", color: "#00cc88", shape: "drop"  },
+//   ];
+
+//   return (
+//     <div style={{ position: "fixed", inset: 0, background: "#d8e8f0", fontFamily: "'Inter', sans-serif", color: T.text, overflow: "hidden" }}>
+//       <style>{`
+//         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+//         * { box-sizing: border-box; margin: 0; padding: 0; }
+//         button:hover { filter: brightness(1.12) saturate(1.2) !important; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,80,200,0.15) !important; }
+//         ::-webkit-scrollbar { width: 3px; }
+//         ::-webkit-scrollbar-thumb { background: rgba(0,100,200,0.20); border-radius: 2px; }
+//         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+//         @keyframes spin { to{transform:rotate(360deg)} }
+//         @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+//       `}</style>
+
+//       <div ref={mountRef} style={{ position: "absolute", inset: 0 }} />
+//       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at center, transparent 45%, rgba(160,190,220,.35) 100%)", zIndex: 5 }} />
+
+//       {/* LOADING */}
+//       {loading && (
+//         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#e8f2fa,#f0f5ff 50%,#e4f0e8)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
+//           <div style={{ fontSize: 46, letterSpacing: 14, color: "#0055cc", fontWeight: "bold", textShadow: "0 2px 24px rgba(0,80,200,0.2)", marginBottom: 6 }}>SEMATI</div>
+//           <div style={{ fontSize: 9, color: "#3a6ea8", letterSpacing: 6, marginBottom: 3 }}>SEMICONDUCTOR MANUFACTURING SIMULATION</div>
+//           <div style={{ fontSize: 7.5, color: "#8aaccc", letterSpacing: 4, marginBottom: 36 }}>300mm PHOTOLITHOGRAPHY · EFEM + COATER/DEVELOPER · v13.0</div>
+//           <div style={{ width: 440 }}>
+//             <div style={{ height: 2, background: "rgba(0,100,200,0.10)", borderRadius: 2, overflow: "hidden", marginBottom: 9 }}>
+//               <div style={{ height: "100%", width: `${Math.min(loadPct, 100)}%`, background: "linear-gradient(90deg,#0066ee,#8844ff,#00cc88)", borderRadius: 2, boxShadow: "0 0 12px #0066ee", transition: "width .05s" }} />
+//             </div>
+//             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 7.5, color: "#8aaccc", letterSpacing: 2 }}>
+//               <span>{loadMsg}</span><span>{Math.min(Math.round(loadPct), 100)}%</span>
+//             </div>
+//           </div>
+//           <div style={{ position: "absolute", bottom: 22, fontSize: 7.5, letterSpacing: 6, color: "#b0c8dc" }}>ISO-5 CLEANROOM · GENESIS EDUCATIONAL VISUALIZATION · v13.0</div>
+//         </div>
+//       )}
+
+//       {!loading && (
+//         <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 10 }}>
+
+//           {/* TOP BAR */}
+//           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 52, background: "rgba(255,255,255,0.95)", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 12, padding: "0 18px", backdropFilter: "blur(20px)", pointerEvents: "auto", boxShadow: "0 2px 12px rgba(0,80,180,0.08)" }}>
+//             <span style={{ fontSize: 20, letterSpacing: 10, color: "#0055cc", fontWeight: "bold" }}>SEMATI</span>
+//             <div style={{ width: 1, height: 22, background: T.border }} />
+            
+//             <span style={{ fontSize: 8, color: "#3a5588", letterSpacing: 1.5, maxWidth: 380 }}>Genesis — Educational visualization of 300mm wafer Photoresist Coater Developer Track for graduate engineering students</span>
+//             <div style={{ flex: 1 }} />
+
+//             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+//   <Link href="/Failure" style={{ textDecoration: "none" }}>
+//     <div
+//       style={{
+//         padding: "6px 12px",
+//         borderRadius: 6,
+//         background: "rgba(0,85,204,0.08)",
+//         border: `1px solid ${T.border}`,
+//         color: "#0055cc",
+//         fontSize: 10,
+//         fontWeight: 700,
+//         letterSpacing: 1,
+//         cursor: "pointer",
+//         transition: "all .2s ease",
+//       }}
+//     >
+//       FAILURE MODULE
+//     </div>
+//   </Link>
+
+//   <Link href="/Recipe" style={{ textDecoration: "none" }}>
+//     <div
+//       style={{
+//         padding: "6px 12px",
+//         borderRadius: 6,
+//         background: "rgba(0,85,204,0.08)",
+//         border: `1px solid ${T.border}`,
+//         color: "#0055cc",
+//         fontSize: 10,
+//         fontWeight: 700,
+//         letterSpacing: 1,
+//         cursor: "pointer",
+//         transition: "all .2s ease",
+//       }}
+//     >
+//       RECIPE MODULE
+//     </div>
+//   </Link>
+// </div>
+//             <span style={{ fontSize: 12, color: T.accent, letterSpacing: 1, fontWeight: 600 }}>{fmtClock(ui.simTime)}</span>
+//             <span style={{ fontSize: 8, color: T.textDim, letterSpacing: 2 }}>{ui.fps} FPS</span>
+//           </div>
+
+//           {/* LEFT PANEL */}
+//           <div style={{ position: "absolute", left: 10, top: 60, width: 238, display: "flex", flexDirection: "column", gap: 6, maxHeight: "calc(100vh - 120px)", overflowY: "auto", pointerEvents: "auto", animation: "fadeIn .4s ease" }}>
+//             <div style={{ display: "flex", gap: 3, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: 4 }}>
+//               {(["flow", "log", "joints"] as const).map((tab) => (
+//                 <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: 1, padding: "5px 0", borderRadius: 5, border: "none", cursor: "pointer", fontSize: 9, letterSpacing: 1.5, fontWeight: 700, textTransform: "uppercase" as const, background: activeTab === tab ? "rgba(0,100,200,0.15)" : "transparent", color: activeTab === tab ? T.accent : T.textDim, transition: "all .15s" }}>{tab}</button>
+//               ))}
+//             </div>
+
+//             {activeTab === "flow" && (
+//               <Panel title="Process Flow  ↕ scroll">
+//                 {ALL_STEPS.map((step, i) => {
+//                   const active = ui.wafers.some((w) => w.stepIdx === i && w.state !== "idle");
+//                   const done   = ui.wafers.some((w) => w.launched && w.stepIdx > i);
+//                   const isSelected = selectedComp === step.id;
+//                   return (
+//                     <div key={`step-${step.id}`} onClick={() => setSelectedComp(isSelected ? null : step.id)}
+//                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "3.5px 5px", borderRadius: 4, fontSize: 11, border: `1px solid ${isSelected ? "rgba(100,60,220,.55)" : active ? "rgba(0,180,80,.30)" : "transparent"}`, background: isSelected ? "rgba(80,30,180,.10)" : active ? "rgba(0,200,80,.06)" : "transparent", color: active ? "#006633" : done ? "rgba(0,100,180,.35)" : T.textDim, marginBottom: 1, transition: "all .2s", cursor: "pointer" }}>
+//                       <span style={{ fontSize: 9, color: "rgba(80,120,160,.7)", minWidth: 18, fontWeight: 700 }}>{String(i + 1).padStart(2, "0")}</span>
+//                       <span style={{ width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: isSelected ? "#8844ff" : active ? "#00aa55" : done ? "rgba(0,120,200,.25)" : "rgba(120,160,200,.18)", boxShadow: isSelected ? "0 0 5px #8844ff" : active ? "0 0 5px #00aa55" : "none", display: "inline-block" }} />
+//                       <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{step.name}</span>
+//                       {step.temp != null && <span style={{ fontSize: 9, color: step.temp > 50 ? "#cc4400" : "#0066cc", fontWeight: 800 }}>{step.temp}°</span>}
+//                     </div>
+//                   );
+//                 })}
+//               </Panel>
+//             )}
+
+//             {activeTab === "log" && (
+//               <Panel title="Transfer Log">
+//                 <div style={{ maxHeight: 380, overflowY: "auto", fontSize: 11, letterSpacing: 0.3, lineHeight: 1.85, fontWeight: 600 }}>
+//                   {logs.map((l) => (
+//                     <div key={l.id} style={{ padding: "1px 0", borderBottom: `1px solid rgba(0,100,180,.06)`, color: l.cls === "pick" ? T.green : l.cls === "place" ? T.accent : l.cls === "move" ? T.orange : T.textDim }}>
+//                       {l.msg}
+//                     </div>
+//                   ))}
+//                 </div>
+//               </Panel>
+//             )}
+
+//             {activeTab === "joints" && (
+//               <>
+//                 <JointPanel title="EFEM Robot" joints={ui.jointsEFEM} prefix="efem" />
+//                 <JointPanel title="Track Robot A" joints={ui.jointsA} prefix="robotA" />
+//                 <JointPanel title="Track Robot C" joints={ui.jointsC} prefix="robotC" />
+//               </>
+//             )}
+
+//             {selectedComp && COMPONENT_INFO[selectedComp] && (() => {
+//               const d = COMPONENT_INFO[selectedComp];
+//               const step = ALL_STEPS.find(s => s.id === selectedComp);
+//               return (
+//                 <Panel title="Component Info" style={{ borderColor: "rgba(100,60,220,.40)" }}>
+//                   <div style={{ fontSize: 11, fontWeight: 700, color: "#ccaaff", marginBottom: 2 }}>{step?.name}</div>
+//                   <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#8866cc", marginBottom: 7, textTransform: "uppercase" as const }}>{d.section}</div>
+//                   <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 2, textTransform: "uppercase" as const }}>Hardware</div>
+//                   <div style={{ fontSize: 10, color: "#b8cfe4", lineHeight: 1.55, marginBottom: 7 }}>{d.hardware}</div>
+//                   <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 2, textTransform: "uppercase" as const }}>Process</div>
+//                   <div style={{ fontSize: 10, color: "#b8cfe4", lineHeight: 1.55, marginBottom: 7 }}>{d.process}</div>
+//                   <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 4, textTransform: "uppercase" as const }}>Specs</div>
+//                   {Object.entries(d.specs).map(([k, v]) => (
+//                     <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", borderBottom: "1px solid rgba(0,100,180,.10)", fontSize: 10 }}>
+//                       <span style={{ color: "#6699bb" }}>{k}</span>
+//                       <span style={{ color: "#ddeeff", fontWeight: 600 }}>{v}</span>
+//                     </div>
+//                   ))}
+//                   <div onClick={() => setSelectedComp(null)} style={{ marginTop: 8, fontSize: 9, color: "#8866cc", cursor: "pointer", textAlign: "center" as const, letterSpacing: 1 }}>✕ CLOSE</div>
+//                 </Panel>
+//               );
+//             })()}
+//           </div>
+
+//           {/* RIGHT PANEL */}
+//           <div style={{ position: "absolute", right: 10, top: 60, width: 230, display: "flex", flexDirection: "column", gap: 6, pointerEvents: "auto", animation: "fadeIn .4s ease" }}>
+//             <Panel title="Wafer Pipeline">
+//               {ui.wafers.map((w, i) => {
+//                 const stateColor = w.done ? T.accent : w.state === "processing" ? T.green : w.state === "conveyor_move" ? "#ff8800" : w.state.includes("approach") ? T.orange : T.textDim;
+//                 const prog = Math.min((w.processTimer / w.stepTime) * 100, 100);
+//                 const isCoating = w.stepIdx === 4 && w.state === "processing";
+//                 const isDev = w.stepIdx === 11 && w.state === "processing";
+//                 const isBelt = w.state === "conveyor_move";
+//                 const totalSteps = ALL_STEPS.length;
+//                 const completedSteps = w.done ? totalSteps : w.stepIdx;
+//                 const overallPct = Math.round((completedSteps / totalSteps) * 100);
+//                 const R = 21; const CIRC = 2 * Math.PI * R;
+//                 const ringOffset = CIRC - (overallPct / 100) * CIRC;
+//                 const stepRingR = 16; const stepCirc = 2 * Math.PI * stepRingR;
+//                 const stepOffset = stepCirc - (prog / 100) * stepCirc;
+//                 return (
+//                   <div key={`wafer-${w.wi}`} style={{ fontSize: 9.5, padding: "7px 8px", background: "rgba(0,80,180,.03)", borderRadius: 5, borderLeft: `3px solid ${W_CSS[i]}`, marginBottom: 5, boxShadow: `inset 2px 0 8px ${W_CSS[i]}22` }}>
+//                     <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+//                       <div style={{ position: "relative", flexShrink: 0, width: 50, height: 50 }}>
+//                         <svg width="50" height="50" style={{ transform: "rotate(-90deg)" }}>
+//                           <circle cx="25" cy="25" r={R} fill="none" stroke="rgba(0,100,180,.12)" strokeWidth="3" />
+//                           <circle cx="25" cy="25" r={R} fill="none" stroke={w.done ? T.accent : W_CSS[i]} strokeWidth="3" strokeDasharray={CIRC} strokeDashoffset={ringOffset} strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.4s" }} />
+//                           <circle cx="25" cy="25" r={stepRingR} fill="none" stroke="rgba(0,100,180,.08)" strokeWidth="2" />
+//                           {w.state === "processing" && !w.done && (
+//                             <circle cx="25" cy="25" r={stepRingR} fill="none" stroke={isCoating ? "#cc00ff" : isDev ? "#00cc88" : W_CSS[i]} strokeWidth="2" strokeDasharray={stepCirc} strokeDashoffset={stepOffset} strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.1s" }} />
+//                           )}
+//                         </svg>
+//                         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+//                           {w.done ? <span style={{ fontSize: 13, color: T.accent }}>✓</span> : (
+//                             <>
+//                               <span style={{ fontSize: 10, fontWeight: 700, color: W_CSS[i], lineHeight: 1 }}>{overallPct}%</span>
+//                               <span style={{ fontSize: 7, color: T.textDim, lineHeight: 1.2 }}>{completedSteps}/{totalSteps}</span>
+//                             </>
+//                           )}
+//                         </div>
+//                       </div>
+//                       <div style={{ flex: 1, minWidth: 0 }}>
+//                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
+//                           <span style={{ fontSize: 8.5, color: W_CSS[i], fontWeight: 700 }}>{w.name}</span>
+//                           <span style={{ fontSize: 6, padding: "1px 4px", borderRadius: 3, background: isBelt ? "rgba(255,136,0,.12)" : "rgba(0,80,180,.07)", color: stateColor, fontWeight: 600 }}>
+//                             {w.done ? "DONE" : isBelt ? "🔁 BELT" : isCoating ? "SPIN" : isDev ? "DEV" : w.state.toUpperCase()}
+//                           </span>
+//                         </div>
+//                         <div style={{ fontSize: 9.5, color: T.text, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 3 }}>
+//                           {w.done ? "✓ COMPLETE" : w.stepName}
+//                         </div>
+//                         {w.state === "processing" && !w.done && (
+//                           <div style={{ height: 2, background: "rgba(0,100,180,.10)", borderRadius: 1 }}>
+//                             <div style={{ height: "100%", width: `${prog.toFixed(0)}%`, background: isCoating ? `linear-gradient(90deg,${W_CSS[i]},#cc00ff)` : isDev ? "#00cc88" : W_CSS[i], borderRadius: 1, transition: "width .1s", boxShadow: `0 0 6px ${W_CSS[i]}88` }} />
+//                           </div>
+//                         )}
+//                         <div style={{ height: 2, background: "rgba(0,100,180,.06)", borderRadius: 1, marginTop: 2 }}>
+//                           <div style={{ height: "100%", width: `${overallPct}%`, background: w.done ? T.accent : `rgba(${W_CSS[i].replace("#","").match(/.{2}/g)!.map(x=>parseInt(x,16)).join(",")},0.45)`, borderRadius: 1, transition: "width .3s" }} />
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 );
+//               })}
+//             </Panel>
+
+//             <Panel title="System Status">
+//               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+//                 {[{ label: "Active", val: ui.active, color: T.green }, { label: "Complete", val: ui.completed, color: T.accent }].map((c, ci) => (
+//                   <div key={ci} style={{ background: "rgba(0,100,200,.04)", border: `1px solid rgba(0,100,200,.10)`, borderRadius: 5, padding: "7px 10px" }}>
+//                     <div style={{ fontSize: 7.5, letterSpacing: 2, color: T.textDim, marginBottom: 3, textTransform: "uppercase" as const }}>{c.label}</div>
+//                     <div style={{ fontSize: 18, color: c.color, fontWeight: 700 }}>{c.val}</div>
+//                   </div>
+//                 ))}
+//               </div>
+//             </Panel>
+
+//             <Panel title="Camera Presets">
+//               <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+//                 {Object.entries(CAMERA_PRESETS).map(([k, p]) => (
+//                   <Btn key={k} style={{ fontSize: 7.5, padding: "4px 7px", letterSpacing: 0.3 }} onClick={() => simRef.current?.setPreset(p)}>{k}</Btn>
+//                 ))}
+//               </div>
+//               <div style={{ marginTop: 8, fontSize: 7.5, color: T.textDim, lineHeight: 1.8, opacity: 0.7 }}>
+//                 Left drag — orbit &nbsp;|&nbsp; Right — pan &nbsp;|&nbsp; Scroll — zoom
+//               </div>
+//             </Panel>
+
+//             <Panel title="Conveyor Belt Status">
+//               <div style={{ fontSize: 8, lineHeight: 1.9 }}>
+//                 {[{ label: "TOP BELT", color: "#0055ff", shadow: "#0055ff", range: "Steps 1–7 →" }, { label: "BOT BELT", color: "#00aa44", shadow: "#00aa44", range: "Steps 10–16 ←" }].map((belt, bi) => (
+//                   <div key={bi} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+//                     <span style={{ width: 8, height: 8, borderRadius: 2, background: belt.color, display: "inline-block", boxShadow: `0 0 6px ${belt.shadow}` }} />
+//                     <span style={{ color: belt.color, fontWeight: 700 }}>{belt.label}</span>
+//                     <span style={{ color: T.textDim, fontSize: 7 }}>{belt.range}</span>
+//                   </div>
+//                 ))}
+//                 {ui.wafers.some(w => w.state === "conveyor_move") && (
+//                   <div style={{ color: "#ff8800", fontWeight: 700, fontSize: 7.5 }}>🔁 {ui.wafers.filter(w => w.state === "conveyor_move").length} wafer(s) on belt</div>
+//                 )}
+//               </div>
+//             </Panel>
+//           </div>
+
+//           {/* BOTTOM CONTROLS */}
+//           <div style={{ position: "absolute", bottom: 46, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, pointerEvents: "auto", background: "rgba(255,255,255,0.92)", border: `1px solid ${T.border}`, borderRadius: 10, padding: "7px 14px", backdropFilter: "blur(20px)", boxShadow: "0 4px 20px rgba(0,80,180,0.10)" }}>
+//             <Btn active={paused} onClick={handlePause}>{paused ? "▶ RESUME" : "⏸ PAUSE"}</Btn>
+//             <Btn onClick={handleReset}>↺ RESET</Btn>
+//             <div style={{ width: 1, height: 26, background: T.border }} />
+//             <span style={{ fontSize: 8, color: T.textDim, letterSpacing: 2 }}>SPEED</span>
+//             {[1, 2, 5, 10].map((s) => (
+//               <Btn key={s} active={speed === s} style={{ padding: "6px 9px", fontSize: 11 }} onClick={() => setSpeed(s)}>{s}×</Btn>
+//             ))}
+//             <div style={{ width: 1, height: 26, background: T.border }} />
+//             <Btn active={labels} onClick={() => setLabels(l => !l)}>LABELS</Btn>
+//             <Btn active={showBox} onClick={() => setShowBox(b => !b)}>⬜ BOX</Btn>
+//           </div>
+
+//           {/* BOTTOM LEGEND */}
+//           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 42, background: "rgba(240,246,252,0.97)", borderTop: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 18px", pointerEvents: "auto" }}>
+//             <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 7.5, color: T.textDim, letterSpacing: 0.8 }}>
+//               <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%", background: "#00aa44", boxShadow: "0 0 5px #00aa44", marginRight: 5, animation: "pulse 2s infinite" }} />
+//               <span style={{ fontWeight: 700, color: "#00aa44", marginRight: 10 }}>SYSTEM ONLINE</span>
+//               <span>SIM: {fmtClock(ui.simTime)}</span>
+//               <span style={{ margin: "0 8px", opacity: 0.4 }}>|</span>
+//               <span>ACTIVE: {ui.active}</span>
+//               <span style={{ margin: "0 8px", opacity: 0.4 }}>|</span>
+//               <span>DONE: {ui.completed}</span>
+//               <span style={{ margin: "0 8px", opacity: 0.4 }}>|</span>
+//               <span>FPS: {ui.fps}</span>
+//               <span style={{ margin: "0 8px", opacity: 0.4 }}>|</span>
+//               <span>SPD: {speed}×</span>
+//             </div>
+//             <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 8, color: "#334466" }}>
+//               {LEGEND.map((item, li) => (
+//                 <div key={li} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+//                   {item.shape === "robot" ? (
+//                     <svg width="16" height="16" viewBox="0 0 16 16"><rect x="4" y="2" width="8" height="9" rx="2" fill={item.color}/><rect x="6" y="11" width="4" height="3" rx="1" fill={item.color}/><circle cx="6" cy="5" r="1.5" fill="#fff"/><circle cx="10" cy="5" r="1.5" fill="#fff"/></svg>
+//                   ) : item.shape === "drop" ? (
+//                     <svg width="14" height="16" viewBox="0 0 14 16"><path d="M7 1 C7 1 1 8 1 11 a6 6 0 0 0 12 0 C13 8 7 1 7 1Z" fill={item.color}/></svg>
+//                   ) : (
+//                     <span style={{ width: 14, height: 14, borderRadius: 2, background: item.color, display: "inline-block" }} />
+//                   )}
+//                   <span style={{ fontWeight: 600 }}>{item.label}</span>
+//                 </div>
+//               ))}
+//               <span style={{ marginLeft: 10, color: T.textDim, letterSpacing: 1 }}>ISO-5 · 300mm · v13.0</span>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* TOOLTIP */}
+//       {tooltip.visible && !loading && (
+//         <div style={{ position: "fixed", zIndex: 60, left: tooltip.x + 18, top: tooltip.y - 32, background: "rgba(18,24,38,.98)", border: "1px solid rgba(60,120,200,.40)", borderRadius: 7, padding: "10px 14px", fontSize: 10.5, pointerEvents: "none", boxShadow: "0 8px 36px rgba(0,0,0,.55)" }}>
+//           <div style={{ fontSize: 13, color: "#60aaff", marginBottom: 4, fontWeight: 700 }}>{tooltip.name}</div>
+//           <div style={{ fontFamily: "'Courier New',monospace", fontSize: 11.5, color: tooltip.tempColor, fontWeight: 700 }}>{tooltip.temp}</div>
+//           <div style={{ fontSize: 8, color: "#7a9bbb", marginTop: 4, letterSpacing: 1 }}>{tooltip.meta}</div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // and remove the require() inside buildRobotGLB — use the import instead
 
@@ -17539,6 +24060,8 @@ interface RobotObject {
   foreArm: THREE.Group;
   wrist: THREE.Group;
   gripper: THREE.Group;
+  /** End-effector / fork joint when present in GLB (e.g. Joint_Extension_A); else use gripper. */
+  fork: THREE.Object3D;
   statusPL: THREE.PointLight;
   basePos: THREE.Vector3;
   runIK: (tgt: THREE.Vector3) => void;
@@ -17571,9 +24094,7 @@ interface UIState {
   fps: number;
   active: number;
   completed: number;
-  jointsA: JointData | null;
   jointsEFEM: JointData | null;
-  jointsC: JointData | null;
 }
 
 interface LogEntry {
@@ -17602,12 +24123,20 @@ interface CameraPreset {
 }
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-const MODULE_FLOOR_Y = 0.3;   // ← single knob for ALL module heights
+const MODULE_FLOOR_Y = 3.0;   // ← single knob for ALL module heights
 const SP = 4.0;
 const TOP_Z = -SP;
 const BOT_Z = SP;
+const WAFER_TRANSFER_Y = 3.35;
+/** Belt top: just below module floor constant (embedded track). */
+const CONVEYOR_SURFACE_Y = MODULE_FLOOR_Y - 0.05;
+/** Wafer centroid while riding the belt. */
+const CONVEYOR_WAFER_Y = CONVEYOR_SURFACE_Y + 0.02;
+/** Belt centreline Z — parallel to +X, slightly outside each process row. */
+const TOP_TRACK_BELT_Z = TOP_Z - 0.75;
+const BOT_TRACK_BELT_Z = BOT_Z + 0.75;
 const DEG = Math.PI / 180;
-const NUM_WAFERS = 4;
+const NUM_WAFERS = 1;
 const PLACE_DELAY = 0.3;
 // ─── PICK ALIGNMENT THRESHOLDS ───────────────────────────────────────────────
 const PICK_APPROACH_DIST    = 2.5;    // realistic for your scale
@@ -17773,6 +24302,9 @@ function buildWafer(color: number): THREE.Group {
   g.add(glow);
   g.userData.glowRing = glow;
 
+  // ← PASTE HERE
+  
+
   return g;
 }
 
@@ -17921,103 +24453,440 @@ function setupLighting(scene: THREE.Scene) {
  
 // ─── 2. ENVIRONMENT — clean light floor with subtle grid (replaces buildEnv) ─
  
+// function buildEnv(scene: THREE.Scene) {
+//   // WHITE INDUSTRIAL FLOOR
+//   const flMat = new THREE.MeshStandardMaterial({
+//     color: 0xf7fafc,
+//     roughness: 0.42,
+//     metalness: 0.12,
+//     envMapIntensity: 0.4,
+//   });
+//   const fl = new THREE.Mesh(new THREE.PlaneGeometry(180, 90), flMat);
+//   fl.rotation.x = -Math.PI / 2;
+//   fl.position.y = -0.52;
+//   fl.receiveShadow = true;
+//   scene.add(fl);
+ 
+//   // SUBTLE LIGHT GRID — thin lines, low contrast, matches image
+//   const gridCanvas = document.createElement("canvas");
+//   gridCanvas.width = 1024;
+//   gridCanvas.height = 1024;
+//   const gCtx = gridCanvas.getContext("2d")!;
+//   gCtx.fillStyle = "rgba(0,0,0,0)";
+//   gCtx.fillRect(0, 0, 1024, 1024);
+//   gCtx.strokeStyle = "#7090b0";
+//   gCtx.lineWidth = 1.2;
+//   gCtx.globalAlpha = 0.35;
+//   const cell = 64;
+//   for (let x = 0; x <= 1024; x += cell) {
+//     gCtx.beginPath();
+//     gCtx.moveTo(x, 0);
+//     gCtx.lineTo(x, 1024);
+//     gCtx.stroke();
+//   }
+//   for (let y = 0; y <= 1024; y += cell) {
+//     gCtx.beginPath();
+//     gCtx.moveTo(0, y);
+//     gCtx.lineTo(1024, y);
+//     gCtx.stroke();
+//   }
+ 
+//   const gridTex = new THREE.CanvasTexture(gridCanvas);
+//   gridTex.wrapS = THREE.RepeatWrapping;
+//   gridTex.wrapT = THREE.RepeatWrapping;
+//   gridTex.repeat.set(6, 3);
+ 
+//   const grid = new THREE.Mesh(
+//     new THREE.PlaneGeometry(180, 90),
+//     new THREE.MeshBasicMaterial({
+//       map: gridTex,
+//       transparent: true,
+//       opacity: 0.28,
+//       depthWrite: false,
+//     })
+//   );
+//   grid.rotation.x = -Math.PI / 2;
+//   grid.position.y = -0.49;
+//   scene.add(grid);
+ 
+//   // Subtle floor highlights (the bright spots in image)
+//   for (let i = 0; i < 8; i++) {
+//     const spot = new THREE.Mesh(
+//       new THREE.CircleGeometry(0.4 + Math.random() * 0.3, 24),
+//       new THREE.MeshBasicMaterial({
+//         color: 0xffffff,
+//         transparent: true,
+//         opacity: 0.35 + Math.random() * 0.25,
+//         depthWrite: false,
+//       })
+//     );
+//     spot.rotation.x = -Math.PI / 2;
+//     spot.position.set(
+//       -10 + Math.random() * 40,
+//       -0.49,
+//       -8 + Math.random() * 16
+//     );
+//     scene.add(spot);
+//   }
+ 
+//   // Minimal industrial background — subtle white wall with soft gradient
+//   const wallMat = new THREE.MeshStandardMaterial({
+//     color: 0xf4f7fb,
+//     roughness: 0.55,
+//     metalness: 0.05,
+//   });
+//   const wall = new THREE.Mesh(new THREE.PlaneGeometry(180, 18), wallMat);
+//   wall.position.set(6, 8, -32);
+//   scene.add(wall);
+
+//   const wallAccent = new THREE.Mesh(
+//     new THREE.PlaneGeometry(180, 6),
+//     new THREE.MeshStandardMaterial({ color: 0xdfe7ec, roughness: 0.6, metalness: 0.02 })
+//   );
+//   wallAccent.position.set(6, 4, -32.01);
+//   scene.add(wallAccent);
+ 
+//   // ── NO ceiling, NO hex panels — keeps the open clean look ──
+// }
+ 
+
 function buildEnv(scene: THREE.Scene) {
-  // CLEAN LIGHT BLUE FLOOR — like reference image
-  const flMat = new THREE.MeshStandardMaterial({
-    color: 0x333333,
-    roughness: 0.35,
-    metalness: 0.15,
-    envMapIntensity: 0.4,
+  // ============================================================
+  // 1. SOFT STERILE BACKGROUND + FOG
+  // ============================================================
+  scene.background = new THREE.Color(0xeaf0f5);
+  scene.fog = new THREE.FogExp2(0xeaf0f5, 0.0028);
+ 
+  // ============================================================
+  // 2. PERFORATED FLOOR PANEL TEXTURE (procedural canvas)
+  //    - 600mm × 600mm panel = one texture tile
+  //    - Dense circular perforations in a square grid
+  //    - Visible hole depth via dark interior + subtle ring
+  // ============================================================
+  const PANEL_PX = 1024;                // texture resolution per panel
+  const HOLES_PER_SIDE = 18;            // 18 × 18 holes per 600mm panel
+  const HOLE_RADIUS_PX = 14;            // hole visible radius
+  const BEVEL_PX = 6;                   // recessed shading width
+ 
+  const panelCanvas = document.createElement("canvas");
+  panelCanvas.width = PANEL_PX;
+  panelCanvas.height = PANEL_PX;
+  const pctx = panelCanvas.getContext("2d")!;
+ 
+  // ── 2a. Base panel: soft white anti-static powder-coat ──
+  const baseGrad = pctx.createLinearGradient(0, 0, PANEL_PX, PANEL_PX);
+  baseGrad.addColorStop(0, "#f1f4f7");
+  baseGrad.addColorStop(0.5, "#e8ecef");
+  baseGrad.addColorStop(1, "#eef2f5");
+  pctx.fillStyle = baseGrad;
+  pctx.fillRect(0, 0, PANEL_PX, PANEL_PX);
+ 
+  // ── 2b. Very faint brushed-metal noise ──
+  pctx.globalAlpha = 0.04;
+  for (let i = 0; i < 2000; i++) {
+    pctx.fillStyle = Math.random() > 0.5 ? "#ffffff" : "#c8ced4";
+    pctx.fillRect(Math.random() * PANEL_PX, Math.random() * PANEL_PX, 1, 1);
+  }
+  pctx.globalAlpha = 1;
+ 
+  // ── 2c. Tile edge bevel — thin dark seam around panel border ──
+  pctx.strokeStyle = "rgba(60,70,80,0.55)";
+  pctx.lineWidth = 4;
+  pctx.strokeRect(2, 2, PANEL_PX - 4, PANEL_PX - 4);
+  pctx.strokeStyle = "rgba(255,255,255,0.7)";
+  pctx.lineWidth = 1;
+  pctx.strokeRect(6, 6, PANEL_PX - 12, PANEL_PX - 12);
+ 
+  // ── 2d. Recessed mounting screws (4 corners) ──
+  const drawScrew = (cx: number, cy: number) => {
+    // dark recess
+    pctx.beginPath();
+    pctx.arc(cx, cy, 9, 0, Math.PI * 2);
+    pctx.fillStyle = "#3a4048";
+    pctx.fill();
+    // screw head
+    pctx.beginPath();
+    pctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    pctx.fillStyle = "#9aa3ac";
+    pctx.fill();
+    // slot
+    pctx.strokeStyle = "#252a30";
+    pctx.lineWidth = 1.6;
+    pctx.beginPath();
+    pctx.moveTo(cx - 4, cy);
+    pctx.lineTo(cx + 4, cy);
+    pctx.stroke();
+    // tiny highlight
+    pctx.beginPath();
+    pctx.arc(cx - 1.5, cy - 1.5, 1.2, 0, Math.PI * 2);
+    pctx.fillStyle = "rgba(255,255,255,0.6)";
+    pctx.fill();
+  };
+  drawScrew(30, 30);
+  drawScrew(PANEL_PX - 30, 30);
+  drawScrew(30, PANEL_PX - 30);
+  drawScrew(PANEL_PX - 30, PANEL_PX - 30);
+ 
+  // ── 2e. PERFORATION HOLE GRID — this is the dominant feature ──
+  const margin = 70;
+  const usable = PANEL_PX - margin * 2;
+  const spacing = usable / (HOLES_PER_SIDE - 1);
+ 
+  for (let row = 0; row < HOLES_PER_SIDE; row++) {
+    for (let col = 0; col < HOLES_PER_SIDE; col++) {
+      const cx = margin + col * spacing;
+      const cy = margin + row * spacing;
+ 
+      // Outer recessed ring (gives depth illusion)
+      const ringGrad = pctx.createRadialGradient(
+        cx - 2, cy - 2, 0,
+        cx, cy, HOLE_RADIUS_PX + BEVEL_PX
+      );
+      ringGrad.addColorStop(0, "rgba(180,188,196,0.0)");
+      ringGrad.addColorStop(0.55, "rgba(140,148,156,0.35)");
+      ringGrad.addColorStop(1, "rgba(90,98,106,0.0)");
+      pctx.fillStyle = ringGrad;
+      pctx.beginPath();
+      pctx.arc(cx, cy, HOLE_RADIUS_PX + BEVEL_PX, 0, Math.PI * 2);
+      pctx.fill();
+ 
+      // Dark hole interior (deep recess)
+      const holeGrad = pctx.createRadialGradient(
+        cx + 1.5, cy + 1.5, 0,
+        cx, cy, HOLE_RADIUS_PX
+      );
+      holeGrad.addColorStop(0, "#1a1d22");
+      holeGrad.addColorStop(0.7, "#0d1014");
+      holeGrad.addColorStop(1, "#05070a");
+      pctx.fillStyle = holeGrad;
+      pctx.beginPath();
+      pctx.arc(cx, cy, HOLE_RADIUS_PX, 0, Math.PI * 2);
+      pctx.fill();
+ 
+      // Subtle top-left highlight on rim (catches overhead light)
+      pctx.strokeStyle = "rgba(255,255,255,0.45)";
+      pctx.lineWidth = 1.2;
+      pctx.beginPath();
+      pctx.arc(cx, cy, HOLE_RADIUS_PX + 0.5, Math.PI * 1.1, Math.PI * 1.7);
+      pctx.stroke();
+ 
+      // Bottom-right shadow on rim
+      pctx.strokeStyle = "rgba(0,0,0,0.35)";
+      pctx.lineWidth = 1;
+      pctx.beginPath();
+      pctx.arc(cx, cy, HOLE_RADIUS_PX + 0.5, Math.PI * 0.1, Math.PI * 0.7);
+      pctx.stroke();
+    }
+  }
+ 
+  const panelTex = new THREE.CanvasTexture(panelCanvas);
+  panelTex.wrapS = THREE.RepeatWrapping;
+  panelTex.wrapT = THREE.RepeatWrapping;
+  panelTex.anisotropy = 16;
+  panelTex.magFilter = THREE.LinearFilter;
+  panelTex.minFilter = THREE.LinearMipmapLinearFilter;
+ 
+  // Floor is 180 × 90 units. One panel = 3 units (≈ 600mm scaled).
+  // → repeat 60 × 30 across the floor.
+  panelTex.repeat.set(60, 30);
+ 
+  // ============================================================
+  // 3. MAIN FLOOR MESH (perforated panels)
+  // ============================================================
+  const floorMat = new THREE.MeshStandardMaterial({
+    map: panelTex,
+    color: 0xffffff,
+    roughness: 0.55,
+    metalness: 0.18,
+    envMapIntensity: 0.5,
   });
-  const fl = new THREE.Mesh(new THREE.PlaneGeometry(180, 90), flMat);
-  fl.rotation.x = -Math.PI / 2;
-  fl.position.y = -0.52;
-  fl.receiveShadow = true;
-  scene.add(fl);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(180, 90), floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.52;
+  floor.receiveShadow = true;
+  scene.add(floor);
  
-  // SUBTLE LIGHT GRID — thin lines, low contrast, matches image
-  const gridCanvas = document.createElement("canvas");
-  gridCanvas.width = 1024;
-  gridCanvas.height = 1024;
-  const gCtx = gridCanvas.getContext("2d")!;
-  gCtx.fillStyle = "rgba(0,0,0,0)";
-  gCtx.fillRect(0, 0, 1024, 1024);
-  gCtx.strokeStyle = "#7090b0";
-  gCtx.lineWidth = 1.2;
-  gCtx.globalAlpha = 0.35;
-  const cell = 64;
-  for (let x = 0; x <= 1024; x += cell) {
-    gCtx.beginPath();
-    gCtx.moveTo(x, 0);
-    gCtx.lineTo(x, 1024);
-    gCtx.stroke();
-  }
-  for (let y = 0; y <= 1024; y += cell) {
-    gCtx.beginPath();
-    gCtx.moveTo(0, y);
-    gCtx.lineTo(1024, y);
-    gCtx.stroke();
-  }
+  // ============================================================
+  // 4. TILE SEAM OVERLAY — sharp dark grid lines between panels
+  //    Gives that crisp "modular raised floor" look on top of texture.
+  // ============================================================
+  const seamCanvas = document.createElement("canvas");
+  seamCanvas.width = 512;
+  seamCanvas.height = 512;
+  const sctx = seamCanvas.getContext("2d")!;
+  sctx.clearRect(0, 0, 512, 512);
+  // dark seam on right + bottom edges of every panel
+  sctx.strokeStyle = "rgba(35,42,50,0.85)";
+  sctx.lineWidth = 3;
+  sctx.beginPath();
+  sctx.moveTo(0, 510); sctx.lineTo(512, 510);
+  sctx.moveTo(510, 0); sctx.lineTo(510, 512);
+  sctx.stroke();
+  // bright highlight on left + top (lip of next tile)
+  sctx.strokeStyle = "rgba(255,255,255,0.55)";
+  sctx.lineWidth = 1.5;
+  sctx.beginPath();
+  sctx.moveTo(0, 2); sctx.lineTo(512, 2);
+  sctx.moveTo(2, 0); sctx.lineTo(2, 512);
+  sctx.stroke();
  
-  const gridTex = new THREE.CanvasTexture(gridCanvas);
-  gridTex.wrapS = THREE.RepeatWrapping;
-  gridTex.wrapT = THREE.RepeatWrapping;
-  gridTex.repeat.set(6, 3);
+  const seamTex = new THREE.CanvasTexture(seamCanvas);
+  seamTex.wrapS = THREE.RepeatWrapping;
+  seamTex.wrapT = THREE.RepeatWrapping;
+  seamTex.repeat.set(60, 30);     // match panel count
  
-  const grid = new THREE.Mesh(
+  const seamOverlay = new THREE.Mesh(
     new THREE.PlaneGeometry(180, 90),
     new THREE.MeshBasicMaterial({
-      map: gridTex,
+      map: seamTex,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.85,
       depthWrite: false,
     })
   );
-  grid.rotation.x = -Math.PI / 2;
-  grid.position.y = -0.5;
-  scene.add(grid);
+  seamOverlay.rotation.x = -Math.PI / 2;
+  seamOverlay.position.y = -0.515;     // 5mm above floor to avoid z-fight
+  seamOverlay.renderOrder = 1;
+  scene.add(seamOverlay);
  
-  // Subtle floor highlights (the bright spots in image)
-  for (let i = 0; i < 8; i++) {
+  // ============================================================
+  // 5. RECESSED ROBOT TRANSPORT RAIL (centered, runs along +X)
+  //    - Dark anodized channel embedded in floor
+  //    - Stainless trim edges
+  //    - Periodic alignment / sensor plates
+  // ============================================================
+  const RAIL_LEN = 180;
+  const RAIL_WIDTH = 1.4;
+  const RAIL_Y = -0.50;            // just above floor surface
+  const RAIL_CENTER_X = 2;
+  const RAIL_Z = 0;                // dead center
+ 
+  // Rail recess (dark channel)
+  const railChannel = new THREE.Mesh(
+    new THREE.BoxGeometry(RAIL_LEN, 0.06, RAIL_WIDTH),
+    new THREE.MeshStandardMaterial({
+      color: 0x1a1e24,
+      roughness: 0.30,
+      metalness: 0.85,
+    })
+  );
+  railChannel.position.set(RAIL_CENTER_X, RAIL_Y - 0.01, RAIL_Z);
+  railChannel.receiveShadow = true;
+  scene.add(railChannel);
+ 
+  // Stainless trim strips (both sides of the channel)
+  const trimMat = new THREE.MeshStandardMaterial({
+    color: 0xc8cfd6,
+    roughness: 0.22,
+    metalness: 0.95,
+  });
+  [-RAIL_WIDTH / 2 - 0.06, RAIL_WIDTH / 2 + 0.06].forEach((zOff) => {
+    const trim = new THREE.Mesh(
+      new THREE.BoxGeometry(RAIL_LEN, 0.04, 0.10),
+      trimMat
+    );
+    trim.position.set(RAIL_CENTER_X, RAIL_Y, RAIL_Z + zOff);
+    scene.add(trim);
+  });
+ 
+  // Twin guidance rails (raised metal strips inside the channel)
+  const guideMat = new THREE.MeshStandardMaterial({
+    color: 0x4a5058,
+    roughness: 0.18,
+    metalness: 0.94,
+  });
+  [-0.35, 0.35].forEach((zOff) => {
+    const guide = new THREE.Mesh(
+      new THREE.BoxGeometry(RAIL_LEN, 0.025, 0.08),
+      guideMat
+    );
+    guide.position.set(RAIL_CENTER_X, RAIL_Y + 0.02, RAIL_Z + zOff);
+    scene.add(guide);
+  });
+ 
+  // Periodic sensor / alignment plates along the rail
+  const sensorMat = new THREE.MeshStandardMaterial({
+    color: 0x2a3038,
+    roughness: 0.4,
+    metalness: 0.8,
+    emissive: 0x00aaff,
+    emissiveIntensity: 0.25,
+  });
+  for (let x = -RAIL_LEN / 2 + 6; x < RAIL_LEN / 2; x += 8) {
+    const plate = new THREE.Mesh(
+      new THREE.BoxGeometry(0.45, 0.015, RAIL_WIDTH - 0.15),
+      sensorMat
+    );
+    plate.position.set(RAIL_CENTER_X + x, RAIL_Y + 0.025, RAIL_Z);
+    scene.add(plate);
+ 
+    // small green LED dot on each plate
+    const led = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, 0.01, 12),
+      new THREE.MeshStandardMaterial({
+        color: 0x00ff88,
+        emissive: 0x00ff88,
+        emissiveIntensity: 3.0,
+      })
+    );
+    led.position.set(RAIL_CENTER_X + x, RAIL_Y + 0.035, RAIL_Z + 0.55);
+    scene.add(led);
+  }
+ 
+  // ============================================================
+  // 6. SUBTLE OVERHEAD HIGHLIGHT POOLS (HEPA downflow spots)
+  // ============================================================
+  for (let i = 0; i < 12; i++) {
     const spot = new THREE.Mesh(
-      new THREE.CircleGeometry(0.4 + Math.random() * 0.3, 24),
+      new THREE.CircleGeometry(1.2 + Math.random() * 0.6, 32),
       new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
-        opacity: 0.35 + Math.random() * 0.25,
+        opacity: 0.10 + Math.random() * 0.06,
         depthWrite: false,
       })
     );
     spot.rotation.x = -Math.PI / 2;
     spot.position.set(
-      -10 + Math.random() * 40,
-      -0.49,
-      -8 + Math.random() * 16
+      -40 + Math.random() * 80,
+      -0.508,
+      -20 + Math.random() * 40
     );
     scene.add(spot);
   }
  
-  // Dark navy back wall (matches reference top strip)
+  // ============================================================
+  // 7. CLEAN BACK WALL (minimal, neutral, slight blue tint)
+  // ============================================================
   const wallMat = new THREE.MeshStandardMaterial({
-    color: 0x1a2838,
-    roughness: 0.45,
-    metalness: 0.2,
+    color: 0xeef2f6,
+    roughness: 0.55,
+    metalness: 0.05,
   });
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(180, 8), wallMat);
-  wall.position.set(6, 4, -32);
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(180, 22), wallMat);
+  wall.position.set(6, 10, -32);
   scene.add(wall);
  
-  // Lighter blue wall above the dark strip
-  const wallUpper = new THREE.Mesh(
-    new THREE.PlaneGeometry(180, 22),
-    new THREE.MeshStandardMaterial({ color: 0xdce8f2, roughness: 0.6, metalness: 0.05 })
+  // Lower wall accent (darker base strip)
+  const wallBase = new THREE.Mesh(
+    new THREE.PlaneGeometry(180, 4),
+    new THREE.MeshStandardMaterial({
+      color: 0xc8d0d8,
+      roughness: 0.6,
+      metalness: 0.08,
+    })
   );
-  wallUpper.position.set(6, 19, -32);
-  scene.add(wallUpper);
+  wallBase.position.set(6, 1.5, -31.99);
+  scene.add(wallBase);
  
-  // ── NO ceiling, NO hex panels — keeps the open clean look ──
+  // Thin dark seam between wall and floor
+  const wallSeam = new THREE.Mesh(
+    new THREE.BoxGeometry(180, 0.04, 0.04),
+    new THREE.MeshStandardMaterial({ color: 0x2a3038, roughness: 0.4, metalness: 0.7 })
+  );
+  wallSeam.position.set(6, -0.48, -31.95);
+  scene.add(wallSeam);
 }
- 
 
 // ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 
@@ -18040,22 +24909,22 @@ class ConveyorBelt {
   beltOffset = 0;
   beltLength: number;
  
-  constructor(scene: THREE.Scene, startX: number, endX: number, z: number, color: number) {
+  constructor(scene: THREE.Scene, startX: number, endX: number, z: number, color: number, surfaceY?: number) {
     this.beltLength = Math.abs(endX - startX);
     const centerX = (startX + endX) / 2;
  
-    // ── LOW BELT, sits at floor-ish level, BESIDE modules ──
-    const LEG_H  = 0.18;             // very short legs
-    const BELT_Y = LEG_H + 0.04;     // surface around y=0.22 — well below module chuck (~0.93)
+    // ── LOW BELT: default legacy height, or explicit fab floor (under module plane) ──
+    const LEG_H = 0.16;
+    const BELT_Y = surfaceY !== undefined ? surfaceY : LEG_H + 0.04;
+    const legH = Math.max(0.1, Math.min(BELT_Y - 0.015, 0.28));
  
-    // Short legs
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.3, metalness: 0.85 });
+    const legMat = new THREE.MeshStandardMaterial({ color: 0x3a4450, roughness: 0.35, metalness: 0.88 });
     const legSpacing = this.beltLength / 5;
     for (let i = 1; i <= 4; i++) {
       const lx = startX + i * legSpacing;
       [-0.45, 0.45].forEach((lz) => {
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.07, LEG_H, 0.07), legMat);
-        leg.position.set(lx, LEG_H / 2, z + lz);
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, legH, 0.08), legMat);
+        leg.position.set(lx, legH * 0.5, z + lz);
         scene.add(leg);
       });
     }
@@ -18086,11 +24955,11 @@ class ConveyorBelt {
     const beltMesh = new THREE.Mesh(
       new THREE.BoxGeometry(this.beltLength, 0.04, 0.95),
       new THREE.MeshStandardMaterial({
-        color: 0xe8f0f8,
-        emissive: color,
-        emissiveIntensity: 0.3,
-        roughness: 0.35,
-        metalness: 0.2,
+        color: 0x2a2e32,
+        emissive: 0x112233,
+        emissiveIntensity: 0.12,
+        roughness: 0.55,
+        metalness: 0.35,
         map: beltTex,
       })
     );
@@ -18105,17 +24974,17 @@ class ConveyorBelt {
  
     // Bright glow strip BELOW belt — gives the neon-line look from reference
     const glowStrip = new THREE.Mesh(
-      new THREE.BoxGeometry(this.beltLength, 0.025, 0.18),
+      new THREE.BoxGeometry(this.beltLength, 0.022, 0.14),
       new THREE.MeshStandardMaterial({
-        color: color,
-        emissive: color,
-        emissiveIntensity: 4.5,
-        roughness: 0.2,
+        color: 0x224466,
+        emissive: 0x3366aa,
+        emissiveIntensity: 0.55,
+        roughness: 0.35,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.55,
       })
     );
-    glowStrip.position.set(centerX, BELT_Y - 0.03, z);
+    glowStrip.position.set(centerX, BELT_Y - 0.028, z);
     scene.add(glowStrip);
  
     // Animated stripe markers (sliding along belt)
@@ -18755,7 +25624,7 @@ this.group.userData.nozzleTipGlow = tipGlow;
   }
 
   startCoat(wx: number, wz: number, color: number) {
-    this.coatColor = color; this.group.position.set(wx, 0.72, wz);
+    this.coatColor = color; this.group.position.set(wx, WAFER_TRANSFER_Y - 0.25, wz);
     this.group.visible = true; this.active = true; this.phase = "arm_descend";
     this.phaseT = 0; this.phaseDur = 1.2; this.spinRPM = 0; this.spinAngle = 0; this.resistRadius = 0;
     this.resistRings.forEach((r) => {
@@ -19038,7 +25907,7 @@ this.spraySources.add(cone);
   }
  
   startDev(wx: number, wz: number) {
- this.group.position.set(wx, 0, wz);
+ this.group.position.set(wx, WAFER_TRANSFER_Y - 0.5, wz);
 this.group.visible = true;
 this.active = true;
 this.phase = "descend";
@@ -19269,195 +26138,536 @@ if (dc) dc.position.set(1.4, 3.44, 0);
 
 // ─── MODULE BUILDER ───────────────────────────────────────────────────────────
 
+// function buildModule(mod: ProcessStep): THREE.Group {
+//   const grp = new THREE.Group();
+//   grp.position.set(mod.x, 0, mod.z);
+//   grp.userData.id = mod.id;
+
+//  const W = 2.9, D = 2.9, H = 1.7;  // was H = 0.85
+
+// // LINE 2: Make body GRAY (replace the themes object entirely)
+// const themes: Record<string, { base: number; edge: number; glass: number }> = {
+//   hot:   { base: 0x4a4a4a, edge: 0xff2200, glass: 0xff4400 },
+//   cold:  { base: 0x4a4a4a, edge: 0x00ccff, glass: 0x00aaff },
+//   coat:  { base: 0x4a4a4a, edge: 0xcc00ff, glass: 0xee22ff },
+//   wet:   { base: 0x4a4a4a, edge: 0x00ff88, glass: 0x00dd66 },
+//   scan:  { base: 0x4a4a4a, edge: 0xee00cc, glass: 0xff00ee },
+//   iface: { base: 0x4a4a4a, edge: 0xffdd00, glass: 0xffcc00 },
+//   foup:  { base: 0x4a4a4a, edge: 0x4488ff, glass: 0x3377ff },
+//   dry:   { base: 0x4a4a4a, edge: 0x00eeff, glass: 0x00ddee },
+// };
+//   const th = themes[mod.type] ?? { base: 0xaabbcc, edge: 0x4477aa, glass: mod.color };
+
+//   // Base body
+// const bodyMat = new THREE.MeshStandardMaterial({ 
+//   color: th.base, 
+//   roughness: 0.35,    // slightly rougher for gray metal look
+//   metalness: 0.65, 
+//   emissive: th.edge, 
+//   emissiveIntensity: 0.08  // was 0.15 — reduce for gray
+// });  const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), bodyMat);
+//   body.position.y = H / 2; body.castShadow = true; body.receiveShadow = true; grp.add(body);
+
+//   // Top plate
+//   const topPl = new THREE.Mesh(new THREE.BoxGeometry(W - 0.04, 0.062, D - 0.04),
+//     new THREE.MeshStandardMaterial({ color: 0xe0e8f0, roughness: 0.05, metalness: 0.98 }));
+//   topPl.position.y = H + 0.031; grp.add(topPl);
+
+//   // Emissive disc
+//   const discMat = new THREE.MeshStandardMaterial({ color: mod.color, roughness: 0.12, metalness: 0.6, emissive: mod.color, emissiveIntensity: 0.55 });
+//   const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.96, 0.96, 0.07, 80), discMat);
+//   disc.position.y = H + 0.035; grp.add(disc);
+
+//   // Concentric rings on chuck
+//   for (let r = 0.2; r <= 0.88; r += 0.11) {
+//     const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.004, 4, 72),
+//       new THREE.MeshStandardMaterial({ color: 0x8899cc, emissive: 0x2244aa, emissiveIntensity: 0.4 }));
+//     ring.rotation.x = Math.PI / 2; ring.position.y = H + 0.072; grp.add(ring);
+//   }
+
+//   // Inner pulsing ring
+//   const innerRing = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.04, 8, 60), matEmissive(mod.color, 2.5));
+//   innerRing.rotation.x = Math.PI / 2; innerRing.position.y = H + 0.075; grp.add(innerRing);
+//   grp.userData.innerRing = innerRing;
+
+//   // LED strip
+//   const led = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.1, 0.07), matEmissive(mod.color, 5.0));
+//   led.position.set(0, H * 0.55, -(D / 2) + 0.05); grp.add(led);
+//   grp.userData.led = led;
+
+//   // Control panel with status dots
+//   const panel = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 0.04),
+//     new THREE.MeshStandardMaterial({ color: 0x0e1c2a, roughness: 0.35, metalness: 0.75 }));
+//   panel.position.set(0, H * 0.32, -(D / 2 + 0.02)); grp.add(panel);
+//   for (let i = 0; i < 5; i++) {
+//     const dt2 = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 10),
+//       matEmissive(i === 0 ? mod.color : i === 1 ? 0x00ff88 : 0x333333, i < 2 ? 3.5 : 0.5));
+//     dt2.position.set(-0.55 + i * 0.28, H * 0.32, -(D / 2) + 0.04); grp.add(dt2);
+//   }
+
+//   // Temp indicator
+//   if (mod.temp !== null) {
+//     const tempColor = mod.temp > 50 ? 0xff3300 : 0x0099ff;
+//     const tempBar = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 0.06), matEmissive(tempColor, 4.0));
+//     tempBar.position.set(0, H * 0.78, -(D / 2) + 0.05); grp.add(tempBar);
+
+//     const tc = document.createElement("canvas"); tc.width = 200; tc.height = 52;
+//     const tctx = tc.getContext("2d")!;
+//     tctx.fillStyle = mod.temp > 50 ? "#ff4400" : "#0099ff";
+//     tctx.font = "bold 22px 'Courier New',monospace"; tctx.textAlign = "center";
+//     tctx.fillText(`${mod.temp}°C`, 100, 36);
+//     const tsp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(tc), transparent: true, opacity: 0.95 }));
+//     tsp.scale.set(1.5, 0.4, 1); tsp.position.set(0, H + 0.55, -(D / 2) - 0.1); grp.add(tsp);
+//   }
+
+//   // Glass enclosure
+// //   const glassH = 2.0;
+// //   const gm = matGlass(th.glass, 0.10);
+// //   [
+// //     { sz: [W + 0.06, glassH, 0.03], p: [0, glassH / 2 + H / 2 - 0.12,  D / 2 + 0.015] },
+// //     { sz: [W + 0.06, glassH, 0.03], p: [0, glassH / 2 + H / 2 - 0.12, -D / 2 - 0.015] },
+// //     { sz: [0.03, glassH, D + 0.06], p: [ W / 2 + 0.015, glassH / 2 + H / 2 - 0.12, 0] },
+// //     { sz: [0.03, glassH, D + 0.06], p: [-W / 2 - 0.015, glassH / 2 + H / 2 - 0.12, 0] },
+// //   ].forEach((o) => {
+// //     const gp = new THREE.Mesh(new THREE.BoxGeometry(o.sz[0], o.sz[1], o.sz[2]), gm.clone());
+// //     gp.position.set(o.p[0], o.p[1], o.p[2]); grp.add(gp);
+// //   });
+
+//   // Frame rails
+// //   const frameMat = new THREE.MeshStandardMaterial({ color: 0x7a8fa0, roughness: 0.15, metalness: 0.92 });
+// //   const topY = H + glassH - 0.12; const railT = 0.045;
+// //   [
+// //     { sz: [W + 0.10, railT, railT], p: [0, topY,  D / 2 + 0.015] },
+// //     { sz: [W + 0.10, railT, railT], p: [0, topY, -D / 2 - 0.015] },
+// //     { sz: [railT, railT, D + 0.10], p: [ W / 2 + 0.015, topY, 0] },
+// //     { sz: [railT, railT, D + 0.10], p: [-W / 2 - 0.015, topY, 0] },
+// //   ].forEach((o) => {
+// //     const rail = new THREE.Mesh(new THREE.BoxGeometry(o.sz[0], o.sz[1], o.sz[2]), frameMat);
+// //     rail.position.set(o.p[0], o.p[1], o.p[2]); grp.add(rail);
+// //   });
+
+//   // Process light
+//   const pl = new THREE.PointLight(mod.color, 0, 7);
+//   pl.position.set(0, H + 1.8, 0); grp.add(pl);
+//   grp.userData.processLight = pl;
+
+//   // ── TYPE-SPECIFIC INTERNALS ──
+
+//   // HOT: heating coils (visible inside chuck)
+//   if (mod.type === "hot") {
+//     for (let r = 0.1; r <= 0.85; r += 0.13) {
+//       const coil = new THREE.Mesh(new THREE.TorusGeometry(r, 0.025, 12, 60),
+//         new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff1100, emissiveIntensity: 0.4, roughness: 0.35 }));
+//       coil.rotation.x = Math.PI / 2; coil.position.y = H + 0.048; grp.add(coil);
+//       grp.userData.coils = grp.userData.coils || [];
+//       (grp.userData.coils as THREE.Mesh[]).push(coil);
+//     }
+//   }
+
+//   // COLD: cooling fins beneath chuck
+//   if (mod.type === "cold") {
+//     for (let i = -7; i <= 7; i++) {
+//       const fin = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.42, 1.22),
+//         new THREE.MeshStandardMaterial({ color: 0x1c2e44, roughness: 0.16, metalness: 0.97, emissive: 0x0055cc, emissiveIntensity: 0.6 }));
+//       fin.position.set(i * 0.175, H - 0.04, 0); grp.add(fin);
+//     }
+//   }
+
+//   // SCAN: scanner housing + UV beam
+//   if (mod.type === "scan") {
+//     const housing = new THREE.Mesh(new THREE.BoxGeometry(W + 1.2, H * 4, D + 1.2),
+//       new THREE.MeshStandardMaterial({ color: 0x9080b0, roughness: 0.18, metalness: 0.72, emissive: 0x440088, emissiveIntensity: 0.3 }));
+//     housing.position.y = H * 2.3; grp.add(housing);
+//     const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.2, 32),
+//       new THREE.MeshStandardMaterial({ color: 0x100020, roughness: 0.05, metalness: 0.7, emissive: 0xcc00ff, emissiveIntensity: 1.4 }));
+//     lens.position.y = H * 4.4; grp.add(lens);
+//     const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.32, H * 3.5, 20, 1, true),
+//       new THREE.MeshStandardMaterial({ color: 0xcc00ff, emissive: 0x9900cc, emissiveIntensity: 2.2, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
+//     beam.position.y = H * 1.75; grp.add(beam);
+//     grp.userData.uvBeam = beam;
+//     addBigLabel(grp, "300mm\nSCANNER", 0xcc00ff, 0, H * 4.8, 0);
+//   }
+
+//   // FOUP — visual slots + named pickup anchors (world targets for EFEM IK)
+//   if (mod.type === "foup") {
+//     // FOUP transform fix (world-space, NOT camera-relative):
+//     // - Local model "opening" is at +Z (door/slots around z≈+0.9).
+//     // - We want the opening to face +X (toward the process line).
+//     // - Apply an explicit 180° Y-rotation as requested, then set facing for +X.
+//     grp.rotation.set(0, -Math.PI / 2, 0);
+//     grp.rotateY(Math.PI);
+//     // Raise so slot planes align with robot pickup height.
+//     grp.position.y += 0.25;
+//     // Small alignment nudge so fork centers on slot stack.
+//     grp.position.x += 0.12;
+
+//     // Explicit pickup anchor at FOUP access port (prevents robot penetrating enclosure).
+//     const foupPickupAnchor = new THREE.Group();
+//     foupPickupAnchor.name = "FoupPickupPoint";
+//     // Local +Z is FOUP opening direction; after FOUP group rotation this stays “front”.
+//     foupPickupAnchor.position.set(0, 1.15, 1.25);
+//     grp.add(foupPickupAnchor);
+//     grp.userData.pickupAnchor = foupPickupAnchor;
+
+//     const foupBody = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.4, 2.8),
+//       new THREE.MeshStandardMaterial({ color: 0x162230, metalness: 0.82, roughness: 0.22, emissive: 0x081822, emissiveIntensity: 0.16 }));
+//     foupBody.position.y = 1.7; foupBody.castShadow = true; grp.add(foupBody);
+//     const door = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.8, 0.08),
+//       new THREE.MeshStandardMaterial({ color: 0x1c2938, metalness: 0.9, roughness: 0.12, emissive: 0x003566, emissiveIntensity: 0.2 }));
+//     door.position.set(0, 1.7, 1.35); grp.add(door);
+//     const slotAnchors: THREE.Object3D[] = [];
+//     for (let s = 0; s < 6; s++) {
+//       const slot = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.03, 64),
+//         new THREE.MeshStandardMaterial({ color: 0x91a8c2, metalness: 0.9, roughness: 0.08 }));
+//       slot.position.set(0, 0.55 + s * 0.42, 1.05); grp.add(slot);
+//       const anchor = new THREE.Group();
+//       anchor.name = `FoupSlot_${s + 1}`;
+//       anchor.position.set(0, 0.55 + s * 0.42, 1.08);
+//       grp.add(anchor);
+//       slotAnchors.push(anchor);
+//     }
+//     grp.userData.slotAnchors = slotAnchors;
+//     grp.userData.slotCount = slotAnchors.length;
+//     const foupPL = new THREE.PointLight(0x0066ff, 0, 4);
+//     foupPL.position.set(0, 2.5, 1.2); grp.add(foupPL);
+//     grp.userData.processLight = foupPL;
+//   } else {
+//     const waferAnchor = new THREE.Group();
+//     waferAnchor.name = "ModuleWaferAnchor";
+//     waferAnchor.position.set(0, H + 0.098, 0);
+//     grp.add(waferAnchor);
+//     grp.userData.waferAnchor = waferAnchor;
+//   }
+
+//   // WET / DRY: rotating chuck
+//   if (mod.type === "wet" || mod.type === "dry") {
+//     const chuck = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.05, 48),
+//       new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.12, metalness: 0.92 }));
+//     chuck.position.y = H + 0.025; grp.add(chuck);
+//   }
+
+//   // DRY: N2 nozzles
+//   if (mod.type === "dry") {
+//     for (let a = 0; a < 6; a++) {
+//       const ang = (a / 6) * Math.PI * 2;
+//       const noz = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.065, 0.35, 12),
+//         new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.18, metalness: 0.95 }));
+//       noz.position.set(Math.cos(ang) * 0.58, H + 0.6, Math.sin(ang) * 0.58); grp.add(noz);
+//       const tip = new THREE.Mesh(new THREE.SphereGeometry(0.038, 8, 8), matEmissive(0x44ddff, 2.5));
+//       tip.position.set(Math.cos(ang) * 0.58, H + 0.42, Math.sin(ang) * 0.58); grp.add(tip);
+//     }
+//   }
+
+//   // Module name label
+// // ── Module name label (FLOATING ABOVE module) ──
+//   const nc = document.createElement("canvas");
+//   nc.width = 512;
+//   nc.height = 180;
+//   const nctx = nc.getContext("2d")!;
+
+//   // Soft dark background pill behind text for readability against any floor color
+//   nctx.fillStyle = "rgba(10, 18, 32, 0.78)";
+//   nctx.beginPath();
+//   const pillX = 20, pillY = 20, pillW = 472, pillH = 140, pillR = 18;
+//   nctx.moveTo(pillX + pillR, pillY);
+//   nctx.lineTo(pillX + pillW - pillR, pillY);
+//   nctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + pillR);
+//   nctx.lineTo(pillX + pillW, pillY + pillH - pillR);
+//   nctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - pillR, pillY + pillH);
+//   nctx.lineTo(pillX + pillR, pillY + pillH);
+//   nctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - pillR);
+//   nctx.lineTo(pillX, pillY + pillR);
+//   nctx.quadraticCurveTo(pillX, pillY, pillX + pillR, pillY);
+//   nctx.closePath();
+//   nctx.fill();
+
+//   // Colored border in module color
+//   nctx.strokeStyle = hex2css(mod.color);
+//   nctx.lineWidth = 3;
+//   nctx.stroke();
+
+//   // Big short-code (top line)
+//   nctx.fillStyle = hex2css(mod.color);
+//   nctx.font = "bold 52px 'Courier New', monospace";
+//   nctx.textAlign = "center";
+//   nctx.textBaseline = "middle";
+//   nctx.shadowColor = hex2css(mod.color);
+//   nctx.shadowBlur = 14;
+//   nctx.fillText(mod.short, 256, 65);
+
+//   // Full name (smaller line below)
+//   nctx.shadowBlur = 4;
+//   nctx.fillStyle = "#e8f0ff";
+//   nctx.font = "bold 22px 'Inter', 'Arial', sans-serif";
+//   nctx.fillText(mod.name, 256, 120);
+
+//   // Optional: temperature badge
+//   if (mod.temp !== null) {
+//     nctx.shadowBlur = 0;
+//     nctx.fillStyle = mod.temp > 50 ? "#ff6633" : "#33aaff";
+//     nctx.font = "bold 18px 'Courier New', monospace";
+//     nctx.fillText(`${mod.temp}°C`, 256, 148);
+//   }
+
+//   const nameTex = new THREE.CanvasTexture(nc);
+//   nameTex.minFilter = THREE.LinearFilter;
+//   const nsp = new THREE.Sprite(
+//     new THREE.SpriteMaterial({
+//       map: nameTex,
+//       transparent: true,
+//       opacity: 0.96,
+//       depthTest: false,    // always visible, never occluded by modules
+//       depthWrite: false,
+//     })
+//   );
+//   // Width 4.2, height 1.5 — readable from camera radius 32+
+//   nsp.scale.set(4.2, 1.5, 1);
+//   // Float above the module — scanner is taller, so push label higher for it
+//   const labelY = mod.type === "scan" ? H * 6.0 : H + 2.4;
+//   nsp.position.set(0, labelY, 0);
+//   // Render labels on top of everything so they're never hidden
+//   nsp.renderOrder = 999;
+//   grp.add(nsp);
+//   grp.userData.nameLabel = nsp;
+
+//   return grp;
+// }
+
 function buildModule(mod: ProcessStep): THREE.Group {
   const grp = new THREE.Group();
   grp.position.set(mod.x, 0, mod.z);
   grp.userData.id = mod.id;
 
-  const W = 2.9, D = 2.9, H = 0.85;
-
- const themes: Record<string, { base: number; edge: number; glass: number }> = {
-  hot:   { base: 0x5a1a08, edge: 0xff2200, glass: 0xff4400 },  // dark brick red
-  cold:  { base: 0x082040, edge: 0x00ccff, glass: 0x00aaff },  // dark navy
-  coat:  { base: 0x280a40, edge: 0xcc00ff, glass: 0xee22ff },  // deep violet
-  wet:   { base: 0x042a18, edge: 0x00ff88, glass: 0x00dd66 },  // dark forest green
-  scan:  { base: 0x280828, edge: 0xee00cc, glass: 0xff00ee },  // dark magenta
-  iface: { base: 0x302808, edge: 0xffdd00, glass: 0xffcc00 },  // dark amber
-  foup:  { base: 0x0a1830, edge: 0x4488ff, glass: 0x3377ff },  // dark navy blue
-  dry:   { base: 0x042830, edge: 0x00eeff, glass: 0x00ddee },  // dark teal
+  const W = 2.9, D = 2.9, H = 2.7;
+  
+  // All base colors are now grey
+const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: number }> = {
+  hot:   { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+  cold:  { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+  coat:  { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+  wet:   { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+  scan:  { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+  iface: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+  foup:  { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+  dry:   { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
 };
-  const th = themes[mod.type] ?? { base: 0xaabbcc, edge: 0x4477aa, glass: mod.color };
 
-  // Base body
-  const bodyMat = new THREE.MeshStandardMaterial({ color: th.base, roughness: 0.2, metalness: 0.75, emissive: th.edge, emissiveIntensity: 0.15 });
+  const th = themes_UNIFORM_GREY[mod.type] ?? { base: 0x5a5a5a, edge: 0x4477aa, glass: mod.color };
+
+  // Body material with NO emissive color bleed
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: th.base,
+    roughness: 0.40,
+    metalness: 0.60,
+    emissive: 0x000000,
+    emissiveIntensity: 0,
+  });
+  
   const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), bodyMat);
-  body.position.y = H / 2; body.castShadow = true; body.receiveShadow = true; grp.add(body);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  
+  // CRITICAL FIX: Raise the module base by 0.5 units from floor
+  const MODULE_BASE_Y = 0.5;
+  body.position.y = MODULE_BASE_Y + H / 2;
+  grp.add(body);
 
   // Top plate
   const topPl = new THREE.Mesh(new THREE.BoxGeometry(W - 0.04, 0.062, D - 0.04),
     new THREE.MeshStandardMaterial({ color: 0xe0e8f0, roughness: 0.05, metalness: 0.98 }));
-  topPl.position.y = H + 0.031; grp.add(topPl);
+  topPl.position.y = MODULE_BASE_Y + H + 0.031;
+  grp.add(topPl);
 
   // Emissive disc
   const discMat = new THREE.MeshStandardMaterial({ color: mod.color, roughness: 0.12, metalness: 0.6, emissive: mod.color, emissiveIntensity: 0.55 });
   const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.96, 0.96, 0.07, 80), discMat);
-  disc.position.y = H + 0.035; grp.add(disc);
+  disc.position.y = MODULE_BASE_Y + H + 0.035;
+  grp.add(disc);
 
   // Concentric rings on chuck
   for (let r = 0.2; r <= 0.88; r += 0.11) {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.004, 4, 72),
       new THREE.MeshStandardMaterial({ color: 0x8899cc, emissive: 0x2244aa, emissiveIntensity: 0.4 }));
-    ring.rotation.x = Math.PI / 2; ring.position.y = H + 0.072; grp.add(ring);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = MODULE_BASE_Y + H + 0.072;
+    grp.add(ring);
   }
 
   // Inner pulsing ring
   const innerRing = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.04, 8, 60), matEmissive(mod.color, 2.5));
-  innerRing.rotation.x = Math.PI / 2; innerRing.position.y = H + 0.075; grp.add(innerRing);
+  innerRing.rotation.x = Math.PI / 2;
+  innerRing.position.y = MODULE_BASE_Y + H + 0.075;
+  grp.add(innerRing);
   grp.userData.innerRing = innerRing;
 
   // LED strip
   const led = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.1, 0.07), matEmissive(mod.color, 5.0));
-  led.position.set(0, H * 0.55, -(D / 2) + 0.05); grp.add(led);
+  led.position.set(0, MODULE_BASE_Y + H * 0.55, -(D / 2) + 0.05);
+  grp.add(led);
   grp.userData.led = led;
 
   // Control panel with status dots
   const panel = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 0.04),
     new THREE.MeshStandardMaterial({ color: 0x0e1c2a, roughness: 0.35, metalness: 0.75 }));
-  panel.position.set(0, H * 0.32, -(D / 2 + 0.02)); grp.add(panel);
+  panel.position.set(0, MODULE_BASE_Y + H * 0.32, -(D / 2 + 0.02));
+  grp.add(panel);
+  
   for (let i = 0; i < 5; i++) {
     const dt2 = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 10),
       matEmissive(i === 0 ? mod.color : i === 1 ? 0x00ff88 : 0x333333, i < 2 ? 3.5 : 0.5));
-    dt2.position.set(-0.55 + i * 0.28, H * 0.32, -(D / 2) + 0.04); grp.add(dt2);
+    dt2.position.set(-0.55 + i * 0.28, MODULE_BASE_Y + H * 0.32, -(D / 2) + 0.04);
+    grp.add(dt2);
   }
 
   // Temp indicator
   if (mod.temp !== null) {
     const tempColor = mod.temp > 50 ? 0xff3300 : 0x0099ff;
     const tempBar = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 0.06), matEmissive(tempColor, 4.0));
-    tempBar.position.set(0, H * 0.78, -(D / 2) + 0.05); grp.add(tempBar);
+    tempBar.position.set(0, MODULE_BASE_Y + H * 0.78, -(D / 2) + 0.05);
+    grp.add(tempBar);
 
-    const tc = document.createElement("canvas"); tc.width = 200; tc.height = 52;
+    const tc = document.createElement("canvas");
+    tc.width = 200;
+    tc.height = 52;
     const tctx = tc.getContext("2d")!;
     tctx.fillStyle = mod.temp > 50 ? "#ff4400" : "#0099ff";
-    tctx.font = "bold 22px 'Courier New',monospace"; tctx.textAlign = "center";
+    tctx.font = "bold 22px 'Courier New',monospace";
+    tctx.textAlign = "center";
     tctx.fillText(`${mod.temp}°C`, 100, 36);
     const tsp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(tc), transparent: true, opacity: 0.95 }));
-    tsp.scale.set(1.5, 0.4, 1); tsp.position.set(0, H + 0.55, -(D / 2) - 0.1); grp.add(tsp);
+    tsp.scale.set(1.5, 0.4, 1);
+    tsp.position.set(0, MODULE_BASE_Y + H + 0.55, -(D / 2) - 0.1);
+    grp.add(tsp);
   }
-
-  // Glass enclosure
-//   const glassH = 2.0;
-//   const gm = matGlass(th.glass, 0.10);
-//   [
-//     { sz: [W + 0.06, glassH, 0.03], p: [0, glassH / 2 + H / 2 - 0.12,  D / 2 + 0.015] },
-//     { sz: [W + 0.06, glassH, 0.03], p: [0, glassH / 2 + H / 2 - 0.12, -D / 2 - 0.015] },
-//     { sz: [0.03, glassH, D + 0.06], p: [ W / 2 + 0.015, glassH / 2 + H / 2 - 0.12, 0] },
-//     { sz: [0.03, glassH, D + 0.06], p: [-W / 2 - 0.015, glassH / 2 + H / 2 - 0.12, 0] },
-//   ].forEach((o) => {
-//     const gp = new THREE.Mesh(new THREE.BoxGeometry(o.sz[0], o.sz[1], o.sz[2]), gm.clone());
-//     gp.position.set(o.p[0], o.p[1], o.p[2]); grp.add(gp);
-//   });
-
-  // Frame rails
-//   const frameMat = new THREE.MeshStandardMaterial({ color: 0x7a8fa0, roughness: 0.15, metalness: 0.92 });
-//   const topY = H + glassH - 0.12; const railT = 0.045;
-//   [
-//     { sz: [W + 0.10, railT, railT], p: [0, topY,  D / 2 + 0.015] },
-//     { sz: [W + 0.10, railT, railT], p: [0, topY, -D / 2 - 0.015] },
-//     { sz: [railT, railT, D + 0.10], p: [ W / 2 + 0.015, topY, 0] },
-//     { sz: [railT, railT, D + 0.10], p: [-W / 2 - 0.015, topY, 0] },
-//   ].forEach((o) => {
-//     const rail = new THREE.Mesh(new THREE.BoxGeometry(o.sz[0], o.sz[1], o.sz[2]), frameMat);
-//     rail.position.set(o.p[0], o.p[1], o.p[2]); grp.add(rail);
-//   });
 
   // Process light
   const pl = new THREE.PointLight(mod.color, 0, 7);
-  pl.position.set(0, H + 1.8, 0); grp.add(pl);
+  pl.position.set(0, MODULE_BASE_Y + H + 1.8, 0);
+  grp.add(pl);
   grp.userData.processLight = pl;
 
-  // ── TYPE-SPECIFIC INTERNALS ──
-
-  // HOT: heating coils (visible inside chuck)
+  // TYPE-SPECIFIC INTERNALS
   if (mod.type === "hot") {
     for (let r = 0.1; r <= 0.85; r += 0.13) {
       const coil = new THREE.Mesh(new THREE.TorusGeometry(r, 0.025, 12, 60),
         new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff1100, emissiveIntensity: 0.4, roughness: 0.35 }));
-      coil.rotation.x = Math.PI / 2; coil.position.y = H + 0.048; grp.add(coil);
+      coil.rotation.x = Math.PI / 2;
+      coil.position.y = MODULE_BASE_Y + H + 0.048;
+      grp.add(coil);
       grp.userData.coils = grp.userData.coils || [];
       (grp.userData.coils as THREE.Mesh[]).push(coil);
     }
   }
 
-  // COLD: cooling fins beneath chuck
   if (mod.type === "cold") {
     for (let i = -7; i <= 7; i++) {
       const fin = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.42, 1.22),
         new THREE.MeshStandardMaterial({ color: 0x1c2e44, roughness: 0.16, metalness: 0.97, emissive: 0x0055cc, emissiveIntensity: 0.6 }));
-      fin.position.set(i * 0.175, H - 0.04, 0); grp.add(fin);
+      fin.position.set(i * 0.175, MODULE_BASE_Y + H - 0.04, 0);
+      grp.add(fin);
     }
   }
 
-  // SCAN: scanner housing + UV beam
   if (mod.type === "scan") {
     const housing = new THREE.Mesh(new THREE.BoxGeometry(W + 1.2, H * 4, D + 1.2),
       new THREE.MeshStandardMaterial({ color: 0x9080b0, roughness: 0.18, metalness: 0.72, emissive: 0x440088, emissiveIntensity: 0.3 }));
-    housing.position.y = H * 2.3; grp.add(housing);
+    housing.position.y = MODULE_BASE_Y + H * 2.3;
+    grp.add(housing);
     const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.2, 32),
       new THREE.MeshStandardMaterial({ color: 0x100020, roughness: 0.05, metalness: 0.7, emissive: 0xcc00ff, emissiveIntensity: 1.4 }));
-    lens.position.y = H * 4.4; grp.add(lens);
+    lens.position.y = MODULE_BASE_Y + H * 4.4;
+    grp.add(lens);
     const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.32, H * 3.5, 20, 1, true),
       new THREE.MeshStandardMaterial({ color: 0xcc00ff, emissive: 0x9900cc, emissiveIntensity: 2.2, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
-    beam.position.y = H * 1.75; grp.add(beam);
+    beam.position.y = MODULE_BASE_Y + H * 1.75;
+    grp.add(beam);
     grp.userData.uvBeam = beam;
-    addBigLabel(grp, "300mm\nSCANNER", 0xcc00ff, 0, H * 4.8, 0);
+    addBigLabel(grp, "300mm\nSCANNER", 0xcc00ff, 0, MODULE_BASE_Y + H * 4.8, 0);
   }
 
-  // FOUP
-  if (mod.type === "foup") {
-    const foupBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.0, 2.0),
-      new THREE.MeshStandardMaterial({ color: 0x080808, metalness: 0.85, roughness: 0.18, emissive: 0x001133, emissiveIntensity: 0.12 }));
-    foupBody.position.y = 1.5; foupBody.castShadow = true; grp.add(foupBody);
-    const door = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.4, 0.06),
-      new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.95, roughness: 0.08, emissive: 0x0033aa, emissiveIntensity: 0.25 }));
-    door.position.set(0, 1.5, 1.03); grp.add(door);
-    for (let s = 0; s < 6; s++) {
-      const slot = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.82, 0.018, 64),
-        new THREE.MeshStandardMaterial({ color: 0xb8c8d8, metalness: 0.92, roughness: 0.05 }));
-      slot.position.set(0, 0.55 + s * 0.38, 0.85); grp.add(slot);
-    }
-    const foupPL = new THREE.PointLight(0x0066ff, 0, 4);
-    foupPL.position.set(0, 2.5, 1.2); grp.add(foupPL);
-    grp.userData.processLight = foupPL;
-  }
+  // Wafer anchor for non-FOUP modules
+ if (mod.type !== "foup") {
+  const waferAnchor = new THREE.Group();
+  waferAnchor.name = "ModuleWaferAnchor";
+  waferAnchor.position.set(0, WAFER_TRANSFER_Y, 0);
+  grp.add(waferAnchor);
+  grp.userData.waferAnchor = waferAnchor;
+}
 
-  // WET / DRY: rotating chuck
   if (mod.type === "wet" || mod.type === "dry") {
     const chuck = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.05, 48),
       new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.12, metalness: 0.92 }));
-    chuck.position.y = H + 0.025; grp.add(chuck);
+    chuck.position.y = MODULE_BASE_Y + H + 0.025;
+    grp.add(chuck);
   }
 
-  // DRY: N2 nozzles
   if (mod.type === "dry") {
     for (let a = 0; a < 6; a++) {
       const ang = (a / 6) * Math.PI * 2;
       const noz = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.065, 0.35, 12),
         new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.18, metalness: 0.95 }));
-      noz.position.set(Math.cos(ang) * 0.58, H + 0.6, Math.sin(ang) * 0.58); grp.add(noz);
+      noz.position.set(Math.cos(ang) * 0.58, MODULE_BASE_Y + H + 0.6, Math.sin(ang) * 0.58);
+      grp.add(noz);
       const tip = new THREE.Mesh(new THREE.SphereGeometry(0.038, 8, 8), matEmissive(0x44ddff, 2.5));
-      tip.position.set(Math.cos(ang) * 0.58, H + 0.42, Math.sin(ang) * 0.58); grp.add(tip);
+      tip.position.set(Math.cos(ang) * 0.58, MODULE_BASE_Y + H + 0.42, Math.sin(ang) * 0.58);
+      grp.add(tip);
     }
   }
 
+  // FOUP special handling
+  if (mod.type === "foup") {
+    // Override position for FOUP
+    grp.position.y = 1.5;
+    grp.rotation.set(0, -Math.PI / 2, 0);
+    grp.rotateY(Math.PI);
+    grp.position.x += 0.12;
+
+    const foupPickupAnchor = new THREE.Group();
+    foupPickupAnchor.name = "FoupPickupPoint";
+    foupPickupAnchor.position.set(0, 1.15, 1.25);
+    grp.add(foupPickupAnchor);
+    grp.userData.pickupAnchor = foupPickupAnchor;
+
+    const foupBody = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.4, 2.8),
+      new THREE.MeshStandardMaterial({ color: 0x162230, metalness: 0.82, roughness: 0.22, emissive: 0x081822, emissiveIntensity: 0.16 }));
+    foupBody.position.y = 1.7;
+    foupBody.castShadow = true;
+    grp.add(foupBody);
+    
+    const door = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.8, 0.08),
+      new THREE.MeshStandardMaterial({ color: 0x1c2938, metalness: 0.9, roughness: 0.12, emissive: 0x003566, emissiveIntensity: 0.2 }));
+    door.position.set(0, 1.7, 1.35);
+    grp.add(door);
+    
+    const slotAnchors: THREE.Object3D[] = [];
+    for (let s = 0; s < 6; s++) {
+      const slot = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.03, 64),
+        new THREE.MeshStandardMaterial({ color: 0x91a8c2, metalness: 0.9, roughness: 0.08 }));
+      slot.position.set(0, 0.55 + s * 0.42, 1.05);
+      grp.add(slot);
+      const anchor = new THREE.Group();
+      anchor.name = `FoupSlot_${s + 1}`;
+      anchor.position.set(0, 0.55 + s * 0.42, 1.08);
+      grp.add(anchor);
+      slotAnchors.push(anchor);
+    }
+    grp.userData.slotAnchors = slotAnchors;
+    grp.userData.slotCount = slotAnchors.length;
+    
+    const foupPL = new THREE.PointLight(0x0066ff, 0, 4);
+    foupPL.position.set(0, 2.5, 1.2);
+    grp.add(foupPL);
+    grp.userData.processLight = foupPL;
+  }
+
   // Module name label
-// ── Module name label (FLOATING ABOVE module) ──
+  const labelHeight = mod.type === "scan" ? MODULE_BASE_Y + H * 6.0 : MODULE_BASE_Y + H + 2.4;
+  
   const nc = document.createElement("canvas");
   nc.width = 512;
   nc.height = 180;
   const nctx = nc.getContext("2d")!;
 
-  // Soft dark background pill behind text for readability against any floor color
   nctx.fillStyle = "rgba(10, 18, 32, 0.78)";
   nctx.beginPath();
   const pillX = 20, pillY = 20, pillW = 472, pillH = 140, pillR = 18;
@@ -19473,12 +26683,10 @@ function buildModule(mod: ProcessStep): THREE.Group {
   nctx.closePath();
   nctx.fill();
 
-  // Colored border in module color
   nctx.strokeStyle = hex2css(mod.color);
   nctx.lineWidth = 3;
   nctx.stroke();
 
-  // Big short-code (top line)
   nctx.fillStyle = hex2css(mod.color);
   nctx.font = "bold 52px 'Courier New', monospace";
   nctx.textAlign = "center";
@@ -19487,13 +26695,11 @@ function buildModule(mod: ProcessStep): THREE.Group {
   nctx.shadowBlur = 14;
   nctx.fillText(mod.short, 256, 65);
 
-  // Full name (smaller line below)
   nctx.shadowBlur = 4;
   nctx.fillStyle = "#e8f0ff";
   nctx.font = "bold 22px 'Inter', 'Arial', sans-serif";
   nctx.fillText(mod.name, 256, 120);
 
-  // Optional: temperature badge
   if (mod.temp !== null) {
     nctx.shadowBlur = 0;
     nctx.fillStyle = mod.temp > 50 ? "#ff6633" : "#33aaff";
@@ -19508,16 +26714,12 @@ function buildModule(mod: ProcessStep): THREE.Group {
       map: nameTex,
       transparent: true,
       opacity: 0.96,
-      depthTest: false,    // always visible, never occluded by modules
+      depthTest: false,
       depthWrite: false,
     })
   );
-  // Width 4.2, height 1.5 — readable from camera radius 32+
   nsp.scale.set(4.2, 1.5, 1);
-  // Float above the module — scanner is taller, so push label higher for it
-  const labelY = mod.type === "scan" ? H * 6.0 : H + 2.4;
-  nsp.position.set(0, labelY, 0);
-  // Render labels on top of everything so they're never hidden
+  nsp.position.set(0, labelHeight, 0);
   nsp.renderOrder = 999;
   grp.add(nsp);
   grp.userData.nameLabel = nsp;
@@ -19539,55 +26741,10 @@ function addBigLabel(parent: THREE.Group | THREE.Scene, text: string, color: num
   parent.add(sp);
 }
 
-// ─── FLOW ARROWS ─────────────────────────────────────────────────────────────
+// ─── FLOW / TRACK (yellow arrow meshes removed — real belts in Sim._build) ───
 
-function buildFlowArrows(scene: THREE.Scene) {
-  const arrowMat = new THREE.MeshStandardMaterial({ color: 0xddcc44, emissive: 0xaa9900, emissiveIntensity: 0.8, roughness: 0.4 });
-
-  function arrow(ax: number, az: number, bx: number, bz: number) {
-    const dir = new THREE.Vector3(bx - ax, 0, bz - az).normalize();
-    const len = Math.sqrt((bx - ax) ** 2 + (bz - az) ** 2) - 1.5;
-    if (len <= 0) return;
-    const cx = (ax + bx) / 2, cz = (az + bz) / 2;
-    const shaft = new THREE.Mesh(new THREE.BoxGeometry(len, 0.06, 0.06), arrowMat.clone());
-    shaft.position.set(cx, 0.7, cz);
-    shaft.rotation.y = Math.atan2(-(bz - az), bx - ax);
-    scene.add(shaft);
-    const head = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.35, 8), arrowMat.clone());
-    head.position.set(bx - dir.x * 0.8, 0.7, bz - dir.z * 0.8);
-    head.rotation.set(0, 0, Math.PI / 2);
-    head.rotation.y = Math.atan2(-(bz - az), bx - ax);
-    scene.add(head);
-  }
-
-  // Filter out 'output' since it was removed — work only with existing steps
-  const validSteps = ALL_STEPS.filter(s => s.id !== 'output');
-
-  // FOUP → first process step
-  const foupStep = validSteps.find(s => s.id === 'foup')!;
-  const dehy     = validSteps.find(s => s.id === 'dehy')!;
-  if (foupStep && dehy) arrow(foupStep.x, foupStep.z, dehy.x, dehy.z);
-
-  // Top track: dehy → hmds → chill1 → prcoat → pab → chill2 → iface_out
-  const topIds = ['dehy', 'hmds', 'chill1', 'prcoat', 'pab', 'chill2', 'iface_out'];
-  const top = topIds.map(id => validSteps.find(s => s.id === id)).filter(Boolean) as ProcessStep[];
-  for (let i = 0; i < top.length - 1; i++) arrow(top[i].x, top[i].z, top[i+1].x, top[i+1].z);
-
-  // iface_out → scanner → iface_in
-  const ifaceOut = validSteps.find(s => s.id === 'iface_out');
-  const scanner  = validSteps.find(s => s.id === 'scanner');
-  const ifaceIn  = validSteps.find(s => s.id === 'iface_in');
-  if (ifaceOut && scanner) arrow(ifaceOut.x, ifaceOut.z, scanner.x, scanner.z);
-  if (scanner  && ifaceIn) arrow(scanner.x,  scanner.z,  ifaceIn.x,  ifaceIn.z);
-
-  // Bottom track: iface_in → peb → develop → rinse → spindry → chill3 → hardbake
-  const botIds = ['iface_in', 'peb', 'develop', 'rinse', 'spindry', 'chill3', 'hardbake'];
-  const bot = botIds.map(id => validSteps.find(s => s.id === id)).filter(Boolean) as ProcessStep[];
-  for (let i = 0; i < bot.length - 1; i++) arrow(bot[i].x, bot[i].z, bot[i+1].x, bot[i+1].z);
-
-  // hardbake → back to FOUP (return path)
-  const hardbake = validSteps.find(s => s.id === 'hardbake');
-  if (hardbake && foupStep) arrow(hardbake.x, hardbake.z, foupStep.x, foupStep.z);
+function buildFlowArrows(_scene: THREE.Scene) {
+  /* no-op: static yellow “process arrows” replaced by ConveyorBelt track meshes */
 }
 // ─── ROBOT BUILDER ───────────────────────────────────────────────────────────
 
@@ -20146,7 +27303,7 @@ export class PrCoatOverlay {
       })
     );
     this.plane.rotation.x = -Math.PI / 2;
-    this.plane.position.set(x, 0.97, z);
+    this.plane.position.set(x, WAFER_TRANSFER_Y + 0.01, z);
     this.plane.renderOrder = 5;
     scene.add(this.plane);
   }
@@ -20379,7 +27536,7 @@ export class DevPuddleOverlay {
       })
     );
     this.poolPlane.rotation.x = -Math.PI / 2;
-    this.poolPlane.position.set(x, 0.975, z);
+    this.poolPlane.position.set(x, WAFER_TRANSFER_Y + 0.012, z);
     this.poolPlane.renderOrder = 6;
     scene.add(this.poolPlane);
   }
@@ -20599,6 +27756,285 @@ export class DevPuddleOverlay {
 }
 
 
+// function buildRobotGLB(
+//   scene: THREE.Scene,
+//   basePos: THREE.Vector3,
+//   ledColor = 0x00ff88,
+//   scale = 0.35,
+//   onReady: (robot: RobotObject) => void
+// ): void {
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/roboticarm.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+//       root.scale.setScalar(scale);
+//       root.rotation.y = Math.PI;
+
+//       root.position.set(0, 0, 0);
+//       scene.add(root);
+
+//       // Validate transforms
+//       root.traverse((obj) => {
+//         if (obj instanceof THREE.Group || (obj as THREE.Mesh).isMesh) {
+//           obj.quaternion.normalize();
+//           const s = obj.scale;
+//           if (Math.abs(s.x - s.y) > 1e-4 || Math.abs(s.y - s.z) > 1e-4) {
+//             console.warn(`[GLB] Non-uniform scale on '${obj.name}':`, s.toArray());
+//           }
+//         }
+//       });
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       const bottomOffset = box.min.y;
+//       const FLOOR_Y = 0.8;
+//       root.position.set(basePos.x, FLOOR_Y - bottomOffset, basePos.z);
+
+//       // Enable shadows + LED emissive
+//       root.traverse((obj: THREE.Object3D) => {
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//           const mesh = obj as THREE.Mesh;
+//           const mat = mesh.material as THREE.MeshStandardMaterial;
+//           if (mat && (mat.name?.includes('LED') || mat.name?.includes('emit'))) {
+//             mat.emissive = new THREE.Color(ledColor);
+//             mat.emissiveIntensity = 2.5;
+//           }
+//         }
+//       });
+
+//       // Index by name
+//       const byName: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj: THREE.Object3D) => { byName[obj.name] = obj; });
+
+//       console.log('NEW ROBOT GLB nodes:', Object.keys(byName));
+
+//       // ── Hide IK gizmos and Bezier curve controllers (Blender helpers) ──
+// // These are rigging aids, not part of the visible robot
+// const HIDDEN_NODES = [
+//   'BezierCircle', 'BezierCircle.001', 'BezierCircle.002', 'BezierCircle.003',
+//   'IK', 'Curve', 'Empty', 'Target', 'Pole',
+// ];
+
+// root.traverse((obj) => {
+//   // Hide any node whose name matches a helper pattern
+//   const name = obj.name || '';
+//   if (HIDDEN_NODES.some(h => name === h || name.startsWith(h))) {
+//     obj.visible = false;
+//     // Also mark as non-pickable for raycasts
+//     if ((obj as THREE.Mesh).isMesh) {
+//       (obj as THREE.Mesh).raycast = () => {};
+//     }
+//   }
+//   // Hide any mesh that's a flat circle/curve (likely a Bezier helper)
+//   if ((obj as THREE.Mesh).isMesh) {
+//     const mesh = obj as THREE.Mesh;
+//     const mat = mesh.material as THREE.MeshStandardMaterial;
+//     // Hide unlit yellow/orange disc meshes typical of rig helpers
+//     if (mat && mat.name && (
+//       mat.name.toLowerCase().includes('curve') ||
+//       mat.name.toLowerCase().includes('helper') ||
+//       mat.name.toLowerCase().includes('gizmo')
+//     )) {
+//       mesh.visible = false;
+//     }
+//   }
+// });
+
+//       // ── Bind to NEW hierarchy ──
+//       // Convention: Main → Arm_01 → Arm_02 → Arm_03 → Hand → fingers
+//       const turret   = (byName['Main']    ?? byName['Robotic Arm'] ?? new THREE.Group()) as THREE.Group;
+//       const shoulder = (byName['Arm_01']  ?? new THREE.Group()) as THREE.Group;
+//       const upperArm = (byName['Arm_02']  ?? new THREE.Group()) as THREE.Group;
+//       const elbow    = (byName['Arm_02']  ?? new THREE.Group()) as THREE.Group;
+//       const foreArm  = (byName['Arm_03']  ?? new THREE.Group()) as THREE.Group;
+//       const wrist    = (byName['Hand']    ?? byName['Hand_a_low.001'] ?? new THREE.Group()) as THREE.Group;
+//       const gripper  = (byName['Hand_a_low.001'] ?? byName['Hand'] ?? new THREE.Group()) as THREE.Group;
+//       const fork =
+//         (byName['Joint_Extension_A'] as THREE.Object3D | undefined) ?? (gripper as THREE.Object3D);
+
+//       // Finger references for grip animation
+//       const fingerTop1  = byName['Finger_top_01']  as THREE.Object3D | undefined;
+//       const fingerTop2  = byName['Finger_top_02']  as THREE.Object3D | undefined;
+//       const fingerDown1 = byName['Finger_down_01'] as THREE.Object3D | undefined;
+//       const fingerDown2 = byName['Finger_down_02'] as THREE.Object3D | undefined;
+
+//       // Vertical lift (Updown_low.001) — use as Z lift if needed
+//       const verticalLift = byName['Updown_low.001'] as THREE.Object3D | undefined;
+
+//       // IK target empty (drive this directly if curves attached)
+//       const ikTarget = byName['IK'] as THREE.Object3D | undefined;
+
+//       console.log('NEW ROBOT bindings:', {
+//         turret:   turret.name,
+//         shoulder: shoulder.name,
+//         elbow:    elbow.name,
+//         foreArm:  foreArm.name,
+//         wrist:    wrist.name,
+//         gripper:  gripper.name,
+//         fingers:  [fingerTop1?.name, fingerTop2?.name, fingerDown1?.name, fingerDown2?.name],
+//         ikTarget: ikTarget?.name,
+//         verticalLift: verticalLift?.name,
+//       });
+
+//       const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
+//       statusPL.position.set(0, 2.0, 0);
+//       root.add(statusPL);
+
+//       // Store finger rest poses + IK target reference on root userData
+//       root.userData.fingerTop1  = fingerTop1;
+//       root.userData.fingerTop2  = fingerTop2;
+//       root.userData.fingerDown1 = fingerDown1;
+//       root.userData.fingerDown2 = fingerDown2;
+//       root.userData.fingerRest = {
+//         top1:  fingerTop1  ? { x: fingerTop1.rotation.x,  y: fingerTop1.rotation.y,  z: fingerTop1.rotation.z  } : null,
+//         top2:  fingerTop2  ? { x: fingerTop2.rotation.x,  y: fingerTop2.rotation.y,  z: fingerTop2.rotation.z  } : null,
+//         down1: fingerDown1 ? { x: fingerDown1.rotation.x, y: fingerDown1.rotation.y, z: fingerDown1.rotation.z } : null,
+//         down2: fingerDown2 ? { x: fingerDown2.rotation.x, y: fingerDown2.rotation.y, z: fingerDown2.rotation.z } : null,
+//       };
+//       root.userData.gripperState = 0; // 0 = open, 1 = closed
+//       root.userData.ikTarget = ikTarget;
+
+//       // Geometry constants — measure from actual GLB instead of hardcoding
+//       const armBox = new THREE.Box3().setFromObject(shoulder);
+//       const armSize = new THREE.Vector3();
+//       armBox.getSize(armSize);
+
+//       const L1 = Math.max(armSize.y, 0.7) * scale;
+//       const L2 = L1 * 1.6;
+//       const shoulderH = armBox.min.y * scale + 0.5 * scale;
+//       const wristToGrip = 0.25 * scale;
+//       const axisY = new THREE.Vector3(0, 1, 0);
+//       const axisZ = new THREE.Vector3(0, 0, 1);
+//       const qTurretT = new THREE.Quaternion();
+//       const qSegT = new THREE.Quaternion();
+//       const eTmp = new THREE.Euler();
+
+//       function runIK(tgt: THREE.Vector3): void {
+//         const baseWP = new THREE.Vector3();
+//         root.getWorldPosition(baseWP);
+//         const dx = tgt.x - baseWP.x;
+//         const dz = tgt.z - baseWP.z;
+
+//         let rawYaw = Math.atan2(dx, dz) + Math.PI;
+//         rawYaw = normalizeAngle(rawYaw);
+
+//         if (root.userData._ikYaw === undefined) root.userData._ikYaw = turret.rotation.y;
+//         let tw = root.userData._ikYaw as number;
+//         let delta = normalizeAngle(rawYaw - tw);
+//         delta = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, delta));
+//         tw = normalizeAngle(tw + delta);
+//         root.userData._ikYaw = tw;
+
+//         qTurretT.setFromAxisAngle(axisY, tw);
+//         turret.quaternion.slerp(qTurretT, 0.2);
+//         turret.quaternion.normalize();
+
+//         // Blender "IK" empties are not solved in three.js at runtime. Driving only ikTarget
+//         // leaves the real mesh chain (shoulder → gripper) frozen, so vacuum attach parents
+//         // the wafer to a gripper that never reaches the chuck — wafer stays on the station.
+
+//         const localTgt = turret.worldToLocal(tgt.clone());
+//         const reach = Math.hypot(localTgt.x, localTgt.z);
+//         const dy = localTgt.y - shoulderH - wristToGrip;
+
+//         let D = Math.hypot(reach, dy);
+//         const Dmin = Math.abs(L1 - L2) + 0.02;
+//         const Dmax = L1 + L2 - 0.02;
+//         D = Math.max(Dmin, Math.min(Dmax, D));
+
+//         const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
+//         const elbowInner = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
+//         const elbowAngle = -(Math.PI - elbowInner);
+
+//         const cosShoulder = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+//         const shoulderInner = Math.acos(Math.max(-1, Math.min(1, cosShoulder)));
+//         const targetAngle = Math.atan2(reach, dy);
+//         let shoulderAngle = targetAngle - shoulderInner;
+//         shoulderAngle = Math.max(0, Math.min(Math.PI / 2.2, shoulderAngle));
+
+//         qSegT.setFromAxisAngle(axisZ, shoulderAngle);
+//         shoulder.quaternion.slerp(qSegT, 0.22);
+//         shoulder.quaternion.normalize();
+
+//         qSegT.setFromAxisAngle(axisZ, elbowAngle);
+//         if (foreArm !== elbow) {
+//           foreArm.quaternion.slerp(qSegT, 0.22);
+//           foreArm.quaternion.normalize();
+//         } else {
+//           elbow.quaternion.slerp(qSegT, 0.22);
+//           elbow.quaternion.normalize();
+//         }
+
+//         const totalPitch = shoulderAngle + elbowAngle;
+//         let wristAngle = -totalPitch;
+//         const isPlacing = Math.abs(localTgt.y - 0.93) < 0.28;
+//         if (isPlacing) wristAngle += -0.26;
+//         wristAngle = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, wristAngle));
+//         qSegT.setFromAxisAngle(axisZ, wristAngle);
+//         wrist.quaternion.slerp(qSegT, 0.22);
+//         wrist.quaternion.normalize();
+//       }
+
+//       function getJoints(): JointData {
+//         eTmp.setFromQuaternion(turret.quaternion, "YXZ");
+//         const baseA = eTmp.y;
+//         eTmp.setFromQuaternion(shoulder.quaternion, "XYZ");
+//         const shoulderA = eTmp.z;
+//         eTmp.setFromQuaternion(foreArm.quaternion, "XYZ");
+//         const elbowA = eTmp.z;
+//         eTmp.setFromQuaternion(wrist.quaternion, "XYZ");
+//         const wristA = eTmp.z;
+//         return {
+//           base: { c: baseA },
+//           shoulder: { c: shoulderA },
+//           elbow: { c: elbowA },
+//           wrist: { c: wristA },
+//         };
+//       }
+
+//       console.log('=== NEW ROBOT BONE TEST ===');
+//       console.log('turret:',   turret.name);
+//       console.log('shoulder:', shoulder.name);
+//       console.log('foreArm:',  foreArm.name);
+//       console.log('wrist:',    wrist.name);
+//       console.log('gripper:',  gripper.name);
+//       console.log('IK target:', ikTarget?.name ?? 'none');
+
+//       onReady({
+//         group: root,
+//         turret,
+//         shoulder,
+//         upperArm,
+//         elbow,
+//         foreArm,
+//         wrist,
+//         gripper,
+//         fork,
+//         statusPL,
+//         basePos: basePos.clone(),
+//         runIK,
+//         getJoints,
+//         worldPos: () => {
+//           const v = new THREE.Vector3();
+//           fork.getWorldPosition(v);
+//           return v;
+//         },
+//       });
+//     },
+//     (progress: any) => {
+//       if (progress.total > 0) {
+//         console.log('GLB loading:', Math.round(progress.loaded / progress.total * 100) + '%');
+//       }
+//     },
+//     (error: any) => {
+//       console.error('GLB FAILED TO LOAD:', error);
+//     }
+//   );
+// }
+
+
 function buildRobotGLB(
   scene: THREE.Scene,
   basePos: THREE.Vector3,
@@ -20612,228 +28048,336 @@ function buildRobotGLB(
     (gltf: any) => {
       const root = gltf.scene as THREE.Group;
       root.scale.setScalar(scale);
-      root.rotation.y = Math.PI;
-
-      root.position.set(0, 0, 0);
+      root.rotation.y = 0;          // GLB's +X arm direction = world +X (track axis) — good
       scene.add(root);
-
+ 
       // Validate transforms
       root.traverse((obj) => {
         if (obj instanceof THREE.Group || (obj as THREE.Mesh).isMesh) {
           obj.quaternion.normalize();
-          const s = obj.scale;
-          if (Math.abs(s.x - s.y) > 1e-4 || Math.abs(s.y - s.z) > 1e-4) {
-            console.warn(`[GLB] Non-uniform scale on '${obj.name}':`, s.toArray());
-          }
         }
       });
-
+ 
+      // Snap to floor
       const box = new THREE.Box3().setFromObject(root);
-      const bottomOffset = box.min.y;
-      const FLOOR_Y = 0.8;
-      root.position.set(basePos.x, FLOOR_Y - bottomOffset, basePos.z);
-
-      // Enable shadows + LED emissive
+      const FLOOR_Y = 0.3;
+      root.position.set(basePos.x, FLOOR_Y - box.min.y, basePos.z);
+ 
+      // Shadows + LEDs
       root.traverse((obj: THREE.Object3D) => {
         if ((obj as THREE.Mesh).isMesh) {
           obj.castShadow = true;
           obj.receiveShadow = true;
           const mesh = obj as THREE.Mesh;
           const mat = mesh.material as THREE.MeshStandardMaterial;
-          if (mat && (mat.name?.includes('LED') || mat.name?.includes('emit'))) {
+          if (mat && mat.name && (mat.name.includes('LED') || mat.name.includes('emit'))) {
             mat.emissive = new THREE.Color(ledColor);
             mat.emissiveIntensity = 2.5;
           }
         }
       });
-
-      // Index by name
-      const byName: Record<string, THREE.Object3D> = {};
-      root.traverse((obj: THREE.Object3D) => { byName[obj.name] = obj; });
-
-      console.log('NEW ROBOT GLB nodes:', Object.keys(byName));
-
-      // ── Hide IK gizmos and Bezier curve controllers (Blender helpers) ──
-// These are rigging aids, not part of the visible robot
-const HIDDEN_NODES = [
-  'BezierCircle', 'BezierCircle.001', 'BezierCircle.002', 'BezierCircle.003',
-  'IK', 'Curve', 'Empty', 'Target', 'Pole',
-];
-
-root.traverse((obj) => {
-  // Hide any node whose name matches a helper pattern
-  const name = obj.name || '';
-  if (HIDDEN_NODES.some(h => name === h || name.startsWith(h))) {
-    obj.visible = false;
-    // Also mark as non-pickable for raycasts
-    if ((obj as THREE.Mesh).isMesh) {
-      (obj as THREE.Mesh).raycast = () => {};
-    }
-  }
-  // Hide any mesh that's a flat circle/curve (likely a Bezier helper)
-  if ((obj as THREE.Mesh).isMesh) {
-    const mesh = obj as THREE.Mesh;
-    const mat = mesh.material as THREE.MeshStandardMaterial;
-    // Hide unlit yellow/orange disc meshes typical of rig helpers
-    if (mat && mat.name && (
-      mat.name.toLowerCase().includes('curve') ||
-      mat.name.toLowerCase().includes('helper') ||
-      mat.name.toLowerCase().includes('gizmo')
-    )) {
-      mesh.visible = false;
-    }
-  }
-});
-
-      // ── Bind to NEW hierarchy ──
-      // Convention: Main → Arm_01 → Arm_02 → Arm_03 → Hand → fingers
-      const turret   = (byName['Main']    ?? byName['Robotic Arm'] ?? new THREE.Group()) as THREE.Group;
-      const shoulder = (byName['Arm_01']  ?? new THREE.Group()) as THREE.Group;
-      const upperArm = (byName['Arm_02']  ?? new THREE.Group()) as THREE.Group;
-      const elbow    = (byName['Arm_02']  ?? new THREE.Group()) as THREE.Group;
-      const foreArm  = (byName['Arm_03']  ?? new THREE.Group()) as THREE.Group;
-      const wrist    = (byName['Hand']    ?? byName['Hand_a_low.001'] ?? new THREE.Group()) as THREE.Group;
-      const gripper  = (byName['Hand_a_low.001'] ?? byName['Hand'] ?? new THREE.Group()) as THREE.Group;
-
-      // Finger references for grip animation
-      const fingerTop1  = byName['Finger_top_01']  as THREE.Object3D | undefined;
-      const fingerTop2  = byName['Finger_top_02']  as THREE.Object3D | undefined;
-      const fingerDown1 = byName['Finger_down_01'] as THREE.Object3D | undefined;
-      const fingerDown2 = byName['Finger_down_02'] as THREE.Object3D | undefined;
-
-      // Vertical lift (Updown_low.001) — use as Z lift if needed
-      const verticalLift = byName['Updown_low.001'] as THREE.Object3D | undefined;
-
-      // IK target empty (drive this directly if curves attached)
-      const ikTarget = byName['IK'] as THREE.Object3D | undefined;
-
-      console.log('NEW ROBOT bindings:', {
-        turret:   turret.name,
-        shoulder: shoulder.name,
-        elbow:    elbow.name,
-        foreArm:  foreArm.name,
-        wrist:    wrist.name,
-        gripper:  gripper.name,
-        fingers:  [fingerTop1?.name, fingerTop2?.name, fingerDown1?.name, fingerDown2?.name],
-        ikTarget: ikTarget?.name,
-        verticalLift: verticalLift?.name,
+ 
+      // Hide rigging helpers from old file (left in just in case GLB has them)
+      const HIDDEN = ['BezierCircle', 'IK', 'CameraTarget', 'Curve', 'Empty', 'Pole'];
+      root.traverse((obj) => {
+        const name = obj.name || '';
+        if (HIDDEN.some(h => name === h || name.startsWith(h))) {
+          obj.visible = false;
+          if ((obj as THREE.Mesh).isMesh) (obj as THREE.Mesh).raycast = () => {};
+        }
       });
-
+ 
+      // ── Index nodes by name ──
+      const byName: Record<string, THREE.Object3D> = {};
+      root.traverse((obj) => { byName[obj.name] = obj; });
+      console.log('GLB nodes:', Object.keys(byName).filter(n => n.startsWith('Joint') || n.startsWith('Blade')));
+ 
+      // ── Bind to the NEW joint hierarchy ──
+      const zLift   = byName['Joint_ZLift']    as THREE.Object3D;
+      const turret  = byName['Joint_Rot']      as THREE.Group;        // yaw (Y)
+      const shoulder= byName['Joint_Shoulder'] as THREE.Group;        // pitch (Z)
+      const elbow   = byName['Joint_Elbow']    as THREE.Group;        // pitch (Z) — at +X 0.355 from shoulder
+      const foreArm = byName['Joint_Forearm']  as THREE.Group;        // pitch (Z)
+      const wrist   = byName['Joint_Wrist']    as THREE.Group;        // pitch (Z) — at +X 0.305 from elbow
+      const gripper = (byName['Joint_Wrist']   ?? byName['Blade_Mount']) as THREE.Group;
+      // Blade tip lives ~0.335 along +X from the wrist (per Joint_Wrist children).
+      const fork    = byName['Blade_Mount']    as THREE.Object3D ?? gripper;
+ 
+      if (!turret || !shoulder || !elbow || !wrist) {
+        console.error('GLB binding failed — joint nodes not found. Got:',
+          { turret: !!turret, shoulder: !!shoulder, elbow: !!elbow, wrist: !!wrist });
+        return;
+      }
+ 
+      // ── Status LED ──
       const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
       statusPL.position.set(0, 2.0, 0);
       root.add(statusPL);
+ 
+      // ── Rest-pose offsets used by IK (from GLB inspection, multiplied by scale) ──
+      // shoulder→elbow distance along X
+      const L1 = 0.355 * scale;
+      // elbow→wrist distance along X
+      const L2 = 0.305 * scale;
+      // wrist→blade-tip distance along X (Joint_Wrist x=0.335 to its children blade meshes)
+      const L3 = 0.335 * scale;
+      // Shoulder Y position above the rail
+      const SHOULDER_Y = (0.93 + 0.46) * scale;   // Joint_ZLift + Joint_Rot offsets
+ 
+      // Save state for animations / restoration
+      root.userData.vacuumEngaged = false;
+      root.userData.bladeFlash    = 0;        // for visual "engaged" pulse
+      root.userData._ikYaw        = 0;
+      root.userData.L1            = L1;
+      root.userData.L2            = L2;
+      root.userData.L3            = L3;
+      root.userData.SHOULDER_Y    = SHOULDER_Y;
+ 
+      // Reusable temp objects
+      const axisY  = new THREE.Vector3(0, 1, 0);
+      const axisZ  = new THREE.Vector3(0, 0, 1);
+      const qTmp   = new THREE.Quaternion();
+      const eTmp   = new THREE.Euler();
+ 
+      // ── INVERSE KINEMATICS (closed-form 3R planar in the rotated X-Y plane) ──
+//      function runIK(tgt: THREE.Vector3): void {
+//   // ── 1. Turret yaw (unchanged — aim at target on the XZ plane) ──────────
+//   const baseWP = new THREE.Vector3();
+//   root.getWorldPosition(baseWP);
+//   const dx = tgt.x - baseWP.x;
+//   const dz = tgt.z - baseWP.z;
+//   const rawYaw = Math.atan2(dx, dz);
+//   const prev = root.userData._ikYaw as number;
+//   let delta = rawYaw - prev;
+//   while (delta >  Math.PI) delta -= 2 * Math.PI;
+//   while (delta < -Math.PI) delta += 2 * Math.PI;
+//   delta = Math.max(-Math.PI / 1.2, Math.min(Math.PI / 1.2, delta));
+//   const newYaw = prev + delta;
+//   root.userData._ikYaw = newYaw;
+//   qTmp.setFromAxisAngle(axisY, newYaw);
+//   turret.quaternion.slerp(qTmp, 0.22).normalize();
+ 
+//   // ── 2. Target in turret-local frame ────────────────────────────────────
+//   turret.updateWorldMatrix(true, false);
+//   const localTgt = turret.worldToLocal(tgt.clone());
+ 
+//   // After yaw, the planar reach is along +Z (because we rotated INTO the
+//   // target). The vertical axis is Y. So treat the IK plane as (reachZ, Y).
+//   // Important: use the absolute z because the turret might be slightly
+//   // mis-aimed due to the slerp lag.
+//   const reach = Math.abs(localTgt.z);
+ 
+//   // Wrist target = wafer target minus the blade extension L3 along the
+//   // arm's current outward direction. Since the wrist points +X in local
+//   // shoulder frame, but after turret yaw the outward direction is +Z in
+//   // turret-local frame, we subtract L3 from reach.
+//   const wx = reach - L3;                          // horizontal distance to wrist
+//   const wy = localTgt.y - SHOULDER_Y;             // vertical offset to wrist
+ 
+//   let D = Math.hypot(wx, wy);
+ 
+//   // Force the wrist target to sit strictly inside the bend annulus so the
+//   // arm always bends. NEVER let D ≥ L1+L2 (which would force straight arm).
+//   const MIN_BEND_ANGLE = 0.20;                    // ~11.5° minimum elbow bend
+//   const Dmax_bent = Math.sqrt(
+//     L1 * L1 + L2 * L2 - 2 * L1 * L2 * Math.cos(Math.PI - MIN_BEND_ANGLE)
+//   );
+//   const Dmin = Math.abs(L1 - L2) + 0.005;
+//   D = Math.max(Dmin, Math.min(Dmax_bent, D));
+ 
+//   // ── 3. Law-of-cosines (ELBOW-BACK branch) ──────────────────────────────
+//   // Interior elbow angle (between L1 and L2)
+//   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
+//   const elbowInner = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
+ 
+//   // Shoulder offset from straight-line-to-wrist
+//   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+//   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
+ 
+//   // Angle from shoulder's +X (outward direction) to the wrist target.
+//   // In the (wx, wy) plane:  +wx = outward, +wy = up.
+//   const targetAng = Math.atan2(wy, wx);
+ 
+//   // ── Elbow-BACK branch: forearm folds BACK toward the base, like a real
+//   // wafer handler reaching around obstacles.
+//   //   shoulderAngle = targetAng - shOff   (negative offset bends arm UP first)
+//   //   elbowAngle    = π - elbowInner      (positive = forearm angled back)
+//   const shoulderAngle = targetAng - shOff;
+//   const elbowAngle    = Math.PI - elbowInner;
+ 
+//   // ── 4. Wrist counter-rotation so the blade stays horizontal ────────────
+//   // Sum of pitches in the chain must equal 0 for the blade to stay level.
+//   // Chain: shoulder(+sA) → elbow(-eA) → forearm(0) → wrist(wA)
+//   //   sA − eA + wA = 0   →   wA = eA − sA
+//   const wristAngle = elbowAngle - shoulderAngle;
+ 
+//   // ── 5. Apply with damped slerp ─────────────────────────────────────────
+//   // Use larger blend (0.3) on shoulder/elbow so the bend is responsive,
+//   // smaller (0.22) on wrist for stability.
+//   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
+//   shoulder.quaternion.slerp(qTmp, 0.30).normalize();
+ 
+//   qTmp.setFromAxisAngle(axisZ, -elbowAngle);   // negative = fold back
+//   elbow.quaternion.slerp(qTmp, 0.30).normalize();
+ 
+//   // Forearm stays identity (structural link in this rig)
+//   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
+ 
+//   qTmp.setFromAxisAngle(axisZ, wristAngle);
+//   wrist.quaternion.slerp(qTmp, 0.22).normalize();
+// }
 
-      // Store finger rest poses + IK target reference on root userData
-      root.userData.fingerTop1  = fingerTop1;
-      root.userData.fingerTop2  = fingerTop2;
-      root.userData.fingerDown1 = fingerDown1;
-      root.userData.fingerDown2 = fingerDown2;
-      root.userData.fingerRest = {
-        top1:  fingerTop1  ? { x: fingerTop1.rotation.x,  y: fingerTop1.rotation.y,  z: fingerTop1.rotation.z  } : null,
-        top2:  fingerTop2  ? { x: fingerTop2.rotation.x,  y: fingerTop2.rotation.y,  z: fingerTop2.rotation.z  } : null,
-        down1: fingerDown1 ? { x: fingerDown1.rotation.x, y: fingerDown1.rotation.y, z: fingerDown1.rotation.z } : null,
-        down2: fingerDown2 ? { x: fingerDown2.rotation.x, y: fingerDown2.rotation.y, z: fingerDown2.rotation.z } : null,
-      };
-      root.userData.gripperState = 0; // 0 = open, 1 = closed
-      root.userData.ikTarget = ikTarget;
 
-      // Geometry constants — measure from actual GLB instead of hardcoding
-      const armBox = new THREE.Box3().setFromObject(shoulder);
-      const armSize = new THREE.Vector3();
-      armBox.getSize(armSize);
-
-      const L1 = Math.max(armSize.y, 0.7) * scale;
-      const L2 = L1 * 1.6;
-      const shoulderH = armBox.min.y * scale + 0.5 * scale;
-      const wristToGrip = 0.25 * scale;
-
-      function runIK(tgt: THREE.Vector3): void {
-        const baseWP = new THREE.Vector3();
-        root.getWorldPosition(baseWP);
-        const dx = tgt.x - baseWP.x;
-        const dz = tgt.z - baseWP.z;
-
-        // Base yaw — corrected for GLB inversion
-        let rawYaw = Math.atan2(dx, dz) + Math.PI;
-        rawYaw = normalizeAngle(rawYaw);
-
-        const restY = root.userData.turretRestY ?? 0;
-        let delta = normalizeAngle(rawYaw - turret.rotation.y);
-        delta = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, delta));
-        turret.rotation.y = normalizeAngle(turret.rotation.y + delta);
-
-        // Drive IK target if available (preferred — uses Blender constraints)
-        if (ikTarget) {
-          const localTgt = turret.worldToLocal(tgt.clone());
-          ikTarget.position.lerp(localTgt, 0.15);
-          return;
-        }
-
-        // Fallback: manual elbow-up IK on Z axis
-        const localTgt = turret.worldToLocal(tgt.clone());
-        const reach = Math.hypot(localTgt.x, localTgt.z);
-        const dy = localTgt.y - shoulderH - wristToGrip;
-
-        let D = Math.hypot(reach, dy);
-        const Dmin = Math.abs(L1 - L2) + 0.02;
-        const Dmax = L1 + L2 - 0.02;
-        D = Math.max(Dmin, Math.min(Dmax, D));
-
-        const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
-        const elbowInner = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
-        const elbowAngle = -(Math.PI - elbowInner);
-
-        const cosShoulder = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
-        const shoulderInner = Math.acos(Math.max(-1, Math.min(1, cosShoulder)));
-        const targetAngle = Math.atan2(reach, dy);
-        let shoulderAngle = targetAngle - shoulderInner;
-        shoulderAngle = Math.max(0, Math.min(Math.PI / 2.2, shoulderAngle));
-
-        shoulder.rotation.z = shoulderAngle;
-        if (foreArm !== elbow) foreArm.rotation.z = elbowAngle;
-        else elbow.rotation.z = elbowAngle;
-
-        const totalPitch = shoulderAngle + elbowAngle;
-        let wristAngle = -totalPitch;
-        const isPlacing = Math.abs(localTgt.y - 0.93) < 0.25;
-        if (isPlacing) wristAngle += -0.26; // -15° industrial tilt
-        wrist.rotation.z = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, wristAngle));
-      }
-
+function runIK(tgt: THREE.Vector3): void {
+  // ── 1. Turret yaw — aim toward target on the XZ plane ─────────────────
+  const baseWP = new THREE.Vector3();
+  root.getWorldPosition(baseWP);
+  const dx = tgt.x - baseWP.x;
+  const dz = tgt.z - baseWP.z;
+ 
+  // Note: arm's outward direction in turret-local frame is +X.
+  // Standard yaw: atan2(dx, dz) aims local +Z; we want local +X. So use atan2(dz, dx) negated, OR rotate by +π/2.
+  // Easier: aim the arm's local +X by yaw = atan2(dz, dx)? No — let's stick with whichever
+  // axis the GLB actually extends along. Joint_Elbow translates +X 0.355 → arm extends +X.
+  // So we want yaw such that turret-local +X points at the target.
+  // World direction to target on XZ plane: (dx, dz).
+  // After yaw θ around Y, local +X maps to world (cos θ, 0, -sin θ).
+  // Setting that equal to normalized (dx, dz): cos θ = dx/r, -sin θ = dz/r  →  θ = atan2(-dz, dx).
+  const r2d = Math.hypot(dx, dz) || 1;
+  const rawYaw = Math.atan2(-dz, dx);
+ 
+  const prev = root.userData._ikYaw as number;
+  let delta = rawYaw - prev;
+  while (delta >  Math.PI) delta -= 2 * Math.PI;
+  while (delta < -Math.PI) delta += 2 * Math.PI;
+  const newYaw = prev + delta;
+  root.userData._ikYaw = newYaw;
+  qTmp.setFromAxisAngle(axisY, newYaw);
+  turret.quaternion.slerp(qTmp, 0.20).normalize();
+ 
+  // ── 2. Target in shoulder-local plane ──────────────────────────────────
+  // After the turret is yawed, the arm reaches outward along +X in turret-local space.
+  // The horizontal reach we need to solve for is the distance from the shoulder
+  // pivot to the (projected) target on the horizontal plane.
+  // We use world distance directly to avoid issues with slerp lag:
+  const reachHoriz = r2d;                          // horizontal distance shoulder→target
+  const verticalOff = tgt.y - (baseWP.y + SHOULDER_Y);
+ 
+  // The blade tip sits L3 beyond the wrist along +X. So the WRIST must reach
+  // a point that is L3 closer to the shoulder than the target:
+  const wx = reachHoriz - L3;
+  const wy = verticalOff;
+ 
+  // ── 3. Solve 2-link IK in the (wx, wy) plane ──────────────────────────
+  let D = Math.hypot(wx, wy);
+ 
+  // Reach limits — keep the arm slightly bent at extremes to avoid singularity,
+  // and prevent inversion when target is too close.
+  const Dmax = (L1 + L2) * 1.4;                   // 97% of max reach
+  const Dmin = Math.abs(L1 - L2) + 0.02;
+  D = Math.max(Dmin, Math.min(Dmax, D));
+ 
+  // Law of cosines:
+  //   cos(elbow_interior) = (L1² + L2² - D²) / (2·L1·L2)
+  // When D = Dmax, elbow_interior ≈ 0 (arm nearly straight) — fine.
+  // When D = Dmin, elbow_interior ≈ π (arm fully folded) — also fine.
+  const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
+  const elbowInterior = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
+ 
+  // Angle from shoulder to wrist target, measured from local +X (outward).
+  // wx = outward, wy = up.  atan2(wy, wx) ∈ (-π, π].
+  const wristDirAng = Math.atan2(wy, wx);
+ 
+  // Offset between upper-arm direction and shoulder→wrist line:
+  //   cos(offset) = (L1² + D² - L2²) / (2·L1·D)
+  const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+  const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
+ 
+  // ── 4. ELBOW-UP branch (upper arm goes ABOVE the line to wrist) ───────
+  // This is the natural SCARA-style "shoulder lifts, elbow droops back down"
+  // silhouette for an outward-reaching horizontal arm.
+  //
+  //   shoulderAngle =  wristDirAng + shOff      (rotates upper arm UP)
+  //   elbowAngle    = -(π - elbowInterior)      (forearm rotates DOWN to reach wrist)
+  //
+  // Sign convention: positive Z-rotation rotates local +X toward local +Y (up).
+  const shoulderAngle = wristDirAng + shOff;
+  const elbowAngle    = -(Math.PI - elbowInterior);
+ 
+  // ── 5. Wrist keeps blade level ────────────────────────────────────────
+  // Chain pitches sum to zero so blade points horizontally:
+  //   shoulderAngle + elbowAngle + wristAngle = 0
+  const wristAngle = -(shoulderAngle + elbowAngle);
+ 
+  // ── 6. Apply ──────────────────────────────────────────────────────────
+  qTmp.setFromAxisAngle(axisZ, shoulderAngle);
+  shoulder.quaternion.slerp(qTmp, 0.22).normalize();
+ 
+  qTmp.setFromAxisAngle(axisZ, elbowAngle);
+  elbow.quaternion.slerp(qTmp, 0.22).normalize();
+ 
+  // Forearm is a rigid link in this rig
+  foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
+ 
+  qTmp.setFromAxisAngle(axisZ, wristAngle);
+  wrist.quaternion.slerp(qTmp, 0.22).normalize();
+}
+ 
+ 
       function getJoints(): JointData {
+        eTmp.setFromQuaternion(turret.quaternion, "YXZ");
+        const baseA = eTmp.y;
+        eTmp.setFromQuaternion(shoulder.quaternion, "XYZ");
+        const shoulderA = eTmp.z;
+        eTmp.setFromQuaternion(elbow.quaternion, "XYZ");
+        const elbowA = eTmp.z;
+        eTmp.setFromQuaternion(wrist.quaternion, "XYZ");
+        const wristA = eTmp.z;
         return {
-          base:     { c: turret.rotation.y },
-          shoulder: { c: shoulder.rotation.z },
-          elbow:    { c: foreArm.rotation.z },
-          wrist:    { c: wrist.rotation.z },
+          base:     { c: baseA },
+          shoulder: { c: shoulderA },
+          elbow:    { c: elbowA },
+          wrist:    { c: wristA },
         };
       }
-
-      console.log('=== NEW ROBOT BONE TEST ===');
-      console.log('turret:',   turret.name);
-      console.log('shoulder:', shoulder.name);
-      console.log('foreArm:',  foreArm.name);
-      console.log('wrist:',    wrist.name);
-      console.log('gripper:',  gripper.name);
-      console.log('IK target:', ikTarget?.name ?? 'none');
-
+ 
+      console.log('=== NEW ROBOT BOUND ===');
+      console.log('  turret  :', turret.name);
+      console.log('  shoulder:', shoulder.name);
+      console.log('  elbow   :', elbow.name);
+      console.log('  foreArm :', foreArm.name);
+      console.log('  wrist   :', wrist.name);
+      console.log('  blade   :', fork.name);
+      console.log(`  L1=${L1.toFixed(3)} L2=${L2.toFixed(3)} L3=${L3.toFixed(3)} SH_Y=${SHOULDER_Y.toFixed(3)}`);
+ 
       onReady({
-        group: root, turret, shoulder, upperArm, elbow, foreArm, wrist, gripper,
-        statusPL, basePos: basePos.clone(), runIK, getJoints,
-        worldPos: () => { const v = new THREE.Vector3(); gripper.getWorldPosition(v); return v; },
+        group: root,
+        turret,
+        shoulder,
+        upperArm: shoulder,           // alias — no separate upperArm in this rig
+        elbow,
+        foreArm,
+        wrist,
+        gripper,
+        fork,
+        statusPL,
+        basePos: basePos.clone(),
+        runIK,
+        getJoints,
+        worldPos: () => {
+          const v = new THREE.Vector3();
+          fork.getWorldPosition(v);
+          return v;
+        },
       });
     },
-    (progress: any) => {
-      if (progress.total > 0) {
-        console.log('GLB loading:', Math.round(progress.loaded / progress.total * 100) + '%');
-      }
+    (p: any) => {
+      if (p.total > 0) console.log('GLB loading:', Math.round(p.loaded/p.total*100)+'%');
     },
-    (error: any) => {
-      console.error('GLB FAILED TO LOAD:', error);
-    }
+    (err: any) => console.error('GLB FAILED:', err)
   );
 }
-
+ 
 
 
 function normalizeAngle(angle: number): number {
@@ -20865,14 +28409,14 @@ function buildDehydrationGLB(
       tempBox.getSize(size);
 
       // Target footprint ~2.9 x 2.9 (matches procedural module)
-      const targetW = 2.9;
+      const targetW = 6;
       const currentMax = Math.max(size.x, size.z);
       const scale = targetW / currentMax;
       root.scale.setScalar(scale);
 
       // Re-measure after scale, snap bottom to floor (y = -0.5)
       const box = new THREE.Box3().setFromObject(root);
-      const FLOOR_Y = 0.3;
+      const FLOOR_Y = 3.0;
       root.position.y = FLOOR_Y - box.min.y;
 
       // ── Identify key parts by name (adjust these to match your GLB node names) ──
@@ -21001,13 +28545,13 @@ function buildHardBakeGLB(
       const size = new THREE.Vector3();
       tempBox.getSize(size);
 
-      const targetW = 2.9;
+      const targetW = 6;
       const currentMax = Math.max(size.x, size.z);
       const scale = targetW / currentMax;
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      const FLOOR_Y = 0.3;
+      const FLOOR_Y = 3.0;
       root.position.y = FLOOR_Y - box.min.y;
 
       const namedParts: Record<string, THREE.Object3D> = {};
@@ -21117,7 +28661,7 @@ function buildPrCoatGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      const FLOOR_Y = 0.3;
+      const FLOOR_Y = 3.0;
       root.position.y = FLOOR_Y - box.min.y;
 
       // ── Identify named parts ──
@@ -21315,6 +28859,13 @@ function buildScannerGLB(
       root.add(beam);
       placeholder.userData.uvBeam = beam;
 
+      // Explicit scanner port pickup point (front opening / interface).
+      const scannerPickupAnchor = new THREE.Group();
+      scannerPickupAnchor.name = "ScannerPickupPoint";
+      scannerPickupAnchor.position.set(0, WAFER_TRANSFER_Y, -0.35);
+      root.add(scannerPickupAnchor);
+      placeholder.userData.pickupAnchor = scannerPickupAnchor;
+
       const pl = new THREE.PointLight(scheme.pl, 0, 10);
       pl.position.set(0, 2.0, 0);
       root.add(pl);
@@ -21323,6 +28874,8 @@ function buildScannerGLB(
       placeholder.add(root);
       placeholder.userData.glbRoot = root;
       placeholder.userData.loaded = true;
+      // Update keep-out box once the GLB is present (prevents TCP entering scanner).
+      placeholder.userData._bbox = new THREE.Box3().setFromObject(placeholder).expandByScalar(0.15);
 
       addModuleLabel(placeholder, mod);
       if (onReady) onReady(placeholder);
@@ -21563,7 +29116,7 @@ function buildPostBakeGLB(
 
   const loader = new GLTFLoader();
   loader.load(
-    '/Postbakeglb.glb',
+    '/hardbakeglb.glb',
     (gltf: any) => {
       const root = gltf.scene as THREE.Group;
 
@@ -21571,7 +29124,7 @@ function buildPostBakeGLB(
       const size = new THREE.Vector3();
       tempBox.getSize(size);
 
-      const targetW = 2.9;
+      const targetW = 4.5;
       const currentMax = Math.max(size.x, size.z);
       const scale = targetW / currentMax;
       root.scale.setScalar(scale);
@@ -21676,7 +29229,7 @@ function buildDIWaterRinseGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      root.position.y = -0.5 - box.min.y;
+      root.position.y = 3.3 - box.min.y;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -21875,6 +29428,197 @@ function buildDeveloperModuleGLB(
 }
 
 // Helper — extract label code from buildModule into reusable function
+
+
+
+// function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
+//   const W = 3.2, D = 3.2, H = 0.35;
+//   // All plinths now use grey base (0x3a3a3a)
+//   const baseColors: Record<string, number> = {
+//     hot: 0x3a3a3a, cold: 0x3a3a3a, coat: 0x3a3a3a,
+//     wet: 0x3a3a3a, dry: 0x3a3a3a, scan: 0x3a3a3a,
+//     iface: 0x3a3a3a, foup: 0x3a3a3a,
+//   };
+//   const edgeColors: Record<string, number> = {
+//     hot: 0xff3300, cold: 0x00ccff, coat: 0xcc00ff,
+//     wet: 0x00ff88, dry: 0x00eeff, scan: 0xee00cc,
+//     iface: 0xffdd00, foup: 0x4488ff,
+//   };
+//   const base = baseColors[mod.type] ?? 0x3a3a3a;
+//   const edge = edgeColors[mod.type] ?? mod.color;
+//   const plinth = new THREE.Mesh(
+//     new THREE.BoxGeometry(W, H, D),
+//     new THREE.MeshStandardMaterial({ color: base, roughness: 0.30, metalness: 0.85, emissive: edge, emissiveIntensity: 0.06 })
+//   );
+//   plinth.position.set(mod.x, -0.5 + H / 2, mod.z);
+//   plinth.receiveShadow = true;
+//   scene.add(plinth);
+//   const strip = new THREE.Mesh(
+//     new THREE.BoxGeometry(W, 0.025, 0.035),
+//     new THREE.MeshStandardMaterial({ color: edge, emissive: edge, emissiveIntensity: 4.5, roughness: 0.2, transparent: true, opacity: 0.92 })
+//   );
+//   strip.position.set(mod.x, -0.5 + H - 0.012, mod.z + D / 2);
+//   scene.add(strip);
+//   const stripBack = strip.clone();
+//   stripBack.position.z = mod.z - D / 2;
+//   scene.add(stripBack);
+//   const bevel = new THREE.Mesh(
+//     new THREE.BoxGeometry(W + 0.04, 0.018, D + 0.04),
+//     new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.12, metalness: 0.98, emissive: edge, emissiveIntensity: 0.12 })
+//   );
+//   bevel.position.set(mod.x, -0.5 + H, mod.z);
+//   scene.add(bevel);
+//   const dotMat = new THREE.MeshStandardMaterial({ color: edge, emissive: edge, emissiveIntensity: 3.0, roughness: 0.3 });
+//   [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sz]) => {
+//     const dot = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 10), dotMat);
+//     dot.position.set(mod.x + sx! * (W/2 - 0.15), -0.5 + H + 0.02, mod.z + sz! * (D/2 - 0.15));
+//     scene.add(dot);
+//   });
+//   return plinth;
+// }
+function placeWaferAnchorOnChuck(
+  placeholder: THREE.Group,
+  glbRoot: THREE.Object3D,
+): THREE.Object3D {
+  glbRoot.updateWorldMatrix(true, true);
+  const box = new THREE.Box3().setFromObject(glbRoot);
+  const chuckTopWorldY = box.max.y;
+  const anchorWorldY = chuckTopWorldY + 0.02;
+  const placeholderWorldY = placeholder.getWorldPosition(new THREE.Vector3()).y;
+  const anchorLocalY = anchorWorldY - placeholderWorldY;
+
+ const waferAnchor = new THREE.Group();
+waferAnchor.name = "ModuleWaferAnchor";
+waferAnchor.position.set(0, WAFER_TRANSFER_Y - placeholder.position.y, 0);
+placeholder.add(waferAnchor);
+placeholder.userData.waferAnchor = waferAnchor;
+  return waferAnchor;
+}
+
+function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
+  // ── INCREASED HEIGHT: was H = 0.35, now H = 1.2 (taller pedestal) ──
+  // ── INCREASED FOOTPRINT slightly for better proportions ──
+  const W = 3.4, D = 3.4, H = 3.2;
+ 
+  // ── UNIFORM GREY for ALL module types (no per-type color) ──
+  const UNIFORM_GREY_BASE = 0x4a4a4a;      // medium grey body
+  const UNIFORM_GREY_TOP  = 0x5a5a5a;      // slightly lighter top bevel
+  const UNIFORM_GREY_DARK = 0x2e2e2e;      // dark grey accent strips
+ 
+  // ── MAIN PLINTH BODY (grey, taller) ──
+  const plinth = new THREE.Mesh(
+    new THREE.BoxGeometry(W, H, D),
+    new THREE.MeshStandardMaterial({
+      color: UNIFORM_GREY_BASE,
+      roughness: 0.45,
+      metalness: 0.72,
+      emissive: 0x000000,        // NO emissive bleed — pure grey
+      emissiveIntensity: 0,
+    })
+  );
+  plinth.position.set(mod.x, -0.5 + H / 2, mod.z);
+  plinth.castShadow = true;
+  plinth.receiveShadow = true;
+  scene.add(plinth);
+ 
+  // ── DARK GREY ACCENT STRIPS (front + back, instead of colored neon) ──
+  const stripMat = new THREE.MeshStandardMaterial({
+    color: UNIFORM_GREY_DARK,
+    roughness: 0.35,
+    metalness: 0.85,
+    emissive: 0x000000,
+    emissiveIntensity: 0,
+  });
+ 
+  const stripFront = new THREE.Mesh(
+    new THREE.BoxGeometry(W, 0.06, 0.04),
+    stripMat
+  );
+  stripFront.position.set(mod.x, -0.5 + H - 0.08, mod.z + D / 2);
+  scene.add(stripFront);
+ 
+  const stripBack = new THREE.Mesh(
+    new THREE.BoxGeometry(W, 0.06, 0.04),
+    stripMat.clone()
+  );
+  stripBack.position.set(mod.x, -0.5 + H - 0.08, mod.z - D / 2);
+  scene.add(stripBack);
+ 
+  // ── VERTICAL SIDE STRIPS (give the taller box visual rhythm) ──
+  [-1, 1].forEach((sx) => {
+    const sideStrip = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, H * 0.7, 0.06),
+      stripMat.clone()
+    );
+    sideStrip.position.set(
+      mod.x + sx * (W / 2),
+      -0.5 + H * 0.5,
+      mod.z
+    );
+    scene.add(sideStrip);
+  });
+ 
+  // ── TOP BEVEL (lighter grey, polished edge) ──
+  const bevel = new THREE.Mesh(
+    new THREE.BoxGeometry(W + 0.05, 0.04, D + 0.05),
+    new THREE.MeshStandardMaterial({
+      color: UNIFORM_GREY_TOP,
+      roughness: 0.22,
+      metalness: 0.92,
+      emissive: 0x000000,
+      emissiveIntensity: 0,
+    })
+  );
+  bevel.position.set(mod.x, -0.5 + H, mod.z);
+  scene.add(bevel);
+ 
+  // ── BOTTOM BEVEL (matches top, hides plinth–floor seam) ──
+  const bottomBevel = new THREE.Mesh(
+    new THREE.BoxGeometry(W + 0.05, 0.04, D + 0.05),
+    new THREE.MeshStandardMaterial({
+      color: UNIFORM_GREY_DARK,
+      roughness: 0.4,
+      metalness: 0.75,
+    })
+  );
+  bottomBevel.position.set(mod.x, -0.5 + 0.02, mod.z);
+  scene.add(bottomBevel);
+ 
+  // ── CORNER ACCENT DOTS (small dark grey, replace neon colored dots) ──
+  const dotMat = new THREE.MeshStandardMaterial({
+    color: UNIFORM_GREY_DARK,
+    roughness: 0.3,
+    metalness: 0.88,
+    emissive: 0x000000,
+    emissiveIntensity: 0,
+  });
+  [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([sx, sz]) => {
+    const dot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05, 0.05, 0.03, 10),
+      dotMat
+    );
+    dot.position.set(
+      mod.x + sx! * (W / 2 - 0.18),
+      -0.5 + H + 0.025,
+      mod.z + sz! * (D / 2 - 0.18)
+    );
+    scene.add(dot);
+  });
+ 
+  // ── OPTIONAL: subtle ID plate on the front face (still grey, just engraved look) ──
+  const idPlate = new THREE.Mesh(
+    new THREE.BoxGeometry(W * 0.35, 0.12, 0.02),
+    new THREE.MeshStandardMaterial({
+      color: 0x3a3a3a,
+      roughness: 0.55,
+      metalness: 0.6,
+    })
+  );
+  idPlate.position.set(mod.x, -0.5 + H * 0.35, mod.z + D / 2 + 0.012);
+  scene.add(idPlate);
+ 
+  return plinth;
+}
 
 
 function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
@@ -22274,6 +30018,7 @@ class WaferStateMachine {
   spin: number;
   spinning: boolean;
   carrierRobot: RobotObject | null;
+  owner: "none" | "robot" | "conveyor";
   arcStart = new THREE.Vector3();
   arcEnd = new THREE.Vector3();
   arcH = 2.5;
@@ -22307,6 +30052,7 @@ class WaferStateMachine {
     this.spin = 0;
     this.spinning = false;
     this.carrierRobot = null;
+    this.owner = "none";
   }
 
   startConveyorMove(from: THREE.Vector3, to: THREE.Vector3, speed: number) {
@@ -22329,126 +30075,102 @@ class WaferStateMachine {
     return t >= 1;
   }
 
-// REPLACE the entire attachTo method with this:
-// REPLACE attachTo in WaferStateMachine:
+// attachTo(robot: RobotObject): void {
+//   this.carrierRobot = robot;
+//   this.onConveyor = false;
+//   this.owner = "robot";
+//   this.mesh.visible = true;
+//   this.mesh.scale.setScalar(1);
+
+//   const fork = robot.fork ?? robot.gripper;
+//   robot.group.updateWorldMatrix(true, true);
+//   fork.updateWorldMatrix(true, false);
+
+//   const worldPos = new THREE.Vector3();
+//   const worldQuat = new THREE.Quaternion();
+//   fork.getWorldPosition(worldPos);
+//   fork.getWorldQuaternion(worldQuat);
+// const offset = new THREE.Vector3(0.8, 0.05, 0);
+// offset.applyQuaternion(worldQuat);
+// worldPos.add(offset);
+//   worldPos.y += 0.003;
+
+//   this.scene.attach(this.mesh);
+//   this.mesh.position.copy(worldPos);
+//   this.mesh.quaternion.copy(worldQuat);
+//   fork.attach(this.mesh);
+
+//   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
+//   if (pr) {
+//     const mat = pr.material as THREE.MeshStandardMaterial;
+//     mat.emissive.setHex(0xffffff);
+//     mat.emissiveIntensity = 3.5;
+//     setTimeout(() => {
+//       mat.emissive.setHex(WAFER_COLORS[this.wi]);
+//       mat.emissiveIntensity = 0.9;
+//     }, 180);
+//   }
+//   robot.statusPL.intensity = 3.0;
+//   setTimeout(() => { if (robot.statusPL) robot.statusPL.intensity = 1.2; }, 300);
+// }
+
+
 attachTo(robot: RobotObject): void {
   this.carrierRobot = robot;
   this.onConveyor = false;
+  this.owner = "robot";
   this.mesh.visible = true;
   this.mesh.scale.setScalar(1);
-
-  if (this.mesh.parent !== this.scene) {
-    const prev = this.mesh.parent;
-    if (prev) prev.remove(this.mesh);
-    this.scene.add(this.mesh);
-  }
-
-  // ── Compute initial position: FINGER MIDPOINT (matches _animRobots) ──
-  const ud = robot.group.userData;
-  const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-  const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-  const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
-  const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
-
-  let tcpPos: THREE.Vector3;
-
-  if (t1 && d1 && t2 && d2) {
-    const topWP  = new THREE.Vector3(); t1.getWorldPosition(topWP);
-    const botWP  = new THREE.Vector3(); d1.getWorldPosition(botWP);
-    const top2WP = new THREE.Vector3(); t2.getWorldPosition(top2WP);
-    const bot2WP = new THREE.Vector3(); d2.getWorldPosition(bot2WP);
-    tcpPos = topWP.clone().add(botWP).add(top2WP).add(bot2WP).multiplyScalar(0.25);
-  } else if (t1 && d1) {
-    const topWP = new THREE.Vector3(); t1.getWorldPosition(topWP);
-    const botWP = new THREE.Vector3(); d1.getWorldPosition(botWP);
-    tcpPos = topWP.clone().add(botWP).multiplyScalar(0.5);
-  } else {
-    // Fallback
-    tcpPos = new THREE.Vector3();
-    robot.gripper.getWorldPosition(tcpPos);
-  }
-
-  this.mesh.position.copy(tcpPos);
-  this.mesh.rotation.set(0, this.mesh.rotation.y, 0);
-
-  console.log('[ATTACH] wafer at finger midpoint:', tcpPos.toArray().map(v => v.toFixed(2)));
-
-  const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
-  if (pr) {
-    const mat = pr.material as THREE.MeshStandardMaterial;
-    mat.emissive.setHex(0xffffff);
-    mat.emissiveIntensity = 3.5;
-    setTimeout(() => {
-      mat.emissive.setHex(WAFER_COLORS[this.wi]);
-      mat.emissiveIntensity = 0.9;
-    }, 180);
-  }
+ 
+  const fork = robot.fork ?? robot.gripper;
+  robot.group.updateWorldMatrix(true, true);
+  fork.updateWorldMatrix(true, false);
+ 
+  const worldPos = new THREE.Vector3();
+  const worldQuat = new THREE.Quaternion();
+  fork.getWorldPosition(worldPos);
+  fork.getWorldQuaternion(worldQuat);
+ 
+  // Wafer seating offset on the blade teeth — MUST match computeFingerOffset
+  const offset = new THREE.Vector3(0.8, 0.05, 0);
+  offset.applyQuaternion(worldQuat);
+  worldPos.add(offset);
+ 
+  this.scene.attach(this.mesh);
+  this.mesh.position.copy(worldPos);
+  this.mesh.quaternion.copy(worldQuat);
+  fork.attach(this.mesh);
+ 
+  // ── NO color flash anymore. Only flash the robot's status LED briefly
+  //    so the pick is visible without touching the wafer's appearance.
   robot.statusPL.intensity = 3.0;
   setTimeout(() => { if (robot.statusPL) robot.statusPL.intensity = 1.2; }, 300);
 }
-// REPLACE detachAt in WaferStateMachine:
+
+
 detachAt(worldPos: THREE.Vector3): void {
   if (!this.carrierRobot) return;
 
-  // Ensure wafer is in scene
-  if (this.mesh.parent !== this.scene) {
-    const prev = this.mesh.parent;
-    if (prev) prev.remove(this.mesh);
-    this.scene.add(this.mesh);
-  }
+  this.scene.attach(this.mesh);
   this.mesh.scale.setScalar(1);
-
-  // Snap to chuck height
-  const step = ALL_STEPS.find(
-    s => Math.abs(s.x - worldPos.x) < 1.5 && Math.abs(s.z - worldPos.z) < 1.5
-  );
-  const chuckY = step?.type === 'foup' ? 1.55 : 0.93;
-  this.mesh.position.set(worldPos.x, chuckY, worldPos.z);
-
-  // CRITICAL: parallel to floor — only Y rotation allowed
-  this.mesh.rotation.set(0, Math.random() * Math.PI * 2, 0);
-  this.mesh.visible = true;
+  this.mesh.position.set(worldPos.x, worldPos.y, worldPos.z);
+  this.mesh.quaternion.setFromEuler(new THREE.Euler(0, Math.random() * Math.PI * 2, 0, "YXZ"));
 
   this.carrierRobot = null;
-
-  const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
-  if (pr) {
-    const mat = pr.material as THREE.MeshStandardMaterial;
-    mat.emissive.setHex(0xffffff);
-    mat.emissiveIntensity = 1.8;
-    setTimeout(() => {
-      mat.emissive.setHex(WAFER_COLORS[this.wi]);
-      mat.emissiveIntensity = 0.7;
-    }, 250);
-  }
-}
-// REPLACE entire detachAt with:
-detachAt(worldPos: THREE.Vector3): void {
-  if (!this.carrierRobot) return;
-
-  this.carrierRobot.gripper.remove(this.mesh);
-  this.scene.add(this.mesh);
-
-  // Always reset scale when returning to world space
-  this.mesh.scale.setScalar(1);
-  // Snap precisely to chuck: use worldPos.x/z but force correct chuck Y
-  const chuckY = worldPos.y > 1.2 ? 1.55 : 0.93;   // FOUP slot vs module chuck
-  this.mesh.position.set(worldPos.x, chuckY, worldPos.z);
-  this.mesh.rotation.set(0, Math.random() * Math.PI * 2, 0);
-
-  this.carrierRobot = null;
+  this.owner = "conveyor";
   this.mesh.visible = true;
 
-  const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
-  if (pr) {
-    const mat = pr.material as THREE.MeshStandardMaterial;
-    mat.emissive.setHex(0xffffff);
-    mat.emissiveIntensity = 1.8;
-    setTimeout(() => {
-      mat.emissive.setHex(WAFER_COLORS[this.wi]);
-      mat.emissiveIntensity = 0.7;
-    }, 250);
-  }
+//   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
+//   if (pr) {
+//     const mat = pr.material as THREE.MeshStandardMaterial;
+//     //mat.emissive.setHex(0xffffff);
+//     mat.emissiveIntensity = 1.8;
+//     setTimeout(() => {
+//       mat.emissive.setHex(WAFER_COLORS[this.wi]);
+//       mat.emissiveIntensity = 0.7;
+//     }, 250);
+//   }
+// }
 }
 }
 
@@ -22459,7 +30181,7 @@ class Sim {
   speed: number; paused: boolean; simTime: number; fps: number;
   onUI: (ui: UIState) => void; onLog: (entry: LogEntry) => void; onTooltip: (tt: TooltipState) => void;
   private _frm = 0; private _lastFpsT = 0; private _lastT = 0; private _animId = 0; private _logSeq = 0;
-  orbit = { theta: Math.PI * 0.13, phi: 0.34, radius: 42, tT: Math.PI * 0.13, tP: 0.34, tR: 42, cx: 6, cy: 0, cz: 0, tcx: 6, tcy: 0, tcz: 0, drag: false, btn: -1, sx: 0, sy: 0 };
+  orbit = { theta: Math.PI * 0.11, phi: 0.36, radius: 48, tT: Math.PI * 0.11, tP: 0.36, tR: 48, cx: 4, cy: 0.2, cz: 0, tcx: 4, tcy: 0.2, tcz: 0, drag: false, btn: -1, sx: 0, sy: 0 };
   modObjs: Record<string, THREE.Group> = {}; busy: Record<string, number> = {};
 robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: RobotObject; robotD!: RobotObject;
   gantryRail!: THREE.Group;
@@ -22467,10 +30189,13 @@ robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: Ro
   devOverlay!: DevPuddleOverlay;
   wafers: THREE.Group[] = []; wSMs: WaferStateMachine[] = [];
   spinCoat!: SpinCoatAnimator; devLiquid!: DevLiquidAnimator;
-//   conveyorTop!: ConveyorBelt; conveyorBot!: ConveyorBelt;
+  conveyorTop!: ConveyorBelt;
+  conveyorBot!: ConveyorBelt;
+  conveyorSegments: ConveyorBelt[] = [];
   n2Particles!: Particles; waterParticles!: Particles;
   hmdsFog!: HMDSFog;
   heatVapors: Record<string, HeatVapor> = {};
+  private _blockBoxes: Record<string, THREE.Box3> = {};
   private _md!: (e: MouseEvent) => void; private _mu!: () => void;
   private _mm!: (e: MouseEvent) => void; private _wh!: (e: WheelEvent) => void;
   private _activeCoatWI = -1; private _activeDevWI = -1;
@@ -22518,29 +30243,27 @@ ALL_STEPS.forEach((mod) => {
   this.modObjs[mod.id] = grp;
 });
     buildFlowArrows(this.scene);
-    this.gantryRail = buildGantryRail(this.scene);
+    //this.gantryRail = buildGantryRail(this.scene);
     const _prS = ALL_STEPS.find(s => s.id === 'prcoat')!;
     this.prCoatOverlay = new PrCoatOverlay(this.scene, _prS.x, _prS.z, WAFER_COLORS[0]);
     const _devS = ALL_STEPS.find(s => s.id === 'develop')!;
     this.devOverlay = new DevPuddleOverlay(this.scene, _devS.x, _devS.z);
 
-    // Conveyor belts
-
-    // Conveyor belts
-   // Conveyor belts — match new module x-range (-18 → 23)
-    // Belts on the OUTER side of each track (away from camera centre)
-    // this.conveyorTop = new ConveyorBelt(this.scene, -22, 27, TOP_Z + 2.6, 0x0099ff);
-    // this.conveyorBot = new ConveyorBelt(this.scene, -22, 27, BOT_Z - 2.6, 0x00cc66);
+    // No conveyor belt segments: single robot handles all wafer transfers.
+    // Conveyor arrays are preserved only for compatibility with legacy code paths.
  
     // Robots — sit on the INNER side of each track (toward z=0), so the belt
     // is on one side and the robot reaches modules from the other.
-  buildRobotGLB(this.scene, new THREE.Vector3( 2, -0.52, 0 ), 0x00d8ff, 3, (r) => {
-      this.robotEFEM = r; 
-      this.robotA    = r; 
-      this.robotB    = r; 
-      this.robotC    = r; 
-      this.robotD    = r; 
-    });
+// Place robot between FOUP (x=-20) and DEHY (x=-11), at midpoint x=-15.5
+// Scale 1.0 is correct — the GLB already has proper dimensions
+buildRobotGLB(this.scene, new THREE.Vector3(-19, 0, 0), 0x00d8ff, 4, (r) => {
+    this.robotEFEM = r; 
+    this.robotA    = r; 
+    this.robotB    = r; 
+    this.robotC    = r; 
+    this.robotD    = r;
+    console.log('[ROBOT] loaded at', r.basePos.toArray(), 'scale 1.0');
+  });
     // Process animators
     this.spinCoat = new SpinCoatAnimator(this.scene);
     this.devLiquid = new DevLiquidAnimator(this.scene);
@@ -22566,6 +30289,18 @@ ALL_STEPS.forEach((mod) => {
       const vColor = vaporColors[s.id] ?? 0xffaa66;
       this.heatVapors[s.id] = new HeatVapor(this.scene, new THREE.Vector3(s.x, 1.0, s.z), vColor, 50);
     });
+
+    // Plinths under every module
+    ALL_STEPS.forEach((mod) => {
+      if (mod.id === 'output') return;
+      buildModulePlinth(this.scene, mod);
+    });
+
+    // Collision keep-out boxes (static procedural modules; GLBs update once loaded).
+    const foup = this.modObjs["foup"];
+    if (foup) this._blockBoxes["foup"] = new THREE.Box3().setFromObject(foup).expandByScalar(0.15);
+    const scanner = this.modObjs["scanner"];
+    if (scanner) this._blockBoxes["scanner"] = new THREE.Box3().setFromObject(scanner).expandByScalar(0.15);
 
     // Wafers
     for (let i = 0; i < NUM_WAFERS; i++) {
@@ -22600,40 +30335,589 @@ private _maskCollisions(mask: boolean) {
   });
 }
 
+// private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
+//   const ud = robot.group.userData;
+//   const current = (ud.gripperState as number) ?? 0;
+//   const blend = 0.18;
+//   ud.gripperState = lerp(current, targetState, blend);
+//   const g = ud.gripperState as number;
+//   ud.vacuumEngaged = g > 0.7;
+ 
+//   // Visual feedback on the blade meshes (Blade_Top / Blade_Bot / Blade_Mount).
+//   // We pulse the emissive of any mesh under the gripper / fork that has a
+//   // standard material — gives a clean "vacuum locked" indicator without
+//   // depending on bone names that may or may not exist.
+//   if (!ud._bladeMats) {
+//     const mats: THREE.MeshStandardMaterial[] = [];
+//     const collect = (node: THREE.Object3D) => {
+//       if ((node as THREE.Mesh).isMesh) {
+//         const m = (node as THREE.Mesh).material as THREE.MeshStandardMaterial;
+//         if (m && (m as any).isMeshStandardMaterial) mats.push(m);
+//       }
+//     };
+//     robot.fork.traverse(collect);
+//     if (robot.gripper && robot.gripper !== robot.fork) robot.gripper.traverse(collect);
+//     ud._bladeMats = mats;
+//     // Cache the original emissive so we can restore on release
+//     ud._bladeEmissiveBase = mats.map(m => ({
+//       hex: m.emissive.getHex(),
+//       intensity: m.emissiveIntensity,
+//     }));
+//   }
+ 
+//   const mats        = ud._bladeMats as THREE.MeshStandardMaterial[];
+//   const base        = ud._bladeEmissiveBase as { hex: number; intensity: number }[];
+//   const t           = this.simTime;
+//   const engagedHex  = 0x00ddff;
+//   const engagedAmp  = 1.8 + 1.2 * Math.abs(Math.sin(t * 8));
+ 
+//   mats.forEach((m, i) => {
+//     if (g > 0.05) {
+//       // Blend toward cyan emissive when vacuum is on
+//       const tgt = new THREE.Color(engagedHex);
+//       m.emissive.lerp(tgt, 0.15);
+//       m.emissiveIntensity = lerp(m.emissiveIntensity, engagedAmp * g, 0.18);
+//     } else {
+//       // Restore original
+//       const b = base[i];
+//       m.emissive.lerp(new THREE.Color(b.hex), 0.10);
+//       m.emissiveIntensity = lerp(m.emissiveIntensity, b.intensity, 0.10);
+//     }
+//   });
+// }
+
+
+// private _animRobots(dt: number) {
+//   const t = this.simTime;
+//   const r = this.robotEFEM;
+//   if (!r || !r.runIK) return;
+//   if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
+
+//   // ── One-time init ──
+//   if (!r.group.userData.railInit) {
+//     r.group.userData.railX        = r.basePos.x;
+//     r.group.userData.armPhase     = 'idle';
+//     r.group.userData.phaseT       = 0;
+//     r.group.userData.railInit     = true;
+//     r.group.userData.gripperState = 0;
+//     r.group.userData.turretRestY  = r.turret.rotation.y;
+//     r.group.userData._ikYaw      = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
+//     r.group.userData.bezierT      = 0;
+//     r.group.userData.bezierStart  = new THREE.Vector3();
+//     r.group.userData.bezierEnd    = new THREE.Vector3();
+//     r.group.userData.bezierCP1    = new THREE.Vector3();
+//     r.group.userData.bezierCP2    = new THREE.Vector3();
+//     r.group.userData.dwellTimer   = 0;
+//   }
+
+//   // ── Compute finger-to-gripper offset (in gripper local space) ──
+//   // This tells us how far forward the wafer sits relative to the gripper origin
+//   const computeFingerOffset = (): THREE.Vector3 => {
+//     const ud = r.group.userData;
+//     const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
+//     const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
+//     const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
+//     const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
+
+//     if (!t1 || !d1) return new THREE.Vector3();
+
+//     // Finger world midpoint
+//     const fingerMid = new THREE.Vector3();
+//     const tmp = new THREE.Vector3();
+//     t1.getWorldPosition(tmp); fingerMid.add(tmp);
+//     d1.getWorldPosition(tmp); fingerMid.add(tmp);
+//     if (t2 && d2) {
+//       t2.getWorldPosition(tmp); fingerMid.add(tmp);
+//       d2.getWorldPosition(tmp); fingerMid.add(tmp);
+//       fingerMid.multiplyScalar(0.25);
+//     } else {
+//       fingerMid.multiplyScalar(0.5);
+//     }
+
+//     // Gripper world position
+//     const gripWP = new THREE.Vector3();
+//     r.gripper.getWorldPosition(gripWP);
+
+//     // Offset = how far fingers extend past gripper origin
+//     return fingerMid.clone().sub(gripWP);
+//   };
+
+//   // ── Helper: convert "where wafer should be" → "where gripper should be" ──
+//   const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
+//     const fingerOffset = computeFingerOffset();
+//     // Subtract finger offset so fingers (not gripper) end up at waferTarget
+//     return waferTarget.clone().sub(fingerOffset);
+//   };
+
+//   // ── Keep-out collision clamp (FOUP / scanner) ────────────────────────────
+//   const APPROACH_OFFSET = 0.25;
+//   const RETRACT_DIST = 0.3;
+//   const TRANSFER_MIN_Y = 0.18;
+//   const keepOut = (id: "foup" | "scanner", desired: THREE.Vector3, from: THREE.Vector3): THREE.Vector3 => {
+//     const box = this._blockBoxes[id];
+//     if (!box) return desired;
+//     // If desired point is inside the box, pull it out along the approach ray.
+//     if (!box.containsPoint(desired)) return desired;
+//     const dir = desired.clone().sub(from);
+//     if (dir.lengthSq() < 1e-6) return desired;
+//     dir.normalize();
+//     // Walk out of the box by stepping backwards.
+//     const out = desired.clone();
+//     for (let i = 0; i < 20 && box.containsPoint(out); i++) {
+//       out.addScaledVector(dir, -0.08);
+//     }
+//     return out;
+//   };
+
+//   // ── Carried wafers: transform owned by gripper.attach(); no world-space lerp ──
+
+//   // ── Find target wafer ──
+//   const carried = this.wSMs.find(
+//     (w) => w.launched && !w.done && w.carrierRobot === r
+//   );
+//   const waiting = this.wSMs.find(
+//     (w) => w.launched && !w.done && !w.carrierRobot &&
+//            w.state === 'track_approach' && !(w as any)._picked
+//   );
+//   const target = carried ?? waiting ?? null;
+
+//   const ud = r.group.userData;
+
+//   // Smooth easing
+//   const sCurve = (x: number) => {
+//     x = Math.max(0, Math.min(1, x));
+//     return x * x * (3 - 2 * x);
+//   };
+
+//   // Bezier evaluator
+//   const evalBezier = (out: THREE.Vector3, t01: number) => {
+//     const p0 = ud.bezierStart as THREE.Vector3;
+//     const p1 = ud.bezierCP1   as THREE.Vector3;
+//     const p2 = ud.bezierCP2   as THREE.Vector3;
+//     const p3 = ud.bezierEnd   as THREE.Vector3;
+//     const u = 1 - t01, u2 = u * u, u3 = u2 * u;
+//     const tt = t01 * t01, ttt = tt * t01;
+//     out.set(
+//       u3 * p0.x + 3 * u2 * t01 * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
+//       u3 * p0.y + 3 * u2 * t01 * p1.y + 3 * u * tt * p2.y + ttt * p3.y,
+//       u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
+//     );
+//   };
+
+//   // Rail target + integration BEFORE runIK.
+//   // DISABLED: full-track robot travel. EFEM only handles FOUP -> DEHY handoff.
+//  // Rail target + integration BEFORE runIK.
+//   // Robot travels the full track to service all 4 handoff zones.
+//   const RAIL_MIN = -22;
+//   const RAIL_MAX = 32;
+//   let dropStep = ALL_STEPS[0];
+//   let prevStep = ALL_STEPS[0];
+//   let pickupX = r.basePos.x;
+//   let pickupZ = 0;
+//   let isPicked = false;
+//   let railTargetX = ud.railX as number;
+
+//   if (target) {
+//     dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
+//     const prevStepIdx = Math.max(target.stepIdx - 1, 0);
+//     prevStep = ALL_STEPS[prevStepIdx];
+//     pickupX = (target as any)._pickupX as number ?? prevStep.x;
+//     pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
+//     isPicked = !!(target as any)._picked;
+//     railTargetX = clamp(isPicked ? dropStep.x : pickupX, RAIL_MIN, RAIL_MAX);
+//   }
+
+//   // Smooth rail movement
+//   const railSpeed = 6.0;
+//   const currentRailX = ud.railX as number;
+//   const dxRail = railTargetX - currentRailX;
+//   const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * dt * this.speed);
+//   ud.railX = currentRailX + railStep;
+//   r.group.position.x = ud.railX as number;
+
+//   if (!target) {
+//     ud.armPhase = 'idle';
+//     ud.phaseT = 0;
+//     const idleTgt = new THREE.Vector3(
+//       r.group.position.x,
+//       1.8,
+//       Math.sin(t * 0.22) * 1.5
+//     );
+//     r.runIK(targetForGripper(idleTgt));
+//     this._setGripperState(r, 0, dt);
+
+//   } else {
+//     // if (target.stepIdx > 1 && !target.carrierRobot) {
+//     //   // DISABLED:
+//     //   // Robot should only transfer FOUP → Dehydration Bake.
+//     //   // Downstream handling is conveyor-owned.
+//     //   ud.armPhase = 'idle';
+//     //   ud.phaseT = 0;
+//     //   return;
+//     // }
+//     const railX = ud.railX as number;
+//     const distPick = Math.abs(railX - pickupX);
+//     const distDrop = Math.abs(railX - dropStep.x);
+
+//     ud.phaseT = (ud.phaseT as number) + dt * this.speed;
+//     const phaseT = ud.phaseT as number;
+//     const phase  = ud.armPhase as string;
+
+//     const pickWorld = new THREE.Vector3();
+//     if (prevStep.type === "foup") {
+//       const foupGrp = this.modObjs["foup"];
+//       const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+//       const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+//       if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(pickWorld);
+//       else pickWorld.set(pickupX, 1.55, pickupZ);
+//     } else {
+//       const modGrp = this.modObjs[prevStep.id];
+//       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+//       if (wa) wa.getWorldPosition(pickWorld);
+//       else pickWorld.set(pickupX, 0.93, pickupZ);
+//     }
+
+//     const dropWorld = new THREE.Vector3();
+//     // Step 16 = return wafer to FOUP after hardbake
+//     const returnToFoup = target.stepIdx >= ALL_STEPS.length;
+//     if (dropStep.type === "foup" || returnToFoup) {
+//       const foupGrp = this.modObjs["foup"];
+//       const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+//       const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+//       if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(dropWorld);
+//       else dropWorld.set(ALL_STEPS[0].x, 1.55, ALL_STEPS[0].z);
+//     } else {
+//       const modGrp = this.modObjs[dropStep.id];
+//       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+//       if (wa) wa.getWorldPosition(dropWorld);
+//       else dropWorld.set(dropStep.x, 0.93, dropStep.z);
+//     }
+
+//     // ── Safe approach / collision rules ────────────────────────────────────
+//     const APPROACH_OFFSET = 0.4;      // vertical approach height above port
+//     const APPROACH_BACKOFF = 0.25;    // stop short of equipment opening
+//     const RETRACT_DIST = 0.3;         // pull out before lifting/turning
+//     const TRANSFER_MIN_Y = 0.18;      // never dip into floor/under-plinth plane
+//     // Wafer geometry from buildWafer(): thickness H=0.035 so half=0.0175.
+//     const WAFER_HALF_T = 0.0175;
+//     // Fork should sit slightly under wafer bottom before vacuum (mm-level clearance).
+//     const PICK_CLEARANCE = 0.003;
+//     const SAFE_HEIGHT     = 2.4;
+
+//     if (!isPicked) {
+//       // Approach direction: from TCP toward the port (used for backoff + retract).
+//       const tcpNow = new THREE.Vector3();
+//       r.gripper.getWorldPosition(tcpNow);
+//       const approachDir = pickWorld.clone().sub(tcpNow);
+//       if (approachDir.lengthSq() > 1e-6) approachDir.normalize();
+
+//       // Back off along approach ray so TCP never enters FOUP/scanner volume.
+//       const backoffBase = pickWorld.clone().addScaledVector(approachDir, -APPROACH_BACKOFF);
+//       const backoffSafe = prevStep.type === "foup"
+//         ? keepOut("foup", backoffBase, tcpNow)
+//         : (prevStep.id === "scanner" ? keepOut("scanner", backoffBase, tcpNow) : backoffBase);
+
+//       const approachPos = new THREE.Vector3(backoffSafe.x, pickWorld.y + APPROACH_OFFSET + 0.4, backoffSafe.z);
+//       const insertPos   = new THREE.Vector3(backoffSafe.x, pickWorld.y + APPROACH_OFFSET,       backoffSafe.z);
+//       const contactPos  = new THREE.Vector3(
+//         pickWorld.x,
+//         // Align fork surface just below wafer bottom.
+//         pickWorld.y - WAFER_HALF_T + PICK_CLEARANCE,
+//         pickWorld.z
+//       );
+//       contactPos.y = Math.max(contactPos.y, TRANSFER_MIN_Y);
+
+//       switch (phase) {
+//         case 'idle':
+//         case 'retract':
+//           ud.armPhase = 'approach';
+//           ud.phaseT = 0;
+//           break;
+
+//         case 'approach':
+//           r.runIK(targetForGripper(approachPos));
+//           this._setGripperState(r, 0, dt);
+//           if (distPick < 1.0 && phaseT > 0.6) {
+//             ud.armPhase = 'insert';
+//             ud.phaseT = 0;
+//           }
+//           break;
+
+//         case 'insert': {
+//           const p = sCurve(Math.min(phaseT / 0.9, 1));
+//           const tgt = new THREE.Vector3().lerpVectors(approachPos, insertPos, p);
+//           r.runIK(targetForGripper(tgt));
+//           this._setGripperState(r, 0, dt);
+//           if (p >= 1) {
+//             ud.armPhase = 'contact';
+//             ud.phaseT = 0;
+//           }
+//           break;
+//         }
+
+//         case 'contact': {
+//           const p = sCurve(Math.min(phaseT / 0.5, 1));
+//           const tgt = new THREE.Vector3().lerpVectors(insertPos, contactPos, p);
+//           r.runIK(targetForGripper(tgt));
+//           this._setGripperState(r, 0.3, dt);
+//           if (p >= 1) {
+//             ud.armPhase = 'vacuum_dwell';
+//             ud.phaseT = 0;
+//             ud.dwellTimer = 0;
+//           }
+//           break;
+//         }
+
+//         case 'vacuum_dwell': {
+//           ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
+//           const dwellP = (ud.dwellTimer as number) / 0.5;
+//           const settleY = Math.sin(dwellP * Math.PI) * 0.008;
+//           const settledPos = contactPos.clone();
+//           settledPos.y -= settleY;
+//           r.runIK(targetForGripper(settledPos));
+//           this._setGripperState(r, 1, dt);
+
+//           r.group.updateWorldMatrix(true, true);
+//           // TCP = gripper origin + finger midpoint offset (same basis as targetForGripper / runIK).
+//           const gripWP = new THREE.Vector3();
+//           r.gripper.getWorldPosition(gripWP);
+//           const tcpWorld = gripWP.clone().add(computeFingerOffset());
+//           // Did the arm reach the commanded contact point (not wafer mesh pivot — that can be metres away)?
+//           const ikErr = tcpWorld.distanceTo(settledPos);
+//           const waferWp = new THREE.Vector3();
+//           target.mesh.getWorldPosition(waferWp);
+//           const waferToTcp = tcpWorld.distanceTo(waferWp);
+//           const sx = Math.max(Math.abs(r.group.scale.x), 0.35);
+//           const PICK_IK_TOL = Math.max(0.12, 0.06 * sx);
+//           const PICK_WAFER_TOL = Math.max(0.22, 0.1 * sx);
+//           const ALIGN_TIMEOUT = 1.2;
+//           const dwell = ud.dwellTimer as number;
+//           const aligned = ikErr < PICK_IK_TOL || waferToTcp < PICK_WAFER_TOL;
+//           const canAttach = dwell >= 0.45 && (aligned || dwell >= ALIGN_TIMEOUT);
+
+//           if (canAttach) {
+//             if (!aligned && dwell >= ALIGN_TIMEOUT) {
+//               console.warn('[PICK] alignment timeout — attach anyway', {
+//                 wi: target.wi,
+//                 ikErr: +ikErr.toFixed(3),
+//                 waferToTcp: +waferToTcp.toFixed(3),
+//                 tolIk: +PICK_IK_TOL.toFixed(3),
+//               });
+//             } else {
+//               console.log('[PICK] aligned', {
+//                 wi: target.wi,
+//                 ikErr: +ikErr.toFixed(3),
+//                 waferToTcp: +waferToTcp.toFixed(3),
+//               });
+//             }
+//             target.attachTo(r);
+//             (target as any)._picked = true;
+//             this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED → ${prevStep.short}`, 'pick');
+
+//             const startW = contactPos.clone();
+//             const endW   = new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET + 0.4, dropWorld.z);
+//             (ud.bezierStart as THREE.Vector3).copy(startW);
+//             (ud.bezierEnd as THREE.Vector3).copy(endW);
+//             (ud.bezierCP1 as THREE.Vector3).set(startW.x, SAFE_HEIGHT, startW.z);
+//             (ud.bezierCP2 as THREE.Vector3).set(endW.x, SAFE_HEIGHT, endW.z);
+//             ud.bezierT = 0;
+
+//             ud.postAttachHold = 0;
+//             ud.armPhase = 'lift';
+//             ud.phaseT = 0;
+//           }
+//           break;
+//         }
+
+//         case 'lift': {
+//           const hold = (ud.postAttachHold as number) ?? 0;
+//           ud.postAttachHold = hold + dt * this.speed;
+//           // 0–0.2s: settle at contact
+//           if (hold < 0.2) {
+//             r.runIK(targetForGripper(contactPos));
+//             this._setGripperState(r, 1, dt);
+//             break;
+//           }
+//           // 0.2–0.4s: retract out of port before lifting/turning (prevents collisions)
+//           if (hold < 0.4) {
+//             const retractPos = contactPos.clone().addScaledVector(approachDir, -RETRACT_DIST);
+//             retractPos.y = Math.max(retractPos.y, TRANSFER_MIN_Y);
+//             r.runIK(targetForGripper(retractPos));
+//             this._setGripperState(r, 1, dt);
+//             break;
+//           }
+//           const liftPos = new THREE.Vector3(pickWorld.x, SAFE_HEIGHT, pickWorld.z);
+//           const p = sCurve(Math.min(phaseT / 0.7, 1));
+//           const tgt = new THREE.Vector3().lerpVectors(contactPos, liftPos, p);
+//           r.runIK(targetForGripper(tgt));
+//           this._setGripperState(r, 1, dt);
+//           if (p >= 1) {
+//             delete ud.postAttachHold;
+//             ud.armPhase = 'transport';
+//             ud.phaseT = 0;
+//             ud.bezierT = 0;
+//           }
+//           break;
+//         }
+
+//         default:
+//           ud.armPhase = 'approach';
+//           ud.phaseT = 0;
+//           break;
+//       }
+
+//     } else {
+//       // Place target uses module waferAnchor (chuck top reference). Drop world pos is anchor.
+//       // Wafer should sit on chuck: wafer center = chuckTop + waferHalfThickness.
+//       const tcpNow = new THREE.Vector3();
+//       r.gripper.getWorldPosition(tcpNow);
+//       const approachDir = dropWorld.clone().sub(tcpNow);
+//       if (approachDir.lengthSq() > 1e-6) approachDir.normalize();
+//       const backoffBase = dropWorld.clone().addScaledVector(approachDir, -APPROACH_BACKOFF);
+//       const backoffSafe = dropStep.id === "scanner"
+//         ? keepOut("scanner", backoffBase, tcpNow)
+//         : backoffBase;
+
+//       const approachDrop = new THREE.Vector3(backoffSafe.x, dropWorld.y + APPROACH_OFFSET + 0.4, backoffSafe.z);
+//       const insertDrop   = new THREE.Vector3(backoffSafe.x, dropWorld.y + APPROACH_OFFSET,       backoffSafe.z);
+//       const placePos     = new THREE.Vector3(dropWorld.x, dropWorld.y + WAFER_HALF_T, dropWorld.z);
+//       placePos.y = Math.max(placePos.y, TRANSFER_MIN_Y);
+
+//       switch (phase) {
+//         case 'lift':
+//         case 'transport':
+//         case 'carry':
+//         case 'rise': {
+//           ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.45, 1);
+//           const tBz = sCurve(ud.bezierT as number);
+//           const tgt = new THREE.Vector3();
+//           evalBezier(tgt, tBz);
+//           r.runIK(targetForGripper(tgt));
+//           this._setGripperState(r, 1, dt);
+//           if ((ud.bezierT as number) >= 1) {
+//             ud.armPhase = 'lower';
+//             ud.phaseT = 0;
+//           }
+//           break;
+//         }
+
+//         case 'lower': {
+//           const p = sCurve(Math.min(phaseT / 0.8, 1));
+//           const tgt = new THREE.Vector3().lerpVectors(approachDrop, insertDrop, p);
+//           r.runIK(targetForGripper(tgt));
+//           this._setGripperState(r, 1, dt);
+//           if (p >= 1) {
+//             ud.armPhase = 'place_contact';
+//             ud.phaseT = 0;
+//           }
+//           break;
+//         }
+
+//         case 'place_contact': {
+//           const p = sCurve(Math.min(phaseT / 0.5, 1));
+//           const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
+//           r.runIK(targetForGripper(tgt));
+//           this._setGripperState(r, 1, dt);
+//           if (p >= 1) {
+//             ud.armPhase = 'release';
+//             ud.phaseT = 0;
+//           }
+//           break;
+//         }
+
+//         case 'release': {
+//           // Validate finger midpoint vs target
+//           const fingerMid = new THREE.Vector3();
+//           const tmp = new THREE.Vector3();
+//           const fT1 = ud.fingerTop1 as THREE.Object3D | undefined;
+//           const fD1 = ud.fingerDown1 as THREE.Object3D | undefined;
+//           if (fT1 && fD1) {
+//             fT1.getWorldPosition(tmp); fingerMid.add(tmp);
+//             fD1.getWorldPosition(tmp); fingerMid.add(tmp);
+//             fingerMid.multiplyScalar(0.5);
+//           }
+//           const targetPos = dropWorld.clone();
+//           const posError = fingerMid.distanceTo(targetPos);
+
+//           r.runIK(targetForGripper(placePos));
+//           this._setGripperState(r, 0, dt);
+
+//           const POS_TOL = 0.12;
+//           const timeoutFallback = phaseT > 1.5;
+
+//           if ((posError <= POS_TOL && phaseT > 0.4) || timeoutFallback) {
+//             target.detachAt(targetPos);
+//             this._addLog(`[${WAFER_NAMES[target.wi]}] RELEASE @ ${dropStep.short}`, 'place');
+//             target.state = 'processing';
+//             target.processTimer = 0;
+//             this._onProcessStart(target, dropStep);
+//             this.busy[dropStep.id] = target.wi;
+//             (target as any)._picked = false;
+//             (target as any)._pickupX = undefined;
+//             (target as any)._pickupZ = undefined;
+//             ud.armPhase = 'retractUp';
+//             ud.phaseT = 0;
+//           }
+//           break;
+//         }
+
+//         case 'retractUp': {
+//           const p = sCurve(Math.min(phaseT / 0.6, 1));
+//           const tgt = new THREE.Vector3().lerpVectors(placePos, approachDrop, p);
+//           r.runIK(targetForGripper(tgt));
+//           this._setGripperState(r, 0, dt);
+//           if (p >= 1) {
+//             ud.armPhase = 'retract';
+//             ud.phaseT = 0;
+//           }
+//           break;
+//         }
+
+//         case 'retract':
+//           r.runIK(targetForGripper(approachDrop));
+//           this._setGripperState(r, 0, dt);
+//           if (phaseT > 0.5) {
+//             ud.armPhase = 'idle';
+//             ud.phaseT = 0;
+//           }
+//           break;
+
+//         default:
+//           ud.armPhase = 'transport';
+//           ud.phaseT = 0;
+//           break;
+//       }
+//     }
+//   }
+
+//   // ── Status LED ──
+//   if (ud.gripperState as number > 0.7) {
+//     r.statusPL.color.setHex(0x00ffff);
+//     r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
+//   } else if (carried) {
+//     r.statusPL.color.setHex(0x00ff88);
+//     r.statusPL.intensity = 1.8;
+//   } else {
+//     r.statusPL.color.setHex(0x00d8ff);
+//     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
+//   }
+// }
+
+
 private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
   const ud = robot.group.userData;
-  const current = ud.gripperState as number ?? 0;
-  const blend = 0.18;
-  ud.gripperState = lerp(current, targetState, blend);
-  const g = ud.gripperState as number;
-
-  const rest = ud.fingerRest as any;
-  if (!rest) return;
-
-  // Stronger close angle — fingers really clamp on wafer
-  const closeAngle = 0.85;  // ~50° — was 0.45 (too weak)
-
-  const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-  const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
-  const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-  const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
-
-  // ── Try X axis first (most common for gripper finger bend) ──
-  // Top fingers rotate DOWN, bottom fingers rotate UP — clamping toward center
-  if (t1 && rest.top1)  t1.rotation.x = rest.top1.x  - g * closeAngle;
-  if (t2 && rest.top2)  t2.rotation.x = rest.top2.x  - g * closeAngle;
-  if (d1 && rest.down1) d1.rotation.x = rest.down1.x + g * closeAngle;
-  if (d2 && rest.down2) d2.rotation.x = rest.down2.x + g * closeAngle;
-
-  // Vacuum visual feedback
-  ud.vacuumEngaged = g > 0.7;
+  const current = (ud.gripperState as number) ?? 0;
+  ud.gripperState = lerp(current, targetState, 0.18);
+  ud.vacuumEngaged = (ud.gripperState as number) > 0.7;
+  // No material changes — robot keeps its natural colors.
 }
+
 private _animRobots(dt: number) {
   const t = this.simTime;
   const r = this.robotEFEM;
   if (!r || !r.runIK) return;
   if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
-
+ 
   // ── One-time init ──
   if (!r.group.userData.railInit) {
     r.group.userData.railX        = r.basePos.x;
@@ -22642,6 +30926,7 @@ private _animRobots(dt: number) {
     r.group.userData.railInit     = true;
     r.group.userData.gripperState = 0;
     r.group.userData.turretRestY  = r.turret.rotation.y;
+    r.group.userData._ikYaw       = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
     r.group.userData.bezierT      = 0;
     r.group.userData.bezierStart  = new THREE.Vector3();
     r.group.userData.bezierEnd    = new THREE.Vector3();
@@ -22649,19 +30934,15 @@ private _animRobots(dt: number) {
     r.group.userData.bezierCP2    = new THREE.Vector3();
     r.group.userData.dwellTimer   = 0;
   }
-
+ 
   // ── Compute finger-to-gripper offset (in gripper local space) ──
-  // This tells us how far forward the wafer sits relative to the gripper origin
   const computeFingerOffset = (): THREE.Vector3 => {
     const ud = r.group.userData;
     const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
     const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
     const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
     const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
-
     if (!t1 || !d1) return new THREE.Vector3();
-
-    // Finger world midpoint
     const fingerMid = new THREE.Vector3();
     const tmp = new THREE.Vector3();
     t1.getWorldPosition(tmp); fingerMid.add(tmp);
@@ -22673,52 +30954,108 @@ private _animRobots(dt: number) {
     } else {
       fingerMid.multiplyScalar(0.5);
     }
-
-    // Gripper world position
     const gripWP = new THREE.Vector3();
     r.gripper.getWorldPosition(gripWP);
-
-    // Offset = how far fingers extend past gripper origin
     return fingerMid.clone().sub(gripWP);
   };
-
-  // ── Helper: convert "where wafer should be" → "where gripper should be" ──
+ 
   const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
     const fingerOffset = computeFingerOffset();
-    // Subtract finger offset so fingers (not gripper) end up at waferTarget
     return waferTarget.clone().sub(fingerOffset);
   };
-
-  // ── Carried wafer follows finger midpoint ──
-  this.wSMs.forEach((sm) => {
-    if (!sm.carrierRobot || !sm.launched || sm.done) return;
-
-    const ud = sm.carrierRobot.group.userData;
-    const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-    const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
-    const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-    const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
-
-    let targetPos: THREE.Vector3;
-    if (t1 && d1 && t2 && d2) {
-      const tWP = new THREE.Vector3(); t1.getWorldPosition(tWP);
-      const bWP = new THREE.Vector3(); d1.getWorldPosition(bWP);
-      const t2WP = new THREE.Vector3(); t2.getWorldPosition(t2WP);
-      const b2WP = new THREE.Vector3(); d2.getWorldPosition(b2WP);
-      targetPos = tWP.add(bWP).add(t2WP).add(b2WP).multiplyScalar(0.25);
-    } else {
-      targetPos = new THREE.Vector3();
-      sm.carrierRobot.gripper.getWorldPosition(targetPos);
-    }
-
-    sm.mesh.position.lerp(targetPos, 0.95);
-    sm.mesh.rotation.x = 0;
-    sm.mesh.rotation.z = 0;
-    sm.mesh.rotation.y += dt * 0.4;
-    sm.mesh.scale.setScalar(1);
-    sm.mesh.visible = true;
-  });
-
+ 
+  // ══════════════════════════════════════════════════════════════════════════
+  // COLLISION SYSTEM — strict no-fly zones for FOUP & scanner
+  // ══════════════════════════════════════════════════════════════════════════
+  // SAFETY_MARGIN grew from 0.15 → 0.55 so the TCP stays well clear.
+  const SAFETY_MARGIN = 1.5;
+ 
+  // Re-expand boxes each frame (cheap; handles GLB loads + module motion).
+ const getKeepOutBox = (id: "foup" | "scanner"): THREE.Box3 | null => {
+  const grp = this.modObjs[id];
+  if (!grp) return null;
+  const glbRoot = (grp.userData.glbRoot as THREE.Object3D | undefined) ?? grp;
+  glbRoot.updateWorldMatrix(true, true);
+  const box = new THREE.Box3().setFromObject(glbRoot);
+  box.expandByScalar(4.5);
+  this._blockBoxes[id] = box;
+  return box;
+};
+ 
+  /**
+   * Hard clamp: if `desired` lies inside the keep-out box, push it to the
+   * NEAREST point on the box surface. Unlike the previous keepOut() (which
+   * walked backwards along the approach ray and could still leave the point
+   * deep inside), this ALWAYS produces a point outside the box.
+   */
+  const clampOutsideBox = (
+    desired: THREE.Vector3,
+    box: THREE.Box3 | null
+  ): THREE.Vector3 => {
+    if (!box || !box.containsPoint(desired)) return desired;
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    // Vector from box center to desired point — clamp to nearest face.
+    const half = new THREE.Vector3();
+    box.getSize(half).multiplyScalar(0.5);
+    const local = desired.clone().sub(center);
+    // Find which axis has the largest |local/half| ratio — that's the closest face.
+    const ratios = [
+      Math.abs(local.x) / half.x,
+      Math.abs(local.y) / half.y,
+      Math.abs(local.z) / half.z,
+    ];
+    const maxRatio = Math.max(...ratios);
+    const out = local.clone().divideScalar(maxRatio).add(center);
+    // Tiny epsilon push so we sit strictly OUTSIDE, not on the surface.
+    const dir = out.clone().sub(center).normalize();
+    out.addScaledVector(dir, 0.02);
+    return out;
+  };
+ 
+  /**
+   * Approach FOUP/scanner ONLY from the +Z face (the door/opening).
+   * Returns a "safe approach point" that is guaranteed outside the keep-out
+   * box AND on the correct side of the enclosure.
+   */
+// REPLACE safeApproach with this stricter version:
+const safeApproach = (
+  stepId: string,
+  portWorld: THREE.Vector3,
+  distance: number
+): THREE.Vector3 => {
+  const grp = this.modObjs[stepId];
+  if (!grp) return portWorld.clone();
+  
+  const box = getKeepOutBox(stepId as "foup" | "scanner");
+  if (!box) return portWorld.clone().add(new THREE.Vector3(0, 0, distance));
+  
+  const center = new THREE.Vector3();
+  box.getCenter(center);
+  
+  // Direction FROM box center TO port (outward facing direction)
+  const outDir = portWorld.clone().sub(center).normalize();
+  
+  // Place approach point OUTSIDE the box along outward direction
+  const boxSize = new THREE.Vector3();
+  box.getSize(boxSize);
+  const boxRadius = Math.max(boxSize.x, boxSize.z) * 0.5;
+  
+  // Approach = outside box surface + extra clearance
+  const approach = center.clone().addScaledVector(outDir, boxRadius + distance + 3.5);
+  approach.y = portWorld.y; // keep same height
+  return approach;
+};
+  // ── Sticky locks ──
+  const APPROACH_OFFSET   = 0.6;
+const APPROACH_BACKOFF  = 8.0;
+const INSERT_DEPTH      = 0.01;
+const RETRACT_DIST      = 8.0;   // how far to pull straight out after pick
+  const TRANSFER_MIN_Y    = 0.18;   // floor floor for TCP
+  const WAFER_HALF_T      = 0.0175;
+  const PICK_CLEARANCE    = 0.003;
+  const SAFE_HEIGHT       = 6.0;    // travel altitude
+ 
   // ── Find target wafer ──
   const carried = this.wSMs.find(
     (w) => w.launched && !w.done && w.carrierRobot === r
@@ -22728,17 +31065,10 @@ private _animRobots(dt: number) {
            w.state === 'track_approach' && !(w as any)._picked
   );
   const target = carried ?? waiting ?? null;
-
+ 
   const ud = r.group.userData;
-  let railTargetX: number = -12;
-
-  // Smooth easing
-  const sCurve = (x: number) => {
-    x = Math.max(0, Math.min(1, x));
-    return x * x * (3 - 2 * x);
-  };
-
-  // Bezier evaluator
+  const sCurve = (x: number) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+ 
   const evalBezier = (out: THREE.Vector3, t01: number) => {
     const p0 = ud.bezierStart as THREE.Vector3;
     const p1 = ud.bezierCP1   as THREE.Vector3;
@@ -22752,11 +31082,37 @@ private _animRobots(dt: number) {
       u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
     );
   };
-
+ 
+  // ── Rail target + integration ──
+  const RAIL_MIN = -22;
+  const RAIL_MAX = 32;
+  let dropStep = ALL_STEPS[0];
+  let prevStep = ALL_STEPS[0];
+  let pickupX = r.basePos.x;
+  let pickupZ = 0;
+  let isPicked = false;
+  let railTargetX = ud.railX as number;
+ 
+  if (target) {
+    dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
+    const prevStepIdx = Math.max(target.stepIdx - 1, 0);
+    prevStep = ALL_STEPS[prevStepIdx];
+    pickupX = (target as any)._pickupX as number ?? prevStep.x;
+    pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
+    isPicked = !!(target as any)._picked;
+    railTargetX = clamp(isPicked ? dropStep.x : pickupX, RAIL_MIN, RAIL_MAX);
+  }
+ 
+  const railSpeed = 6.0;
+  const currentRailX = ud.railX as number;
+  const dxRail = railTargetX - currentRailX;
+  const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * dt * this.speed);
+  ud.railX = currentRailX + railStep;
+  r.group.position.x = ud.railX as number;
+ 
   if (!target) {
     ud.armPhase = 'idle';
     ud.phaseT = 0;
-    railTargetX = -12 + Math.sin(t * 0.18) * 3;
     const idleTgt = new THREE.Vector3(
       r.group.position.x,
       1.8,
@@ -22764,261 +31120,373 @@ private _animRobots(dt: number) {
     );
     r.runIK(targetForGripper(idleTgt));
     this._setGripperState(r, 0, dt);
-
+    return;
+  }
+ 
+  const railX = ud.railX as number;
+  const distPick = Math.abs(railX - pickupX);
+  ud.phaseT = (ud.phaseT as number) + dt * this.speed;
+  const phaseT = ud.phaseT as number;
+  const phase  = ud.armPhase as string;
+ 
+  // ── Resolve pick/drop world positions ──
+  const pickWorld = new THREE.Vector3();
+  if (prevStep.type === "foup") {
+    const foupGrp = this.modObjs["foup"];
+    const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+    const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+    if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(pickWorld);
+    else pickWorld.set(pickupX, 1.55, pickupZ);
   } else {
-    const dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
-    const prevStepIdx = Math.max(target.stepIdx - 1, 0);
-    const prevStep = ALL_STEPS[prevStepIdx];
-
-    const pickupX = (target as any)._pickupX as number ?? prevStep.x;
-    const pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
-    const isPicked: boolean = !!(target as any)._picked;
-
-    railTargetX = clamp(isPicked ? dropStep.x : pickupX, -40, 40);
-
-    const railX    = ud.railX as number;
-    const distPick = Math.abs(railX - pickupX);
-    const distDrop = Math.abs(railX - dropStep.x);
-
-    ud.phaseT = (ud.phaseT as number) + dt * this.speed;
-    const phaseT = ud.phaseT as number;
-    const phase  = ud.armPhase as string;
-
-    // Chuck heights (where wafer must end up)
-    const pickH = prevStep.type === 'foup' ? 1.55 : 0.93;
-    const dropH = dropStep.type === 'foup' ? 1.55 : 0.93;
-
-    const APPROACH_OFFSET = 0.4;   // hover height above target
-    const PICKUP_LIFT     = 0.05;  // wafer sits 5cm above chuck during placement
-    const SAFE_HEIGHT     = 2.4;   // arc transport altitude
-
-    if (!isPicked) {
-      // ═════ PICK SEQUENCE ═════
-      // These are WAFER target positions (where fingers should be)
-      const approachPos = new THREE.Vector3(pickupX, pickH + APPROACH_OFFSET + 0.4, pickupZ);
-      const insertPos   = new THREE.Vector3(pickupX, pickH + APPROACH_OFFSET, pickupZ);
-      const contactPos  = new THREE.Vector3(pickupX, pickH + PICKUP_LIFT, pickupZ);
-
-      switch (phase) {
-        case 'idle':
-        case 'retract':
-          ud.armPhase = 'approach';
-          ud.phaseT = 0;
-          break;
-
-        case 'approach':
-          r.runIK(targetForGripper(approachPos));
-          this._setGripperState(r, 0, dt);
-          if (distPick < 1.0 && phaseT > 0.6) {
-            ud.armPhase = 'insert';
-            ud.phaseT = 0;
-          }
-          break;
-
-        case 'insert': {
-          const p = sCurve(Math.min(phaseT / 0.9, 1));
-          const tgt = new THREE.Vector3().lerpVectors(approachPos, insertPos, p);
-          r.runIK(targetForGripper(tgt));
-          this._setGripperState(r, 0, dt);
-          if (p >= 1) {
-            ud.armPhase = 'contact';
-            ud.phaseT = 0;
-          }
-          break;
-        }
-
-        case 'contact': {
-          const p = sCurve(Math.min(phaseT / 0.5, 1));
-          const tgt = new THREE.Vector3().lerpVectors(insertPos, contactPos, p);
-          r.runIK(targetForGripper(tgt));
-          this._setGripperState(r, 0.3, dt);
-          if (p >= 1) {
-            ud.armPhase = 'vacuum_dwell';
-            ud.phaseT = 0;
-            ud.dwellTimer = 0;
-          }
-          break;
-        }
-
-        case 'vacuum_dwell': {
-          ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
-          const dwellP = (ud.dwellTimer as number) / 0.5;
-          const settleY = Math.sin(dwellP * Math.PI) * 0.008;
-          const settledPos = contactPos.clone();
-          settledPos.y -= settleY;
-          r.runIK(targetForGripper(settledPos));
-          this._setGripperState(r, 1, dt);
-
-          if ((ud.dwellTimer as number) >= 0.5) {
-            // Snap wafer to finger midpoint, then attach
-            const fingerOffset = computeFingerOffset();
-            const gripWP = new THREE.Vector3();
-            r.gripper.getWorldPosition(gripWP);
-            target.mesh.position.copy(gripWP.clone().add(fingerOffset));
-            target.mesh.scale.setScalar(1);
-            target.attachTo(r);
-            (target as any)._picked = true;
-            this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED → ${prevStep.short}`, 'pick');
-
-            // Set up Bezier (in WAFER target space)
-            const startW = contactPos.clone();
-            const endW   = new THREE.Vector3(dropStep.x, dropH + APPROACH_OFFSET + 0.4, dropStep.z);
-            (ud.bezierStart as THREE.Vector3).copy(startW);
-            (ud.bezierEnd as THREE.Vector3).copy(endW);
-            (ud.bezierCP1 as THREE.Vector3).set(startW.x, SAFE_HEIGHT, startW.z);
-            (ud.bezierCP2 as THREE.Vector3).set(endW.x, SAFE_HEIGHT, endW.z);
-            ud.bezierT = 0;
-
-            ud.armPhase = 'lift';
-            ud.phaseT = 0;
-          }
-          break;
-        }
-
-        case 'lift': {
-          const liftPos = new THREE.Vector3(pickupX, SAFE_HEIGHT, pickupZ);
-          const p = sCurve(Math.min(phaseT / 0.7, 1));
-          const tgt = new THREE.Vector3().lerpVectors(contactPos, liftPos, p);
-          r.runIK(targetForGripper(tgt));
-          this._setGripperState(r, 1, dt);
-          if (p >= 1) {
-            ud.armPhase = 'transport';
-            ud.phaseT = 0;
-            ud.bezierT = 0;
-          }
-          break;
-        }
-
-        default:
-          ud.armPhase = 'approach';
-          ud.phaseT = 0;
-          break;
+    const modGrp = this.modObjs[prevStep.id];
+    const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+    if (wa) wa.getWorldPosition(pickWorld);
+    else pickWorld.set(pickupX, 0.93, pickupZ);
+  }
+ 
+  const dropWorld = new THREE.Vector3();
+  const returnToFoup = target.stepIdx >= ALL_STEPS.length;
+  if (dropStep.type === "foup" || returnToFoup) {
+    const foupGrp = this.modObjs["foup"];
+    const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+    const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+    if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(dropWorld);
+    else dropWorld.set(ALL_STEPS[0].x, 1.55, ALL_STEPS[0].z);
+  } else {
+    const modGrp = this.modObjs[dropStep.id];
+    const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+    if (wa) wa.getWorldPosition(dropWorld);
+    else dropWorld.set(dropStep.x, 0.93, dropStep.z);
+  }
+ 
+  if (!isPicked) {
+    // ════════════════════════════════════════════════════════════════════════
+    // PICK SEQUENCE
+    // ════════════════════════════════════════════════════════════════════════
+    const isProtected = prevStep.type === "foup" || prevStep.id === "scanner";
+    const protectId   = prevStep.type === "foup" ? "foup" : "scanner";
+    const keepBox     = isProtected ? getKeepOutBox(protectId as "foup" | "scanner") : null;
+ 
+    // Approach point: front-of-port, well outside the keep-out box.
+    const approachRaw = isProtected
+      ? safeApproach(protectId, pickWorld, APPROACH_BACKOFF)
+      : pickWorld.clone();
+    const approachPos = new THREE.Vector3(
+      approachRaw.x,
+      pickWorld.y + APPROACH_OFFSET,
+      approachRaw.z
+    );
+ 
+    // Insert: slide along the front-facing direction INTO the port, but
+    // clamp every step against the keep-out box.
+    const insertPos = isProtected
+      ? clampOutsideBox(
+          new THREE.Vector3(
+            approachRaw.x +
+              (this.modObjs[protectId]?.userData?.frontFacing?.x ?? 0) * -INSERT_DEPTH,
+            pickWorld.y + APPROACH_OFFSET * 0.4,
+            approachRaw.z +
+              (this.modObjs[protectId]?.userData?.frontFacing?.z ?? 1) * -INSERT_DEPTH
+          ),
+          keepBox
+        )
+      : new THREE.Vector3(pickWorld.x, pickWorld.y + APPROACH_OFFSET * 0.4, pickWorld.z);
+ 
+    // Contact: exactly at the wafer (or clamped if FOUP/scanner).
+   // Contact: stay OUTSIDE the box — never penetrate FOUP/scanner
+    const contactPos = (() => {
+      if (!isProtected || !keepBox) {
+        const raw = new THREE.Vector3(pickWorld.x, pickWorld.y - WAFER_HALF_T + PICK_CLEARANCE, pickWorld.z);
+        raw.y = Math.max(raw.y, TRANSFER_MIN_Y);
+        return raw;
       }
-
-    } else {
-      // ═════ PLACE SEQUENCE ═════
-      const approachDrop = new THREE.Vector3(dropStep.x, dropH + APPROACH_OFFSET + 0.4, dropStep.z);
-      const insertDrop   = new THREE.Vector3(dropStep.x, dropH + APPROACH_OFFSET, dropStep.z);
-      const placePos     = new THREE.Vector3(dropStep.x, dropH + PICKUP_LIFT, dropStep.z);
-
-      switch (phase) {
-        case 'lift':
-        case 'transport':
-        case 'carry':
-        case 'rise': {
-          ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.45, 1);
-          const tBz = sCurve(ud.bezierT as number);
-          const tgt = new THREE.Vector3();
-          evalBezier(tgt, tBz);
-          r.runIK(targetForGripper(tgt));
+      const center = new THREE.Vector3(); keepBox.getCenter(center);
+      const outDir = pickWorld.clone().sub(center).normalize();
+      const half = new THREE.Vector3(); keepBox.getSize(half).multiplyScalar(0.5);
+      const facePoint = center.clone().addScaledVector(outDir, Math.max(half.x, half.z) + 3.5);
+      facePoint.y = Math.max(pickWorld.y, TRANSFER_MIN_Y);
+      return facePoint;
+    })();
+ 
+    switch (phase) {
+      case 'idle':
+      case 'retract':
+        ud.armPhase = 'approach';
+        ud.phaseT = 0;
+        break;
+ 
+      case 'approach':
+        r.runIK(targetForGripper(approachPos));
+        this._setGripperState(r, 0, dt);
+        if (distPick < 1.0 && phaseT > 0.6) {
+          ud.armPhase = 'insert';
+          ud.phaseT = 0;
+        }
+        break;
+ 
+      case 'insert': {
+        const p = sCurve(Math.min(phaseT / 0.9, 1));
+        const tgt = new THREE.Vector3().lerpVectors(approachPos, insertPos, p);
+        // Final safety clamp on the interpolated point (in case lerp dipped in).
+        const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
+        r.runIK(targetForGripper(safe));
+        this._setGripperState(r, 0, dt);
+        if (p >= 1) {
+          ud.armPhase = 'contact';
+          ud.phaseT = 0;
+        }
+        break;
+      }
+ 
+      case 'contact': {
+        const p = sCurve(Math.min(phaseT / 0.5, 1));
+        const tgt = new THREE.Vector3().lerpVectors(insertPos, contactPos, p);
+        const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
+        r.runIK(targetForGripper(safe));
+        this._setGripperState(r, 0.3, dt);
+        if (p >= 1) {
+          ud.armPhase = 'vacuum_dwell';
+          ud.phaseT = 0;
+          ud.dwellTimer = 0;
+        }
+        break;
+      }
+ 
+      case 'vacuum_dwell': {
+        ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
+        const dwellP = (ud.dwellTimer as number) / 0.5;
+        const settleY = Math.sin(dwellP * Math.PI) * 0.008;
+        const settledPos = contactPos.clone();
+        settledPos.y -= settleY;
+        r.runIK(targetForGripper(settledPos));
+        this._setGripperState(r, 1, dt);
+ 
+        r.group.updateWorldMatrix(true, true);
+        const gripWP = new THREE.Vector3();
+        r.gripper.getWorldPosition(gripWP);
+        const tcpWorld = gripWP.clone().add(computeFingerOffset());
+        const ikErr = tcpWorld.distanceTo(settledPos);
+        const waferWp = new THREE.Vector3();
+        target.mesh.getWorldPosition(waferWp);
+        const waferToTcp = tcpWorld.distanceTo(waferWp);
+        const sx = Math.max(Math.abs(r.group.scale.x), 0.35);
+        const PICK_IK_TOL = Math.max(0.12, 0.06 * sx);
+        const PICK_WAFER_TOL = Math.max(0.22, 0.1 * sx);
+        const ALIGN_TIMEOUT = 1.2;
+        const dwell = ud.dwellTimer as number;
+        const aligned = ikErr < PICK_IK_TOL || waferToTcp < PICK_WAFER_TOL;
+        const canAttach = dwell >= 0.45 && (aligned || dwell >= ALIGN_TIMEOUT);
+ 
+        if (canAttach) {
+          target.attachTo(r);
+          (target as any)._picked = true;
+          this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED → ${prevStep.short}`, 'pick');
+ 
+          const startW = contactPos.clone();
+          const endW   = new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET + 0.4, dropWorld.z);
+          (ud.bezierStart as THREE.Vector3).copy(startW);
+          (ud.bezierEnd as THREE.Vector3).copy(endW);
+          (ud.bezierCP1 as THREE.Vector3).set(startW.x, SAFE_HEIGHT, startW.z);
+          (ud.bezierCP2 as THREE.Vector3).set(endW.x, SAFE_HEIGHT, endW.z);
+          ud.bezierT = 0;
+ 
+          ud.postAttachHold = 0;
+          ud.armPhase = 'lift';
+          ud.phaseT = 0;
+        }
+        break;
+      }
+ 
+      case 'lift': {
+        const hold = (ud.postAttachHold as number) ?? 0;
+        ud.postAttachHold = hold + dt * this.speed;
+        if (hold < 0.2) {
+          r.runIK(targetForGripper(contactPos));
           this._setGripperState(r, 1, dt);
-          if ((ud.bezierT as number) >= 1) {
-            ud.armPhase = 'lower';
-            ud.phaseT = 0;
-          }
           break;
         }
-
-        case 'lower': {
-          const p = sCurve(Math.min(phaseT / 0.8, 1));
-          const tgt = new THREE.Vector3().lerpVectors(approachDrop, insertDrop, p);
-          r.runIK(targetForGripper(tgt));
+        if (hold < 0.5) {
+          // STRAIGHT-OUT retract along front-facing direction (out of the port)
+          // before lifting upward. Critical: never sideways inside the box.
+          const retractPos = isProtected
+            ? safeApproach(protectId, contactPos, RETRACT_DIST)
+            : contactPos.clone().add(new THREE.Vector3(0, 0, RETRACT_DIST));
+          retractPos.y = Math.max(retractPos.y, TRANSFER_MIN_Y);
+          r.runIK(targetForGripper(retractPos));
           this._setGripperState(r, 1, dt);
-          if (p >= 1) {
-            ud.armPhase = 'place_contact';
-            ud.phaseT = 0;
-          }
           break;
         }
-
-        case 'place_contact': {
-          const p = sCurve(Math.min(phaseT / 0.5, 1));
-          const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
-          r.runIK(targetForGripper(tgt));
-          this._setGripperState(r, 1, dt);
-          if (p >= 1) {
-            ud.armPhase = 'release';
-            ud.phaseT = 0;
-          }
-          break;
-        }
-
-        case 'release': {
-          // Validate finger midpoint vs target
-          const fingerMid = new THREE.Vector3();
-          const tmp = new THREE.Vector3();
-          const fT1 = ud.fingerTop1 as THREE.Object3D | undefined;
-          const fD1 = ud.fingerDown1 as THREE.Object3D | undefined;
-          if (fT1 && fD1) {
-            fT1.getWorldPosition(tmp); fingerMid.add(tmp);
-            fD1.getWorldPosition(tmp); fingerMid.add(tmp);
-            fingerMid.multiplyScalar(0.5);
-          }
-          const targetPos = new THREE.Vector3(dropStep.x, dropH, dropStep.z);
-          const posError = fingerMid.distanceTo(targetPos);
-
-          r.runIK(targetForGripper(placePos));
-          this._setGripperState(r, 0, dt);
-
-          const POS_TOL = 0.4;
-          const timeoutFallback = phaseT > 1.5;
-
-          if ((posError <= POS_TOL && phaseT > 0.4) || timeoutFallback) {
-            target.detachAt(targetPos);
-            this._addLog(`[${WAFER_NAMES[target.wi]}] RELEASE @ ${dropStep.short}`, 'place');
-            target.state = 'processing';
-            target.processTimer = 0;
-            this._onProcessStart(target, dropStep);
-            this.busy[dropStep.id] = target.wi;
-            (target as any)._picked = false;
-            (target as any)._pickupX = undefined;
-            (target as any)._pickupZ = undefined;
-            ud.armPhase = 'retractUp';
-            ud.phaseT = 0;
-          }
-          break;
-        }
-
-        case 'retractUp': {
-          const p = sCurve(Math.min(phaseT / 0.6, 1));
-          const tgt = new THREE.Vector3().lerpVectors(placePos, approachDrop, p);
-          r.runIK(targetForGripper(tgt));
-          this._setGripperState(r, 0, dt);
-          if (p >= 1) {
-            ud.armPhase = 'retract';
-            ud.phaseT = 0;
-          }
-          break;
-        }
-
-        case 'retract':
-          r.runIK(targetForGripper(approachDrop));
-          this._setGripperState(r, 0, dt);
-          if (phaseT > 0.5) {
-            ud.armPhase = 'idle';
-            ud.phaseT = 0;
-          }
-          break;
-
-        default:
+        // Now lift straight up from the retracted position.
+        const retractedBase = isProtected
+          ? safeApproach(protectId, contactPos, RETRACT_DIST)
+          : contactPos.clone().add(new THREE.Vector3(0, 0, RETRACT_DIST));
+        const liftPos = new THREE.Vector3(retractedBase.x, SAFE_HEIGHT, retractedBase.z);
+        const p = sCurve(Math.min((hold - 0.5) / 0.6, 1));
+        const tgt = new THREE.Vector3().lerpVectors(retractedBase, liftPos, p);
+        r.runIK(targetForGripper(tgt));
+        this._setGripperState(r, 1, dt);
+        if (p >= 1) {
+          delete ud.postAttachHold;
           ud.armPhase = 'transport';
           ud.phaseT = 0;
-          break;
+          ud.bezierT = 0;
+        }
+        break;
       }
+ 
+      default:
+        ud.armPhase = 'approach';
+        ud.phaseT = 0;
+        break;
+    }
+ 
+  } else {
+    // ════════════════════════════════════════════════════════════════════════
+    // PLACE SEQUENCE
+    // ════════════════════════════════════════════════════════════════════════
+    const isProtected = dropStep.type === "foup" || dropStep.id === "scanner" || returnToFoup;
+    const protectId   = (dropStep.type === "foup" || returnToFoup) ? "foup" : "scanner";
+    const keepBox     = isProtected ? getKeepOutBox(protectId as "foup" | "scanner") : null;
+ 
+    const approachRaw = isProtected
+      ? safeApproach(protectId, dropWorld, APPROACH_BACKOFF)
+      : dropWorld.clone();
+    const approachDrop = new THREE.Vector3(
+      approachRaw.x,
+      dropWorld.y + APPROACH_OFFSET + 0.4,
+      approachRaw.z
+    );
+    const insertDrop = isProtected
+      ? clampOutsideBox(
+          new THREE.Vector3(
+            approachRaw.x +
+              (this.modObjs[protectId]?.userData?.frontFacing?.x ?? 0) * -INSERT_DEPTH,
+            dropWorld.y + APPROACH_OFFSET,
+            approachRaw.z +
+              (this.modObjs[protectId]?.userData?.frontFacing?.z ?? 1) * -INSERT_DEPTH
+          ),
+          keepBox
+        )
+      : new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET, dropWorld.z);
+ 
+    const placeRaw = new THREE.Vector3(dropWorld.x, dropWorld.y + WAFER_HALF_T, dropWorld.z);
+    const placePos = isProtected ? clampOutsideBox(placeRaw, keepBox) : placeRaw;
+    placePos.y = Math.max(placePos.y, TRANSFER_MIN_Y);
+ 
+    switch (phase) {
+      case 'lift':
+      case 'transport':
+      case 'carry':
+      case 'rise': {
+        ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.45, 1);
+        const tBz = sCurve(ud.bezierT as number);
+        const tgt = new THREE.Vector3();
+        evalBezier(tgt, tBz);
+        r.runIK(targetForGripper(tgt));
+        this._setGripperState(r, 1, dt);
+        if ((ud.bezierT as number) >= 1) {
+          ud.armPhase = 'lower';
+          ud.phaseT = 0;
+        }
+        break;
+      }
+ 
+      case 'lower': {
+        const p = sCurve(Math.min(phaseT / 0.8, 1));
+        const tgt = new THREE.Vector3().lerpVectors(approachDrop, insertDrop, p);
+        const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
+        r.runIK(targetForGripper(safe));
+        this._setGripperState(r, 1, dt);
+        if (p >= 1) {
+          ud.armPhase = 'place_contact';
+          ud.phaseT = 0;
+        }
+        break;
+      }
+ 
+      case 'place_contact': {
+        const p = sCurve(Math.min(phaseT / 0.5, 1));
+        const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
+        const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
+        r.runIK(targetForGripper(safe));
+        this._setGripperState(r, 1, dt);
+        if (p >= 1) {
+          ud.armPhase = 'release';
+          ud.phaseT = 0;
+        }
+        break;
+      }
+ 
+      case 'release': {
+        const fingerMid = new THREE.Vector3();
+        const tmp = new THREE.Vector3();
+        const fT1 = ud.fingerTop1  as THREE.Object3D | undefined;
+        const fD1 = ud.fingerDown1 as THREE.Object3D | undefined;
+        if (fT1 && fD1) {
+          fT1.getWorldPosition(tmp); fingerMid.add(tmp);
+          fD1.getWorldPosition(tmp); fingerMid.add(tmp);
+          fingerMid.multiplyScalar(0.5);
+        }
+        const posError = fingerMid.distanceTo(dropWorld);
+        r.runIK(targetForGripper(placePos));
+        this._setGripperState(r, 0, dt);
+        const POS_TOL = 0.12;
+        const timeoutFallback = phaseT > 1.5;
+        if ((posError <= POS_TOL && phaseT > 0.4) || timeoutFallback) {
+          target.detachAt(dropWorld);
+          this._addLog(`[${WAFER_NAMES[target.wi]}] RELEASE @ ${dropStep.short}`, 'place');
+          target.state = 'processing';
+          target.processTimer = 0;
+          this._onProcessStart(target, dropStep);
+          this.busy[dropStep.id] = target.wi;
+          (target as any)._picked = false;
+          (target as any)._pickupX = undefined;
+          (target as any)._pickupZ = undefined;
+          ud.armPhase = 'retractUp';
+          ud.phaseT = 0;
+        }
+        break;
+      }
+ 
+      case 'retractUp': {
+        // STRAIGHT-OUT retract along front face, before lifting up.
+        const retractedBase = isProtected
+          ? safeApproach(protectId, placePos, RETRACT_DIST)
+          : placePos.clone().add(new THREE.Vector3(0, 0, RETRACT_DIST));
+        const p = sCurve(Math.min(phaseT / 0.6, 1));
+        const tgt = new THREE.Vector3().lerpVectors(placePos, retractedBase, p);
+        r.runIK(targetForGripper(tgt));
+        this._setGripperState(r, 0, dt);
+        if (p >= 1) {
+          ud.armPhase = 'retract';
+          ud.phaseT = 0;
+        }
+        break;
+      }
+ 
+      case 'retract': {
+        const retractedBase = isProtected
+          ? safeApproach(protectId, placePos, RETRACT_DIST)
+          : approachDrop;
+        const liftTgt = new THREE.Vector3(retractedBase.x, SAFE_HEIGHT, retractedBase.z);
+        const p = sCurve(Math.min(phaseT / 0.5, 1));
+        const tgt = new THREE.Vector3().lerpVectors(retractedBase, liftTgt, p);
+        r.runIK(targetForGripper(tgt));
+        this._setGripperState(r, 0, dt);
+        if (phaseT > 0.7) {
+          ud.armPhase = 'idle';
+          ud.phaseT = 0;
+        }
+        break;
+      }
+ 
+      default:
+        ud.armPhase = 'transport';
+        ud.phaseT = 0;
+        break;
     }
   }
-
-  // ── Rail movement with decel zone ──
-  const railX = ud.railX as number;
-  const distRail = Math.abs(railTargetX - railX);
-  const speedFactor = distRail < 2.0 ? sCurve(distRail / 2.0) : 1.0;
-  const maxStep = 8.0 * this.speed * dt * speedFactor;
-  const dxRail = railTargetX - railX;
-  ud.railX = Math.abs(dxRail) > maxStep
-    ? railX + Math.sign(dxRail) * maxStep
-    : railTargetX;
-  r.group.position.x = ud.railX as number;
-
+ 
   // ── Status LED ──
   if (ud.gripperState as number > 0.7) {
     r.statusPL.color.setHex(0x00ffff);
@@ -23031,8 +31499,12 @@ private _animRobots(dt: number) {
     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
   }
 }
-  private _getCarrierForStep(si: number): RobotObject | null {
-    return this.robotEFEM ?? null; // single robot handles all steps
+
+
+
+private _getCarrierForStep(si: number): RobotObject | null {
+    // Single robot handles every step-to-step transfer in the no-belt layout.
+    return this.robotEFEM ?? null;
   }
 //   private _useConveyor(fromIdx: number, toIdx: number): boolean {
 //     const topRange = (i: number) => i >= 1 && i <= 7;
@@ -23040,35 +31512,52 @@ private _animRobots(dt: number) {
 //     return (topRange(fromIdx) && topRange(toIdx)) || (botRange(fromIdx) && botRange(toIdx));
 //   }
 private _useConveyor(fromIdx: number, toIdx: number): boolean {
-  return false;
-}
-
+    // No conveyor belts in this single-robot flow.
+    return false;
+  }
  private _tickWafer(sm: WaferStateMachine, dt: number) {
   if (sm.done || !sm.launched) return;
   const w = sm.mesh;
   if (sm.spinning && !this.paused) { sm.spin += dt * this.speed * 8; w.rotation.y = sm.spin; }
 
   const sDt = dt * this.speed;
-  const BELT_Y = 0.48;
 
   switch (sm.state) {
 
     // ── IDLE: decide next move ──────────────────────────────────────────────
     case "idle": {
-    if (sm.stepIdx >= ALL_STEPS.length) {
-  sm.state = "done";
-  sm.done = true;
-  // Return visually to FOUP instead of disappearing
-  sm.mesh.position.set(ALL_STEPS[0].x, 0.93, ALL_STEPS[0].z + sm.wi * 0.14);
-  sm.mesh.visible = true;
-  this._addLog(`[${WAFER_NAMES[sm.wi]}] → COMPLETE ✓ returned to FOUP`, "place");
-        if (this._activeCoatWI === sm.wi) { this.spinCoat.stopCoat(); this._activeCoatWI = -1; }
-        if (this._activeDevWI === sm.wi)  { this.devLiquid.stopDev();  this._activeDevWI  = -1; }
-        return;
-      }
-      const mod = ALL_STEPS[sm.stepIdx];
-      if (this.busy[mod.id] !== undefined && this.busy[mod.id] !== sm.wi) return;
-      this.busy[mod.id] = sm.wi;
+        // After hardbake (step 15), robot returns wafer to FOUP (step 16)
+        if (sm.stepIdx >= ALL_STEPS.length) {
+          sm.state = "done";
+          sm.done = true;
+          const foupGrp = this.modObjs["foup"];
+          const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+          const slotIx = Math.min(sm.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+          if (anchors?.[slotIx]) {
+            const p = new THREE.Vector3();
+            anchors[slotIx].getWorldPosition(p);
+            sm.mesh.position.copy(p);
+          } else {
+            sm.mesh.position.set(ALL_STEPS[0].x, 1.55, ALL_STEPS[0].z + sm.wi * 0.14);
+          }
+          sm.mesh.visible = true;
+          this._addLog(`[${WAFER_NAMES[sm.wi]}] → COMPLETE ✓ returned to FOUP`, "place");
+          if (this._activeCoatWI === sm.wi) { this.spinCoat.stopCoat(); this._activeCoatWI = -1; }
+          if (this._activeDevWI === sm.wi)  { this.devLiquid.stopDev();  this._activeDevWI  = -1; }
+          return;
+        }
+        const mod = ALL_STEPS[sm.stepIdx];
+        if (this.busy[mod.id] !== undefined && this.busy[mod.id] !== sm.wi) return;
+        
+        // Check if this is a robot-required step. If so, ensure robot is ready BEFORE reserving.
+        const prevIdx2 = sm.stepIdx - 1;
+        const needsRobot = sm.stepIdx === 0 ? false : !this._useConveyor(prevIdx2, sm.stepIdx);
+        if (needsRobot && (!this.robotEFEM || !this.robotEFEM.gripper)) {
+          // Robot not loaded yet — wait
+          return;
+        }
+        
+        this.busy[mod.id] = sm.wi;
 
       const prevIdx = sm.stepIdx - 1;
       const useConv = sm.stepIdx > 0 && this._useConveyor(prevIdx, sm.stepIdx);
@@ -23076,21 +31565,29 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
       if (useConv) {
         const prevMod = ALL_STEPS[prevIdx];
         const isTop   = mod.z < 0 || prevMod.z < 0;
-        const beltZ   = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
+        const beltZ   = isTop ? TOP_TRACK_BELT_Z : BOT_TRACK_BELT_Z;
 
-        const fromPos = new THREE.Vector3(prevMod.x, BELT_Y, beltZ);
-        const toPos   = new THREE.Vector3(mod.x,     BELT_Y, beltZ);
+        const fromPos = new THREE.Vector3(prevMod.x, CONVEYOR_WAFER_Y, beltZ);
+        const toPos   = new THREE.Vector3(mod.x,     CONVEYOR_WAFER_Y, beltZ);
 
         sm.startConveyorMove(fromPos, toPos, this.speed);
+        sm.owner = "conveyor";
         w.position.copy(fromPos);
         sm.state = "conveyor_move";
         this._addLog(`[${WAFER_NAMES[sm.wi]}] BELT → ${mod.short}`, "move");
 
-      } else {
- const robot = this._getCarrierForStep(sm.stepIdx);
-  if (!robot || !robot.gripper) return;
-  if (!this.robotEFEM) return;
-  if (this.wSMs.some((o) => o !== sm && o.carrierRobot === robot)) return;
+    } else {
+        const robot = this._getCarrierForStep(sm.stepIdx);
+        // Robot still loading — wait. Don't reserve the module slot.
+        if (!robot || !robot.gripper || !this.robotEFEM) {
+          delete this.busy[ALL_STEPS[sm.stepIdx].id];
+          return;
+        }
+        // Robot already carrying another wafer — wait
+        if (this.wSMs.some((o) => o !== sm && o.carrierRobot === robot)) {
+          delete this.busy[ALL_STEPS[sm.stepIdx].id];
+          return;
+        }
 
   // Tell the robot to first slide to wafer's CURRENT location to pick it up
  // Inside case "idle", in the else branch (robot path), replace from sm.state = "track_approach":
@@ -23101,17 +31598,33 @@ const pickupZ = sm.stepIdx === 0
   ? ALL_STEPS[0].z
   : ALL_STEPS[sm.stepIdx - 1].z;
 
-// Stash so _animRobots knows where to slide to first
 (sm as any)._pickupX = pickupX;
 (sm as any)._pickupZ = pickupZ;
 (sm as any)._picked  = false;
 
-// Ensure wafer is visible at the pickup location
 sm.mesh.visible = true;
-sm.mesh.position.set(pickupX, 0.95, pickupZ);
+if (sm.stepIdx === 0) {
+  const foupGrp = this.modObjs["foup"];
+  const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+  const slotIx = Math.min(sm.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+  if (anchors?.[slotIx]) {
+    const p = new THREE.Vector3();
+    anchors[slotIx].getWorldPosition(p);
+    sm.mesh.position.copy(p);
+  } else sm.mesh.position.set(pickupX, 1.55, pickupZ);
+} else {
+  const prevMod = this.modObjs[ALL_STEPS[sm.stepIdx - 1].id];
+  const wa = prevMod?.userData?.waferAnchor as THREE.Object3D | undefined;
+  if (wa) {
+    const p = new THREE.Vector3();
+    wa.getWorldPosition(p);
+    sm.mesh.position.copy(p);
+  } else sm.mesh.position.set(pickupX, 0.93, pickupZ);
+}
 
 sm.state     = 'track_approach';
 sm.timer     = 0;
+sm.owner     = 'robot';
 sm.targetPos.set(ALL_STEPS[sm.stepIdx].x, 0.95, ALL_STEPS[sm.stepIdx].z);
 this._addLog(`[${WAFER_NAMES[sm.wi]}] MOVE → ${mod.short}`, 'move');
   // Do NOT attachTo here — wait until robot physically arrives at pickup
@@ -23126,12 +31639,12 @@ this._addLog(`[${WAFER_NAMES[sm.wi]}] MOVE → ${mod.short}`, 'move');
         sm.onConveyor = false;
         const mod   = ALL_STEPS[sm.stepIdx];
         const isTop = mod.z < 0;
-        const beltZ = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
+        const beltZ = isTop ? TOP_TRACK_BELT_Z : BOT_TRACK_BELT_Z;
 
         // Begin entry animation: belt → module chuck
         sm.entryEl  = 0;
         sm.entryDur = 0.6 / Math.max(this.speed, 1);
-        sm.entryStart.set(mod.x, BELT_Y, beltZ);
+        sm.entryStart.set(mod.x, CONVEYOR_WAFER_Y, beltZ);
         sm.entryEnd.set(mod.x, 0.93, mod.z);
         sm.state = "belt_to_module";
         this._addLog(`[${WAFER_NAMES[sm.wi]}] ENTER → ${mod.short}`, "pick");
@@ -23204,13 +31717,13 @@ this._addLog(`[${WAFER_NAMES[sm.wi]}] MOVE → ${mod.short}`, 'move');
 
         if (nextOnConv) {
           const isTop = mod.z < 0;
-          const beltZ = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
+          const beltZ = isTop ? TOP_TRACK_BELT_Z : BOT_TRACK_BELT_Z;
 
           // Exit animation: chuck → belt
           sm.exitEl  = 0;
           sm.exitDur = 0.6 / Math.max(this.speed, 1);
           sm.exitStart.set(mod.x, 0.93, mod.z);
-          sm.exitEnd.set(mod.x, BELT_Y, beltZ);
+          sm.exitEnd.set(mod.x, CONVEYOR_WAFER_Y, beltZ);
           sm.state = "module_to_belt";
           this._addLog(`[${WAFER_NAMES[sm.wi]}] EXIT ← ${mod.short}`, "move");
         } else {
@@ -23373,16 +31886,33 @@ case "track_place": {
   }
 
   // REPLACE _launchWafer with:
-private _launchWafer(wi: number) {
-  const sm = this.wSMs[wi];
-  if (sm.launched) return;
-  sm.launched = true;
-  sm.mesh.visible = true;
-  sm.mesh.scale.setScalar(1);   // ← add this
-  sm.mesh.position.set(ALL_STEPS[0].x, 1.55, ALL_STEPS[0].z + wi * 0.14); // FOUP slot height
-  sm.state = "idle";
-  this._addLog(`[${WAFER_NAMES[wi]}] LAUNCHED`, "pick");
-}
+  private _launchWafer(wi: number) {
+    const sm = this.wSMs[wi];
+    if (sm.launched) return;
+    sm.launched = true;
+    sm.mesh.visible = true;
+    sm.mesh.scale.setScalar(1);
+    
+    const foupGrp = this.modObjs["foup"];
+    const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+    const slotIx = Math.min(wi, Math.max(0, (anchors?.length ?? 1) - 1));
+    
+    if (anchors?.[slotIx]) {
+      const p = new THREE.Vector3();
+      anchors[slotIx].getWorldPosition(p);
+      sm.mesh.position.copy(p);
+    } else {
+      // Fallback — stack wafers vertically in the FOUP
+      sm.mesh.position.set(ALL_STEPS[0].x, 0.55 + wi * 0.38, ALL_STEPS[0].z + 0.9);
+    }
+    
+    sm.state = "idle";
+    // Start the pipeline at DEHY (stepIdx=1). Step 0 is the FOUP source.
+    sm.stepIdx = 1;
+    sm.owner = "robot";
+    this._addLog(`[${WAFER_NAMES[wi]}] LAUNCHED from FOUP slot ${slotIx + 1}`, "pick");
+    console.log(`[LAUNCH] ${WAFER_NAMES[wi]} at`, sm.mesh.position.toArray());
+  }
 
   private _updateCamera() {
     const o = this.orbit;
@@ -23408,9 +31938,7 @@ private _launchWafer(wi: number) {
     });
    return { 
       wafers, simTime: this.simTime, fps: this.fps, active, completed,
-      jointsA:    this.robotA    ? this.robotA.getJoints()    : null,
       jointsEFEM: this.robotEFEM ? this.robotEFEM.getJoints() : null,
-      jointsC:    this.robotC    ? this.robotC.getJoints()    : null,
     };
   }
 
@@ -23423,8 +31951,15 @@ private _launchWafer(wi: number) {
     const dt = this.paused ? 0 : rawDt;
     if (!this.paused) this.simTime += dt * this.speed;
     if (!this.paused) {
-    //   this.conveyorTop.tick(dt, this.speed, 1);
-    //   this.conveyorBot.tick(dt, this.speed, -1);
+      // Refresh keep-out boxes once GLBs finish loading.
+      const foup = this.modObjs["foup"];
+      if (foup) this._blockBoxes["foup"] = new THREE.Box3().setFromObject(foup).expandByScalar(0.15);
+      const scanner = this.modObjs["scanner"];
+      if (scanner) this._blockBoxes["scanner"] = new THREE.Box3().setFromObject(scanner).expandByScalar(0.15);
+      this.conveyorSegments.forEach((belt, i) => {
+        const isTop = i < 7;
+        belt.tick(dt, this.speed, isTop ? 1 : -1);
+      });
       this.n2Particles.tick(dt, this.speed);
       this.waterParticles.tick(dt, this.speed);
       this.hmdsFog.tick(dt, this.speed, this.simTime);
@@ -23434,71 +31969,19 @@ private _launchWafer(wi: number) {
       if (this.gantryRail && this.robotEFEM) {
         tickGantryRail(this.gantryRail, this.robotEFEM.group.position.x, this.simTime);
       }
-     const nextIdx = this.wSMs.findIndex((sm) => !sm.launched);
-if (nextIdx >= 0) {
-  const prev = this.wSMs[nextIdx - 1];
-  const canLaunch = nextIdx === 0 || (prev && prev.launched && prev.stepIdx >= 2);
-  if (canLaunch) this._launchWafer(nextIdx);
-}
+      const nextIdx = this.wSMs.findIndex((sm) => !sm.launched);
+      if (nextIdx >= 0) {
+        const prev = this.wSMs[nextIdx - 1];
+        // Launch next wafer once previous has moved past DEHY (step 1 done)
+        const canLaunch = nextIdx === 0 || (prev && prev.launched && prev.stepIdx >= 2);
+        if (canLaunch) this._launchWafer(nextIdx);
+      }
 // ── 1. Tick every wafer state machine ──
 this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
 
 // ── 2. Carried wafers follow the gripper in world space ──
 // ── 2. Carried wafers — visibility only; transform handled by parent (gripper) ──
-// ── Carried wafers: follow gripper world pos, but FORCE horizontal orientation ──
-// ── Carried wafers: position at TOOTH TIP (TCP), not gripper origin ──
-// ── Carried wafers: position at TOOTH TIP (TCP), not gripper origin ──
-// ── Carried wafers: position at FINGER MIDPOINT (real gripping zone) ──
-this.wSMs.forEach((sm) => {
-  if (!sm.carrierRobot || !sm.launched || sm.done) return;
-
-  const ud = sm.carrierRobot.group.userData;
-  const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-  const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
-  const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-  const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
-
-  let targetPos: THREE.Vector3;
-
-  if (t1 && d1) {
-    // Use midpoint of finger world positions = exact gripping zone
-    const topWP = new THREE.Vector3();
-    const botWP = new THREE.Vector3();
-    t1.getWorldPosition(topWP);
-    d1.getWorldPosition(botWP);
-
-    // Average top + bottom finger = wafer rests between them
-    targetPos = topWP.clone().add(botWP).multiplyScalar(0.5);
-
-    // Optionally average all 4 fingers for more stable centering
-    if (t2 && d2) {
-      const top2WP = new THREE.Vector3();
-      const bot2WP = new THREE.Vector3();
-      t2.getWorldPosition(top2WP);
-      d2.getWorldPosition(bot2WP);
-      targetPos = topWP.clone()
-        .add(botWP)
-        .add(top2WP)
-        .add(bot2WP)
-        .multiplyScalar(0.25);
-    }
-  } else {
-    // Fallback if fingers not found — use gripper position
-    const gripWP = new THREE.Vector3();
-    sm.carrierRobot.gripper.getWorldPosition(gripWP);
-    targetPos = gripWP.clone();
-  }
-
-  // Snap wafer to finger midpoint
-  sm.mesh.position.lerp(targetPos, 0.95);
-
-  // Lock pitch + roll — wafer always parallel to floor
-  sm.mesh.rotation.x = 0;
-  sm.mesh.rotation.z = 0;
-  sm.mesh.rotation.y += dt * 0.4;
-  sm.mesh.scale.setScalar(1);
-  sm.mesh.visible = true;
-});
+// ── Carried wafers: parented to gripper via attach(); no per-frame position lerp ──
 
 // ── 3. GLB module animations ──
 
@@ -23803,6 +32286,7 @@ this.wSMs.forEach((sm) => {
       if (sm.carrierRobot) sm.detachAt(new THREE.Vector3(ALL_STEPS[0].x, 0.38, ALL_STEPS[0].z));
       sm.stepIdx = 0; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
       sm.spin = 0; sm.spinning = false; sm.launched = false; sm.done = false; sm.carrierRobot = null;
+      sm.owner = "none";
       sm.onConveyor = false; sm.mesh.visible = false; sm.mesh.rotation.y = 0;
       sm.mesh.position.set(ALL_STEPS[0].x, 0.38, ALL_STEPS[0].z);
       const liq = sm.mesh.userData.liquid as THREE.Mesh;
@@ -23941,6 +32425,7 @@ function JointPanel({ title, joints, prefix }: { title: string; joints: JointDat
 export default function EFEMSimulator() {
   const mountRef = useRef<HTMLDivElement>(null);
   const simRef   = useRef<Sim | null>(null);
+  const [simulationState, setSimulationState] = useState<"BOOT"|"INITIALIZING"|"READY"|"RUNNING"|"ERROR">("BOOT");
   const [loading, setLoading]   = useState(true);
   const [loadPct, setLoadPct]   = useState(0);
   const [loadMsg, setLoadMsg]   = useState("INITIALIZING...");
@@ -23948,7 +32433,7 @@ export default function EFEMSimulator() {
   const [speed, setSpeed]       = useState(1);
   const [showBox, setShowBox]   = useState(false);
   const [labels, setLabels]     = useState(true);
-  const [ui, setUI]             = useState<UIState>({ wafers: [], simTime: 0, fps: 60, active: 0, completed: 0, jointsA: null, jointsEFEM: null, jointsC: null });
+  const [ui, setUI]             = useState<UIState>({ wafers: [], simTime: 0, fps: 60, active: 0, completed: 0, jointsEFEM: null });
   const [logs, setLogs]         = useState<LogEntry[]>([]);
   const [tooltip, setTooltip]   = useState<TooltipState>({ visible: false, x: 0, y: 0, name: "", temp: "", meta: "", tempColor: "" });
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
@@ -23959,6 +32444,7 @@ export default function EFEMSimulator() {
 
   useEffect(() => {
     if (!mountRef.current) return;
+    setSimulationState("INITIALIZING");
     const el = mountRef.current;
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", logarithmicDepthBuffer: true });
     renderer.setSize(el.clientWidth, el.clientHeight);
@@ -23971,6 +32457,8 @@ export default function EFEMSimulator() {
 
     const sim = new Sim(renderer, setUI, addLog, handleTooltip);
     simRef.current = sim;
+    console.log("[SIM] BOOT → INITIALIZING");
+    console.log("[SIM] modules:", ALL_STEPS.map(s => s.id).join(" → "));
 
     const resize = () => {
       if (!mountRef.current) return;
@@ -23991,11 +32479,32 @@ export default function EFEMSimulator() {
     const iv = setInterval(() => {
       pct += 3.2; setLoadPct(pct);
       setLoadMsg(MSGS[Math.min(Math.floor(pct / 11), MSGS.length - 1)] + "...");
-      if (pct >= 100) { clearInterval(iv); setTimeout(() => { setLoading(false); sim.start(); }, 400); }
+      if (pct >= 100) {
+        clearInterval(iv);
+        setTimeout(() => {
+          setLoading(false);
+          setSimulationState("READY");
+          console.log("[SIM] READY → RUNNING");
+          sim.start();
+          setSimulationState("RUNNING");
+        }, 200);
+      }
     }, 48);
+
+    // Failsafe: if the sim gets stuck, restart the loop without reloading assets.
+    const watchdog = window.setTimeout(() => {
+      if (!simRef.current) return;
+      if (!simRef.current.robotEFEM) {
+        console.warn("[SIM] watchdog: robot missing, resetting + restarting loop");
+        simRef.current.reset();
+        simRef.current.start();
+        setSimulationState("RUNNING");
+      }
+    }, 6000);
 
     return () => {
       clearInterval(iv);
+      clearTimeout(watchdog);
       window.removeEventListener("resize", resize);
       sim.destroy(); renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
@@ -24010,10 +32519,9 @@ export default function EFEMSimulator() {
   const handleReset = () => { simRef.current?.reset(); setPaused(false); };
 
   const LEGEND = [
-    { label: "Robot",                  color: "#8899aa", shape: "robot" },
-    { label: "Hot Plates",             color: "#ff3300", shape: "rect"  },
-    { label: "Chill Plate",            color: "#0099ff", shape: "rect"  },
-    { label: "Liquid Dispense Module", color: "#00cc88", shape: "drop"  },
+    { label: "EFEM Robot",            color: "#00d8ff", shape: "robot" },
+    { label: "Process Stations",      color: "#ffcc00", shape: "rect"  },
+    { label: "Scanner",               color: "#ee00cc", shape: "drop"  },
   ];
 
   return (
@@ -24057,52 +32565,55 @@ export default function EFEMSimulator() {
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 52, background: "rgba(255,255,255,0.95)", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 12, padding: "0 18px", backdropFilter: "blur(20px)", pointerEvents: "auto", boxShadow: "0 2px 12px rgba(0,80,180,0.08)" }}>
             <span style={{ fontSize: 20, letterSpacing: 10, color: "#0055cc", fontWeight: "bold" }}>SEMATI</span>
             <div style={{ width: 1, height: 22, background: T.border }} />
-            
             <span style={{ fontSize: 8, color: "#3a5588", letterSpacing: 1.5, maxWidth: 380 }}>Genesis — Educational visualization of 300mm wafer Photoresist Coater Developer Track for graduate engineering students</span>
             <div style={{ flex: 1 }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+  <button
+    onClick={() => window.location.href = "/Failure"}
+    style={{
+      padding: "7px 14px",
+      borderRadius: 8,
+      border: `1px solid ${T.border}`,
+      background: "rgba(255,255,255,0.95)",
+      color: "#0055cc",
+      fontSize: 10,
+      fontWeight: 700,
+      letterSpacing: 1.2,
+      cursor: "pointer",
+      transition: "all .2s ease",
+      boxShadow: "0 2px 8px rgba(0,80,180,0.10)"
+    }}
+  >
+    FAILURE
+  </button>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-  <Link href="/Failure" style={{ textDecoration: "none" }}>
-    <div
-      style={{
-        padding: "6px 12px",
-        borderRadius: 6,
-        background: "rgba(0,85,204,0.08)",
-        border: `1px solid ${T.border}`,
-        color: "#0055cc",
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 1,
-        cursor: "pointer",
-        transition: "all .2s ease",
-      }}
-    >
-      FAILURE MODULE
-    </div>
-  </Link>
+  <button
+    onClick={() => window.location.href = "/Recipe"}
+    style={{
+      padding: "7px 14px",
+      borderRadius: 8,
+      border: `1px solid ${T.border}`,
+      background: "rgba(255,255,255,0.95)",
+      color: "#0055cc",
+      fontSize: 10,
+      fontWeight: 700,
+      letterSpacing: 1.2,
+      cursor: "pointer",
+      transition: "all .2s ease",
+      boxShadow: "0 2px 8px rgba(0,80,180,0.10)"
+    }}
+  >
+    RECIPE
+  </button>
 
-  <Link href="/Recipe" style={{ textDecoration: "none" }}>
-    <div
-      style={{
-        padding: "6px 12px",
-        borderRadius: 6,
-        background: "rgba(0,85,204,0.08)",
-        border: `1px solid ${T.border}`,
-        color: "#0055cc",
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 1,
-        cursor: "pointer",
-        transition: "all .2s ease",
-      }}
-    >
-      RECIPE MODULE
-    </div>
-  </Link>
+ 
+
+
 </div>
             <span style={{ fontSize: 12, color: T.accent, letterSpacing: 1, fontWeight: 600 }}>{fmtClock(ui.simTime)}</span>
             <span style={{ fontSize: 8, color: T.textDim, letterSpacing: 2 }}>{ui.fps} FPS</span>
           </div>
+
 
           {/* LEFT PANEL */}
           <div style={{ position: "absolute", left: 10, top: 60, width: 238, display: "flex", flexDirection: "column", gap: 6, maxHeight: "calc(100vh - 120px)", overflowY: "auto", pointerEvents: "auto", animation: "fadeIn .4s ease" }}>
@@ -24123,7 +32634,15 @@ export default function EFEMSimulator() {
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "3.5px 5px", borderRadius: 4, fontSize: 11, border: `1px solid ${isSelected ? "rgba(100,60,220,.55)" : active ? "rgba(0,180,80,.30)" : "transparent"}`, background: isSelected ? "rgba(80,30,180,.10)" : active ? "rgba(0,200,80,.06)" : "transparent", color: active ? "#006633" : done ? "rgba(0,100,180,.35)" : T.textDim, marginBottom: 1, transition: "all .2s", cursor: "pointer" }}>
                       <span style={{ fontSize: 9, color: "rgba(80,120,160,.7)", minWidth: 18, fontWeight: 700 }}>{String(i + 1).padStart(2, "0")}</span>
                       <span style={{ width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: isSelected ? "#8844ff" : active ? "#00aa55" : done ? "rgba(0,120,200,.25)" : "rgba(120,160,200,.18)", boxShadow: isSelected ? "0 0 5px #8844ff" : active ? "0 0 5px #00aa55" : "none", display: "inline-block" }} />
-                      <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{step.name}</span>
+                      <span style={{ 
+                              flex: 1, 
+                              overflow: "hidden", 
+                             textOverflow: "ellipsis", 
+                             whiteSpace: "nowrap",
+                             color: active ? "#ffffff" : done ? "rgba(255,255,255,0.45)" : "#ffffff",
+                             fontWeight: active ? 700 : 600,
+                            textShadow: active ? "0 0 8px rgba(255,255,255,0.4)" : "none",
+                            }}>{step.name}</span>
                       {step.temp != null && <span style={{ fontSize: 9, color: step.temp > 50 ? "#cc4400" : "#0066cc", fontWeight: 800 }}>{step.temp}°</span>}
                     </div>
                   );
@@ -24146,8 +32665,6 @@ export default function EFEMSimulator() {
             {activeTab === "joints" && (
               <>
                 <JointPanel title="EFEM Robot" joints={ui.jointsEFEM} prefix="efem" />
-                <JointPanel title="Track Robot A" joints={ui.jointsA} prefix="robotA" />
-                <JointPanel title="Track Robot C" joints={ui.jointsC} prefix="robotC" />
               </>
             )}
 
@@ -24175,105 +32692,10 @@ export default function EFEMSimulator() {
             })()}
           </div>
 
+
+
           {/* RIGHT PANEL */}
-          <div style={{ position: "absolute", right: 10, top: 60, width: 230, display: "flex", flexDirection: "column", gap: 6, pointerEvents: "auto", animation: "fadeIn .4s ease" }}>
-            <Panel title="Wafer Pipeline">
-              {ui.wafers.map((w, i) => {
-                const stateColor = w.done ? T.accent : w.state === "processing" ? T.green : w.state === "conveyor_move" ? "#ff8800" : w.state.includes("approach") ? T.orange : T.textDim;
-                const prog = Math.min((w.processTimer / w.stepTime) * 100, 100);
-                const isCoating = w.stepIdx === 4 && w.state === "processing";
-                const isDev = w.stepIdx === 11 && w.state === "processing";
-                const isBelt = w.state === "conveyor_move";
-                const totalSteps = ALL_STEPS.length;
-                const completedSteps = w.done ? totalSteps : w.stepIdx;
-                const overallPct = Math.round((completedSteps / totalSteps) * 100);
-                const R = 21; const CIRC = 2 * Math.PI * R;
-                const ringOffset = CIRC - (overallPct / 100) * CIRC;
-                const stepRingR = 16; const stepCirc = 2 * Math.PI * stepRingR;
-                const stepOffset = stepCirc - (prog / 100) * stepCirc;
-                return (
-                  <div key={`wafer-${w.wi}`} style={{ fontSize: 9.5, padding: "7px 8px", background: "rgba(0,80,180,.03)", borderRadius: 5, borderLeft: `3px solid ${W_CSS[i]}`, marginBottom: 5, boxShadow: `inset 2px 0 8px ${W_CSS[i]}22` }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                      <div style={{ position: "relative", flexShrink: 0, width: 50, height: 50 }}>
-                        <svg width="50" height="50" style={{ transform: "rotate(-90deg)" }}>
-                          <circle cx="25" cy="25" r={R} fill="none" stroke="rgba(0,100,180,.12)" strokeWidth="3" />
-                          <circle cx="25" cy="25" r={R} fill="none" stroke={w.done ? T.accent : W_CSS[i]} strokeWidth="3" strokeDasharray={CIRC} strokeDashoffset={ringOffset} strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.4s" }} />
-                          <circle cx="25" cy="25" r={stepRingR} fill="none" stroke="rgba(0,100,180,.08)" strokeWidth="2" />
-                          {w.state === "processing" && !w.done && (
-                            <circle cx="25" cy="25" r={stepRingR} fill="none" stroke={isCoating ? "#cc00ff" : isDev ? "#00cc88" : W_CSS[i]} strokeWidth="2" strokeDasharray={stepCirc} strokeDashoffset={stepOffset} strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.1s" }} />
-                          )}
-                        </svg>
-                        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                          {w.done ? <span style={{ fontSize: 13, color: T.accent }}>✓</span> : (
-                            <>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: W_CSS[i], lineHeight: 1 }}>{overallPct}%</span>
-                              <span style={{ fontSize: 7, color: T.textDim, lineHeight: 1.2 }}>{completedSteps}/{totalSteps}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
-                          <span style={{ fontSize: 8.5, color: W_CSS[i], fontWeight: 700 }}>{w.name}</span>
-                          <span style={{ fontSize: 6, padding: "1px 4px", borderRadius: 3, background: isBelt ? "rgba(255,136,0,.12)" : "rgba(0,80,180,.07)", color: stateColor, fontWeight: 600 }}>
-                            {w.done ? "DONE" : isBelt ? "🔁 BELT" : isCoating ? "SPIN" : isDev ? "DEV" : w.state.toUpperCase()}
-                          </span>
-                        </div>
-                        <div style={{ fontSize: 9.5, color: T.text, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 3 }}>
-                          {w.done ? "✓ COMPLETE" : w.stepName}
-                        </div>
-                        {w.state === "processing" && !w.done && (
-                          <div style={{ height: 2, background: "rgba(0,100,180,.10)", borderRadius: 1 }}>
-                            <div style={{ height: "100%", width: `${prog.toFixed(0)}%`, background: isCoating ? `linear-gradient(90deg,${W_CSS[i]},#cc00ff)` : isDev ? "#00cc88" : W_CSS[i], borderRadius: 1, transition: "width .1s", boxShadow: `0 0 6px ${W_CSS[i]}88` }} />
-                          </div>
-                        )}
-                        <div style={{ height: 2, background: "rgba(0,100,180,.06)", borderRadius: 1, marginTop: 2 }}>
-                          <div style={{ height: "100%", width: `${overallPct}%`, background: w.done ? T.accent : `rgba(${W_CSS[i].replace("#","").match(/.{2}/g)!.map(x=>parseInt(x,16)).join(",")},0.45)`, borderRadius: 1, transition: "width .3s" }} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </Panel>
-
-            <Panel title="System Status">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                {[{ label: "Active", val: ui.active, color: T.green }, { label: "Complete", val: ui.completed, color: T.accent }].map((c, ci) => (
-                  <div key={ci} style={{ background: "rgba(0,100,200,.04)", border: `1px solid rgba(0,100,200,.10)`, borderRadius: 5, padding: "7px 10px" }}>
-                    <div style={{ fontSize: 7.5, letterSpacing: 2, color: T.textDim, marginBottom: 3, textTransform: "uppercase" as const }}>{c.label}</div>
-                    <div style={{ fontSize: 18, color: c.color, fontWeight: 700 }}>{c.val}</div>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-
-            <Panel title="Camera Presets">
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                {Object.entries(CAMERA_PRESETS).map(([k, p]) => (
-                  <Btn key={k} style={{ fontSize: 7.5, padding: "4px 7px", letterSpacing: 0.3 }} onClick={() => simRef.current?.setPreset(p)}>{k}</Btn>
-                ))}
-              </div>
-              <div style={{ marginTop: 8, fontSize: 7.5, color: T.textDim, lineHeight: 1.8, opacity: 0.7 }}>
-                Left drag — orbit &nbsp;|&nbsp; Right — pan &nbsp;|&nbsp; Scroll — zoom
-              </div>
-            </Panel>
-
-            <Panel title="Conveyor Belt Status">
-              <div style={{ fontSize: 8, lineHeight: 1.9 }}>
-                {[{ label: "TOP BELT", color: "#0055ff", shadow: "#0055ff", range: "Steps 1–7 →" }, { label: "BOT BELT", color: "#00aa44", shadow: "#00aa44", range: "Steps 10–16 ←" }].map((belt, bi) => (
-                  <div key={bi} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: belt.color, display: "inline-block", boxShadow: `0 0 6px ${belt.shadow}` }} />
-                    <span style={{ color: belt.color, fontWeight: 700 }}>{belt.label}</span>
-                    <span style={{ color: T.textDim, fontSize: 7 }}>{belt.range}</span>
-                  </div>
-                ))}
-                {ui.wafers.some(w => w.state === "conveyor_move") && (
-                  <div style={{ color: "#ff8800", fontWeight: 700, fontSize: 7.5 }}>🔁 {ui.wafers.filter(w => w.state === "conveyor_move").length} wafer(s) on belt</div>
-                )}
-              </div>
-            </Panel>
-          </div>
+					{/* Right panel intentionally left blank */}
 
           {/* BOTTOM CONTROLS */}
           <div style={{ position: "absolute", bottom: 46, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, pointerEvents: "auto", background: "rgba(255,255,255,0.92)", border: `1px solid ${T.border}`, borderRadius: 10, padding: "7px 14px", backdropFilter: "blur(20px)", boxShadow: "0 4px 20px rgba(0,80,180,0.10)" }}>
@@ -24292,8 +32714,8 @@ export default function EFEMSimulator() {
           {/* BOTTOM LEGEND */}
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 42, background: "rgba(240,246,252,0.97)", borderTop: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 18px", pointerEvents: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 7.5, color: T.textDim, letterSpacing: 0.8 }}>
-              <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%", background: "#00aa44", boxShadow: "0 0 5px #00aa44", marginRight: 5, animation: "pulse 2s infinite" }} />
-              <span style={{ fontWeight: 700, color: "#00aa44", marginRight: 10 }}>SYSTEM ONLINE</span>
+              <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%", background: "#ffcc00", boxShadow: "0 0 5px #ffcc00", marginRight: 5, animation: "pulse 2s infinite" }} />
+              <span style={{ fontWeight: 700, color: "#ffcc00", marginRight: 10 }}>SYSTEM ONLINE</span>
               <span>SIM: {fmtClock(ui.simTime)}</span>
               <span style={{ margin: "0 8px", opacity: 0.4 }}>|</span>
               <span>ACTIVE: {ui.active}</span>

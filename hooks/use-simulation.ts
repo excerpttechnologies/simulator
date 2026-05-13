@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { SimulationState, ProcessTelemetry } from "./api-service";
+import type { SimulationState, ProcessTelemetry } from "../lib/api-service";
 
 interface UseSimulationOptions {
   autoStart?: boolean;
