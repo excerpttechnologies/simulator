@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -1962,8 +1961,6 @@ const Failure: React.FC = () => {
                                                         </div>
                                                     );
                                                 })}
-
-
                                             </div>
 
                                             {/* UCL/LCL Reference Line Labels for Duty Cycle */}
