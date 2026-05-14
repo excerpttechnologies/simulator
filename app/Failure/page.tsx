@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -83,11 +84,11 @@ const FM_DATA: FailureMode[] = [
         recipe: "ArF_CAR_110C",
         keyInfo: "<strong>PEB Temperature Deviation</strong> occurs when one or more hotplate zones drift beyond ±0.3°C of the 110°C setpoint. This directly impacts acid diffusion length in CAR (Chemically Amplified Resist), causing CD (critical dimension) shift. Zone 4 is reporting a deviation. Immediate OCAP action required.",
         zones: [
-            { label: "ZONE 1", temp: "", status: "healthy", note: "" },
-            { label: "ZONE 2", temp: "", status: "healthy", note: "" },
-            { label: "ZONE 3", temp: "", status: "healthy", note: "" },
-            { label: "ZONE 4", temp: "", status: "danger", note: "" },
-            { label: "ZONE 5", temp: "", status: "healthy", note: "" },
+            { label: "ZONE 1", temp: "110.01°C", status: "healthy", note: "NOMINAL" },
+            { label: "ZONE 2", temp: "110.0°C", status: "healthy", note: "NOMINAL" },
+            { label: "ZONE 3", temp: "110.02°C", status: "healthy", note: "NOMINAL" },
+            { label: "ZONE 4", temp: "110.08°C", status: "danger", note: "CRITICAL" },
+            { label: "ZONE 5", temp: "110.01°C", status: "healthy", note: "NOMINAL" },
         ],
         rtmLabel: "PEB TEMP (°C) — ZONE 3",
         rtmTarget: 110, rtmUcl: 110.3, rtmLcl: 109.7,
@@ -380,8 +381,8 @@ function getPEBScenarioData(scenario: PEBScenario) {
             temps: [110.0, 109.5, 108.8, 107.9, 106.8, 105.5, 104.0, 102.3, 100.5, 98.5, 96.3, 94.0, 91.5, 89.0, 86.0],
             duty: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
             dangerZone: 4,
-            dangerTemp: '',
-            dangerStatus: '',
+            dangerTemp: '86.0°C',
+            dangerStatus: 'DROPPING',
             icon: '🔥', label: 'SCENARIO 1 — Failing Heating Element',
             desc: 'Zone 4 temperature drops asymptotically toward ambient. Duty cycle pinned at 100%. PID controller is demanding full power but temperature keeps dropping — heater element is failing.',
             warn: null,
@@ -393,9 +394,9 @@ function getPEBScenarioData(scenario: PEBScenario) {
         return {
             temps: [110.0, 95.0, 125.0, 88.0, 132.0, 92.0, 128.0, 85.0, 135.0, 90.0, 130.0, 87.0, 133.0, 89.0, 110.0],
             duty: [45, 0, 100, 0, 100, 0, 100, 0, 100, 0, 100, 0, 100, 0, 45],
-            dangerZone: 4,
-            dangerTemp: '',
-            dangerStatus: '',
+            dangerZone: 3,
+            dangerTemp: 'ERRATIC',
+            dangerStatus: 'TC FAIL',
             icon: '⚡', label: 'SCENARIO 2 — Broken Thermocouple Sensor',
             desc: 'Zone 4 trace shows severe jagged spikes. Duty cycle chatters 0–100%. The thermocouple is sending erratic signals, causing the PID to oscillate wildly between full power and no power.',
             warn: null,
@@ -407,9 +408,9 @@ function getPEBScenarioData(scenario: PEBScenario) {
         return {
             temps: [110.0, 109.5, 108.8, 107.9, 106.8, 105.5, 104.0, 102.3, 100.5, 98.5, 96.3, 94.0, 91.5, 89.0, 86.0],
             duty: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-            dangerZone: 4,
-            dangerTemp: '',
-            dangerStatus: '',
+            dangerZone: 5,
+            dangerTemp: '86.0°C',
+            dangerStatus: 'SSR FAIL',
             icon: '🔌', label: 'SCENARIO 3 — Blown SSR (Stuck OFF)',
             desc: 'Visually identical to Scenario 1 — temperature drops with duty cycle pinned at 100%. The SSR is receiving the command to switch ON but is not passing power. Charts alone cannot distinguish this from Scenario 1.',
             warn: '⚠️ Diagnostic Trick: Run Ohm test on heater to distinguish SSR fail from heater fail!',
@@ -598,7 +599,7 @@ const ZONE_COLORS = {
     z1: '#7abfbf',   // muted teal — Zone 1
     z2: '#e05c5c',   // red — Zone 2  
     z3: '#ccccaa',   // muted yellow — Zone 3
-    z4: '#d64343',   // AMBER — Zone 4 (the failing zone, amber/orange in both images)
+    z4: '#e8a020',   // AMBER — Zone 4 (the failing zone, amber/orange in both images)
     z5: '#7fc97f',   // green — Zone 5
 };
 
@@ -624,67 +625,22 @@ function genStableZone(seed: number, base: number, amp: number, n: number): numb
 
 // Scenarios 1 & 3 — zone 4 exponential drop after FAIL_PT
 function getScenario13Temps(failPt: number): number[][] {
-
-    const makeStable = (seed: number, base: number, amp: number) => {
-        const rand = seededRand(seed);
-
-        return Array.from({ length: CHART_N }, (_, i) => {
-            const drift =
-                Math.sin(i * 0.012) * 0.18;
-
-            const noise =
-                (rand() - 0.5) * amp;
-
-            return base + drift + noise;
-        });
-    };
-
-    // healthy zones tightly grouped
-    const z1 = makeStable(11, 108.2, 0.45);
-    const z2 = makeStable(22, 107.9, 0.40);
-    const z3 = makeStable(33, 108.4, 0.42);
-    const z5 = makeStable(55, 108.1, 0.48);
-
-    // failed zone
+    const z1 = genStableZone(11, 108, 1.2, CHART_N);
+    const z2 = genStableZone(22, 108, 1.0, CHART_N);
+    const z3 = genStableZone(33, 108, 1.1, CHART_N);
+    const z5 = genStableZone(55, 108, 1.3, CHART_N);
     const z4: number[] = [];
-
     for (let i = 0; i < CHART_N; i++) {
-
-        // BEFORE FAILURE
         if (i < failPt) {
-
             const r = seededRand(44 + i);
-
-            z4.push(
-                108 +
-                Math.sin(i * 0.013) * 0.15 +
-                (r() - 0.5) * 0.42
-            );
-        }
-
-        // AFTER FAILURE
-        else {
-
-            const t = i - failPt;
-
-            // smooth realistic thermal decay
-            const decay =
-                108 * Math.exp(-0.0072 * t);
-
-            // tiny sensor noise
-            const noise =
-                (seededRand(144 + i)() - 0.5) * 0.18;
-
-            z4.push(
-                Math.max(22, decay + noise)
-            );
+            z4.push(108 + (r() - 0.5) * 1.0);
+        } else {
+            const decay = 108 * Math.exp(-0.009 * (i - failPt));
+            z4.push(Math.max(22, decay) + (seededRand(144 + i)() - 0.5) * 0.4);
         }
     }
-
     return [z1, z2, z3, z4, z5];
 }
-
-
 
 // Scenarios 1 & 3 — zone 4 pinned at 100% after DUTY_JUMP
 function getScenario13Duty(dutyJump: number): number[][] {
@@ -702,6 +658,111 @@ function getScenario13Duty(dutyJump: number): number[][] {
         i < dutyJump ? 38 + seededRand(203 + i)() * 6 : 100
     );
     return [dz1, dz2, dz3, dz4, dz5];
+}
+
+// Scenario 2 — zone 4 erratic spikes 0–500°C
+// function getScenario2Temps(): number[][] {
+//     const z1 = genStableZone(11, 108, 1.2, CHART_N);
+//     const z2 = genStableZone(22, 108, 1.0, CHART_N);
+//     const z3 = genStableZone(33, 108, 1.1, CHART_N);
+//     const z5 = genStableZone(55, 108, 1.3, CHART_N);
+//     const SPIKE_START = 175;
+//     // Replace the z4 generation in getScenario2Temps with this:
+//     const z4: number[] = [];
+//     for (let i = 0; i < CHART_N; i++) {
+//         const r = seededRand(77 + i);
+//         if (i < SPIKE_START) {
+//             z4.push(108 + (r() - 0.5) * 1.5);
+//         } else {
+//             const phase = (i - SPIKE_START) % 18;
+//             // INSTANT sharp spikes - no interpolation
+//             if (phase < 3) z4.push(23 + r() * 30);      // Low spike
+//             else if (phase < 6) z4.push(250 + r() * 250); // High spike to 500
+//             else if (phase < 9) z4.push(23 + r() * 40);   // Drop instantly
+//             else if (phase < 12) z4.push(300 + r() * 200); // Another high spike
+//             else z4.push(108 + (r() - 0.5) * 20);          // Return to normal
+//         }
+//     }
+//     return [z1, z2, z3, z4, z5];
+// }
+
+
+
+function getScenario2Temps(): number[][] {
+    const z1 = genStableZone(11, 110, 0.3, CHART_N);
+    const z2 = genStableZone(22, 110, 0.25, CHART_N);
+    const z3 = genStableZone(33, 110, 0.28, CHART_N);
+    const z5 = genStableZone(55, 110, 0.32, CHART_N);
+
+    const z4: number[] = new Array(CHART_N).fill(110);
+
+    // Irregular spike definitions: [peakIndex, peakHeight, leftWidth, rightWidth]
+    // Left/right widths are asymmetric for natural jagged look
+    // Heights grow from ~120 at x=200 to ~500 at x=490
+    const spikes: [number, number, number, number][] = [
+        // Small starts x=200-250
+        [203, 122, 1, 2], [207, 118, 2, 1], [211, 130, 1, 3],
+        [216, 115, 2, 1], [219, 128, 1, 2], [223, 135, 2, 2],
+        [227, 120, 1, 1], [231, 142, 2, 3], [236, 125, 1, 2],
+        [240, 150, 2, 2], [244, 138, 3, 1], [248, 155, 1, 3],
+
+        // Medium x=250-310
+        [253, 168, 2, 2], [258, 180, 1, 3], [263, 172, 3, 2],
+        [268, 195, 2, 1], [272, 185, 1, 2], [276, 210, 2, 3],
+        [281, 198, 3, 1], [285, 222, 1, 2], [290, 215, 2, 2],
+        [295, 240, 1, 3], [300, 228, 3, 2], [305, 255, 2, 1],
+
+        // Growing x=310-380
+        [310, 268, 2, 3], [315, 280, 1, 2], [320, 295, 3, 1],
+        [325, 278, 2, 2], [330, 310, 1, 3], [335, 298, 2, 2],
+        [341, 325, 3, 1], [346, 315, 1, 2], [351, 340, 2, 3],
+        [357, 330, 3, 2], [362, 358, 1, 2], [368, 345, 2, 1],
+        [373, 372, 1, 3], [379, 360, 3, 2],
+
+        // Large x=380-500
+        [385, 388, 2, 2], [390, 375, 1, 3], [396, 405, 3, 1],
+        [401, 395, 2, 2], [407, 420, 1, 2], [412, 410, 2, 3],
+        [418, 438, 3, 1], [423, 428, 1, 2], [429, 450, 2, 2],
+        [434, 442, 3, 2], [440, 465, 1, 3], [445, 458, 2, 1],
+        [451, 478, 2, 2], [456, 470, 1, 3], [462, 488, 3, 2],
+        [467, 480, 2, 1], [473, 495, 1, 2], [478, 488, 2, 3],
+        [484, 498, 3, 1], [489, 492, 1, 2], [494, 500, 2, 2],
+        [499, 495, 1, 1],
+    ];
+
+    for (const [peak, height, lw, rw] of spikes) {
+        // Rising edge (left side)
+        for (let d = lw; d >= 1; d--) {
+            const idx = peak - d;
+            if (idx >= 0 && idx < CHART_N) {
+                const frac = (lw - d + 1) / (lw + 1);
+                z4[idx] = Math.max(z4[idx], 110 + frac * (height - 110));
+            }
+        }
+        // Peak
+        if (peak < CHART_N) {
+            z4[peak] = Math.max(z4[peak], height + (seededRand(peak * 7)() - 0.5) * height * 0.03);
+        }
+        // Falling edge (right side)
+        for (let d = 1; d <= rw; d++) {
+            const idx = peak + d;
+            if (idx < CHART_N) {
+                const frac = (rw - d + 1) / (rw + 1);
+                z4[idx] = Math.max(z4[idx], 110 + frac * (height - 110));
+            }
+        }
+    }
+
+    // Ensure baseline stays at exactly 110
+    for (let i = 0; i < CHART_N; i++) {
+        z4[i] = Math.max(110, Math.min(502, z4[i]));
+        // Add tiny noise only at baseline
+        if (z4[i] <= 111) {
+            z4[i] = 110 + (seededRand(77 + i)() - 0.5) * 0.3;
+        }
+    }
+
+    return [z1, z2, z3, z4, z5];
 }
 
 
@@ -723,30 +784,24 @@ function getScenario2Duty(): number[][] {
     const SPIKE_START = 200;
     const dz4: number[] = [];
 
-
+    // Duty cycle spikes: INVERSE of temperature
+    // When temp spikes UP → duty 0%
+    // When temp drops to 23°C → duty 95-100%
+    // When temp at 110°C baseline → duty ~40-50%
     const dutyPoints: [number, number][] = [
         [0, 40], [199, 42],
         // Mirror the temperature spike table exactly but inverted
         [200, 42], [203, 2], [205, 42],
         [207, 4], [209, 42],
-        [211, 2], [213, 102], [215, 42],
+        [211, 2], [213, 96], [215, 42],
         [217, 3], [219, 42],
-        [221, 4], [222, 103], [224, 42],
+        [221, 4], [222, 97], [224, 42],
         [226, 2], [228, 42],
-        [230, 3], [231, 104], [233, 42],
+        [230, 3], [231, 95], [233, 42],
         [235, 2], [237, 42],
-        [239, 4], [240, 105], [242, 42],
+        [239, 4], [240, 96], [242, 42],
         [244, 2], [246, 42],
-        [248, 104], [250, 42],
-
-        [252, 2], [255, 42],
-        [256, 103], [258, 42],
-        [260, 2], [263, 42],
-        [265, 104], [267, 42],
-        [269, 2], [272, 42],
-        [274, 105], [276, 42],
-        [278, 2], [281, 42],
-        [283, 102], [285, 42],
+        [248, 97], [250, 42],
 
         [252, 2], [255, 42],
         [256, 96], [258, 42],
@@ -817,142 +872,15 @@ function getScenario2Duty(): number[][] {
         const t = hi[0] === lo[0] ? 0 : (i - lo[0]) / (hi[0] - lo[0]);
         const val = lo[1] + t * (hi[1] - lo[1]);
         const noise = (seededRand(203 + i * 3)() - 0.5) * 2;
-        dz4.push(Math.max(0, Math.min(105, val + noise)));
+        dz4.push(Math.max(0, Math.min(100, val + noise)));
     }
 
     return [dz1, dz2, dz3, dz4, dz5];
 }
 
-
-
-
-
-
-function getScenario2Temps(): number[][] {
-    const CHART_N = 501;
-
-    // Zones 1,2,3,5 — flat at 110°C with tiny noise (the flat lines in reference)
-    const makeFlat110 = (seed: number) => {
-        const r = seededRand(seed);
-        return Array.from({ length: CHART_N }, () => 110 + (r() - 0.5) * 0.4);
-    };
-    const z1 = makeFlat110(11);
-    const z2 = makeFlat110(22);
-    const z3 = makeFlat110(33);
-    const z5 = makeFlat110(55);
-
-    const z4: number[] = new Array(CHART_N).fill(120);
-
-    // ── PHASE 0 (x=0–200): Zone 4 elevated at ~120°C baseline ──
-    // Reference shows a noisy ~120°C line from x=0 to x=200
-    const rP0 = seededRand(9901);
-    for (let i = 0; i <= 200; i++) {
-        z4[i] = 120 + (rP0() - 0.5) * 5;
-    }
-
-    // ── PHASE 1 (x=200–500): spikes BOTH up and down from 120 baseline ──
-    // Reference y-axis: 23.0, 40.0, 110.0, 120.0, 300.0, 400.0, S00.0
-    // DOWN spikes reach ~23°C, UP spikes reach ~500°C
-    // Spikes start at x=200, amplitude grows toward x=500
-    // Dense alternating pattern: up spike, down spike, baseline, repeat
-
-    const rH = seededRand(8821);
-    const rPos = seededRand(3317);
-    const rDir = seededRand(6643);
-    const rW = seededRand(2291);
-    const rNs = seededRand(5577);
-
-    // Build complete spike list from x=200 to x=500
-    const spikes: Array<[number, number, boolean]> = [];
-
-    // x=200–250: small-medium (30–100°C range from 120 baseline)
-    let x = 202;
-    while (x < 250) {
-        const p = (x - 200) / 50;
-        const amp = 30 + p * 70 + rH() * 30;
-        const goUp = rDir() < 0.50;   // 50/50 up/down
-        spikes.push([Math.round(x), amp, goUp]);
-        x += 3 + Math.round(rPos() * 5);
-    }
-
-    // x=250–330: medium (80–200°C range)
-    x = 252;
-    while (x < 330) {
-        const p = (x - 250) / 80;
-        const amp = 80 + p * 120 + rH() * 50;
-        const goUp = rDir() < 0.50;
-        spikes.push([Math.round(x), Math.min(380, amp), goUp]);
-        x += 3 + Math.round(rPos() * 4);
-    }
-
-    // x=330–420: large (170–320°C range)
-    x = 332;
-    while (x < 420) {
-        const p = (x - 330) / 90;
-        const amp = 170 + p * 150 + rH() * 55;
-        const goUp = rDir() < 0.50;
-        spikes.push([Math.round(x), Math.min(380, amp), goUp]);
-        x += 2 + Math.round(rPos() * 4);
-    }
-
-    // x=420–500: massive (280–380°C range), densest
-    x = 422;
-    while (x < 500) {
-        const p = (x - 420) / 80;
-        const amp = 280 + p * 100 + rH() * 35;
-        const goUp = rDir() < 0.50;
-        spikes.push([Math.round(x), Math.min(380, amp), goUp]);
-        x += 2 + Math.round(rPos() * 3);
-    }
-
-    // Render each spike as a sharp V from 120 baseline
-    for (const [px, amp, goUp] of spikes) {
-        // UP: 120 + amp (reaches up to ~500°C)
-        // DOWN: clamps at 23°C (reference y-axis label)
-        const peak = goUp
-            ? 120 + amp
-            : Math.max(23, 120 - amp);   // DOWN — goes all the way to 23°C
-
-        const hw = rW() < 0.45 ? 1 : 2;
-
-        // Rising edge toward peak
-        for (let d = hw; d >= 1; d--) {
-            const idx = px - d;
-            if (idx >= 200 && idx < CHART_N) {
-                const frac = (hw - d + 1) / (hw + 1);
-                const val = 120 + frac * (peak - 120);
-                if (Math.abs(val - 120) > Math.abs(z4[idx] - 120)) z4[idx] = val;
-            }
-        }
-        // Peak sample
-        if (px >= 200 && px < CHART_N) {
-            if (Math.abs(peak - 120) > Math.abs(z4[px] - 120)) z4[px] = peak;
-        }
-        // Falling edge back to 120
-        for (let d = 1; d <= hw; d++) {
-            const idx = px + d;
-            if (idx < CHART_N) {
-                const frac = (hw - d + 1) / (hw + 1);
-                const val = 120 + frac * (peak - 120);
-                if (Math.abs(val - 120) > Math.abs(z4[idx] - 120)) z4[idx] = val;
-            }
-        }
-    }
-
-    // Between spikes: Zone 4 returns to ~120°C baseline
-    for (let i = 200; i < CHART_N; i++) {
-        if (Math.abs(z4[i] - 120) < 0.5) {
-            z4[i] = 120 + (rNs() - 0.5) * 2;
-        }
-    }
-
-    return [z1, z2, z3, z4, z5];
-}
-
-
-
-
-
+// =============================================
+// MULTI-ZONE CANVAS RENDERER  ← NEW
+// =============================================
 function drawMultiZoneChart(
     canvas: HTMLCanvasElement,
     datasets: { data: number[]; color: string }[],
@@ -972,175 +900,99 @@ function drawMultiZoneChart(
 ) {
     const rect = canvas.getBoundingClientRect();
     if (rect.width === 0) return;
-
     canvas.width = rect.width;
     canvas.height = 150;
-
-    const W = rect.width;
-    const H = 150;
-
-    const pad = { l: 56, t: 12, r: 16, b: 24 };
-
+    const W = rect.width, H = 150;
+    const pad = { l: 48, t: 12, r: 16, b: 24 };
     const gW = W - pad.l - pad.r;
     const gH = H - pad.t - pad.b;
-
     const n = datasets[0]?.data.length ?? 1;
 
-    const sx = (i: number) =>
-        pad.l + (i / (n - 1)) * gW;
-
-    const sy = (v: number) =>
-        pad.t + (1 - (v - yMin) / (yMax - yMin)) * gH;
+    const sx = (i: number) => pad.l + (i / (n - 1)) * gW;
+    const sy = (v: number) => pad.t + (1 - (v - yMin) / (yMax - yMin)) * gH;
 
     const ctx = canvas.getContext('2d')!;
-
     ctx.clearRect(0, 0, W, H);
 
-    // Background
+    // White background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
 
-    // Horizontal grid
+    // Horizontal grid lines
     for (let i = 0; i <= yTickCount; i++) {
-
-        const v =
-            yMin + (yMax - yMin) * (i / yTickCount);
-
+        const v = yMin + (yMax - yMin) * (i / yTickCount);
         const y = sy(v);
-
         ctx.beginPath();
         ctx.strokeStyle = 'rgba(0,0,0,0.07)';
         ctx.lineWidth = 0.8;
-
         ctx.moveTo(pad.l, y);
         ctx.lineTo(W - pad.r, y);
-
         ctx.stroke();
     }
 
-    // Vertical grid
+    // Vertical grid lines at x = 0,100,200,300,400,500
     [0, 100, 200, 300, 400, 500].forEach(xVal => {
-
-        const xi =
-            Math.round((xVal / 500) * (n - 1));
-
+        const xi = Math.round((xVal / 500) * (n - 1));
         const x = sx(xi);
-
         ctx.beginPath();
         ctx.strokeStyle = 'rgba(0,0,0,0.07)';
         ctx.lineWidth = 0.8;
-
         ctx.moveTo(x, pad.t);
         ctx.lineTo(x, H - pad.b);
-
         ctx.stroke();
     });
 
-    // CHART LINES
-    ctx.save();
-
-    // clip chart area
-    ctx.beginPath();
-    ctx.rect(
-        pad.l,
-        pad.t,
-        gW,
-        gH
-    );
-    ctx.clip();
+    // Zone lines — clip to chart area so spikes don't overflow
+    // In drawMultiZoneChart function, replace the datasets.forEach section with this:
 
     datasets.forEach(({ data, color }) => {
-
         ctx.beginPath();
-
         ctx.strokeStyle = color;
-        ctx.lineWidth = 1.6;
+        ctx.lineWidth = 1.5;  // Thicker line for spikes
+        ctx.lineJoin = 'round';  // SHARP corners (not rounded)
+        ctx.lineCap = 'round';    // Sharp ends
 
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
-
+        let firstPoint = true;
         data.forEach((v, i) => {
-
-            const clamped =
-                Math.max(
-                    yMin,
-                    Math.min(yMax, v)
-                );
-
-            if (i === 0) {
-                ctx.moveTo(
-                    sx(i),
-                    sy(clamped)
-                );
+            const clampedV = Math.max(yMin - (yMax - yMin) * 0.1, Math.min(yMax + (yMax - yMin) * 0.1, v));
+            if (firstPoint) {
+                ctx.moveTo(sx(i), sy(clampedV));
+                firstPoint = false;
             } else {
-                ctx.lineTo(
-                    sx(i),
-                    sy(clamped)
-                );
+                ctx.lineTo(sx(i), sy(clampedV));
             }
         });
-
         ctx.stroke();
     });
 
-    ctx.restore();
-
-    // Y-axis labels
+    // Y-axis tick labels
     ctx.font = '9px "Share Tech Mono", monospace';
     ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#666666';
-
+    ctx.fillStyle = '#555555';
     for (let i = 0; i <= yTickCount; i++) {
-
-        const v =
-            yMin + (yMax - yMin) * (i / yTickCount);
-
-        ctx.fillText(
-            yTickFmt(v),
-            pad.l - 8,
-            sy(v)
-        );
+        const v = yMin + (yMax - yMin) * (i / yTickCount);
+        ctx.fillText(yTickFmt(v), pad.l - 5, sy(v) + 3);
     }
 
-    // X-axis labels
+    // X-axis tick labels
     ctx.textAlign = 'center';
-
+    ctx.fillStyle = '#555555';
     [0, 100, 200, 300, 400, 500].forEach(xVal => {
-
-        const xi =
-            Math.round((xVal / 500) * (n - 1));
-
-        ctx.fillText(
-            String(xVal),
-            sx(xi),
-            H - pad.b + 12
-        );
+        const xi = Math.round((xVal / 500) * (n - 1));
+        ctx.fillText(String(xVal), sx(xi), H - pad.b + 12);
     });
 
-    // Axis lines
+    // Axis border lines
     ctx.strokeStyle = '#cccccc';
     ctx.lineWidth = 0.8;
-
     ctx.beginPath();
-
     ctx.moveTo(pad.l, pad.t);
     ctx.lineTo(pad.l, H - pad.b);
     ctx.lineTo(W - pad.r, H - pad.b);
-
     ctx.stroke();
 
-    // annotations
-    if (annotationFn) {
-        annotationFn(
-            ctx,
-            sx,
-            sy,
-            W,
-            H,
-            pad
-        );
-    }
+    // Custom annotations (called after clip is restored)
+    if (annotationFn) annotationFn(ctx, sx, sy, W, H, pad);
 }
 
 // =============================================
@@ -1282,74 +1134,78 @@ const Failure: React.FC = () => {
     // =============================================
     // drawRTM  ← UPDATED
     // =============================================
-  const drawRTM = useCallback(() => {
+    const drawRTM = useCallback(() => {
         if (!isMounted) return;
         const canvas = rtmCanvasRef.current;
         if (!canvas) return;
 
         if (isPEB && pebScenario) {
-            const ZONE_DS_ORDER = [
-                ZONE_COLORS.z1,
-                ZONE_COLORS.z2,
-                ZONE_COLORS.z3,
-                ZONE_COLORS.z4,
-                ZONE_COLORS.z5,
-            ];
+            const ZONE_COLORS = {
+                z1: '#4ecdc4',
+                z2: '#e05c5c',
+                z3: '#a0a0a0',
+                z4: '#e8a020',   // amber/orange — matches Image 1's Zone 4 line
+                z5: '#7fc97f',
+            };
 
             if (pebScenario === 1 || pebScenario === 3) {
                 const FAIL_PT = 210;
                 const temps = getScenario13Temps(FAIL_PT);
-                const datasets = temps.map((data, i) => ({ data, color: ZONE_DS_ORDER[i] }));
+                const datasets = temps.map((data, i) => ({ data, color: ZONE_COLORS[`z${i + 1}`] }));
 
 
                 const failLabel = pebScenario === 3 ? 'SSR FAIL' : 'HEATER FAIL';
-
                 drawMultiZoneChart(
                     canvas,
                     datasets,
-                    0, 128, 6,
+                    0,    // yMin = 0
+                    520,  // yMax = 520
+                    5,
                     (v) => {
-                        if (v <= 0) return '0';
-                        if (v < 30) return '23.0';
-                        if (v < 50) return v.toFixed(0);
-                        return v.toFixed(1);
+                        if (v < 8) return '0';
+                        if (v < 125) return '110.0';
+                        if (v < 225) return '';
+                        if (v < 310) return '300.0';
+                        if (v < 410) return '400.0';
+                        return '500.0';
                     },
                     '#ffffff',
                     (ctx, sx, sy, W, H, pad) => {
-                        // White dot at failure point on Zone 4 line
-                        const dotX = sx(FAIL_PT);
-                        const dotY = sy(108); // Zone 4 value at FAIL_PT ≈ 108
-                        ctx.beginPath();
-                        ctx.arc(dotX, dotY, 5, 0, Math.PI * 2);
-                        ctx.fillStyle = '#ffffff';
-                        ctx.strokeStyle = '#888888';
-                        ctx.lineWidth = 1.5;
-                        ctx.fill();
-                        ctx.stroke();
+                        const arrowTipX = sx(325);
+                        const arrowTipY = sy(310);
+                        const labelX = arrowTipX - 95;
+                        const labelY = arrowTipY - 28;
 
-                        // Arrow line to annotation
-                        const tx = dotX + 52;
-                        const ty = dotY + 58;
                         ctx.beginPath();
-                        ctx.moveTo(dotX + 4, dotY + 4);
-                        ctx.lineTo(tx - 2, ty - 6);
-                        ctx.strokeStyle = '#c0a060';
+                        ctx.moveTo(labelX + 90, labelY + 5);
+                        ctx.lineTo(arrowTipX - 2, arrowTipY - 4);
+                        ctx.strokeStyle = 'rgba(232,160,32,0.95)';
                         ctx.lineWidth = 1.2;
                         ctx.setLineDash([]);
                         ctx.stroke();
 
-                        // Annotation text
-                        ctx.fillStyle = '#fa0b0b';
+                        ctx.beginPath();
+                        ctx.moveTo(arrowTipX - 2, arrowTipY - 4);
+                        ctx.lineTo(arrowTipX - 8, arrowTipY - 13);
+                        ctx.lineTo(arrowTipX + 4, arrowTipY - 11);
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(232,160,32,0.95)';
+                        ctx.fill();
+
+                        ctx.fillStyle = '#e8a020';
                         ctx.font = 'bold 9px "Share Tech Mono", monospace';
                         ctx.textAlign = 'left';
-                        ctx.fillText('FAILURE POINT:', tx, ty + 2);
-                        ctx.fillText(failLabel, tx, ty + 13);
-                    }
+                        ctx.fillText('SEVERE TC SPIKES', labelX, labelY);
+                    },
+                
                 );
 
             } else if (pebScenario === 2) {
-                const SPIKE_START = 175;
                 const temps = getScenario2Temps();
+                const ZONE_DS_ORDER = [
+                    ZONE_COLORS.z1, ZONE_COLORS.z2, ZONE_COLORS.z3,
+                    ZONE_COLORS.z4, ZONE_COLORS.z5,
+                ];
                 const datasets = temps.map((data, i) => ({ data, color: ZONE_DS_ORDER[i] }));
 
                 drawMultiZoneChart(
@@ -1357,27 +1213,39 @@ const Failure: React.FC = () => {
                     datasets,
                     0, 520, 5,
                     (v) => {
-                        if (v <= 0) return '0';
-                        if (Math.abs(v - 23) < 20) return '23.0';
-                        if (Math.abs(v - 110) < 20) return '110.0';
-                        if (Math.abs(v - 130) < 20) return '130.0';
-                        return v.toFixed(0);
+                        if (v < 8) return '0';
+                        if (v < 35) return '23.0';
+                        if (v < 75) return '40.0';
+                        if (v < 125) return '110.0';
+                        if (v < 155) return '120.0';
+                        if (v < 270) return '';
+                        if (v < 360) return '300.0';
+                        if (v < 455) return '400.0';
+                        return '500.0';
                     },
                     '#ffffff',
                     (ctx, sx, sy, W, H, pad) => {
-                        // "SEVERE TC SPIKES" annotation with arrow
-                        const arrowTipX = sx(SPIKE_START + 55);
-                        const arrowTipY = sy(370);
-                        const labelX = arrowTipX + 6;
-                        const labelY = arrowTipY - 14;
+                        // Arrow from label → spike at ~x=320, y=300°C
+                        const arrowTipX = sx(322);
+                        const arrowTipY = sy(310);
+                        const labelX = arrowTipX - 95;
+                        const labelY = arrowTipY - 30;
 
                         ctx.beginPath();
-                        ctx.moveTo(labelX + 2, labelY + 2);
-                        ctx.lineTo(arrowTipX, arrowTipY);
-                        ctx.strokeStyle = 'rgba(232,160,32,0.7)';
-                        ctx.lineWidth = 1.1;
+                        ctx.moveTo(labelX + 90, labelY + 5);
+                        ctx.lineTo(arrowTipX - 2, arrowTipY - 4);
+                        ctx.strokeStyle = 'rgba(232,160,32,0.95)';
+                        ctx.lineWidth = 1.2;
                         ctx.setLineDash([]);
                         ctx.stroke();
+
+                        ctx.beginPath();
+                        ctx.moveTo(arrowTipX - 2, arrowTipY - 4);
+                        ctx.lineTo(arrowTipX - 8, arrowTipY - 13);
+                        ctx.lineTo(arrowTipX + 4, arrowTipY - 11);
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(232,160,32,0.95)';
+                        ctx.fill();
 
                         ctx.fillStyle = '#e8a020';
                         ctx.font = 'bold 9px "Share Tech Mono", monospace';
@@ -1419,7 +1287,7 @@ const Failure: React.FC = () => {
                 drawMultiZoneChart(
                     canvas,
                     datasets,
-                    20, 125, 5,
+                    0, 100, 5,
                     (v) => `${Math.round(v)}%`,
                     '#ffffff',
                     (ctx, sx, sy, W, H, pad) => {
@@ -1442,37 +1310,20 @@ const Failure: React.FC = () => {
                 const datasets = duty.map((data, i) => ({ data, color: ZONE_DS_ORDER[i] }));
 
                 drawMultiZoneChart(
-    canvas,
-    datasets,
-    20,   // yMin — matches Image 2 bottom (~23°C)
-    125,  // yMax — matches Image 2 top (~120°C)
-    5,
-    (v) => v.toFixed(1),
-    '#ffffff',
-    (ctx, sx, sy, W, H, pad) => {
-        const FAIL_PT = 210;
-        const dotX = sx(FAIL_PT);
-        const dotY = sy(108);   // failure point on Zone 4 line
-
-        // White dot at failure point
-        ctx.beginPath();
-        ctx.arc(dotX, dotY, 5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Label: "FAILURE POINT:" + "HEATER FAIL" two lines, bottom-right of dot
-        const labelX = dotX + 10;
-        const labelY = dotY + 16;
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 9px "Share Tech Mono", monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText('FAILURE POINT:', labelX, labelY);
-        ctx.fillText('HEATER FAIL', labelX, labelY + 12);
-    },
-);
+                    canvas,
+                    datasets,
+                    0, 100, 5,
+                    (v) => `${Math.round(v)}%`,
+                    '#ffffff',
+                    (ctx, sx, sy, W, H, pad) => {
+                        const labelX = sx(240);
+                        const labelY = sy(95);
+                        ctx.fillStyle = '#e8a020';
+                        ctx.font = 'bold 9px "Share Tech Mono", monospace';
+                        ctx.textAlign = 'left';
+                        ctx.fillText('DUTY CYCLE CHATTERING', labelX, labelY);
+                    }
+                );
             }
         } else {
             // Non-PEB — clear the canvas with white bg
@@ -1604,9 +1455,9 @@ const Failure: React.FC = () => {
                     >
                         <span className="scenario-num">SCENARIO 1</span>
                         <span className="scenario-name">Failing Heating Element</span>
-                        {/* <span className="scenario-desc">
+                        <span className="scenario-desc">
                             Zone <span style={{ color: '#ff0000', fontWeight: '700' }}>4</span> drops to ambient — duty cycle 100%
-                        </span> */}
+                        </span>
                     </button>
 
                     <button
@@ -1617,9 +1468,9 @@ const Failure: React.FC = () => {
                     >
                         <span className="scenario-num">SCENARIO 2</span>
                         <span className="scenario-name">Broken Thermocouple</span>
-                        {/* <span className="scenario-desc">
+                        <span className="scenario-desc">
                             Zone <span style={{ color: '#ff0000', fontWeight: '700' }}>3</span> severe spikes — duty cycle chatters 0–100%
-                        </span> */}
+                        </span>
                     </button>
 
                     <button
@@ -1629,10 +1480,10 @@ const Failure: React.FC = () => {
                         style={{ opacity: isPEB ? 1 : 0.4, cursor: isPEB ? 'pointer' : 'not-allowed' }}
                     >
                         <span className="scenario-num">SCENARIO 3</span>
-                        <span className="scenario-name">Blown Solid State Relay (SSR)</span>
-                        {/* <span className="scenario-desc">
+                        <span className="scenario-name">Blown SSR (Stuck OFF)</span>
+                        <span className="scenario-desc">
                             Zone <span style={{ color: '#ff0000', fontWeight: '700' }}>5</span> identical to Sc.1 — Ohm test required to distinguish
-                        </span> */}
+                        </span>
                     </button>
                     <div className="scenario-btn static-info-btn">
                         <span className="scenario-num">LOT ID</span>
@@ -1801,7 +1652,7 @@ const Failure: React.FC = () => {
                                     <div className="chart-block-label">
                                         <span>
                                             ⬡ {isPEB && pebSc
-                                                ? ` TEMP — RTM (°C) Real Time Monitoring `
+                                                ? ` TEMP — RTM (°C) Real Time Monitoring / (SPC) Statistical Process Control`
                                                 : `RTM — ${fm.rtmLabel}`}
                                         </span>
                                     </div>
@@ -1831,7 +1682,7 @@ const Failure: React.FC = () => {
                                                     : pebScenario === 2
                                                         ? 4
                                                         : pebScenario === 3
-                                                            ? 4
+                                                            ? 5
                                                             : null;
 
                                             const isActive = zone.id === activeZone;
@@ -1892,7 +1743,7 @@ const Failure: React.FC = () => {
                                     <div className="chart-block-label">
                                         <span>
                                             ⬡ {isPEB && pebSc
-                                                ? ` HEATER DUTY CYCLE (%) (RTM) Real Time Monitoring Chart`
+                                                ? ` HEATER DUTY CYCLE (%)`
                                                 : 'PROCESS LIFECYCLE — ALARM SUMMARY'}
                                         </span>
                                     </div>
@@ -1922,9 +1773,9 @@ const Failure: React.FC = () => {
                                                         pebScenario === 1
                                                             ? 4
                                                             : pebScenario === 2
-                                                                ? 4
+                                                                ? 3
                                                                 : pebScenario === 3
-                                                                    ? 4
+                                                                    ? 5
                                                                     : null;
 
                                                     const isActive = zone.id === activeZone;
@@ -1961,6 +1812,8 @@ const Failure: React.FC = () => {
                                                         </div>
                                                     );
                                                 })}
+
+
                                             </div>
 
                                             {/* UCL/LCL Reference Line Labels for Duty Cycle */}
@@ -2003,7 +1856,7 @@ const Failure: React.FC = () => {
                                 <div className="chart-block">
                                     <div className="chart-block-label">
                                         <span>
-                                            ⬡ OFFLINE CD-SEM, SPC Chart
+                                            ⬡ OFFLINE CD-SEM (Average CD, <span className="lowercase-unit">nm</span>)
                                         </span>
                                         {isPEB && pebSc && (
                                             <span className="chart-badge-red">
@@ -2026,7 +1879,7 @@ const Failure: React.FC = () => {
                                 <div className="chart-block">
                                     <div className="chart-block-label">
                                         <span>
-                                            ⬡ CD UNIFORMITY, SPC Chart
+                                            ⬡ CD UNIFORMITY (Range, <span className="lowercase-unit">nm</span>)
                                         </span>
                                         {isPEB && pebSc && (
                                             <span className="chart-badge-orange">
@@ -2092,7 +1945,7 @@ const Failure: React.FC = () => {
                                         <div className="wafer-info-row">
                                             <span>Failure Zone</span>
                                             <strong>
-                                                {pebScenario === 2 ? 'Zone 4' : 'Zone 4'}
+                                                {pebScenario === 2 ? 'Zone 3' : 'Zone 4'}
                                             </strong>
                                         </div>
 
