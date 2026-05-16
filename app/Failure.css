@@ -1,35 +1,6 @@
-
-
-
-
-
-
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
 
 :root {
-  --accent: #00e5ff;
-  --accent2: #ff6b35;
-  --green: #00e676;
-  --red: #ff1744;
-  --yellow: #ffd600;
-  --purple: #d500f9;
-  --bg: #080c14;
-  --bg2: #0d1420;
-  --bg3: #111927;
-  --panel: #131c2e;
-  --panel2: #192438;
-  --border: rgba(0, 229, 255, 0.18);
-  --border2: rgba(0, 229, 255, 0.08);
-  --text: #e8f4ff;
-  --text2: #7ba3c8;
-  --text3: #4a6a8a;
-  --nav-bg: rgba(8, 12, 20, 0.97);
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
-  --glow: 0 0 20px rgba(0, 229, 255, 0.2);
-  --card-hover: rgba(0, 229, 255, 0.05);
-}
-
-[data-theme="light"] {
   --accent: #0066cc;
   --accent2: #e65c00;
   --green: #00a846;
@@ -135,12 +106,12 @@
 }
 .fm-tab::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--text3); transition: background 0.2s; }
 .fm-tab:hover { border-color: var(--border); background: var(--card-hover); }
-.fm-tab.active { border-color: var(--accent); background: rgba(0,229,255,0.06); }
+.fm-tab.active { border-color: var(--accent); background: rgba(0,102,204,0.06); }
 .fm-tab.active::before { background: var(--accent); }
 .fm-tab.sev-critical::before { background: var(--red); }
-.fm-tab.sev-critical.active { border-color: var(--red); background: rgba(255,23,68,0.06); }
+.fm-tab.sev-critical.active { border-color: var(--red); background: rgba(217,0,38,0.06); }
 .fm-tab.sev-high::before { background: var(--yellow); }
-.fm-tab.sev-high.active { border-color: var(--yellow); background: rgba(255,214,0,0.06); }
+.fm-tab.sev-high.active { border-color: var(--yellow); background: rgba(204,153,0,0.06); }
 .fm-tab-id { font-family: 'Share Tech Mono', monospace; font-size: 8px; color: var(--text3); letter-spacing: 1px; margin-bottom: 3px; }
 .fm-tab-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.3; }
 
@@ -174,7 +145,7 @@
   box-shadow: none !important;
 }
 .scenario-btn {
-  background: rgba(0,229,255,0.05);;
+  background: rgba(0,102,204,0.05);;
   border: 1px solid var(--border2);
   border: 1px solid var(--border2);
   padding: 12px 16px;
@@ -193,13 +164,13 @@
 
   background: linear-gradient(
     135deg,
-    rgba(0,229,255,0.08),
-    rgba(0,200,255,0.03)
+    rgba(0,102,204,0.08),
+    rgba(0,100,180,0.03)
   );
 
   box-shadow:
-    0 0 0 1px rgba(0,229,255,0.25),
-    0 0 12px rgba(0,229,255,0.12);
+    0 0 0 1px rgba(0,102,204,0.25),
+    0 0 12px rgba(0,102,204,0.12);
 
   transform: translateY(-1px);
 
@@ -207,9 +178,9 @@
   z-index: 2;
 }
 .scenario-btn.active {
-  background: linear-gradient(135deg, rgba(0,229,255,0.14), rgba(0,200,255,0.05));
+  background: linear-gradient(135deg, rgba(0,102,204,0.14), rgba(0,100,180,0.05));
   border-color: var(--accent);
-  box-shadow: 0 0 10px rgba(0,229,255,0.14);
+  box-shadow: 0 0 10px rgba(0,102,204,0.14);
   z-index: 2;
   position: relative;
 }
@@ -251,8 +222,8 @@
   overflow: hidden;
 }
 .scenario-info-bar.s1 { border-left-color: #ff9800; background: rgba(255,152,0,0.07); }
-.scenario-info-bar.s2 { border-left-color: var(--red); background: rgba(255,23,68,0.07); }
-.scenario-info-bar.s3 { border-left-color: var(--green); background: rgba(0,230,118,0.07); }
+.scenario-info-bar.s2 { border-left-color: var(--red); background: rgba(217,0,38,0.07); }
+.scenario-info-bar.s3 { border-left-color: var(--green); background: rgba(0,168,70,0.07); }
 .scenario-icon { font-size: 20px; flex-shrink: 0; }
 .scenario-info-text { flex: 1; font-size: 12px; color: var(--text); line-height: 1.4; overflow: hidden; }
 .scenario-warn-badge { background: rgba(255,152,0,0.15); border: 1px solid rgba(255,152,0,0.4); border-radius: 5px; padding: 4px 10px; font-size: 10px; color: #ff9800; font-family: 'Share Tech Mono', monospace; white-space: nowrap; flex-shrink: 0; }
@@ -262,7 +233,7 @@
 ============================================= */
 .danger-zone-banner {
   background: var(--panel);
-  border: 1px solid rgba(255, 23, 68, 0.35);
+  border: 1px solid rgba(217, 0, 38, 0.35);
   border-radius: 10px;
   padding: 12px 16px;
   animation: slideDown 0.3s ease-out;
@@ -297,8 +268,8 @@
   font-size: 10px;
   font-weight: 700;
   color: var(--red);
-  background: rgba(255, 23, 68, 0.12);
-  border: 1px solid rgba(255, 23, 68, 0.4);
+  background: rgba(217, 0, 38, 0.12);
+  border: 1px solid rgba(217, 0, 38, 0.4);
   border-radius: 4px;
   padding: 3px 10px;
   letter-spacing: 1px;
@@ -322,28 +293,34 @@
 }
 
 .zone-indicator--ok {
-  background: rgba(0, 230, 118, 0.05);
-  border: 1px solid rgba(0, 230, 118, 0.2);
+  background: rgba(0, 168, 70, 0.05);
+  border: 1px solid rgba(0, 168, 70, 0.2);
 }
 
 .zone-indicator--danger {
-  background: rgba(255, 23, 68, 0.1);
+  background: rgba(217, 0, 38, 0.1);
   border: 2px solid var(--red);
-  box-shadow: 0 0 14px rgba(255, 23, 68, 0.2);
+  box-shadow: 0 0 14px rgba(217, 0, 38, 0.2);
   animation: dangerPulse 2s infinite;
 }
 
 @keyframes dangerPulse {
-  0%, 100% { box-shadow: 0 0 10px rgba(255, 23, 68, 0.2); }
-  50% { box-shadow: 0 0 22px rgba(255, 23, 68, 0.45); }
+  0%, 100% { box-shadow: 0 0 10px rgba(217, 0, 38, 0.2); }
+  50% { box-shadow: 0 0 22px rgba(217, 0, 38, 0.45); }
 }
 
 .zone-indicator-label {
   font-family: 'Orbitron', monospace;
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 900;
   letter-spacing: 0.5px;
-  color: var(--text3);
+  color: rgb(0, 0, 0);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
 }
 .zone-indicator--danger .zone-indicator-label {
   color: var(--red);
@@ -396,15 +373,15 @@
 }
 .zone-header-btn:hover {
   border-color: var(--accent);
-  background: linear-gradient(135deg, rgba(0,229,255,0.08), rgba(0,200,255,0.03));
+  background: linear-gradient(135deg, rgba(0,102,204,0.08), rgba(0,100,180,0.03));
   color: var(--text);
   transform: translateY(-1px);
 }
 .zone-header-btn.active {
   border-color: var(--accent);
-  background: linear-gradient(135deg, rgba(0,229,255,0.14), rgba(0,200,255,0.05));
+  background: linear-gradient(135deg, rgba(0,102,204,0.14), rgba(0,100,180,0.05));
   color: var(--accent);
-  box-shadow: 0 0 10px rgba(0,229,255,0.14);
+  box-shadow: 0 0 10px rgba(0,102,204,0.14);
 }
 
 /* =============================================
@@ -471,7 +448,7 @@
 }
 .trouble-item:hover {
   border-color: var(--accent);
-  background: rgba(0, 229, 255, 0.03);
+  background: rgba(0, 102, 204, 0.03);
 }
 
 .trouble-item-number {
@@ -516,7 +493,7 @@
 
 .action-btn {
   align-self: flex-start;
-  background: rgba(0,229,255,0.08);
+  background: rgba(0,102,204,0.08);
   border: 1px solid var(--accent);
   border-radius: 6px;
   padding: 8px 18px;
@@ -529,7 +506,7 @@
   margin-top: 4px;
 }
 .action-btn:hover {
-  background: rgba(0,229,255,0.2);
+  background: rgba(0,102,204,0.2);
   box-shadow: 0 0 8px var(--accent);
 }
 
@@ -566,12 +543,12 @@
   color: var(--accent);
 }
 .restore-btn.primary {
-  background: rgba(0,229,255,0.1);
+  background: rgba(0,102,204,0.1);
   border-color: var(--accent);
   color: var(--accent);
 }
 .restore-btn.primary:hover {
-  background: rgba(0,229,255,0.25);
+  background: rgba(0,102,204,0.25);
   box-shadow: 0 0 10px var(--accent);
 }
 
@@ -607,7 +584,7 @@
 }
 .ocap-flow-item.active {
   border-left: 4px solid var(--accent);
-  background: rgba(0,229,255,0.04);
+  background: rgba(0,102,204,0.04);
 }
 .ocap-flow-item.completed {
   border-left: 4px solid var(--green);
@@ -654,7 +631,7 @@
 }
 .ocap-step-btn {
   align-self: flex-start;
-  background: rgba(0,229,255,0.08);
+  background: rgba(0,102,204,0.08);
   border: 1px solid var(--accent);
   border-radius: 6px;
   padding: 7px 16px;
@@ -666,13 +643,13 @@
   margin-top: 4px;
   letter-spacing: 0.5px;
 }
-.ocap-step-btn:hover { background: rgba(0,229,255,0.2); }
-.ocap-step-btn.rca { border-color: var(--yellow); color: var(--yellow); background: rgba(255,214,0,0.06); }
-.ocap-step-btn.rca:hover { background: rgba(255,214,0,0.15); }
-.ocap-step-btn.recovery { border-color: var(--green); color: var(--green); background: rgba(0,230,118,0.06); }
-.ocap-step-btn.recovery:hover { background: rgba(0,230,118,0.15); }
-.ocap-step-btn.disposition { border-color: var(--red); color: var(--red); background: rgba(255,23,68,0.06); }
-.ocap-step-btn.disposition:hover { background: rgba(255,23,68,0.15); }
+.ocap-step-btn:hover { background: rgba(0,102,204,0.2); }
+.ocap-step-btn.rca { border-color: var(--yellow); color: var(--yellow); background: rgba(204,153,0,0.06); }
+.ocap-step-btn.rca:hover { background: rgba(204,153,0,0.15); }
+.ocap-step-btn.recovery { border-color: var(--green); color: var(--green); background: rgba(0,168,70,0.06); }
+.ocap-step-btn.recovery:hover { background: rgba(0,168,70,0.15); }
+.ocap-step-btn.disposition { border-color: var(--red); color: var(--red); background: rgba(217,0,38,0.06); }
+.ocap-step-btn.disposition:hover { background: rgba(217,0,38,0.15); }
 
 .ocap-checklist-section {
   border-top: 1px solid var(--border2);
@@ -807,9 +784,9 @@
   font-size: 8px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(255,23,68,0.12);
+  background: rgba(217,0,38,0.12);
   color: var(--red);
-  border: 1px solid rgba(255,23,68,0.3);
+  border: 1px solid rgba(217,0,38,0.3);
   white-space: nowrap;
 }
 .chart-badge-orange {
@@ -962,35 +939,672 @@
 }
 
 
+/* =============================================
+   NEW MODULES CSS — FM-002 / FM-003 / FM-004 / FM-005
+   Fixed alignment — cards compact, images properly fitted
+============================================= */
 
-
-
-.chart-block {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 14px 16px 10px;
-  margin-bottom: 16px;
-  font-family: 'Segoe UI', Arial, sans-serif;
+/* =============================================
+   OVERVIEW GRID — FMEA / Physics / Interlock
+============================================= */
+.nm-overview-grid {
+  display: grid;
+  grid-template-columns: 160px 1fr 200px;
+  gap: 10px;
+  margin-top: 2px;
+  animation: nmSlideIn 0.25s ease-out;
 }
-.chart-block-label {
+
+@keyframes nmSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.nm-overview-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s;
+}
+
+.nm-overview-card:hover {
+  border-color: var(--accent);
+}
+
+.nm-physics-card {
+  flex: 1;
+}
+
+.nm-card-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+.nm-severity-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.nm-sev-critical {
+  background: rgba(217, 0, 38, 0.12);
+  color: var(--red);
+  border: 1px solid rgba(217, 0, 38, 0.4);
+  box-shadow: 0 0 12px rgba(217, 0, 38, 0.15);
+}
+
+.nm-sev-high {
+  background: rgba(204, 153, 0, 0.1);
+  color: var(--yellow);
+  border: 1px solid rgba(204, 153, 0, 0.35);
+  box-shadow: 0 0 10px rgba(204, 153, 0, 0.1);
+}
+
+.nm-sev-medium {
+  background: rgba(0, 102, 204, 0.08);
+  color: var(--accent);
+  border: 1px solid rgba(0, 102, 204, 0.3);
+}
+
+.nm-physics-text {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.6;
+  font-family: 'Exo 2', sans-serif;
+}
+
+.nm-interlock-badge {
+  font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #333;
-  text-transform: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.nm-interlock--hard {
+  background: rgba(217, 0, 38, 0.12);
+  color: var(--red);
+  border: 1px solid rgba(217, 0, 38, 0.4);
+  animation: nmHardLockPulse 2s infinite;
+}
+
+@keyframes nmHardLockPulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(217, 0, 38, 0.2); }
+  50%       { box-shadow: 0 0 16px rgba(217, 0, 38, 0.5); }
+}
+
+.nm-interlock--soft {
+  background: rgba(204, 153, 0, 0.1);
+  color: var(--yellow);
+  border: 1px solid rgba(204, 153, 0, 0.35);
+}
+
+.nm-interlock-desc {
+  font-size: 9px;
+  color: var(--text2);
+  line-height: 1.5;
+  font-family: 'Share Tech Mono', monospace;
+  margin-top: 2px;
+}
+
+/* =============================================
+   SUPPORTING GAUGES
+============================================= */
+.nm-gauges-row {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  animation: nmSlideIn 0.3s ease-out;
+}
+
+.nm-section-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text3);
   margin-bottom: 8px;
+}
+
+.nm-gauges-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.nm-gauge-card {
+  background: var(--panel2);
+  border-radius: 8px;
+  padding: 8px 10px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  border: 1px solid var(--border2);
+  transition: all 0.2s;
+}
+
+.nm-gauge-card:hover {
+  transform: translateY(-1px);
+}
+
+.nm-gauge-ok    { border-left: 3px solid var(--green); }
+.nm-gauge-warn  { border-left: 3px solid var(--yellow); background: rgba(204, 153, 0, 0.04); }
+.nm-gauge-danger { border-left: 3px solid var(--red); background: rgba(217, 0, 38, 0.05); }
+
+.nm-gauge-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+}
+
+.nm-gauge-value {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.nm-gauge-ok    .nm-gauge-value { color: var(--green); }
+.nm-gauge-warn  .nm-gauge-value { color: var(--yellow); }
+.nm-gauge-danger .nm-gauge-value { color: var(--red); }
+
+.nm-gauge-status-dot {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.nm-dot-ok     { background: var(--green); box-shadow: 0 0 6px var(--green); animation: nmPulse 2s infinite; }
+.nm-dot-warn   { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); animation: nmPulse 1.5s infinite; }
+.nm-dot-danger { background: var(--red); box-shadow: 0 0 8px var(--red); animation: nmPulse 1s infinite; }
+
+@keyframes nmPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* =============================================
+   ZONE STATUS PANEL
+============================================= */
+.nm-zones-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  animation: nmSlideIn 0.35s ease-out;
+}
+
+.nm-zones-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: 6px;
 }
-.chart-legend {
+
+.nm-zone-card {
+  background: var(--panel2);
+  border-radius: 8px;
+  padding: 10px 6px;
   display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-  font-size: 11px;
-  color: #444;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  border: 1px solid var(--border2);
+  position: relative;
+  transition: all 0.2s;
+  overflow: hidden;
 }
-.legend-item { display: flex; align-items: center; gap: 5px; }
-.legend-line  { width: 22px; height: 2.5px; border-radius: 2px; }
+
+.nm-zone-healthy {
+  border-color: rgba(0, 168, 70, 0.2);
+}
+
+.nm-zone-danger {
+  border: 2px solid var(--red);
+  background: rgba(217, 0, 38, 0.07);
+  animation: nmZoneDanger 2s infinite;
+}
+
+@keyframes nmZoneDanger {
+  0%, 100% { box-shadow: 0 0 8px rgba(217, 0, 38, 0.2); }
+  50%       { box-shadow: 0 0 20px rgba(217, 0, 38, 0.45); }
+}
+
+.nm-zone-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text3);
+}
+
+.nm-zone-danger .nm-zone-label {
+  color: var(--red);
+}
+
+.nm-zone-value {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.nm-zone-danger .nm-zone-value {
+  color: var(--red);
+}
+
+.nm-zone-note {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+}
+
+.nm-zone-danger .nm-zone-note {
+  color: #ff6a6a;
+  font-weight: 700;
+}
+
+.nm-zone-indicator {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  margin-top: 4px;
+}
+
+.nm-zi-healthy { background: var(--green); }
+.nm-zi-danger  {
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  animation: nmPulse 1s infinite;
+}
+
+/* =============================================
+   CHARTS LAYOUT — NEW MODULES (RTM + Alarm top row, SPC full-width below)
+============================================= */
+.nm-charts-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  animation: nmSlideIn 0.4s ease-out;
+}
+
+/* SPC panel spans full width */
+.nm-spc-panel {
+  grid-column: 1 / -1;
+}
+
+.nm-chart-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* No fixed min-height — let content decide */
+  overflow: hidden;
+  transition: border-color 0.2s;
+  max-height: 360px;
+}
+
+.nm-chart-panel:hover {
+  border-color: rgba(0, 102, 204, 0.3);
+}
+
+.nm-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nm-chart-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--text3);
+}
+
+.nm-rtm-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nm-meta-item {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.nm-meta-ok {
+  background: rgba(0, 168, 70, 0.1);
+  color: var(--green);
+  border: 1px solid rgba(0, 168, 70, 0.25);
+}
+
+.nm-meta-danger {
+  background: rgba(217, 0, 38, 0.08);
+  color: var(--red);
+  border: 1px solid rgba(217, 0, 38, 0.25);
+}
+
+.nm-sensor-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  padding: 3px 8px;
+  flex-shrink: 0;
+}
+
+/* RTM image — fits perfectly inside card, no overflow */
+.nm-rtm-image-wrapper {
+  width: 100%;
+  height: 175px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;       /* ← ADD THIS */
+}
+
+.nm-rtm-image {
+  width: 100% !important;
+  height: 160px !important;  /* ← CHANGE THIS */
+  display: block;
+  object-fit: fill;         /* ← CHANGE contain → cover */
+}
+
+.nm-alarm-image-wrapper {
+  width: 100%;
+  height: 175px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+ display: flex;
+  align-items: center;
+  justify-content: center;      /* ← ADD THIS */
+}
+
+.nm-alarm-image {
+  width: 100% !important;
+  height: 100% !important;  /* ← CHANGE THIS */
+  display: block;
+  object-fit: fill;         /* ← CHANGE contain → cover */
+}
+
+/* =============================================
+   ALARM LIST — NEW MODULE (image-based)
+============================================= */
+.nm-alarm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Alarm image wrapper — properly sized, no overflow */
+.nm-alarm-image-wrapper {
+  width: 100%;
+  height: 250px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nm-alarm-image {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  object-fit: fill;
+   object-position: center;
+}
+
+.nm-alarm-count {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.nm-alarm-count-critical {
+  background: rgba(217, 0, 38, 0.12);
+  color: var(--red);
+  border: 1px solid rgba(217, 0, 38, 0.3);
+  animation: nmPulse 2s infinite;
+}
+
+.nm-alarm-count-warning {
+  background: rgba(204, 153, 0, 0.1);
+  color: var(--yellow);
+  border: 1px solid rgba(204, 153, 0, 0.3);
+}
+
+/* =============================================
+   SPC PANEL — full width, two-column split inside
+============================================= */
+.nm-spc-stats {
+  display: flex;
+  gap: 6px;
+}
+
+.nm-stat-chip {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0, 102, 204, 0.08);
+  color: var(--accent);
+  border: 1px solid rgba(0, 102, 204, 0.25);
+}
+
+.nm-stat-red {
+  background: rgba(217, 0, 38, 0.08);
+  color: var(--red);
+  border-color: rgba(217, 0, 38, 0.25);
+}
+
+.nm-spc-metrics {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nm-spc-metric-chip {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: var(--panel2);
+  color: var(--text2);
+  border: 1px solid var(--border2);
+}
+
+/* SPC + Offline defect — side by side, equal halves */
+.nm-spc-dual-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-top: 10px;
+  align-items: stretch;
+}
+
+.nm-spc-left,
+.nm-spc-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* SPC image card */
+.nm-spc-image-wrapper {
+  width: 100%;
+  height: 260px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+}
+
+.nm-spc-image {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  object-fit: fill;
+}
+
+/* Offline defect title */
+.nm-offline-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--yellow);
+  padding: 6px 10px;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Offline defect image card */
+.nm-offline-image-wrapper {
+  width: 100%;
+   height: 240px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+}
+
+.nm-offline-image {
+  width: 100% !important;
+  height: 90% !important;
+  display: block;
+  object-fit: fill;
+}
+
+/* SPC rules section */
+.nm-spc-rules {
+  border-top: 1px solid var(--border2);
+  padding-top: 10px;
+  margin-top: 6px;
+}
+
+.nm-rules-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  margin-bottom: 7px;
+}
+
+.nm-rule-item {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--yellow);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border2);
+  line-height: 1.4;
+}
+
+.nm-rule-item:last-child {
+  border-bottom: none;
+}
+
+/* =============================================
+   RESPONSIVE — NEW MODULES
+============================================= */
+@media (max-width: 1100px) {
+  .nm-overview-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .nm-physics-card {
+    grid-column: 1 / -1;
+  }
+  .nm-gauges-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .nm-overview-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .nm-gauges-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .nm-zones-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .nm-charts-layout {
+    grid-template-columns: 1fr;
+  }
+  .nm-spc-panel {
+    grid-column: 1;
+  }
+  .nm-spc-dual-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .nm-overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .nm-gauges-grid {
+    grid-template-columns: 1fr;
+  }
+  .nm-zones-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
