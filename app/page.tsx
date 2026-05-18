@@ -26960,15 +26960,26 @@ class SpinCoatAnimator {
 	readonly SWING_OVER   = 0;                        // 0° over wafer center
   swingAngle = this.SWING_PARKED;
 
+  readonly CHUCK_Y = 0.08;
+  readonly POST_HEIGHT = 3.0;
+  readonly POST_X = -1.8;
+  readonly BAR_LENGTH = 1.8;
+  readonly NOZZLE_DROP = 0.6;
+  readonly TIP_DROP = 0.9;
+
   constructor(scene: THREE.Scene) {
     this.group = new THREE.Group();
     scene.add(this.group);
     this.group.visible = false;
 
-    // ── BOWL ──
-    const bowlMat = new THREE.MeshStandardMaterial({ color: 0xeef3f8, roughness: 0.28, metalness: 0.05 });
+    // ── BOWL (small, low profile) ──
+    const bowlMat = new THREE.MeshStandardMaterial({
+      color: 0xeef3f8,
+      roughness: 0.28,
+      metalness: 0.05,
+    });
     this.bowl = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.55, 1.55, 0.55, 64, 1, true),
+      new THREE.CylinderGeometry(1.4, 1.4, 0.25, 64, 1, true),
       bowlMat
     );
     this.bowl.position.y = 0.6;
@@ -26987,37 +26998,53 @@ class SpinCoatAnimator {
     }
 
     const baseRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.95, 1.55, 64),
-      new THREE.MeshStandardMaterial({ color: 0xe8eef5, roughness: 0.22, metalness: 0.08, side: THREE.DoubleSide })
+      new THREE.RingGeometry(0.95, 1.4, 64),
+      new THREE.MeshStandardMaterial({
+        color: 0xe8eef5,
+        roughness: 0.22,
+        metalness: 0.08,
+        side: THREE.DoubleSide,
+      })
     );
     baseRing.rotation.x = -Math.PI / 2;
-    baseRing.position.y = 0.33;
+    baseRing.position.y = 0.01;
     this.group.add(baseRing);
 
     // ── SPIN CHUCK ──
     this.spinChuck = new THREE.Group();
+    this.spinChuck.position.y = this.CHUCK_Y;
     this.group.add(this.spinChuck);
     
     this.spinDisc = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.92, 0.92, 0.06, 80),
-      new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.12, metalness: 0.92 })
+      new THREE.CylinderGeometry(0.92, 0.92, 0.08, 80),
+      new THREE.MeshStandardMaterial({
+        color: 0x556677,
+        roughness: 0.12,
+        metalness: 0.92,
+        emissive: 0x223355,
+        emissiveIntensity: 0.4,
+      })
     );
-    this.spinDisc.position.y = 0.45;
+    this.spinDisc.position.y = 0;
     this.spinChuck.add(this.spinDisc);
 
     for (let i = 0; i < 6; i++) {
       const a = (i / 6) * Math.PI * 2;
       const port = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.04, 0.04, 0.07, 12),
-        new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3 })
+        new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12),
+        new THREE.MeshStandardMaterial({
+          color: 0x111122,
+          emissive: 0x004488,
+          emissiveIntensity: 1.0,
+        })
       );
-      port.position.set(Math.cos(a) * 0.55, 0.48, Math.sin(a) * 0.55);
+      port.position.set(Math.cos(a) * 0.65, 0.06, Math.sin(a) * 0.65);
       this.spinChuck.add(port);
     }
 
     // ── RESIST RING LAYERS ──
     this.resistGroup = new THREE.Group();
-    this.resistGroup.position.y = 0.49;
+    this.resistGroup.position.y = 0.05;
     this.spinChuck.add(this.resistGroup);
     const numRings = 18;
     for (let i = 0; i < numRings; i++) {
@@ -27046,12 +27073,15 @@ class SpinCoatAnimator {
     this.spiralMesh = new THREE.Mesh(
       new THREE.CircleGeometry(0.88, 80),
       new THREE.MeshBasicMaterial({
-        map: this.spiralTex, transparent: true, opacity: 0,
-        depthWrite: false, side: THREE.DoubleSide,
+        map: this.spiralTex,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        side: THREE.DoubleSide,
       })
     );
     this.spiralMesh.rotation.x = -Math.PI / 2;
-    this.spiralMesh.position.y = 0.52;
+    this.spiralMesh.position.y = 0.08;
     this.spiralMesh.renderOrder = 10;
     this.spinChuck.add(this.spiralMesh);
 
@@ -27059,26 +27089,38 @@ class SpinCoatAnimator {
     // ── PIVOT POST (fixed vertical column off to the side) ──
     // Located at +X side of the bowl, like a swing-out dispense arm
     // ══════════════════════════════════════════════════════════════════════
-    const PIVOT_X = -1.7;   // back side pivot
-    const PIVOT_Y = 2.2;   // height of pivot center
-    
     this.pivotPost = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.06, 0.08, 1.5, 16),
+      new THREE.CylinderGeometry(0.08, 0.12, this.POST_HEIGHT, 16),
       new THREE.MeshStandardMaterial({
-        color: 0x37404a, roughness: 0.12, metalness: 0.95,
+        color: 0x37404a,
+        roughness: 0.12,
+        metalness: 0.95,
       })
     );
-    this.pivotPost.position.set(PIVOT_X, PIVOT_Y, 0);
+    this.pivotPost.position.set(this.POST_X, this.POST_HEIGHT / 2, 0);
     this.group.add(this.pivotPost);
+
+    const postBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.20, 0.24, 0.10, 16),
+      new THREE.MeshStandardMaterial({
+        color: 0x556677,
+        roughness: 0.2,
+        metalness: 0.9,
+      })
+    );
+    postBase.position.set(this.POST_X, 0.05, 0);
+    this.group.add(postBase);
 
     // Pivot cap (decorative top)
     const pivotCap = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.09, 0.09, 0.08, 16),
+      new THREE.CylinderGeometry(0.13, 0.13, 0.12, 16),
       new THREE.MeshStandardMaterial({
-        color: 0x556677, roughness: 0.15, metalness: 0.94,
+        color: 0x556677,
+        roughness: 0.15,
+        metalness: 0.94,
       })
     );
-    pivotCap.position.set(PIVOT_X, PIVOT_Y + 0.78, 0);
+    pivotCap.position.set(this.POST_X, this.POST_HEIGHT, 0);
     this.group.add(pivotCap);
 
     // ══════════════════════════════════════════════════════════════════════
@@ -27086,61 +27128,74 @@ class SpinCoatAnimator {
     // Origin set so it rotates around the pivot — NOT around the bar's center
     // ══════════════════════════════════════════════════════════════════════
     this.swingBar = new THREE.Group();
-    this.swingBar.position.set(PIVOT_X, PIVOT_Y + 0.55, 0);  // pivot point in world
+    this.swingBar.position.set(this.POST_X, this.POST_HEIGHT - 0.05, 0);
     this.group.add(this.swingBar);
 
     // The actual swing bar mesh is OFFSET from the swingBar group's origin
     // This is equivalent to "set origin to pivot point" in Blender
-    const barLength = 1.6;
+    const barLength = this.BAR_LENGTH;
     const swingBarMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(barLength, 0.06, 0.08),
+      new THREE.BoxGeometry(barLength, 0.10, 0.12),
       new THREE.MeshStandardMaterial({
-        color: 0x37404a, roughness: 0.18, metalness: 0.92,
+        color: 0x37404a,
+        roughness: 0.18,
+        metalness: 0.92,
       })
     );
-    swingBarMesh.position.set(barLength / 2 + 0.02, 0, 0);  // bar extends toward chuck center
+    swingBarMesh.position.set(barLength / 2 + 0.05, 0, 0);
     this.swingBar.add(swingBarMesh);
 
     // Reinforcement rib on top
     const barRib = new THREE.Mesh(
-      new THREE.BoxGeometry(barLength * 0.85, 0.04, 0.04),
+      new THREE.BoxGeometry(barLength * 0.85, 0.06, 0.06),
       new THREE.MeshStandardMaterial({
-        color: 0x556677, roughness: 0.2, metalness: 0.94,
+        color: 0x6677aa,
+        roughness: 0.2,
+        metalness: 0.94,
+        emissive: 0x223366,
+        emissiveIntensity: 0.4,
       })
     );
-    barRib.position.set(barLength / 2 + 0.02, 0.045, 0);
+    barRib.position.set(barLength / 2 + 0.05, 0.07, 0);
     this.swingBar.add(barRib);
 
     // ── VALVE BODY (parented to swing bar, hangs at end of bar) ──
     this.valveBody = new THREE.Mesh(
       new THREE.CylinderGeometry(0.10, 0.08, 0.32, 16),
       new THREE.MeshStandardMaterial({
-        color: 0x1a1f24, roughness: 0.55, metalness: 0.4,
-        emissive: 0x002244, emissiveIntensity: 0.25,
+        color: 0x1a1f24,
+        roughness: 0.55,
+        metalness: 0.4,
+        emissive: 0x002244,
+        emissiveIntensity: 0.25,
       })
     );
-    // Hang at end of swing bar (which extends inward to -barLength)
-    this.valveBody.position.set(barLength - 0.05, -0.18, 0);
+    this.valveBody.position.set(barLength - 0.05, -this.NOZZLE_DROP, 0);
     this.swingBar.add(this.valveBody);
 
     // ── NOZZLE TIP (cone pointing down) ──
     this.nozzleTip = new THREE.Mesh(
       new THREE.CylinderGeometry(0.018, 0.04, 0.14, 16),
       new THREE.MeshStandardMaterial({
-        color: 0xb8c4d0, roughness: 0.08, metalness: 0.98,
+        color: 0xb8c4d0,
+        roughness: 0.08,
+        metalness: 0.98,
       })
     );
-    this.nozzleTip.position.set(barLength - 0.05, -0.40, 0);
+    this.nozzleTip.position.set(barLength - 0.05, -this.TIP_DROP, 0);
     this.swingBar.add(this.nozzleTip);
 
     // ── TIP GLOW (orange droplet preview at nozzle exit) ──
     this.tipGlow = new THREE.Mesh(
       new THREE.SphereGeometry(0.025, 12, 12),
       new THREE.MeshStandardMaterial({
-        color: 0xffaa00, emissive: 0xffaa00, emissiveIntensity: 2.5, roughness: 0.3,
+        color: 0xffaa00,
+        emissive: 0xffaa00,
+        emissiveIntensity: 2.5,
+        roughness: 0.3,
       })
     );
-    this.tipGlow.position.set(barLength - 0.05, -0.49, 0);
+    this.tipGlow.position.set(barLength - 0.05, -this.TIP_DROP - 0.12, 0);
     this.tipGlow.visible = false;  // only visible during dispense
     this.swingBar.add(this.tipGlow);
 
@@ -27157,11 +27212,11 @@ class SpinCoatAnimator {
       side: THREE.DoubleSide,
     });
     this.liquidStream = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.035, 0.025, 2.5, 12, 1, true),
+      new THREE.CylinderGeometry(0.035, 0.025, 2.0, 12, 1, true),
       this.streamMat
     );
     // Position so stream top connects to nozzle tip, bottom touches wafer
-    this.liquidStream.position.set(barLength - 0.05, -1.87, 0);
+    this.liquidStream.position.set(barLength - 0.05, -this.TIP_DROP - 1.0, 0);
     this.swingBar.add(this.liquidStream);
 
     // Set initial swing angle (parked)
@@ -27170,7 +27225,7 @@ class SpinCoatAnimator {
 
   startCoat(wx: number, wz: number, color: number) {
     this.coatColor = color;
-    this.group.position.set(wx, WAFER_TRANSFER_Y - 0.48, wz);
+    this.group.position.set(wx, WAFER_TRANSFER_Y - 0.12, wz);
     this.group.visible = true;
     this.active = true;
     this.phase = "swing_in";
@@ -28304,6 +28359,13 @@ class DevLiquidAnimator {
   
   poolGroup!: THREE.Group;
   poolSpin = 0;
+
+  readonly POOL_Y = 0.08;
+  readonly POST_HEIGHT = 3.0;
+  readonly POST_X = -1.8;
+  readonly BAR_LENGTH = 1.8;
+  readonly NOZZLE_DROP = 0.6;
+  readonly TIP_DROP = 0.9;
   
   active = false;
   phase: "idle" | "swing_in" | "spray" | "puddle" | "rinse" | "swing_out" | "drain" | "done" = "idle";
@@ -28322,7 +28384,7 @@ class DevLiquidAnimator {
 
     // ── LIQUID POOL ──
     this.poolGroup = new THREE.Group();
-    this.poolGroup.position.y = 0.41;
+    this.poolGroup.position.y = this.POOL_Y;
     this.group.add(this.poolGroup);
     
     this.liquidPool = new THREE.Mesh(
@@ -28358,16 +28420,15 @@ class DevLiquidAnimator {
     // ══════════════════════════════════════════════════════════════════════
     // ── PIVOT POST ──
     // ══════════════════════════════════════════════════════════════════════
-    const PIVOT_X = -1.7;
-    const PIVOT_Y = 2.2;
-    
     this.pivotPost = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.06, 0.08, 1.5, 16),
+      new THREE.CylinderGeometry(0.06, 0.08, this.POST_HEIGHT, 16),
       new THREE.MeshStandardMaterial({
-        color: 0x37404a, roughness: 0.12, metalness: 0.95,
+        color: 0x37404a,
+        roughness: 0.12,
+        metalness: 0.95,
       })
     );
-    this.pivotPost.position.set(PIVOT_X, PIVOT_Y, 0);
+    this.pivotPost.position.set(this.POST_X, this.POST_HEIGHT / 2, 0);
     this.group.add(this.pivotPost);
 
     const pivotCap = new THREE.Mesh(
@@ -28376,22 +28437,24 @@ class DevLiquidAnimator {
         color: 0x556677, roughness: 0.15, metalness: 0.94,
       })
     );
-    pivotCap.position.set(PIVOT_X, PIVOT_Y + 0.78, 0);
+    pivotCap.position.set(this.POST_X, this.POST_HEIGHT, 0);
     this.group.add(pivotCap);
 
     // ── SWING BAR ──
     this.swingBar = new THREE.Group();
-    this.swingBar.position.set(PIVOT_X, PIVOT_Y + 0.55, 0);
+    this.swingBar.position.set(this.POST_X, this.POST_HEIGHT - 0.05, 0);
     this.group.add(this.swingBar);
 
-    const barLength = 1.6;
+    const barLength = this.BAR_LENGTH;
     const swingBarMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(barLength, 0.06, 0.08),
+      new THREE.BoxGeometry(barLength, 0.10, 0.12),
       new THREE.MeshStandardMaterial({
-        color: 0x37404a, roughness: 0.18, metalness: 0.92,
+        color: 0x37404a,
+        roughness: 0.18,
+        metalness: 0.92,
       })
     );
-    swingBarMesh.position.set(barLength / 2 + 0.02, 0, 0);
+    swingBarMesh.position.set(barLength / 2 + 0.05, 0, 0);
     this.swingBar.add(swingBarMesh);
 
 		const barRib = new THREE.Mesh(
@@ -28407,46 +28470,60 @@ class DevLiquidAnimator {
     this.valveBody = new THREE.Mesh(
       new THREE.CylinderGeometry(0.13, 0.10, 0.34, 16),
       new THREE.MeshStandardMaterial({
-        color: 0x1a1f24, roughness: 0.55, metalness: 0.4,
-        emissive: 0x002244, emissiveIntensity: 0.25,
+        color: 0x1a1f24,
+        roughness: 0.55,
+        metalness: 0.4,
+        emissive: 0x002244,
+        emissiveIntensity: 0.25,
       })
     );
-    this.valveBody.position.set(barLength - 0.05, -0.19, 0);
+    this.valveBody.position.set(barLength - 0.05, -this.NOZZLE_DROP, 0);
     this.swingBar.add(this.valveBody);
 
     // ── NOZZLE TIP (manifold body) ──
     this.nozzleTip = new THREE.Mesh(
       new THREE.BoxGeometry(0.18, 0.06, 0.12),
       new THREE.MeshStandardMaterial({
-        color: 0xb8c4d0, roughness: 0.08, metalness: 0.98,
+        color: 0xb8c4d0,
+        roughness: 0.08,
+        metalness: 0.98,
       })
     );
-    this.nozzleTip.position.set(barLength - 0.05, -0.40, 0);
+    this.nozzleTip.position.set(barLength - 0.05, -this.TIP_DROP, 0);
     this.swingBar.add(this.nozzleTip);
 
     // ── TIP GLOW (blue developer indicator) ──
     this.tipGlow = new THREE.Mesh(
       new THREE.SphereGeometry(0.025, 12, 12),
       new THREE.MeshStandardMaterial({
-        color: 0x00aaff, emissive: 0x0088ff, emissiveIntensity: 3.0, roughness: 0.2,
+        color: 0x00aaff,
+        emissive: 0x0088ff,
+        emissiveIntensity: 3.0,
+        roughness: 0.2,
       })
     );
-    this.tipGlow.position.set(barLength - 0.05, -0.49, 0);
+    this.tipGlow.position.set(barLength - 0.05, -this.TIP_DROP - 0.12, 0);
     this.tipGlow.visible = false;
     this.swingBar.add(this.tipGlow);
 
     // ── THREE LIQUID STREAMS (developer manifold has multiple ports) ──
     [-0.07, 0, 0.07].forEach((zOff) => {
       const mat = new THREE.MeshStandardMaterial({
-        color: 0x33cc88, emissive: 0x22aa66, emissiveIntensity: 1.0,
-        roughness: 0.15, metalness: 0.1,
-        transparent: true, opacity: 0, depthWrite: false,
+        color: 0x33cc88,
+        emissive: 0x22aa66,
+        emissiveIntensity: 1.0,
+        roughness: 0.15,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
       });
+      const streamLen = 2.0;
       const stream = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.022, 0.016, 2.5, 12, 1, true),
+        new THREE.CylinderGeometry(0.022, 0.016, streamLen, 12, 1, true),
         mat
       );
-      stream.position.set(barLength - 0.05, -1.87, zOff);
+      stream.position.set(barLength - 0.05, -this.TIP_DROP - streamLen / 2, zOff);
       this.swingBar.add(stream);
       this.liquidStreams.push(stream);
       this.streamMats.push(mat);
@@ -28456,7 +28533,7 @@ class DevLiquidAnimator {
   }
 
   startDev(wx: number, wz: number) {
-    this.group.position.set(wx, WAFER_TRANSFER_Y - 0.48, wz);
+    this.group.position.set(wx, WAFER_TRANSFER_Y - 0.115, wz);
     this.group.visible = true;
     this.active = true;
     this.phase = "swing_in";
@@ -33397,12 +33474,12 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     
     this.spinCoat = new SpinCoatAnimator(this.scene);
     // Position spinCoat ON the prcoat module permanently
-    this.spinCoat.group.position.set(prcoatStep.x, WAFER_TRANSFER_Y - 0.48, prcoatStep.z);
+    this.spinCoat.group.position.set(prcoatStep.x, WAFER_TRANSFER_Y - 0.12, prcoatStep.z);
     this.spinCoat.group.visible = true;
 
     this.devLiquid = new DevLiquidAnimator(this.scene);
     // Position devLiquid ON the develop module permanently  
-    this.devLiquid.group.position.set(developStep.x, WAFER_TRANSFER_Y - 0.48, developStep.z);
+    this.devLiquid.group.position.set(developStep.x, WAFER_TRANSFER_Y - 0.115, developStep.z);
     this.devLiquid.group.visible = true;
 
     // Particle systems
@@ -35272,7 +35349,6 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
 				const prLayer = w.userData.prLayer as THREE.Mesh | undefined;
 				if (prLayer) {
 					const mat = prLayer.material as THREE.MeshStandardMaterial;
-					const baseCol = new THREE.Color(WAFER_COLORS[sm.wi]);
 					const pink = new THREE.Color(0xcc1177);
 					if (["dispense","spinup","coating"].includes(this.spinCoat.phase)) {
 						mat.color.lerp(pink, 0.12);
@@ -35282,15 +35358,6 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
 						if (glowRing) {
 							(glowRing.material as THREE.MeshStandardMaterial).color.lerp(pink, 0.1);
 							(glowRing.material as THREE.MeshStandardMaterial).emissive.lerp(pink, 0.06);
-						}
-					} else {
-						mat.color.lerp(baseCol, 0.06);
-						mat.emissive.lerp(new THREE.Color(0x000000), 0.06);
-						mat.opacity = lerp(mat.opacity, 0.0, 0.08);
-						const glowRing = w.userData.glowRing as THREE.Mesh | undefined;
-						if (glowRing) {
-							(glowRing.material as THREE.MeshStandardMaterial).color.lerp(baseCol, 0.06);
-							(glowRing.material as THREE.MeshStandardMaterial).emissive.lerp(new THREE.Color(baseCol.getHex()), 0.06);
 						}
 					}
 				}
@@ -35460,7 +35527,7 @@ case "track_place": {
     this._activeCoatWI = sm.wi;
     const prS = ALL_STEPS.find(s => s.id === 'prcoat')!;
     // Position is already set in _build — just start the animation
-    this.spinCoat.startCoat(prS.x, prS.z, WAFER_COLORS[sm.wi]);
+    this.spinCoat.startCoat(prS.x, prS.z, 0xcc1177);
     this.spinCoat.group.visible = true;
   }
 }
@@ -35539,12 +35606,20 @@ case "track_place": {
     }
     sm.spinning = false;
     if (mod.id === "prcoat") {
-      // Tint PR layer with wafer's resist color (visual feedback of coating)
+      const PINK = 0xcc1177;
       const pr = w.userData.prLayer as THREE.Mesh | undefined;
       if (pr) {
         const mat = pr.material as THREE.MeshStandardMaterial;
-        mat.opacity = 0.95;
-        mat.emissiveIntensity = 0.9;
+        mat.color.setHex(PINK);
+        mat.emissive.setHex(PINK);
+        mat.emissiveIntensity = 1.0;
+        mat.opacity = 0.98;
+      }
+      const glowRing = w.userData.glowRing as THREE.Mesh | undefined;
+      if (glowRing) {
+        const gmat = glowRing.material as THREE.MeshStandardMaterial;
+        gmat.color.setHex(PINK);
+        gmat.emissive.setHex(PINK);
       }
     }
    if (mod.id === "develop" && this._activeDevWI === sm.wi) {
