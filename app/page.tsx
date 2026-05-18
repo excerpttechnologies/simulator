@@ -27002,7 +27002,7 @@ class SpinCoatAnimator {
       new THREE.CylinderGeometry(0.92, 0.92, 0.06, 80),
       new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.12, metalness: 0.92 })
     );
-    this.spinDisc.position.y = 0.37;
+    this.spinDisc.position.y = 0.45;
     this.spinChuck.add(this.spinDisc);
 
     for (let i = 0; i < 6; i++) {
@@ -27011,13 +27011,13 @@ class SpinCoatAnimator {
         new THREE.CylinderGeometry(0.04, 0.04, 0.07, 12),
         new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3 })
       );
-      port.position.set(Math.cos(a) * 0.55, 0.4, Math.sin(a) * 0.55);
+      port.position.set(Math.cos(a) * 0.55, 0.48, Math.sin(a) * 0.55);
       this.spinChuck.add(port);
     }
 
     // ── RESIST RING LAYERS ──
     this.resistGroup = new THREE.Group();
-    this.resistGroup.position.y = 0.41;
+    this.resistGroup.position.y = 0.49;
     this.spinChuck.add(this.resistGroup);
     const numRings = 18;
     for (let i = 0; i < numRings; i++) {
@@ -27051,7 +27051,7 @@ class SpinCoatAnimator {
       })
     );
     this.spiralMesh.rotation.x = -Math.PI / 2;
-    this.spiralMesh.position.y = 0.44;
+    this.spiralMesh.position.y = 0.52;
     this.spiralMesh.renderOrder = 10;
     this.spinChuck.add(this.spiralMesh);
 
@@ -27060,7 +27060,7 @@ class SpinCoatAnimator {
     // Located at +X side of the bowl, like a swing-out dispense arm
     // ══════════════════════════════════════════════════════════════════════
     const PIVOT_X = -1.7;   // back side pivot
-    const PIVOT_Y = 0.85;   // height of pivot center
+    const PIVOT_Y = 2.2;   // height of pivot center
     
     this.pivotPost = new THREE.Mesh(
       new THREE.CylinderGeometry(0.06, 0.08, 1.5, 16),
@@ -27146,19 +27146,22 @@ class SpinCoatAnimator {
 
     // ── CONTINUOUS LIQUID STREAM (cylinder hanging from nozzle to wafer) ──
     this.streamMat = new THREE.MeshStandardMaterial({
-      color: 0x9922ff,
-      emissive: 0x9922ff,
-      emissiveIntensity: 1.5,
-      roughness: 0.15, metalness: 0.1,
-      transparent: true, opacity: 0,
+      color: 0xcc1177,
+      emissive: 0xcc1177,
+      emissiveIntensity: 2.5,
+      roughness: 0.1,
+      metalness: 0.0,
+      transparent: true,
+      opacity: 0,
       depthWrite: false,
+      side: THREE.DoubleSide,
     });
     this.liquidStream = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.028, 0.02, 0.85, 12, 1, true),
+      new THREE.CylinderGeometry(0.035, 0.025, 2.5, 12, 1, true),
       this.streamMat
     );
     // Position so stream top connects to nozzle tip, bottom touches wafer
-    this.liquidStream.position.set(barLength - 0.05, -0.95, 0);
+    this.liquidStream.position.set(barLength - 0.05, -1.87, 0);
     this.swingBar.add(this.liquidStream);
 
     // Set initial swing angle (parked)
@@ -27167,7 +27170,7 @@ class SpinCoatAnimator {
 
   startCoat(wx: number, wz: number, color: number) {
     this.coatColor = color;
-    this.group.position.set(wx, WAFER_TRANSFER_Y - 0.98, wz);
+    this.group.position.set(wx, WAFER_TRANSFER_Y - 0.48, wz);
     this.group.visible = true;
     this.active = true;
     this.phase = "swing_in";
@@ -27275,7 +27278,7 @@ class SpinCoatAnimator {
 
       case "dispense": {
         // Stream fades in, glow pulses
-        this.streamMat.opacity = Math.min(t * 1.5, 0.95);
+        this.streamMat.opacity = Math.min(t * 2.5, 0.98);
         this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
         (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
           2.5 + 0.8 * Math.sin(this.phaseT * 22);
@@ -28356,7 +28359,7 @@ class DevLiquidAnimator {
     // ── PIVOT POST ──
     // ══════════════════════════════════════════════════════════════════════
     const PIVOT_X = -1.7;
-    const PIVOT_Y = 0.85;
+    const PIVOT_Y = 2.2;
     
     this.pivotPost = new THREE.Mesh(
       new THREE.CylinderGeometry(0.06, 0.08, 1.5, 16),
@@ -28440,10 +28443,10 @@ class DevLiquidAnimator {
         transparent: true, opacity: 0, depthWrite: false,
       });
       const stream = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.022, 0.016, 0.85, 12, 1, true),
+        new THREE.CylinderGeometry(0.022, 0.016, 2.5, 12, 1, true),
         mat
       );
-      stream.position.set(barLength - 0.05, -0.95, zOff);
+      stream.position.set(barLength - 0.05, -1.87, zOff);
       this.swingBar.add(stream);
       this.liquidStreams.push(stream);
       this.streamMats.push(mat);
@@ -28453,7 +28456,7 @@ class DevLiquidAnimator {
   }
 
   startDev(wx: number, wz: number) {
-    this.group.position.set(wx, WAFER_TRANSFER_Y - 0.98, wz);
+    this.group.position.set(wx, WAFER_TRANSFER_Y - 0.48, wz);
     this.group.visible = true;
     this.active = true;
     this.phase = "swing_in";
@@ -28471,12 +28474,14 @@ class DevLiquidAnimator {
       m.opacity = 0;
       m.color.setHex(0x33cc88);
       m.emissive.setHex(0x22aa66);
+			m.needsUpdate = true;
     });
     
     this.spiralCtx.clearRect(0, 0, 512, 512);
     this.spiralTex.needsUpdate = true;
     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
-    this.tipGlow.visible = false;
+		this.tipGlow.visible = false;
+		console.log('[DEV] startDev at', wx, wz, 'visible:', this.group.visible);
   }
 
   stopDev() {
@@ -29128,14 +29133,27 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
   if (mod.type === "dry") {
     for (let a = 0; a < 6; a++) {
       const ang = (a / 6) * Math.PI * 2;
-      const noz = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.065, 0.35, 12),
-        new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.18, metalness: 0.95 }));
-      noz.position.set(Math.cos(ang) * 0.58, MODULE_BASE_Y + H + 0.6, Math.sin(ang) * 0.58);
+      const noz = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.055, 0.065, 0.06, 12),
+        new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.18, metalness: 0.95 })
+      );
+      noz.position.set(Math.cos(ang) * 0.58, MODULE_BASE_Y + H + 0.035, Math.sin(ang) * 0.58);
       grp.add(noz);
-      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.038, 8, 8), matEmissive(0x44ddff, 2.5));
-      tip.position.set(Math.cos(ang) * 0.58, MODULE_BASE_Y + H + 0.42, Math.sin(ang) * 0.58);
+
+      const tip = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.025, 0.025, 0.02, 8),
+        matEmissive(0x44ddff, 3.5)
+      );
+      tip.position.set(Math.cos(ang) * 0.58, MODULE_BASE_Y + H + 0.07, Math.sin(ang) * 0.58);
       grp.add(tip);
     }
+
+    const drain = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.12, 0.02, 24),
+      new THREE.MeshStandardMaterial({ color: 0x1a2030, roughness: 0.4, metalness: 0.8 })
+    );
+    drain.position.set(0, MODULE_BASE_Y + H + 0.01, 0);
+    grp.add(drain);
   }
 
   // FOUP special handling
@@ -30984,8 +31002,12 @@ function positionWaferAnchorAboveChuck(
 ): THREE.Object3D {
   glbRoot.updateWorldMatrix(true, true);
 
-  // ── FIX: ignore per-GLB top measurements and use a constant transfer height.
-  const anchorWorldY = WAFER_TRANSFER_Y + extraClearance;
+  // Compute actual top of the GLB module to place wafer above it
+  const box = new THREE.Box3().setFromObject(glbRoot);
+  const moduleTopY = box.max.y;
+  // Ensure wafer sits above the module top, but never below the transfer height + clearance
+  const anchorWorldY = Math.max(moduleTopY + 0.4, WAFER_TRANSFER_Y + extraClearance);
+
   const placeholderWorldPos = new THREE.Vector3();
   placeholder.getWorldPosition(placeholderWorldPos);
   const anchorLocalY = anchorWorldY - placeholderWorldPos.y;
@@ -31132,10 +31154,11 @@ function buildDehydrationGLB(
       placeholder.userData.loaded = true;
 
       // Add the floating module label (reuse same logic as buildModule)
-      addModuleLabel(placeholder, mod);
-      addWaferChuck(placeholder, 'hotplate');
 
-	positionWaferAnchorAboveChuck(placeholder, root, 2.0);
+			addModuleLabel(placeholder, mod);
+			addWaferChuck(placeholder, 'hotplate');
+
+		positionWaferAnchorAboveChuck(placeholder, root, 4.0);
 
       if (onReady) onReady(placeholder);
     },
@@ -31253,7 +31276,7 @@ function buildHardBakeGLB(
       addModuleLabel(placeholder, mod);
       addWaferChuck(placeholder, 'bake');
       
-	positionWaferAnchorAboveChuck(placeholder, root, 2.0);
+	positionWaferAnchorAboveChuck(placeholder, root, 4.0);
 
       if (onReady) onReady(placeholder);
     },
@@ -31895,10 +31918,11 @@ function buildChillPlateGLB(
       placeholder.userData.glbRoot = root;
       placeholder.userData.loaded = true;
 
-      addModuleLabel(placeholder, mod);
-      addWaferChuck(placeholder, 'chill');
 
-	positionWaferAnchorAboveChuck(placeholder, root, 2.2);
+			addModuleLabel(placeholder, mod);
+			addWaferChuck(placeholder, 'chill');
+
+		positionWaferAnchorAboveChuck(placeholder, root, 2.5);
 
       if (onReady) onReady(placeholder);
     },
@@ -32036,7 +32060,7 @@ function buildPostBakeGLB(
       const size = new THREE.Vector3();
       tempBox.getSize(size);
 
-      const targetW = 4.5;
+      const targetW = 3.5;
       const currentMax = Math.max(size.x, size.z);
       const scale = targetW / currentMax;
       root.scale.setScalar(scale);
@@ -32108,7 +32132,7 @@ function buildPostBakeGLB(
       addModuleLabel(placeholder, mod);
       addWaferChuck(placeholder, 'hotplate');
       
-		positionWaferAnchorAboveChuck(placeholder, root, 2.0);
+		positionWaferAnchorAboveChuck(placeholder, root, 4.0);
 
 		if (onReady) onReady(placeholder);
 		},
@@ -33250,7 +33274,7 @@ detachAt(worldPos: THREE.Vector3): void {
 		this.scene.attach(this.mesh);
 		this.mesh.scale.setScalar(1);
 
-		const VISIBLE_LIFT = 0.15;
+		const VISIBLE_LIFT = 0.4;
 		const visibleY = Math.max(WAFER_TRANSFER_Y, 3.40) + VISIBLE_LIFT;
 		this.mesh.position.set(worldPos.x, visibleY, worldPos.z);
 		this.mesh.quaternion.setFromEuler(
@@ -33263,6 +33287,7 @@ detachAt(worldPos: THREE.Vector3): void {
 				const mesh = child as THREE.Mesh;
 				mesh.renderOrder = 999;
 				mesh.frustumCulled = false;
+				mesh.visible = true;
 			}
 		});
 
@@ -33372,12 +33397,12 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     
     this.spinCoat = new SpinCoatAnimator(this.scene);
     // Position spinCoat ON the prcoat module permanently
-    this.spinCoat.group.position.set(prcoatStep.x, WAFER_TRANSFER_Y - 0.98, prcoatStep.z);
+    this.spinCoat.group.position.set(prcoatStep.x, WAFER_TRANSFER_Y - 0.48, prcoatStep.z);
     this.spinCoat.group.visible = true;
 
     this.devLiquid = new DevLiquidAnimator(this.scene);
     // Position devLiquid ON the develop module permanently  
-    this.devLiquid.group.position.set(developStep.x, WAFER_TRANSFER_Y - 0.98, developStep.z);
+    this.devLiquid.group.position.set(developStep.x, WAFER_TRANSFER_Y - 0.48, developStep.z);
     this.devLiquid.group.visible = true;
 
     // Particle systems
@@ -34724,13 +34749,22 @@ private _animRobots(dt: number) {
     }
 
     // ── DROP WORLD: get target module's wafer anchor ──
-   const modGrp = this.modObjs[dropStep.id];
-    const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-    if (wa) {
-      wa.getWorldPosition(dropWorld);
-      dropWorld.y = WAFER_TRANSFER_Y + 0.02;
+    const isReturning = (target as any)._returnToFoup === true;
+    if (dropStep.type === 'foup' || isReturning) {
+      const foupGrp = this.modObjs['foup'];
+      const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+      const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+      if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(dropWorld);
+      else dropWorld.set(ALL_STEPS[0].x + 4.0, 2.0, ALL_STEPS[0].z);
     } else {
-      dropWorld.set(dropStep.x, WAFER_TRANSFER_Y + 0.02, dropStep.z);
+      const modGrp = this.modObjs[dropStep.id];
+      const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+      if (wa) {
+        wa.getWorldPosition(dropWorld);
+        dropWorld.y = WAFER_TRANSFER_Y + 0.02;
+      } else {
+        dropWorld.set(dropStep.x, WAFER_TRANSFER_Y + 0.02, dropStep.z);
+      }
     }
     // For scanner: approach slot from front (negative Z side)
     if (dropStep.id === 'scanner') {
@@ -35023,16 +35057,25 @@ if (!isPicked) {
         this._setGripperState(r, 0, dt);
         if (phaseT > 0.4) {
           target.detachAt(dropWorld);
-          this._addLog(`[${WAFER_NAMES[target.wi]}] PLACE @ ${dropStep.short}`, 'place');
-          target.state = 'processing';
-          target.processTimer = 0;
-          this._onProcessStart(target, dropStep);
-          this.busy[dropStep.id] = target.wi;
           (target as any)._picked = false;
           (target as any)._pickupX = undefined;
           (target as any)._pickupZ = undefined;
           ud.armPhase = 'retract';
           ud.phaseT = 0;
+
+          // Check if this was a FOUP return
+          if ((target as any)._returnToFoup) {
+            (target as any)._returnToFoup = false;
+            target.state = 'idle'; // triggers done logic
+            target.stepIdx = ALL_STEPS.length; // ensure done
+            this._addLog(`[${WAFER_NAMES[target.wi]}] RETURNED TO FOUP ✓`, 'place');
+          } else {
+            this._addLog(`[${WAFER_NAMES[target.wi]}] PLACE @ ${dropStep.short}`, 'place');
+            target.state = 'processing';
+            target.processTimer = 0;
+            this._onProcessStart(target, dropStep);
+            this.busy[dropStep.id] = target.wi;
+          }
         }
         break;
       }
@@ -35098,17 +35141,37 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
 
     // ── IDLE: decide next move ──────────────────────────────────────────────
  case "idle": {
-  // After all steps done, return to FOUP and mark complete
-  if (sm.stepIdx >= ALL_STEPS.length) {
-    sm.state = "done";
-    sm.done = true;
-    sm.mesh.visible = true;
-    sm.mesh.position.set(ALL_STEPS[0].x + 0.5, 1.8, ALL_STEPS[0].z);
-    this._addLog(`[${WAFER_NAMES[sm.wi]}] → COMPLETE ✓`, "place");
-    if (this._activeCoatWI === sm.wi) { this.spinCoat.stopCoat(); this._activeCoatWI = -1; }
-    if (this._activeDevWI === sm.wi)  { this.devLiquid.stopDev();  this._activeDevWI  = -1; }
-    return;
-  }
+	// After all steps done, return wafer to FOUP
+	if (sm.stepIdx >= ALL_STEPS.length) {
+		// Don't mark done yet — return wafer to FOUP first
+		if (!(sm as any)._returning) {
+			(sm as any)._returning = true;
+			(sm as any)._returnToFoup = true;
+			sm.state = "track_approach";
+			sm.timer = 0;
+			(sm as any)._picked = false;
+			this._addLog(`[${WAFER_NAMES[sm.wi]}] RETURNING → FOUP`, "move");
+			return;
+		}
+
+		sm.state = "done";
+		sm.done = true;
+		sm.mesh.visible = true;
+		// Place in FOUP slot
+		const foupGrp = this.modObjs["foup"];
+		const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+		if (anchors?.[sm.wi]) {
+			const p = new THREE.Vector3();
+			anchors[sm.wi].getWorldPosition(p);
+			sm.mesh.position.copy(p);
+		} else {
+			sm.mesh.position.set(ALL_STEPS[0].x + 4.0, 2.0, ALL_STEPS[0].z);
+		}
+		this._addLog(`[${WAFER_NAMES[sm.wi]}] → COMPLETE ✓ RETURNED TO FOUP`, "place");
+		if (this._activeCoatWI === sm.wi) { this.spinCoat.stopCoat(); this._activeCoatWI = -1; }
+		if (this._activeDevWI === sm.wi)  { this.devLiquid.stopDev();  this._activeDevWI  = -1; }
+		return;
+	}
 
   const mod = ALL_STEPS[sm.stepIdx];
 
@@ -35204,8 +35267,57 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
           cm.emissiveIntensity = 1.5 + 1.0 * Math.sin(this.simTime * 4 + idx);
         });
       }
-			if (mod.id === "prcoat"  && this._activeCoatWI === sm.wi) this.spinCoat.tick(dt, this.speed);
-			if (mod.id === "develop" && this._activeDevWI  === sm.wi) this.devLiquid.tick(dt, this.speed);
+			if (mod.id === "prcoat"  && this._activeCoatWI === sm.wi) {
+				this.spinCoat.tick(dt, this.speed);
+				const prLayer = w.userData.prLayer as THREE.Mesh | undefined;
+				if (prLayer) {
+					const mat = prLayer.material as THREE.MeshStandardMaterial;
+					const baseCol = new THREE.Color(WAFER_COLORS[sm.wi]);
+					const pink = new THREE.Color(0xcc1177);
+					if (["dispense","spinup","coating"].includes(this.spinCoat.phase)) {
+						mat.color.lerp(pink, 0.12);
+						mat.emissive.lerp(pink, 0.08);
+						mat.opacity = lerp(mat.opacity, 0.95, 0.06);
+						const glowRing = w.userData.glowRing as THREE.Mesh | undefined;
+						if (glowRing) {
+							(glowRing.material as THREE.MeshStandardMaterial).color.lerp(pink, 0.1);
+							(glowRing.material as THREE.MeshStandardMaterial).emissive.lerp(pink, 0.06);
+						}
+					} else {
+						mat.color.lerp(baseCol, 0.06);
+						mat.emissive.lerp(new THREE.Color(0x000000), 0.06);
+						mat.opacity = lerp(mat.opacity, 0.0, 0.08);
+						const glowRing = w.userData.glowRing as THREE.Mesh | undefined;
+						if (glowRing) {
+							(glowRing.material as THREE.MeshStandardMaterial).color.lerp(baseCol, 0.06);
+							(glowRing.material as THREE.MeshStandardMaterial).emissive.lerp(new THREE.Color(baseCol.getHex()), 0.06);
+						}
+					}
+				}
+			}
+			if (mod.id === "develop" && this._activeDevWI  === sm.wi) {
+				this.devLiquid.tick(dt, this.speed);
+				const prLayer = w.userData.prLayer as THREE.Mesh | undefined;
+				if (prLayer) {
+					const mat = prLayer.material as THREE.MeshStandardMaterial;
+					const baseCol = new THREE.Color(WAFER_COLORS[sm.wi]);
+					const green = new THREE.Color(0x33cc88);
+					const grey = new THREE.Color(0x8899cc);
+					if (["spray","puddle"].includes(this.devLiquid.phase)) {
+						mat.color.lerp(green, 0.12);
+						mat.emissive.lerp(new THREE.Color(0x22aa66), 0.08);
+						mat.opacity = lerp(mat.opacity, 0.95, 0.06);
+					} else if (["rinse","drain"].includes(this.devLiquid.phase)) {
+						mat.color.lerp(grey, 0.10);
+						mat.emissive.lerp(new THREE.Color(0x112244), 0.06);
+						mat.opacity = lerp(mat.opacity, 0.9, 0.08);
+					} else {
+						mat.color.lerp(baseCol, 0.06);
+						mat.emissive.lerp(new THREE.Color(0x000000), 0.04);
+						mat.opacity = lerp(mat.opacity, 0.0, 0.06);
+					}
+				}
+			}
 			if (mod.id === "scanner") {
 				this._animateScannerEntry(sm, dt);
 			}
@@ -35351,27 +35463,12 @@ case "track_place": {
     this.spinCoat.startCoat(prS.x, prS.z, WAFER_COLORS[sm.wi]);
     this.spinCoat.group.visible = true;
   }
-
-  // Apply dark pink PR coat color
-  const prLayer = sm.mesh.userData.prLayer as THREE.Mesh | undefined;
-  if (prLayer) {
-    const mat = prLayer.material as THREE.MeshStandardMaterial;
-    mat.color.setHex(0xcc1177);
-    mat.emissive.setHex(0xcc1177);
-    mat.emissiveIntensity = 0.9;
-    mat.opacity = 0.95;
-  }
-  const glowRing = sm.mesh.userData.glowRing as THREE.Mesh | undefined;
-  if (glowRing) {
-    (glowRing.material as THREE.MeshStandardMaterial).color.setHex(0xcc1177);
-    (glowRing.material as THREE.MeshStandardMaterial).emissive.setHex(0xcc1177);
-  }
 }
-    if (mod.id === "develop" && this._activeDevWI < 0) {
-      this._activeDevWI = sm.wi;
-      this.devLiquid.startDev(mod.x, mod.z);
-      this.devOverlay.start();
-    }
+		if (mod.id === "develop" && this._activeDevWI < 0) {
+			this._activeDevWI = sm.wi;
+			this.devLiquid.startDev(mod.x, mod.z);
+			this.devOverlay.start();
+		}
     if (mod.id === "spindry" || mod.id === "rinse" || mod.id === "develop") sm.spinning = true;
     if (mod.id === "hmds") this.hmdsFog.on();
     if (mod.id === "spindry") this.n2Particles.on();
@@ -35453,15 +35550,7 @@ case "track_place": {
    if (mod.id === "develop" && this._activeDevWI === sm.wi) {
       this.devLiquid.stopDev(); this._activeDevWI = -1;
       this.devOverlay.stop();
-      // Wafer returns to grey after developer
-      const prLayer = sm.mesh.userData.prLayer as THREE.Mesh | undefined;
-      if (prLayer) {
-        const mat = prLayer.material as THREE.MeshStandardMaterial;
-        mat.color.setHex(0x8899cc);
-        mat.emissive.setHex(0x112244);
-        mat.emissiveIntensity = 0.15;
-        mat.opacity = 0.9;
-      }
+      // leave wafer color handling to the processing-phase animator
       const glowRing = sm.mesh.userData.glowRing as THREE.Mesh | undefined;
       if (glowRing) {
         const orig = WAFER_COLORS[sm.wi];
