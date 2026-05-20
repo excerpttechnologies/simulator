@@ -1,1999 +1,5 @@
 
 
-// 'use client';
-
-// import React, { useState, useEffect, useCallback, useRef } from 'react';
-// import '../Failure.css';
-
-// // =============================================
-// // TYPES
-// // =============================================
-// interface ZoneData {
-//     label: string;
-//     temp: string;
-//     status: 'healthy' | 'danger';
-//     note: string;
-// }
-// interface AlarmData {
-//     id: string;
-//     name: string;
-//     level: 'critical' | 'warning' | 'info';
-//     time: string;
-//     params: Record<string, string>;
-// }
-// interface LifecycleStep {
-//     icon: string;
-//     label: string;
-//     state: 'done' | 'active' | 'error' | '';
-// }
-// interface FailureMode {
-//     id: string;
-//     name: string;
-//     severity: string;
-//     type: string;
-//     keyInfo: string;
-//     zones: ZoneData[];
-//     rtmLabel: string;
-//     rtmTarget: number;
-//     rtmUcl: number;
-//     rtmLcl: number;
-//     rtmData: number[];
-//     lifecycle: LifecycleStep[];
-//     spcCpk: string;
-//     spcSigma: string;
-//     spcData: number[];
-//     alarms: AlarmData[];
-//     ocap: string[];
-//     lotId: string;
-//     recipe: string;
-//     troubleshootingSteps: {
-//         icon: string;
-//         title: string;
-//         description: string;
-//         action: string;
-//         alertMessage: string;
-//     }[];
-//     restoreActions: {
-//         name: string;
-//         alertMessage: string;
-//         primary: boolean;
-//     }[];
-//     ocapFlow: {
-//         title: string;
-//         desc: string;
-//         btnLabel: string;
-//         btnClass: string;
-//         alertMsg: string;
-//         state: 'completed' | 'active' | '';
-//     }[];
-// }
-
-// type PEBScenario = 1 | 2 | 3 | null;
-// type TabType = 'troubleshooting' | 'ocap' | 'rtmspc';
-
-// // =============================================
-// // DATA
-// // =============================================
-// const FM_DATA: FailureMode[] = [
-//     {
-//         id: "FM-001",
-//         name: "PEB Temperature Deviation",
-//         severity: "CRITICAL",
-//         type: "THERMAL",
-//         lotId: "WF-2024-0447",
-//         recipe: "ArF_CAR_110C",
-//         keyInfo: "<strong>PEB Temperature Deviation</strong> occurs when one or more hotplate zones drift beyond ±0.3°C of the 110°C setpoint. This directly impacts acid diffusion length in CAR (Chemically Amplified Resist), causing CD (critical dimension) shift. Zone 4 is reporting a deviation. Immediate OCAP action required.",
-//         zones: [
-//             { label: "ZONE 1", temp: "110.01°C", status: "healthy", note: "NOMINAL" },
-//             { label: "ZONE 2", temp: "110.0°C", status: "healthy", note: "NOMINAL" },
-//             { label: "ZONE 3", temp: "110.02°C", status: "healthy", note: "NOMINAL" },
-//             { label: "ZONE 4", temp: "110.08°C", status: "danger", note: "CRITICAL" },
-//             { label: "ZONE 5", temp: "110.01°C", status: "healthy", note: "NOMINAL" },
-//         ],
-//         rtmLabel: "PEB TEMP (°C) — ZONE 3",
-//         rtmTarget: 110, rtmUcl: 110.3, rtmLcl: 109.7,
-//         rtmData: [110.0, 110.1, 110.0, 110.2, 110.1, 110.3, 110.5, 110.7, 111.0, 111.2, 111.5, 111.8, 111.8, 111.7, 111.9],
-//         lifecycle: [
-//             { icon: "🌡️", label: "Hotplate\nDrift", state: "done" },
-//             { icon: "⚗️", label: "Acid\nDiffusion", state: "done" },
-//             { icon: "📏", label: "CD\nShift", state: "error" },
-//             { icon: "🔍", label: "Metrology\nFlag", state: "active" },
-//             { icon: "⚠️", label: "Alarm\nTriggered", state: "active" },
-//             { icon: "🛑", label: "Lot\nHold", state: "" },
-//             { icon: "🔧", label: "OCAP\nAction", state: "" },
-//         ],
-//         spcCpk: "0.82", spcSigma: "1.8σ",
-//         spcData: [109.9, 110.0, 110.1, 110.0, 110.2, 110.1, 110.0, 110.3, 110.5, 110.7, 111.0, 111.2, 111.5, 111.8, 111.8, 111.7, 111.9, 111.8],
-//         alarms: [
-//             { id: "ALM-3841", name: "PEB Zone 4 High Temp", level: "critical", time: "14:23:07", params: { "Zone": "4", "Setpoint": "110.0°C", "Actual": "111.8°C", "Delta": "+1.8°C", "Lot": "WF-2024-0447" } },
-//             { id: "ALM-3842", name: "PEB Zone 4 Watch", level: "warning", time: "14:23:18", params: { "Zone": "4", "Actual": "110.4°C", "Delta": "+0.4°C" } },
-//             { id: "ALM-3843", name: "CD SPC Out-of-Control", level: "critical", time: "14:24:01", params: { "Cpk": "0.82", "Spec": "≥1.33", "Status": "OOC Rule 1" } },
-//         ],
-//         ocap: [
-//             "Immediately place affected lot on HOLD.",
-//             "Check zone 4 heater element resistance.",
-//             "Verify thermocouple calibration for Zone 4.",
-//             "Inspect PID controller setpoint (±0.3°C tolerance).",
-//             "Review last PM date for hotplate module.",
-//             "Escalate to process engineer if delta >1.5°C.",
-//         ],
-//         troubleshootingSteps: [
-//             { icon: "🔍", title: "Visual Inspection", description: "Check module interior for discoloration or anomalies on Zone 4 heating element", action: "VIEW MODULE INTERIOR", alertMessage: "Zone 4 heating element shows discoloration — localized hotspot detected." },
-//             { icon: "⚡", title: "TC Continuity Test", description: "Run diagnostic OHM test to verify thermocouple sensor integrity on Zone 4", action: "DIAGNOSTIC OHM TEST", alertMessage: "Resistance is INFINITE — TC is BROKEN" },
-//             { icon: "🔌", title: "SSR Verification", description: "Check power distribution log for Zone 4 SSR status", action: "POWER DISTRIBUTION LOG", alertMessage: "Zone 4 power is ON but temp is dropping — SSR FAILED" },
-//         ],
-//         restoreActions: [
-//             { name: "Recalibrate Offsets", alertMessage: "Recalibrating offsets... (linear drift <0.3°C)", primary: false },
-//             { name: "Replace Heater Element", alertMessage: "Replacing heater element — Zone 4 duty cycle was pinned at 100%", primary: true },
-//             { name: "Replace TC Sensor", alertMessage: "Replacing TC sensor — spiky/intermittent trace detected", primary: false },
-//         ],
-//         ocapFlow: [
-//             { title: "CONTAINMENT", desc: "Lock tool — stop current lot flow immediately", btnLabel: "LOCK TOOL", btnClass: "", alertMsg: "Tool locked — lot flow stopped", state: "completed" },
-//             { title: "METROLOGY VERIFICATION", desc: "Re-measure wafer — confirm real issue, not SEM error", btnLabel: "RE-MEASURE WAFER", btnClass: "", alertMsg: "Re-measurement confirms CD shift — real issue detected", state: "completed" },
-//             { title: "ROOT CAUSE ANALYSIS", desc: "Flag affected zone thermal trace as source of shift", btnLabel: "FLAG THERMAL TRACE", btnClass: "rca", alertMsg: "RCA: Heater element failure suspected — thermal trace flagged", state: "active" },
-//             { title: "HARDWARE RECOVERY", desc: "Replace failed component — Downtime: 30 min", btnLabel: "REPLACE COMPONENT", btnClass: "recovery", alertMsg: "Replacing failed component — 30 min downtime", state: "" },
-//             { title: "DISPOSITION", desc: "Scrap affected lot — thermal errors cannot be reworked", btnLabel: "SCRAP CURRENT LOT", btnClass: "disposition", alertMsg: "Lot marked for scrap — process profile permanently altered", state: "" },
-//             { title: "VALIDATION", desc: "Run validation wafers — all points return to Golden Mean", btnLabel: "RUN VALIDATION", btnClass: "", alertMsg: "Validation complete — all points returned to Golden Mean → Status GREEN", state: "" },
-//         ],
-//     },
-//     {
-//         id: "FM-002",
-//         name: "PR Coating Thickness Non-Uniformity",
-//         severity: "HIGH",
-//         type: "COATING",
-//         lotId: "WF-2024-0441",
-//         recipe: "PR_COAT_1800RPM",
-//         keyInfo: "<strong>PR Coating Non-Uniformity</strong> results from spin speed deviation or nozzle clogging causing >3% thickness variation across the wafer. Measured at 49 sites via ellipsometry, 1σ target is <2nm. Current lot shows 1σ = 4.7nm.",
-//         zones: [
-//             { label: "ZONE 1", temp: "99.8%", status: "healthy", note: "UNIFORM" },
-//             { label: "ZONE 2", temp: "98.1%", status: "healthy", note: "UNIFORM" },
-//             { label: "ZONE 3", temp: "93.2%", status: "danger", note: "NON-UNI" },
-//             { label: "ZONE 4", temp: "97.5%", status: "healthy", note: "UNIFORM" },
-//             { label: "ZONE 5", temp: "99.1%", status: "healthy", note: "UNIFORM" },
-//         ],
-//         rtmLabel: "PR THICKNESS (nm) — 49-SITE MAP",
-//         rtmTarget: 120, rtmUcl: 123, rtmLcl: 117,
-//         rtmData: [120, 120, 121, 120, 119, 120, 122, 124, 126, 128, 130, 131, 130, 132, 131],
-//         lifecycle: [
-//             { icon: "🔩", label: "Nozzle\nClog", state: "done" },
-//             { icon: "🌀", label: "Spin\nAnomaly", state: "done" },
-//             { icon: "📐", label: "Thick.\nVariation", state: "error" },
-//             { icon: "🔬", label: "Ellipso-\nmetry", state: "active" },
-//             { icon: "⚠️", label: "Alarm", state: "active" },
-//             { icon: "🛑", label: "Lot\nHold", state: "" },
-//             { icon: "🔧", label: "PM\nAction", state: "" },
-//         ],
-//         spcCpk: "0.71", spcSigma: "1.4σ",
-//         spcData: [120, 120, 121, 120, 119, 120, 122, 124, 126, 128, 130, 131, 130, 132, 131, 130, 129, 133],
-//         alarms: [
-//             { id: "ALM-3855", name: "PR Thickness OOC — Center Thick", level: "critical", time: "09:11:42", params: { "1σ": "4.7nm", "Spec": "<2nm", "Sites": "49", "Lot": "WF-2024-0441" } },
-//             { id: "ALM-3856", name: "Spin Speed Deviation", level: "warning", time: "09:10:15", params: { "Set RPM": "1800", "Actual": "1743 RPM", "Delta": "-57 RPM" } },
-//         ],
-//         ocap: [
-//             "Check PR dispense nozzle for clogging or partial block.",
-//             "Inspect spin motor torque and RPM feedback.",
-//             "Run dummy wafer and re-measure thickness map.",
-//             "Verify PR dispense volume (edge vs center).",
-//             "Check exhaust back-pressure in coat cup.",
-//         ],
-//         troubleshootingSteps: [
-//             { icon: "🔍", title: "Nozzle Inspection", description: "Inspect PR dispense nozzle for clogging or residue buildup", action: "VIEW NOZZLE", alertMessage: "Partial blockage at nozzle tip — dried resist residue visible." },
-//             { icon: "⚡", title: "Spin Motor Diagnostic", description: "Check spin motor torque and RPM feedback for deviation", action: "RUN SPIN DIAGNOSTIC", alertMessage: "RPM variance ±57 RPM — motor belt slipping." },
-//             { icon: "🗺️", title: "Thickness Map Analysis", description: "View 49-site thickness uniformity map for spatial pattern", action: "VIEW THICKNESS MAP", alertMessage: "Center-to-edge variation 4.7nm (spec <2nm) — non-uniform coating detected." },
-//         ],
-//         restoreActions: [
-//             { name: "Clean Nozzle", alertMessage: "Cleaning PR nozzle — removed dried resist residue", primary: false },
-//             { name: "Replace Spin Motor", alertMessage: "Replacing spin motor — 45 min downtime", primary: true },
-//             { name: "Run Dummy Wafer", alertMessage: "Running dummy wafer — thickness map verified", primary: false },
-//         ],
-//         ocapFlow: [
-//             { title: "CONTAINMENT", desc: "Lock coater — stop lot flow", btnLabel: "LOCK TOOL", btnClass: "", alertMsg: "Tool locked", state: "completed" },
-//             { title: "METROLOGY VERIFICATION", desc: "Re-measure 49-site thickness map", btnLabel: "RE-MEASURE", btnClass: "", alertMsg: "Re-measurement confirms non-uniformity 4.7nm", state: "completed" },
-//             { title: "ROOT CAUSE ANALYSIS", desc: "Identify spin speed or nozzle as root cause", btnLabel: "FLAG RCA", btnClass: "rca", alertMsg: "RCA: Motor belt slipping — spin speed deviation confirmed", state: "active" },
-//             { title: "HARDWARE RECOVERY", desc: "Replace spin motor or clean nozzle", btnLabel: "REPLACE/CLEAN", btnClass: "recovery", alertMsg: "Motor replaced — spin speed nominal", state: "" },
-//             { title: "DISPOSITION", desc: "Re-coat lot if within resist budget", btnLabel: "RE-COAT LOT", btnClass: "disposition", alertMsg: "Lot re-coated — thickness within spec", state: "" },
-//             { title: "VALIDATION", desc: "Run validation — uniformity 1σ <2nm confirmed", btnLabel: "RUN VALIDATION", btnClass: "", alertMsg: "Validation complete — coating uniform", state: "" },
-//         ],
-//     },
-//     {
-//         id: "FM-003",
-//         name: "Developer Dispense Flow Anomaly",
-//         severity: "MEDIUM",
-//         type: "CHEMICAL",
-//         lotId: "WF-2024-0449",
-//         recipe: "DEV_TMAH_800ML",
-//         keyInfo: "<strong>Developer Flow Anomaly</strong> causes incomplete resist dissolution, leading to bridging or incomplete development. Target TMAH flow is 800 mL/min ±50. Current reading is 621 mL/min — 22% below specification.",
-//         zones: [
-//             { label: "ZONE 1", temp: "OK", status: "healthy", note: "NORMAL" },
-//             { label: "ZONE 2", temp: "OK", status: "healthy", note: "NORMAL" },
-//             { label: "ZONE 3", temp: "LOW", status: "danger", note: "LOW FLOW" },
-//             { label: "ZONE 4", temp: "OK", status: "healthy", note: "NORMAL" },
-//             { label: "ZONE 5", temp: "OK", status: "healthy", note: "NORMAL" },
-//         ],
-//         rtmLabel: "DEVELOPER FLOW RATE (mL/min)",
-//         rtmTarget: 800, rtmUcl: 850, rtmLcl: 750,
-//         rtmData: [800, 802, 798, 801, 800, 799, 798, 785, 770, 745, 721, 699, 650, 621, 621],
-//         lifecycle: [
-//             { icon: "💧", label: "Flow\nDrop", state: "done" },
-//             { icon: "🧪", label: "TMAH\nPool", state: "done" },
-//             { icon: "🕳️", label: "Resist\nBridge", state: "error" },
-//             { icon: "🔬", label: "SEM\nInspect", state: "active" },
-//             { icon: "⚠️", label: "Alarm", state: "active" },
-//             { icon: "🛑", label: "Lot\nHold", state: "" },
-//             { icon: "🔧", label: "Flow\nRepair", state: "" },
-//         ],
-//         spcCpk: "1.05", spcSigma: "2.1σ",
-//         spcData: [800, 802, 798, 801, 800, 799, 798, 785, 770, 745, 721, 699, 650, 621, 621, 620, 624, 615],
-//         alarms: [
-//             { id: "ALM-3871", name: "Developer Flow Rate Low", level: "critical", time: "11:04:55", params: { "Flow Set": "800 mL/min", "Actual": "621 mL/min", "Delta": "-179 mL/min" } },
-//             { id: "ALM-3872", name: "Mass Flow Controller OOC", level: "warning", time: "11:05:01", params: { "MFC ID": "DEV-MFC-03", "Status": "DEGRADED" } },
-//         ],
-//         ocap: [
-//             "Check TMAH supply line for blockage or kink.",
-//             "Verify MFC (Mass Flow Controller) calibration.",
-//             "Inspect developer nozzle for crystallized TMAH.",
-//             "Switch to backup developer arm if available.",
-//             "Re-develop last 3 wafers if within hold limit.",
-//         ],
-//         troubleshootingSteps: [
-//             { icon: "🔍", title: "Supply Line Inspection", description: "Check TMAH supply line for blockage, kinks, or restrictions near manifold", action: "INSPECT SUPPLY LINE", alertMessage: "Kink detected near manifold — flow restricted by 22%" },
-//             { icon: "⚡", title: "MFC Calibration Test", description: "Verify Mass Flow Controller calibration and actual vs setpoint deviation", action: "RUN MFC TEST", alertMessage: "Actual flow 621 mL/min vs setpoint 800 — MFC out of calibration" },
-//             { icon: "💎", title: "Nozzle Inspection", description: "Check developer nozzle for crystallized TMAH deposits blocking flow area", action: "VIEW NOZZLE", alertMessage: "Crystallized TMAH deposits blocking 40% of flow area" },
-//         ],
-//         restoreActions: [
-//             { name: "Clear Supply Line", alertMessage: "Clearing supply line kink — flow restored", primary: false },
-//             { name: "Recalibrate MFC", alertMessage: "Recalibrating MFC — flow now 795 mL/min", primary: false },
-//             { name: "Replace Nozzle", alertMessage: "Replacing developer nozzle — crystallized deposits removed", primary: true },
-//         ],
-//         ocapFlow: [
-//             { title: "CONTAINMENT", desc: "Lock developer module — stop lot flow", btnLabel: "LOCK TOOL", btnClass: "", alertMsg: "Tool locked", state: "completed" },
-//             { title: "METROLOGY VERIFICATION", desc: "Run flow rate measurement", btnLabel: "MEASURE FLOW", btnClass: "", alertMsg: "Flow confirmed at 621 mL/min — 22% low", state: "completed" },
-//             { title: "ROOT CAUSE ANALYSIS", desc: "Identify line kink, MFC, or nozzle as root cause", btnLabel: "FLAG RCA", btnClass: "rca", alertMsg: "RCA: Crystallized TMAH at nozzle — primary cause", state: "active" },
-//             { title: "HARDWARE RECOVERY", desc: "Replace nozzle or clear supply line", btnLabel: "REPLACE NOZZLE", btnClass: "recovery", alertMsg: "Nozzle replaced — flow restored to 800 mL/min", state: "" },
-//             { title: "DISPOSITION", desc: "Re-develop affected wafers if within spec window", btnLabel: "RE-DEVELOP", btnClass: "disposition", alertMsg: "Affected wafers re-developed", state: "" },
-//             { title: "VALIDATION", desc: "Run test wafers — flow and CD verified", btnLabel: "RUN VALIDATION", btnClass: "", alertMsg: "Validation complete — flow nominal", state: "" },
-//         ],
-//     },
-//     {
-//         id: "FM-004",
-//         name: "EBR Solvent Arm Malfunction",
-//         severity: "CRITICAL",
-//         type: "MECHANICAL",
-//         lotId: "WF-2024-0455",
-//         recipe: "EBR_PGMEA_3MM",
-//         keyInfo: "<strong>Edge Bead Removal (EBR) Malfunction</strong> — The EBR arm failed to dispense PGMEA solvent at the wafer edge (3mm exclusion zone). This causes resist particles to flake off during transport, causing defect counts to spike on subsequent layers.",
-//         zones: [
-//             { label: "ZONE 1", temp: "ERR", status: "danger", note: "ARM FAIL" },
-//             { label: "ZONE 2", temp: "ERR", status: "danger", note: "ARM FAIL" },
-//             { label: "ZONE 3", temp: "OK", status: "healthy", note: "NORMAL" },
-//             { label: "ZONE 4", temp: "OK", status: "healthy", note: "NORMAL" },
-//             { label: "ZONE 5", temp: "OK", status: "healthy", note: "NORMAL" },
-//         ],
-//         rtmLabel: "EBR EDGE DEFECT COUNT (particles/wafer)",
-//         rtmTarget: 5, rtmUcl: 15, rtmLcl: 0,
-//         rtmData: [4, 3, 5, 4, 6, 5, 7, 12, 18, 25, 30, 38, 42, 45, 48],
-//         lifecycle: [
-//             { icon: "🦾", label: "Arm\nFail", state: "done" },
-//             { icon: "💦", label: "No EBR\nDispense", state: "done" },
-//             { icon: "🪨", label: "Edge\nParticles", state: "error" },
-//             { icon: "🔍", label: "Defect\nScan", state: "active" },
-//             { icon: "⚠️", label: "Alarm", state: "active" },
-//             { icon: "🛑", label: "Lot\nHold", state: "" },
-//             { icon: "🔧", label: "Arm\nRepair", state: "" },
-//         ],
-//         spcCpk: "0.45", spcSigma: "0.9σ",
-//         spcData: [4, 3, 5, 4, 6, 5, 7, 12, 18, 25, 30, 38, 42, 45, 48, 50, 47, 52],
-//         alarms: [
-//             { id: "ALM-3890", name: "EBR Arm No-Dispense", level: "critical", time: "16:45:03", params: { "Arm ID": "EBR-ARM-01", "Solvent": "PGMEA", "Status": "NO FLOW" } },
-//             { id: "ALM-3891", name: "Edge Defect Count Spike", level: "critical", time: "16:46:12", params: { "Count": "48/wafer", "Spec": "<15/wafer" } },
-//         ],
-//         ocap: [
-//             "Immediately halt lot — place on Scrap Review.",
-//             "Inspect EBR solvent line for blockage.",
-//             "Check solenoid valve on EBR arm module.",
-//             "Run EBR test pattern on dummy wafer.",
-//             "Inspect robot end-effector for contamination.",
-//         ],
-//         troubleshootingSteps: [
-//             { icon: "🔍", title: "Arm Visual Inspection", description: "Check EBR arm for physical damage, misalignment, or position offset from wafer edge", action: "VIEW EBR ARM", alertMessage: "Arm position offset by 1.3mm — misaligned from wafer edge" },
-//             { icon: "⚡", title: "Solvent Line Test", description: "Check PGMEA solvent line pressure and verify flow continuity through system", action: "RUN SOLVENT TEST", alertMessage: "Pressure high (45 PSI) but flow zero — line blockage" },
-//             { icon: "🔌", title: "Solenoid Valve Check", description: "Verify solenoid valve operation, electrical continuity, and switching response", action: "TEST SOLENOID", alertMessage: "Valve stuck in closed position — electrical failure suspected" },
-//         ],
-//         restoreActions: [
-//             { name: "Re-calibrate Arm", alertMessage: "Re-calibrating EBR arm — offset corrected", primary: false },
-//             { name: "Clear Solvent Line", alertMessage: "Clearing PGMEA line — blockage removed", primary: false },
-//             { name: "Replace Solenoid Valve", alertMessage: "Replacing solenoid valve — arm functioning normally", primary: true },
-//         ],
-//         ocapFlow: [
-//             { title: "CONTAINMENT", desc: "Halt lot flow — scrap review initiated", btnLabel: "HALT LOT", btnClass: "", alertMsg: "Lot halted — scrap review initiated", state: "completed" },
-//             { title: "METROLOGY VERIFICATION", desc: "KLA scan — confirm edge defect spike", btnLabel: "RUN KLA SCAN", btnClass: "", alertMsg: "Edge defects confirmed: 48/wafer (spec <15)", state: "completed" },
-//             { title: "ROOT CAUSE ANALYSIS", desc: "Identify solenoid, line blockage, or arm misalignment", btnLabel: "FLAG RCA", btnClass: "rca", alertMsg: "RCA: Solenoid valve failure — EBR no-dispense", state: "active" },
-//             { title: "HARDWARE RECOVERY", desc: "Replace solenoid valve — 20 min downtime", btnLabel: "REPLACE SOLENOID", btnClass: "recovery", alertMsg: "Solenoid replaced — EBR arm dispensing normally", state: "" },
-//             { title: "DISPOSITION", desc: "Scrap affected lot — edge particles on critical layer", btnLabel: "SCRAP LOT", btnClass: "disposition", alertMsg: "Lot scrapped — edge defects on critical layer", state: "" },
-//             { title: "VALIDATION", desc: "Run dummy wafer — EBR operation verified", btnLabel: "RUN VALIDATION", btnClass: "", alertMsg: "Validation complete — EBR nominal", state: "" },
-//         ],
-//     },
-//     {
-//         id: "FM-005",
-//         name: "HMDS Adhesion Promoter Failure",
-//         severity: "HIGH",
-//         type: "ADHESION",
-//         lotId: "WF-2024-0460",
-//         recipe: "HMDS_VAPOR_120C",
-//         keyInfo: "<strong>HMDS Adhesion Promoter Failure</strong> — The HMDS vapor prime step failed to achieve complete surface silanization. Contact angle dropped below 60° (target >75°), causing PR delamination during development. Delamination pattern is radially symmetric — likely oven temperature issue.",
-//         zones: [
-//             { label: "ZONE 1", temp: "74°", status: "healthy", note: "OK" },
-//             { label: "ZONE 2", temp: "75°", status: "healthy", note: "OK" },
-//             { label: "ZONE 3", temp: "52°", status: "danger", note: "LOW CA" },
-//             { label: "ZONE 4", temp: "71°", status: "healthy", note: "OK" },
-//             { label: "ZONE 5", temp: "76°", status: "healthy", note: "OK" },
-//         ],
-//         rtmLabel: "CONTACT ANGLE (°) — HMDS PRIME",
-//         rtmTarget: 75, rtmUcl: 85, rtmLcl: 65,
-//         rtmData: [76, 75, 76, 75, 74, 73, 72, 70, 68, 65, 62, 58, 54, 52, 52],
-//         lifecycle: [
-//             { icon: "🧴", label: "HMDS\nFail", state: "done" },
-//             { icon: "💧", label: "Poor\nPrime", state: "done" },
-//             { icon: "🪄", label: "PR\nDelam.", state: "error" },
-//             { icon: "🔬", label: "CA\nMeasure", state: "active" },
-//             { icon: "⚠️", label: "Alarm", state: "active" },
-//             { icon: "🛑", label: "Lot\nHold", state: "" },
-//             { icon: "🔧", label: "Re-prime\n& Recoat", state: "" },
-//         ],
-//         spcCpk: "0.91", spcSigma: "1.9σ",
-//         spcData: [76, 75, 76, 75, 74, 73, 72, 70, 68, 65, 62, 58, 54, 52, 52, 51, 53, 50],
-//         alarms: [
-//             { id: "ALM-3901", name: "HMDS Contact Angle OOL", level: "critical", time: "08:21:44", params: { "CA Target": ">75°", "Actual": "52°", "Delta": "-23°" } },
-//             { id: "ALM-3902", name: "PR Delamination Risk — High", level: "warning", time: "08:22:00", params: { "Pattern": "Radial", "Area": "~30% wafer" } },
-//         ],
-//         ocap: [
-//             "Check HMDS vapor oven temperature (target 120°C).",
-//             "Verify HMDS chemical level and expiry.",
-//             "Inspect N2 carrier gas flow rate.",
-//             "Run contact angle measurement on test wafer.",
-//             "If CA <65°, re-prime wafer batch.",
-//         ],
-//         troubleshootingSteps: [
-//             { icon: "🌡️", title: "Oven Temperature Check", description: "Verify HMDS vapor oven temperature uniformity across all zones", action: "CHECK OVEN TEMP", alertMessage: "Zone 3 reading 52°C vs setpoint 120°C — heater failure" },
-//             { icon: "🧪", title: "HMDS Level & Expiry", description: "Check HMDS chemical level in bubbler and expiration date on container", action: "CHECK CHEMICAL", alertMessage: "HMDS level at 8% — near empty; Expiry: 30 days remaining" },
-//             { icon: "📐", title: "Contact Angle Measurement", description: "Run contact angle test on test wafer to verify surface silanization quality", action: "MEASURE CA", alertMessage: "Contact Angle: 52° (target >75°) — poor surface silanization" },
-//         ],
-//         restoreActions: [
-//             { name: "Refill HMDS", alertMessage: "Refilling HMDS chemical — level restored to 100%", primary: false },
-//             { name: "Replace Heater", alertMessage: "Replacing oven heater element — temperature stabilizing", primary: true },
-//             { name: "Re-prime Batch", alertMessage: "Re-priming wafer batch — contact angle now 78°", primary: false },
-//         ],
-//         ocapFlow: [
-//             { title: "CONTAINMENT", desc: "Hold lot — prevent delamination defects from escaping", btnLabel: "HOLD LOT", btnClass: "", alertMsg: "Lot on hold — delamination risk contained", state: "completed" },
-//             { title: "METROLOGY VERIFICATION", desc: "Measure contact angle on affected wafers", btnLabel: "MEASURE CA", btnClass: "", alertMsg: "CA confirmed: 52° (target >75°)", state: "completed" },
-//             { title: "ROOT CAUSE ANALYSIS", desc: "Identify oven heater or HMDS supply as root cause", btnLabel: "FLAG RCA", btnClass: "rca", alertMsg: "RCA: HMDS oven heater failure in Zone 3", state: "active" },
-//             { title: "HARDWARE RECOVERY", desc: "Replace oven heater — 25 min downtime", btnLabel: "REPLACE HEATER", btnClass: "recovery", alertMsg: "Heater replaced — oven temp nominal at 120°C", state: "" },
-//             { title: "DISPOSITION", desc: "Re-prime batch — CA must be >75°", btnLabel: "RE-PRIME BATCH", btnClass: "disposition", alertMsg: "Re-primed — CA now 78°", state: "" },
-//             { title: "VALIDATION", desc: "Run dummy wafers — CA and adhesion verified", btnLabel: "RUN VALIDATION", btnClass: "", alertMsg: "Validation complete — HMDS nominal", state: "" },
-//         ],
-//     },
-// ];
-
-// // PEB scenario data
-// function getPEBScenarioData(scenario: PEBScenario) {
-//     if (scenario === 1) {
-//         return {
-//             temps: [110.0, 109.5, 108.8, 107.9, 106.8, 105.5, 104.0, 102.3, 100.5, 98.5, 96.3, 94.0, 91.5, 89.0, 86.0],
-//             duty: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-//             dangerZone: 4,
-//             dangerTemp: '86.0°C',
-//             dangerStatus: 'DROPPING',
-//             icon: '🔥', label: 'SCENARIO 1 — Failing Heating Element',
-//             desc: 'Zone 4 temperature drops asymptotically toward ambient. Duty cycle pinned at 100%. PID controller is demanding full power but temperature keeps dropping — heater element is failing.',
-//             warn: null,
-//             cdData: [22.5, 22.4, 22.3, 22.2, 22.1, 22.0, 21.9, 21.8, 21.7, 21.6, 21.4, 21.2, 21.0, 20.8, 20.5, 20.2, 19.8, 19.3],
-//             cdUniformityData: [0.32, 0.34, 0.33, 0.35, 0.36, 0.38, 0.42, 0.48, 0.55, 0.65, 0.78, 0.85, 0.92, 0.98, 1.05, 1.12, 1.18, 1.22],
-//             waferMapType: 'heater' as const,
-//         };
-//     } else if (scenario === 2) {
-//         return {
-//             temps: [110.0, 95.0, 125.0, 88.0, 132.0, 92.0, 128.0, 85.0, 135.0, 90.0, 130.0, 87.0, 133.0, 89.0, 110.0],
-//             duty: [45, 0, 100, 0, 100, 0, 100, 0, 100, 0, 100, 0, 100, 0, 45],
-//             dangerZone: 3,
-//             dangerTemp: 'ERRATIC',
-//             dangerStatus: 'TC FAIL',
-//             icon: '⚡', label: 'SCENARIO 2 — Broken Thermocouple Sensor',
-//             desc: 'Zone 4 trace shows severe jagged spikes. Duty cycle chatters 0–100%. The thermocouple is sending erratic signals, causing the PID to oscillate wildly between full power and no power.',
-//             warn: null,
-//             cdData: [22.3, 22.8, 21.2, 23.1, 20.8, 22.5, 21.5, 23.5, 20.2, 22.9, 21.0, 23.8, 19.8, 22.2, 24.1, 20.5, 23.2, 21.8],
-//             cdUniformityData: [0.31, 0.45, 0.62, 0.58, 0.71, 0.49, 0.83, 0.67, 0.92, 0.55, 0.88, 0.73, 1.05, 0.61, 0.96, 0.79, 1.12, 0.85],
-//             waferMapType: 'tc' as const,
-//         };
-//     } else if (scenario === 3) {
-//         return {
-//             temps: [110.0, 109.5, 108.8, 107.9, 106.8, 105.5, 104.0, 102.3, 100.5, 98.5, 96.3, 94.0, 91.5, 89.0, 86.0],
-//             duty: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-//             dangerZone: 5,
-//             dangerTemp: '86.0°C',
-//             dangerStatus: 'SSR FAIL',
-//             icon: '🔌', label: 'SCENARIO 3 — Blown SSR (Stuck OFF)',
-//             desc: 'Visually identical to Scenario 1 — temperature drops with duty cycle pinned at 100%. The SSR is receiving the command to switch ON but is not passing power. Charts alone cannot distinguish this from Scenario 1.',
-//             warn: '⚠️ Diagnostic Trick: Run Ohm test on heater to distinguish SSR fail from heater fail!',
-//             cdData: [22.5, 22.4, 22.3, 22.2, 22.1, 22.0, 21.9, 21.8, 21.7, 21.6, 21.4, 21.2, 21.0, 20.8, 20.5, 20.2, 19.8, 19.3],
-//             cdUniformityData: [0.32, 0.34, 0.33, 0.35, 0.36, 0.38, 0.42, 0.48, 0.55, 0.65, 0.78, 0.85, 0.92, 0.98, 1.05, 1.12, 1.18, 1.22],
-//             waferMapType: 'ssr' as const,
-//         };
-//     }
-//     return null;
-// }
-
-// // =============================================
-// // WAFER CD MAP CANVAS COMPONENT
-// // =============================================
-// function drawWaferCDMap(
-//     canvas: HTMLCanvasElement,
-//     scenario: PEBScenario,
-//     isDark: boolean
-// ) {
-//     const W = canvas.offsetWidth || 260;
-//     const H = canvas.offsetHeight || 260;
-//     canvas.width = W;
-//     canvas.height = H;
-//     const ctx = canvas.getContext('2d')!;
-//     ctx.clearRect(0, 0, W, H);
-
-//     const bg = isDark ? '#111927' : '#f5f8ff';
-//     ctx.fillStyle = bg;
-//     ctx.fillRect(0, 0, W, H);
-
-//     const cx = W / 2;
-//     const cy = H / 2 + 8;
-//     const R = Math.min(W, H) * 0.38;
-
-//     if (!scenario) {
-//         const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-//         grad.addColorStop(0, isDark ? '#1a2a40' : '#dce8f5');
-//         grad.addColorStop(1, isDark ? '#0d1a2a' : '#c8ddf0');
-//         ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
-//         ctx.fillStyle = grad; ctx.fill();
-//         ctx.strokeStyle = isDark ? 'rgba(0,229,255,0.3)' : 'rgba(0,100,200,0.3)';
-//         ctx.lineWidth = 1.5; ctx.stroke();
-//         ctx.fillStyle = isDark ? '#4a6a8a' : '#5a7a9a';
-//         ctx.font = '10px "Share Tech Mono", monospace';
-//         ctx.textAlign = 'center';
-//         ctx.fillText('SELECT SCENARIO', cx, cy - 6);
-//         ctx.fillText('TO VIEW MAP', cx, cy + 10);
-//         return;
-//     }
-
-//     const scData = getPEBScenarioData(scenario)!;
-//     const mapType = scData.waferMapType;
-
-//     const stops =
-//         mapType === 'tc'
-//             ? ['#0000ff', '#0066ff', '#00aaff', '#00ffee', '#00ff88', '#aaff00', '#ffee00', '#ff8800', '#ff2200', '#cc0000']
-//             : ['#0000aa', '#0044ff', '#00aaff', '#00eeff', '#00ff88', '#88ff00', '#ffcc00', '#ff6600', '#ff2200', '#aa0000'];
-
-//     const getColor = (t: number) => {
-//         const idx = Math.min(stops.length - 1, Math.floor(t * (stops.length - 1)));
-//         return stops[idx];
-//     };
-
-//     const rings = 8;
-//     for (let r = rings; r >= 0; r--) {
-//         const frac = r / rings;
-//         const radius = frac * R;
-//         let cdVal: number;
-//         if (mapType === 'tc') {
-//             cdVal = 22 + Math.sin(r * 2.1) * 1.8 + Math.cos(r * 1.3) * 1.2;
-//         } else {
-//             cdVal = 22 - (frac * frac) * 3.5 + 0.1;
-//         }
-//         const t = Math.max(0, Math.min(1, (cdVal - 19) / 6));
-//         const color = getColor(t);
-//         ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-//         ctx.fillStyle = color;
-//         ctx.fill();
-//     }
-
-//     if (mapType === 'tc') {
-//         for (let i = 0; i < 8; i++) {
-//             const angle = (i / 8) * Math.PI * 2;
-//             const frac = 0.5 + Math.sin(i * 1.7) * 0.3;
-//             const color = getColor(frac);
-//             ctx.save();
-//             ctx.globalAlpha = 0.4;
-//             ctx.strokeStyle = color;
-//             ctx.lineWidth = 1.5;
-//             ctx.beginPath();
-//             ctx.moveTo(cx, cy);
-//             ctx.lineTo(cx + Math.cos(angle) * R, cy + Math.sin(angle) * R);
-//             ctx.stroke();
-//             ctx.restore();
-//         }
-//     }
-
-//     ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
-//     ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-//     ctx.lineWidth = 2; ctx.stroke();
-
-//     ctx.beginPath();
-//     ctx.arc(cx, cy + R - 4, 5, 0, Math.PI * 2);
-//     ctx.fillStyle = bg; ctx.fill();
-
-//     const zones = ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Zone 5'];
-//     const zoneR = [R * 0.12, R * 0.28, R * 0.48, R * 0.68, R * 0.87];
-//     ctx.font = `${Math.max(7, R * 0.07)}px "Share Tech Mono", monospace`;
-//     ctx.textAlign = 'center';
-//     ctx.fillStyle = 'rgba(255,255,255,0.85)';
-//     zoneR.forEach((zr, i) => {
-//         ctx.fillText(zones[i], cx, cy - zr + 4);
-//     });
-
-//     ctx.font = `bold ${Math.max(9, R * 0.1)}px "Share Tech Mono", monospace`;
-//     ctx.fillStyle = '#ffffff';
-//     ctx.textAlign = 'center';
-//     ctx.fillText('Center', cx, cy + 4);
-//     ctx.font = `${Math.max(8, R * 0.085)}px "Share Tech Mono", monospace`;
-//     ctx.fillText('(22nm)', cx, cy + 16);
-
-//     const barX = cx + R + 10;
-//     const barY = cy - R * 0.8;
-//     const barH = R * 1.6;
-//     const barW = 10;
-
-//     const barGrad = ctx.createLinearGradient(0, barY, 0, barY + barH);
-//     barGrad.addColorStop(0, '#aa0000');
-//     barGrad.addColorStop(0.25, '#ff6600');
-//     barGrad.addColorStop(0.5, '#ffee00');
-//     barGrad.addColorStop(0.75, '#00aaff');
-//     barGrad.addColorStop(1, '#0000aa');
-//     ctx.fillStyle = barGrad;
-//     ctx.fillRect(barX, barY, barW, barH);
-//     ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-//     ctx.lineWidth = 0.5;
-//     ctx.strokeRect(barX, barY, barW, barH);
-
-//     ctx.font = `${Math.max(7, R * 0.07)}px "Share Tech Mono", monospace`;
-//     ctx.textAlign = 'left';
-//     ctx.fillStyle = isDark ? '#7ba3c8' : '#2a4a70';
-//     const barLabels = ['28', '26', '24', '22', '20', '18'];
-//     barLabels.forEach((lbl, i) => {
-//         const y = barY + (i / (barLabels.length - 1)) * barH;
-//         ctx.fillText(lbl, barX + barW + 4, y + 3);
-//     });
-
-//     ctx.save();
-//     ctx.translate(barX + barW + 26, barY + barH / 2);
-//     ctx.rotate(Math.PI / 2);
-//     ctx.textAlign = 'center';
-//     ctx.font = `${Math.max(7, R * 0.065)}px "Share Tech Mono", monospace`;
-//     ctx.fillStyle = isDark ? '#4a6a8a' : '#5a7a9a';
-//     ctx.fillText('Average CD', 0, 0);
-//     ctx.restore();
-
-//     const titleY = cy - R - 12;
-//     ctx.font = `bold ${Math.max(9, R * 0.1)}px "Share Tech Mono", monospace`;
-//     ctx.textAlign = 'center';
-//     ctx.fillStyle = isDark ? '#7ba3c8' : '#2a4a70';
-//     ctx.fillText('300mm Wafer CD Map', cx, titleY);
-
-//     if (mapType === 'ssr') {
-//         ctx.fillStyle = 'rgba(255,152,0,0.15)';
-//         ctx.strokeStyle = 'rgba(255,152,0,0.6)';
-//         ctx.lineWidth = 1;
-//         const bx = cx - R + 2, by = cy - R * 0.35, bw = R * 0.9, bh = 28;
-//         ctx.beginPath();
-//         ctx.rect(bx, by, bw, bh);
-//         ctx.fill(); ctx.stroke();
-//         ctx.fillStyle = '#ff9800';
-//         ctx.font = `bold ${Math.max(7, R * 0.07)}px "Share Tech Mono", monospace`;
-//         ctx.textAlign = 'center';
-//         ctx.fillText('VISUALLY IDENTICAL', cx - R * 0.05, by + 10);
-//         ctx.fillText('TO HEATER FAIL.', cx - R * 0.05, by + 20);
-//     }
-// }
-
-// // =============================================
-// // CHART DATA GENERATORS  ← NEW
-// // =============================================
-// const CHART_N = 501;
-
-// // ZONE_COLORS — Zone 4 must be amber to match Image 2
-// const ZONE_COLORS = {
-//     z1: '#7abfbf',   // muted teal — Zone 1
-//     z2: '#e05c5c',   // red — Zone 2  
-//     z3: '#ccccaa',   // muted yellow — Zone 3
-//     z4: '#e8a020',   // AMBER — Zone 4 (the failing zone, amber/orange in both images)
-//     z5: '#7fc97f',   // green — Zone 5
-// };
-
-// function seededRand(seed: number) {
-//     let s = seed >>> 0;
-//     return () => {
-//         s = Math.imul(1664525, s) + 1013904223 >>> 0;
-//         return s / 0xffffffff;
-//     };
-// }
-
-// function genStableZone(seed: number, base: number, amp: number, n: number): number[] {
-//     const rand = seededRand(seed);
-//     const out: number[] = [];
-//     let v = base;
-//     for (let i = 0; i < n; i++) {
-//         v += (rand() - 0.5) * amp;
-//         v = v * 0.85 + base * 0.15;  // ← BUG: pulls toward base*0.15, not base!
-//         out.push(v);
-//     }
-//     return out;
-// }
-
-// // Scenarios 1 & 3 — zone 4 exponential drop after FAIL_PT
-// function getScenario13Temps(failPt: number): number[][] {
-//     const z1 = genStableZone(11, 108, 1.2, CHART_N);
-//     const z2 = genStableZone(22, 108, 1.0, CHART_N);
-//     const z3 = genStableZone(33, 108, 1.1, CHART_N);
-//     const z5 = genStableZone(55, 108, 1.3, CHART_N);
-//     const z4: number[] = [];
-//     for (let i = 0; i < CHART_N; i++) {
-//         if (i < failPt) {
-//             const r = seededRand(44 + i);
-//             z4.push(108 + (r() - 0.5) * 1.0);
-//         } else {
-//             const decay = 108 * Math.exp(-0.009 * (i - failPt));
-//             z4.push(Math.max(22, decay) + (seededRand(144 + i)() - 0.5) * 0.4);
-//         }
-//     }
-//     return [z1, z2, z3, z4, z5];
-// }
-
-// // Scenarios 1 & 3 — zone 4 pinned at 100% after DUTY_JUMP
-// function getScenario13Duty(dutyJump: number): number[][] {
-//     const makeDuty = (seed: number, base: number) => {
-//         const rand = seededRand(seed);
-//         return Array.from({ length: CHART_N }, () =>
-//             Math.min(65, Math.max(35, base + (rand() - 0.5) * 8))
-//         );
-//     };
-//     const dz1 = makeDuty(101, 50);
-//     const dz2 = makeDuty(102, 48);
-//     const dz3 = makeDuty(103, 46);
-//     const dz5 = makeDuty(105, 52);
-//     const dz4 = Array.from({ length: CHART_N }, (_, i) =>
-//         i < dutyJump ? 38 + seededRand(203 + i)() * 6 : 100
-//     );
-//     return [dz1, dz2, dz3, dz4, dz5];
-// }
-
-// // Scenario 2 — zone 4 erratic spikes 0–500°C
-// // function getScenario2Temps(): number[][] {
-// //     const z1 = genStableZone(11, 108, 1.2, CHART_N);
-// //     const z2 = genStableZone(22, 108, 1.0, CHART_N);
-// //     const z3 = genStableZone(33, 108, 1.1, CHART_N);
-// //     const z5 = genStableZone(55, 108, 1.3, CHART_N);
-// //     const SPIKE_START = 175;
-// //     // Replace the z4 generation in getScenario2Temps with this:
-// //     const z4: number[] = [];
-// //     for (let i = 0; i < CHART_N; i++) {
-// //         const r = seededRand(77 + i);
-// //         if (i < SPIKE_START) {
-// //             z4.push(108 + (r() - 0.5) * 1.5);
-// //         } else {
-// //             const phase = (i - SPIKE_START) % 18;
-// //             // INSTANT sharp spikes - no interpolation
-// //             if (phase < 3) z4.push(23 + r() * 30);      // Low spike
-// //             else if (phase < 6) z4.push(250 + r() * 250); // High spike to 500
-// //             else if (phase < 9) z4.push(23 + r() * 40);   // Drop instantly
-// //             else if (phase < 12) z4.push(300 + r() * 200); // Another high spike
-// //             else z4.push(108 + (r() - 0.5) * 20);          // Return to normal
-// //         }
-// //     }
-// //     return [z1, z2, z3, z4, z5];
-// // }
-
-
-
-// function getScenario2Temps(): number[][] {
-//     const z1 = genStableZone(11, 110, 0.3, CHART_N);
-//     const z2 = genStableZone(22, 110, 0.25, CHART_N);
-//     const z3 = genStableZone(33, 110, 0.28, CHART_N);
-//     const z5 = genStableZone(55, 110, 0.32, CHART_N);
-
-//     const z4: number[] = new Array(CHART_N).fill(110);
-
-//     // Irregular spike definitions: [peakIndex, peakHeight, leftWidth, rightWidth]
-//     // Left/right widths are asymmetric for natural jagged look
-//     // Heights grow from ~120 at x=200 to ~500 at x=490
-//     const spikes: [number, number, number, number][] = [
-//         // Small starts x=200-250
-//         [203, 122, 1, 2], [207, 118, 2, 1], [211, 130, 1, 3],
-//         [216, 115, 2, 1], [219, 128, 1, 2], [223, 135, 2, 2],
-//         [227, 120, 1, 1], [231, 142, 2, 3], [236, 125, 1, 2],
-//         [240, 150, 2, 2], [244, 138, 3, 1], [248, 155, 1, 3],
-
-//         // Medium x=250-310
-//         [253, 168, 2, 2], [258, 180, 1, 3], [263, 172, 3, 2],
-//         [268, 195, 2, 1], [272, 185, 1, 2], [276, 210, 2, 3],
-//         [281, 198, 3, 1], [285, 222, 1, 2], [290, 215, 2, 2],
-//         [295, 240, 1, 3], [300, 228, 3, 2], [305, 255, 2, 1],
-
-//         // Growing x=310-380
-//         [310, 268, 2, 3], [315, 280, 1, 2], [320, 295, 3, 1],
-//         [325, 278, 2, 2], [330, 310, 1, 3], [335, 298, 2, 2],
-//         [341, 325, 3, 1], [346, 315, 1, 2], [351, 340, 2, 3],
-//         [357, 330, 3, 2], [362, 358, 1, 2], [368, 345, 2, 1],
-//         [373, 372, 1, 3], [379, 360, 3, 2],
-
-//         // Large x=380-500
-//         [385, 388, 2, 2], [390, 375, 1, 3], [396, 405, 3, 1],
-//         [401, 395, 2, 2], [407, 420, 1, 2], [412, 410, 2, 3],
-//         [418, 438, 3, 1], [423, 428, 1, 2], [429, 450, 2, 2],
-//         [434, 442, 3, 2], [440, 465, 1, 3], [445, 458, 2, 1],
-//         [451, 478, 2, 2], [456, 470, 1, 3], [462, 488, 3, 2],
-//         [467, 480, 2, 1], [473, 495, 1, 2], [478, 488, 2, 3],
-//         [484, 498, 3, 1], [489, 492, 1, 2], [494, 500, 2, 2],
-//         [499, 495, 1, 1],
-//     ];
-
-//     for (const [peak, height, lw, rw] of spikes) {
-//         // Rising edge (left side)
-//         for (let d = lw; d >= 1; d--) {
-//             const idx = peak - d;
-//             if (idx >= 0 && idx < CHART_N) {
-//                 const frac = (lw - d + 1) / (lw + 1);
-//                 z4[idx] = Math.max(z4[idx], 110 + frac * (height - 110));
-//             }
-//         }
-//         // Peak
-//         if (peak < CHART_N) {
-//             z4[peak] = Math.max(z4[peak], height + (seededRand(peak * 7)() - 0.5) * height * 0.03);
-//         }
-//         // Falling edge (right side)
-//         for (let d = 1; d <= rw; d++) {
-//             const idx = peak + d;
-//             if (idx < CHART_N) {
-//                 const frac = (rw - d + 1) / (rw + 1);
-//                 z4[idx] = Math.max(z4[idx], 110 + frac * (height - 110));
-//             }
-//         }
-//     }
-
-//     // Ensure baseline stays at exactly 110
-//     for (let i = 0; i < CHART_N; i++) {
-//         z4[i] = Math.max(110, Math.min(502, z4[i]));
-//         // Add tiny noise only at baseline
-//         if (z4[i] <= 111) {
-//             z4[i] = 110 + (seededRand(77 + i)() - 0.5) * 0.3;
-//         }
-//     }
-
-//     return [z1, z2, z3, z4, z5];
-// }
-
-
-
-
-// function getScenario2Duty(): number[][] {
-//     const makeDuty = (seed: number, base: number) => {
-//         const rand = seededRand(seed);
-//         return Array.from({ length: CHART_N }, (_, i) => {
-//             const drift = (i / CHART_N) * 16;
-//             return Math.min(68, Math.max(28, base + drift + (rand() - 0.5) * 10));
-//         });
-//     };
-//     const dz1 = makeDuty(101, 38);
-//     const dz2 = makeDuty(102, 36);
-//     const dz3 = makeDuty(103, 34);
-//     const dz5 = makeDuty(105, 40);
-
-//     const SPIKE_START = 200;
-//     const dz4: number[] = [];
-
-//     // Duty cycle spikes: INVERSE of temperature
-//     // When temp spikes UP → duty 0%
-//     // When temp drops to 23°C → duty 95-100%
-//     // When temp at 110°C baseline → duty ~40-50%
-//     const dutyPoints: [number, number][] = [
-//         [0, 40], [199, 42],
-//         // Mirror the temperature spike table exactly but inverted
-//         [200, 42], [203, 2], [205, 42],
-//         [207, 4], [209, 42],
-//         [211, 2], [213, 96], [215, 42],
-//         [217, 3], [219, 42],
-//         [221, 4], [222, 97], [224, 42],
-//         [226, 2], [228, 42],
-//         [230, 3], [231, 95], [233, 42],
-//         [235, 2], [237, 42],
-//         [239, 4], [240, 96], [242, 42],
-//         [244, 2], [246, 42],
-//         [248, 97], [250, 42],
-
-//         [252, 2], [255, 42],
-//         [256, 96], [258, 42],
-//         [260, 2], [263, 42],
-//         [265, 97], [267, 42],
-//         [269, 2], [272, 42],
-//         [274, 96], [276, 42],
-//         [278, 2], [281, 42],
-//         [283, 97], [285, 42],
-//         [287, 2], [290, 42],
-//         [292, 96], [294, 42],
-//         [296, 2], [299, 42],
-
-//         [301, 95], [303, 42],
-//         [305, 2], [309, 42],
-//         [311, 96], [313, 42],
-//         [315, 2], [319, 42],
-//         [321, 97], [323, 42],
-//         [325, 2], [329, 42],
-//         [331, 95], [333, 42],
-//         [335, 2], [339, 42],
-//         [341, 96], [343, 42],
-//         [345, 2], [349, 42],
-//         [351, 97], [353, 42],
-//         [355, 2], [359, 42],
-//         [361, 95], [363, 42],
-//         [365, 2], [369, 42],
-//         [371, 96], [373, 42],
-//         [375, 2], [379, 42],
-
-//         [381, 96], [383, 42],
-//         [385, 2], [389, 42],
-//         [391, 95], [393, 42],
-//         [395, 2], [399, 42],
-//         [401, 97], [403, 42],
-//         [405, 2], [409, 42],
-//         [411, 96], [413, 42],
-//         [415, 2], [419, 42],
-//         [421, 95], [423, 42],
-//         [425, 2], [429, 42],
-//         [431, 96], [433, 42],
-//         [435, 2], [439, 42],
-//         [441, 97], [443, 42],
-//         [445, 2], [449, 42],
-//         [451, 96], [453, 42],
-//         [455, 2], [459, 42],
-//         [461, 95], [463, 42],
-//         [465, 2], [469, 42],
-//         [471, 97], [473, 42],
-//         [475, 2], [479, 42],
-//         [481, 96], [483, 42],
-//         [485, 2], [489, 42],
-//         [491, 95], [493, 42],
-//         [495, 2], [499, 42],
-//         [500, 42],
-//     ];
-
-//     for (let i = 0; i < CHART_N; i++) {
-//         let lo = dutyPoints[0];
-//         let hi = dutyPoints[dutyPoints.length - 1];
-//         for (let j = 0; j < dutyPoints.length - 1; j++) {
-//             if (dutyPoints[j][0] <= i && dutyPoints[j + 1][0] >= i) {
-//                 lo = dutyPoints[j];
-//                 hi = dutyPoints[j + 1];
-//                 break;
-//             }
-//         }
-//         const t = hi[0] === lo[0] ? 0 : (i - lo[0]) / (hi[0] - lo[0]);
-//         const val = lo[1] + t * (hi[1] - lo[1]);
-//         const noise = (seededRand(203 + i * 3)() - 0.5) * 2;
-//         dz4.push(Math.max(0, Math.min(100, val + noise)));
-//     }
-
-//     return [dz1, dz2, dz3, dz4, dz5];
-// }
-
-// // =============================================
-// // MULTI-ZONE CANVAS RENDERER  ← NEW
-// // =============================================
-// function drawMultiZoneChart(
-//     canvas: HTMLCanvasElement,
-//     datasets: { data: number[]; color: string }[],
-//     yMin: number,
-//     yMax: number,
-//     yTickCount: number,
-//     yTickFmt: (v: number) => string,
-//     bgColor: string,
-//     annotationFn?: (
-//         ctx: CanvasRenderingContext2D,
-//         sx: (i: number) => number,
-//         sy: (v: number) => number,
-//         W: number,
-//         H: number,
-//         pad: { l: number; t: number; r: number; b: number }
-//     ) => void
-// ) {
-//     const rect = canvas.getBoundingClientRect();
-//     if (rect.width === 0) return;
-//     canvas.width = rect.width;
-//     canvas.height = 150;
-//     const W = rect.width, H = 150;
-//     const pad = { l: 48, t: 12, r: 16, b: 24 };
-//     const gW = W - pad.l - pad.r;
-//     const gH = H - pad.t - pad.b;
-//     const n = datasets[0]?.data.length ?? 1;
-
-//     const sx = (i: number) => pad.l + (i / (n - 1)) * gW;
-//     const sy = (v: number) => pad.t + (1 - (v - yMin) / (yMax - yMin)) * gH;
-
-//     const ctx = canvas.getContext('2d')!;
-//     ctx.clearRect(0, 0, W, H);
-
-//     // White background
-//     ctx.fillStyle = '#ffffff';
-//     ctx.fillRect(0, 0, W, H);
-
-//     // Horizontal grid lines
-//     for (let i = 0; i <= yTickCount; i++) {
-//         const v = yMin + (yMax - yMin) * (i / yTickCount);
-//         const y = sy(v);
-//         ctx.beginPath();
-//         ctx.strokeStyle = 'rgba(0,0,0,0.07)';
-//         ctx.lineWidth = 0.8;
-//         ctx.moveTo(pad.l, y);
-//         ctx.lineTo(W - pad.r, y);
-//         ctx.stroke();
-//     }
-
-//     // Vertical grid lines at x = 0,100,200,300,400,500
-//     [0, 100, 200, 300, 400, 500].forEach(xVal => {
-//         const xi = Math.round((xVal / 500) * (n - 1));
-//         const x = sx(xi);
-//         ctx.beginPath();
-//         ctx.strokeStyle = 'rgba(0,0,0,0.07)';
-//         ctx.lineWidth = 0.8;
-//         ctx.moveTo(x, pad.t);
-//         ctx.lineTo(x, H - pad.b);
-//         ctx.stroke();
-//     });
-
-//     // Zone lines — clip to chart area so spikes don't overflow
-//     // In drawMultiZoneChart function, replace the datasets.forEach section with this:
-
-//     datasets.forEach(({ data, color }) => {
-//         ctx.beginPath();
-//         ctx.strokeStyle = color;
-//         ctx.lineWidth = 1.5;  // Thicker line for spikes
-//         ctx.lineJoin = 'round';  // SHARP corners (not rounded)
-//         ctx.lineCap = 'round';    // Sharp ends
-
-//         let firstPoint = true;
-//         data.forEach((v, i) => {
-//             const clampedV = Math.max(yMin - (yMax - yMin) * 0.1, Math.min(yMax + (yMax - yMin) * 0.1, v));
-//             if (firstPoint) {
-//                 ctx.moveTo(sx(i), sy(clampedV));
-//                 firstPoint = false;
-//             } else {
-//                 ctx.lineTo(sx(i), sy(clampedV));
-//             }
-//         });
-//         ctx.stroke();
-//     });
-
-//     // Y-axis tick labels
-//     ctx.font = '9px "Share Tech Mono", monospace';
-//     ctx.textAlign = 'right';
-//     ctx.fillStyle = '#555555';
-//     for (let i = 0; i <= yTickCount; i++) {
-//         const v = yMin + (yMax - yMin) * (i / yTickCount);
-//         ctx.fillText(yTickFmt(v), pad.l - 5, sy(v) + 3);
-//     }
-
-//     // X-axis tick labels
-//     ctx.textAlign = 'center';
-//     ctx.fillStyle = '#555555';
-//     [0, 100, 200, 300, 400, 500].forEach(xVal => {
-//         const xi = Math.round((xVal / 500) * (n - 1));
-//         ctx.fillText(String(xVal), sx(xi), H - pad.b + 12);
-//     });
-
-//     // Axis border lines
-//     ctx.strokeStyle = '#cccccc';
-//     ctx.lineWidth = 0.8;
-//     ctx.beginPath();
-//     ctx.moveTo(pad.l, pad.t);
-//     ctx.lineTo(pad.l, H - pad.b);
-//     ctx.lineTo(W - pad.r, H - pad.b);
-//     ctx.stroke();
-
-//     // Custom annotations (called after clip is restored)
-//     if (annotationFn) annotationFn(ctx, sx, sy, W, H, pad);
-// }
-
-// // =============================================
-// // COMPONENT
-// // =============================================
-// const Failure: React.FC = () => {
-//     const [currentFM, setCurrentFM] = useState<number>(0);
-//     const [isDark, setIsDark] = useState<boolean>(true);
-//     const [pebScenario, setPebScenario] = useState<PEBScenario>(null);
-//     const [activeTab, setActiveTab] = useState<TabType | null>(null);
-//     const [isMounted, setIsMounted] = useState<boolean>(false);
-
-//     const rtmCanvasRef = useRef<HTMLCanvasElement>(null);
-//     const spcCanvasRef = useRef<HTMLCanvasElement>(null);
-//     const dutyCanvasRef = useRef<HTMLCanvasElement>(null);
-//     const waferMapCanvasRef = useRef<HTMLCanvasElement>(null);
-
-//     const fm = FM_DATA[currentFM];
-//     const isPEB = currentFM === 0;
-
-//     useEffect(() => { setIsMounted(true); }, []);
-
-//     const toggleTheme = () => {
-//         const next = !isDark;
-//         setIsDark(next);
-//         document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light');
-//     };
-
-//     const selectFM = (idx: number) => {
-//         setCurrentFM(idx);
-//         setPebScenario(null);
-//         setActiveTab(null);
-//     };
-
-//     const toggleTroubleshooting = () => {
-//         setActiveTab(activeTab === 'troubleshooting' ? null : 'troubleshooting');
-//     };
-
-//     const toggleOCAP = () => {
-//         setActiveTab(activeTab === 'ocap' ? null : 'ocap');
-//     };
-
-//     const getColors = useCallback(() => ({
-//         red: isDark ? '#ff1744' : '#d90026',
-//         green: isDark ? '#00e676' : '#00a846',
-//         orange: '#ff9800',
-//         white: isDark ? '#ffffff' : '#000000',
-//         text: isDark ? '#7ba3c8' : '#2a4a70',
-//         text3: isDark ? '#4a6a8a' : '#5a7a9a',
-//         grid: isDark ? 'rgba(0,229,255,0.07)' : 'rgba(0,100,180,0.08)',
-//         bg: isDark ? '#111927' : '#f5f8ff',
-//         bg2: isDark ? '#192438' : '#e4ecf7',
-//         accent: isDark ? '#00e5ff' : '#0066cc',
-//     }), [isDark]);
-
-//     function drawChart(
-//         canvas: HTMLCanvasElement,
-//         data: number[],
-//         target: number, ucl: number, lcl: number,
-//         label: string, height: number,
-//         colors: ReturnType<typeof getColors>,
-//         lineColor?: string
-//     ) {
-//         const rect = canvas.getBoundingClientRect();
-//         if (rect.width === 0) return;
-//         canvas.width = rect.width;
-//         canvas.height = height;
-//         const W = rect.width, H = height;
-//         const c = colors;
-//         const pad = { l: 42, t: 12, r: 44, b: 22 };
-//         const gW = W - pad.l - pad.r, gH = H - pad.t - pad.b;
-//         const allV = [...data, ucl, lcl, target];
-//         const minV = Math.min(...allV) - Math.abs(Math.min(...allV)) * 0.01 - 0.5;
-//         const maxV = Math.max(...allV) + Math.abs(Math.max(...allV)) * 0.01 + 0.5;
-//         const sx = (i: number) => pad.l + (i / (data.length - 1)) * gW;
-//         const sy = (v: number) => pad.t + (1 - (v - minV) / (maxV - minV)) * gH;
-//         const ctx = canvas.getContext('2d')!;
-
-//         ctx.clearRect(0, 0, W, H);
-//         ctx.fillStyle = c.bg; ctx.fillRect(0, 0, W, H);
-
-//         ctx.strokeStyle = c.grid; ctx.lineWidth = 0.5;
-//         for (let i = 0; i <= 5; i++) {
-//             const y = pad.t + (gH / 5) * i;
-//             ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
-//         }
-
-//         ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5;
-//         [[ucl, 'UCL'], [lcl, 'LCL']].forEach(([v, lbl]) => {
-//             ctx.strokeStyle = c.red;
-//             const y = sy(v as number);
-//             ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
-//             ctx.fillStyle = c.red; ctx.font = '9px "Share Tech Mono", monospace';
-//             ctx.fillText(lbl as string, W - pad.r + 4, y + 3);
-//         });
-
-//         ctx.strokeStyle = c.white; ctx.setLineDash([4, 6]); ctx.lineWidth = 1.5;
-//         const ty = sy(target);
-//         ctx.beginPath(); ctx.moveTo(pad.l, ty); ctx.lineTo(W - pad.r, ty); ctx.stroke();
-//         ctx.fillStyle = c.white; ctx.font = '9px "Share Tech Mono", monospace';
-//         ctx.fillText('TARGET', W - pad.r + 4, ty - 3);
-//         ctx.setLineDash([]);
-
-//         ctx.beginPath();
-//         data.forEach((v, i) => { i === 0 ? ctx.moveTo(sx(i), sy(v)) : ctx.lineTo(sx(i), sy(v)); });
-//         ctx.lineTo(sx(data.length - 1), H - pad.b);
-//         ctx.lineTo(sx(0), H - pad.b);
-//         ctx.closePath();
-//         const grad = ctx.createLinearGradient(0, pad.t, 0, H - pad.b);
-//         grad.addColorStop(0, isDark ? 'rgba(0,229,255,0.12)' : 'rgba(0,102,204,0.08)');
-//         grad.addColorStop(1, 'rgba(0,0,0,0)');
-//         ctx.fillStyle = grad; ctx.fill();
-
-//         data.forEach((v, i) => {
-//             if (i === 0) return;
-//             const ooc = v > ucl || v < lcl;
-//             ctx.strokeStyle = lineColor || (ooc ? c.red : c.green);
-//             ctx.lineWidth = 2;
-//             ctx.beginPath(); ctx.moveTo(sx(i - 1), sy(data[i - 1])); ctx.lineTo(sx(i), sy(v)); ctx.stroke();
-//         });
-
-//         data.forEach((v, i) => {
-//             const ooc = v > ucl || v < lcl;
-//             ctx.beginPath(); ctx.arc(sx(i), sy(v), 3.5, 0, Math.PI * 2);
-//             ctx.fillStyle = lineColor || (ooc ? c.red : c.green); ctx.fill();
-//             ctx.beginPath(); ctx.arc(sx(i), sy(v), 1.8, 0, Math.PI * 2);
-//             ctx.fillStyle = c.bg; ctx.fill();
-//         });
-
-//         ctx.fillStyle = c.text; ctx.font = '9px "Share Tech Mono", monospace'; ctx.textAlign = 'right';
-//         for (let i = 0; i <= 5; i++) {
-//             const v = minV + (maxV - minV) * i / 5;
-//             ctx.fillText(v.toFixed(1), pad.l - 4, sy(v) + 3);
-//         }
-//         ctx.textAlign = 'left'; ctx.fillStyle = c.text3;
-//         ctx.fillText(label, pad.l, H - 4);
-//     }
-
-//     // =============================================
-//     // drawRTM  ← UPDATED
-//     // =============================================
-//     const drawRTM = useCallback(() => {
-//         if (!isMounted) return;
-//         const canvas = rtmCanvasRef.current;
-//         if (!canvas) return;
-
-//         if (isPEB && pebScenario) {
-//             const ZONE_COLORS = {
-//                 z1: '#4ecdc4',
-//                 z2: '#e05c5c',
-//                 z3: '#a0a0a0',
-//                 z4: '#e8a020',   // amber/orange — matches Image 1's Zone 4 line
-//                 z5: '#7fc97f',
-//             };
-
-//             if (pebScenario === 1 || pebScenario === 3) {
-//                 const FAIL_PT = 210;
-//                 const temps = getScenario13Temps(FAIL_PT);
-//                 const datasets = temps.map((data, i) => ({ data, color: ZONE_COLORS[`z${i + 1}`] }));
-
-
-//                 const failLabel = pebScenario === 3 ? 'SSR FAIL' : 'HEATER FAIL';
-//                 drawMultiZoneChart(
-//                     canvas,
-//                     datasets,
-//                     0,    // yMin = 0
-//                     520,  // yMax = 520
-//                     5,
-//                     (v) => {
-//                         if (v < 8) return '0';
-//                         if (v < 125) return '110.0';
-//                         if (v < 225) return '';
-//                         if (v < 310) return '300.0';
-//                         if (v < 410) return '400.0';
-//                         return '500.0';
-//                     },
-//                     '#ffffff',
-//                     (ctx, sx, sy, W, H, pad) => {
-//                         const arrowTipX = sx(325);
-//                         const arrowTipY = sy(310);
-//                         const labelX = arrowTipX - 95;
-//                         const labelY = arrowTipY - 28;
-
-//                         ctx.beginPath();
-//                         ctx.moveTo(labelX + 90, labelY + 5);
-//                         ctx.lineTo(arrowTipX - 2, arrowTipY - 4);
-//                         ctx.strokeStyle = 'rgba(232,160,32,0.95)';
-//                         ctx.lineWidth = 1.2;
-//                         ctx.setLineDash([]);
-//                         ctx.stroke();
-
-//                         ctx.beginPath();
-//                         ctx.moveTo(arrowTipX - 2, arrowTipY - 4);
-//                         ctx.lineTo(arrowTipX - 8, arrowTipY - 13);
-//                         ctx.lineTo(arrowTipX + 4, arrowTipY - 11);
-//                         ctx.closePath();
-//                         ctx.fillStyle = 'rgba(232,160,32,0.95)';
-//                         ctx.fill();
-
-//                         ctx.fillStyle = '#e8a020';
-//                         ctx.font = 'bold 9px "Share Tech Mono", monospace';
-//                         ctx.textAlign = 'left';
-//                         ctx.fillText('SEVERE TC SPIKES', labelX, labelY);
-//                     },
-                
-//                 );
-
-//             } else if (pebScenario === 2) {
-//                 const temps = getScenario2Temps();
-//                 const ZONE_DS_ORDER = [
-//                     ZONE_COLORS.z1, ZONE_COLORS.z2, ZONE_COLORS.z3,
-//                     ZONE_COLORS.z4, ZONE_COLORS.z5,
-//                 ];
-//                 const datasets = temps.map((data, i) => ({ data, color: ZONE_DS_ORDER[i] }));
-
-//                 drawMultiZoneChart(
-//                     canvas,
-//                     datasets,
-//                     0, 520, 5,
-//                     (v) => {
-//                         if (v < 8) return '0';
-//                         if (v < 35) return '23.0';
-//                         if (v < 75) return '40.0';
-//                         if (v < 125) return '110.0';
-//                         if (v < 155) return '120.0';
-//                         if (v < 270) return '';
-//                         if (v < 360) return '300.0';
-//                         if (v < 455) return '400.0';
-//                         return '500.0';
-//                     },
-//                     '#ffffff',
-//                     (ctx, sx, sy, W, H, pad) => {
-//                         // Arrow from label → spike at ~x=320, y=300°C
-//                         const arrowTipX = sx(322);
-//                         const arrowTipY = sy(310);
-//                         const labelX = arrowTipX - 95;
-//                         const labelY = arrowTipY - 30;
-
-//                         ctx.beginPath();
-//                         ctx.moveTo(labelX + 90, labelY + 5);
-//                         ctx.lineTo(arrowTipX - 2, arrowTipY - 4);
-//                         ctx.strokeStyle = 'rgba(232,160,32,0.95)';
-//                         ctx.lineWidth = 1.2;
-//                         ctx.setLineDash([]);
-//                         ctx.stroke();
-
-//                         ctx.beginPath();
-//                         ctx.moveTo(arrowTipX - 2, arrowTipY - 4);
-//                         ctx.lineTo(arrowTipX - 8, arrowTipY - 13);
-//                         ctx.lineTo(arrowTipX + 4, arrowTipY - 11);
-//                         ctx.closePath();
-//                         ctx.fillStyle = 'rgba(232,160,32,0.95)';
-//                         ctx.fill();
-
-//                         ctx.fillStyle = '#e8a020';
-//                         ctx.font = 'bold 9px "Share Tech Mono", monospace';
-//                         ctx.textAlign = 'left';
-//                         ctx.fillText('SEVERE TC SPIKES', labelX, labelY);
-//                     }
-//                 );
-//             }
-
-//         } else {
-//             // Non-PEB failure modes — original drawChart
-//             const c = getColors();
-//             drawChart(canvas, fm.rtmData, fm.rtmTarget, fm.rtmUcl, fm.rtmLcl, fm.rtmLabel, 150, c);
-//         }
-//     }, [fm, isDark, getColors, isPEB, pebScenario, isMounted]);
-
-//     // =============================================
-//     // drawDuty  ← UPDATED
-//     // =============================================
-//     const drawDuty = useCallback(() => {
-//         if (!isMounted) return;
-//         const canvas = dutyCanvasRef.current;
-//         if (!canvas) return;
-
-//         if (isPEB && pebScenario) {
-//             const ZONE_DS_ORDER = [
-//                 ZONE_COLORS.z1,
-//                 ZONE_COLORS.z2,
-//                 ZONE_COLORS.z3,
-//                 ZONE_COLORS.z4,
-//                 ZONE_COLORS.z5,
-//             ];
-
-//             if (pebScenario === 1 || pebScenario === 3) {
-//                 const DUTY_JUMP = 150;
-//                 const duty = getScenario13Duty(DUTY_JUMP);
-//                 const datasets = duty.map((data, i) => ({ data, color: ZONE_DS_ORDER[i] }));
-
-//                 drawMultiZoneChart(
-//                     canvas,
-//                     datasets,
-//                     0, 100, 5,
-//                     (v) => `${Math.round(v)}%`,
-//                     '#ffffff',
-//                     (ctx, sx, sy, W, H, pad) => {
-//                         const labelX = sx(280);
-//                         const labelY = sy(94);
-//                         ctx.fillStyle = '#e8a020';
-//                         ctx.font = 'bold 9px "Share Tech Mono", monospace';
-//                         ctx.textAlign = 'left';
-//                         ctx.fillText('DUTY CYCLE CHATTERING', labelX, labelY);
-//                     }
-//                 );
-
-
-//             } else if (pebScenario === 2) {
-//                 const duty = getScenario2Duty();
-//                 const ZONE_DS_ORDER = [
-//                     ZONE_COLORS.z1, ZONE_COLORS.z2, ZONE_COLORS.z3,
-//                     ZONE_COLORS.z4, ZONE_COLORS.z5,
-//                 ];
-//                 const datasets = duty.map((data, i) => ({ data, color: ZONE_DS_ORDER[i] }));
-
-//                 drawMultiZoneChart(
-//                     canvas,
-//                     datasets,
-//                     0, 100, 5,
-//                     (v) => `${Math.round(v)}%`,
-//                     '#ffffff',
-//                     (ctx, sx, sy, W, H, pad) => {
-//                         const labelX = sx(240);
-//                         const labelY = sy(95);
-//                         ctx.fillStyle = '#e8a020';
-//                         ctx.font = 'bold 9px "Share Tech Mono", monospace';
-//                         ctx.textAlign = 'left';
-//                         ctx.fillText('DUTY CYCLE CHATTERING', labelX, labelY);
-//                     }
-//                 );
-//             }
-//         } else {
-//             // Non-PEB — clear the canvas with white bg
-//             const rect = canvas.getBoundingClientRect();
-//             canvas.width = rect.width || 300;
-//             canvas.height = 150;
-//             const ctx = canvas.getContext('2d')!;
-//             ctx.fillStyle = '#ffffff';
-//             ctx.fillRect(0, 0, canvas.width, 150);
-//         }
-//     }, [isPEB, pebScenario, isDark, getColors, fm, isMounted]);
-
-//     const drawSPC = useCallback(() => {
-//         if (!isMounted) return;
-//         const canvas = spcCanvasRef.current; if (!canvas) return;
-//         const c = getColors();
-//         drawChart(canvas, fm.spcData, 100, 105, 95, 'WAFER NUMBER → | CD (nm)', 160, c);
-//     }, [fm, isDark, getColors, isMounted]);
-
-//     const drawWaferMap = useCallback(() => {
-//         if (!isMounted) return;
-//         const canvas = waferMapCanvasRef.current; if (!canvas) return;
-//         drawWaferCDMap(canvas, isPEB ? pebScenario : null, isDark);
-//     }, [isPEB, pebScenario, isDark, isMounted]);
-
-//     // Only draw charts when activeTab is null (not in troubleshooting/ocap view)
-//     useEffect(() => {
-//         if (!isMounted || activeTab !== null) return;
-//         const t = setTimeout(() => {
-//             drawRTM(); drawSPC(); drawDuty(); drawWaferMap();
-//         }, 100);
-//         return () => clearTimeout(t);
-//     }, [drawRTM, drawSPC, drawDuty, drawWaferMap, currentFM, pebScenario, isDark, isMounted, activeTab]);
-
-//     useEffect(() => {
-//         if (!isMounted) return;
-//         const h = () => {
-//             if (activeTab !== null) return;
-//             drawRTM(); drawSPC(); drawDuty(); drawWaferMap();
-//         };
-//         window.addEventListener('resize', h);
-//         return () => window.removeEventListener('resize', h);
-//     }, [drawRTM, drawSPC, drawDuty, drawWaferMap, isMounted, activeTab]);
-
-//     useEffect(() => {
-//         if (typeof window !== 'undefined') {
-//             document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-//         }
-//     }, [isDark]);
-
-//     const getSevClass = (s: string) =>
-//         s === 'CRITICAL' ? 'sev-critical' : s === 'HIGH' ? 'sev-high' : 'sev-medium';
-
-//     const pebSc = isPEB && pebScenario ? getPEBScenarioData(pebScenario) : null;
-
-//     if (!isMounted) {
-//         return (
-//             <div className="failure-page">
-//                 <div className="main-content">
-//                     <div className="loading">Loading...</div>
-//                 </div>
-//             </div>
-//         );
-//     }
-
-//     const dangerZoneIndex = pebSc ? (pebSc.dangerZone - 1) : -1;
-
-//     return (
-//         <div className="failure-page">
-//             <div className="scanlines" />
-
-//             <nav className="top-nav">
-//                 <div className="nav-logo">
-//                     <span className="logo-icon">⬡</span>
-//                     <span>SEM<span className="accent">ATI</span></span>
-//                 </div>
-//                 <div className="nav-links">
-//                     <a href="#" className="nav-link">HOME</a>
-//                 </div>
-//                 <div className="nav-right">
-//                     <span className="status-dot" />
-//                     <button className="theme-toggle" onClick={toggleTheme}>
-//                         {isDark ? '☀ LIGHT MODE' : '🌙 DARK MODE'}
-//                     </button>
-//                 </div>
-//             </nav>
-
-//             <div className="page-header">
-//                 <div>
-//                     <div className="page-breadcrumb">SEMATI / MODULE 04</div>
-//                     <div className="page-title">FAILURE MODE <span>SIMULATION</span></div>
-//                 </div>
-//                 <div className="header-stats">
-//                     <div className="h-stat"><div className="h-stat-val">5</div><div className="h-stat-lbl">FMEA MODES</div></div>
-//                     <div className="h-stat"><div className="h-stat-val">{fm.alarms.length}</div><div className="h-stat-lbl">ACTIVE ALARMS</div></div>
-//                     <div className="h-stat"><div className="h-stat-val">300mm</div><div className="h-stat-lbl">WAFER SIZE</div></div>
-//                 </div>
-//             </div>
-
-//             <div className="main-content">
-
-//                 {/* FM TABS */}
-//                 <div className="row-failure-modes">
-//                     {FM_DATA.map((mode, idx) => (
-//                         <div
-//                             key={mode.id}
-//                             className={`fm-tab ${getSevClass(mode.severity)} ${currentFM === idx ? 'active' : ''}`}
-//                             onClick={() => selectFM(idx)}
-//                         >
-//                             <div className="fm-tab-id">{mode.id} · {mode.type}</div>
-//                             <div className="fm-tab-name">{mode.name}</div>
-//                         </div>
-//                     ))}
-//                 </div>
-
-//                 {/* KEY INFO */}
-//                 <div className="row-key-info">
-//                     <div className="key-info-label">⬡ KEY INFORMATION</div>
-//                     <div className="key-info-content" dangerouslySetInnerHTML={{ __html: fm.keyInfo }} />
-//                 </div>
-
-//                 {/* SCENARIOS + LOT */}
-//                 <div className="row-scenarios">
-//                     <button
-//                         className={`scenario-btn ${isPEB && pebScenario === 1 ? 'active' : ''}`}
-//                         onClick={() => isPEB && setPebScenario(pebScenario === 1 ? null : 1)}
-//                         disabled={!isPEB}
-//                         style={{ opacity: isPEB ? 1 : 0.4, cursor: isPEB ? 'pointer' : 'not-allowed' }}
-//                     >
-//                         <span className="scenario-num">SCENARIO 1</span>
-//                         <span className="scenario-name">Failing Heating Element</span>
-//                         <span className="scenario-desc">
-//                             Zone <span style={{ color: '#ff0000', fontWeight: '700' }}>4</span> drops to ambient — duty cycle 100%
-//                         </span>
-//                     </button>
-
-//                     <button
-//                         className={`scenario-btn ${isPEB && pebScenario === 2 ? 'active' : ''}`}
-//                         onClick={() => isPEB && setPebScenario(pebScenario === 2 ? null : 2)}
-//                         disabled={!isPEB}
-//                         style={{ opacity: isPEB ? 1 : 0.4, cursor: isPEB ? 'pointer' : 'not-allowed' }}
-//                     >
-//                         <span className="scenario-num">SCENARIO 2</span>
-//                         <span className="scenario-name">Broken Thermocouple</span>
-//                         <span className="scenario-desc">
-//                             Zone <span style={{ color: '#ff0000', fontWeight: '700' }}>3</span> severe spikes — duty cycle chatters 0–100%
-//                         </span>
-//                     </button>
-
-//                     <button
-//                         className={`scenario-btn ${isPEB && pebScenario === 3 ? 'active' : ''}`}
-//                         onClick={() => isPEB && setPebScenario(pebScenario === 3 ? null : 3)}
-//                         disabled={!isPEB}
-//                         style={{ opacity: isPEB ? 1 : 0.4, cursor: isPEB ? 'pointer' : 'not-allowed' }}
-//                     >
-//                         <span className="scenario-num">SCENARIO 3</span>
-//                         <span className="scenario-name">Blown SSR (Stuck OFF)</span>
-//                         <span className="scenario-desc">
-//                             Zone <span style={{ color: '#ff0000', fontWeight: '700' }}>5</span> identical to Sc.1 — Ohm test required to distinguish
-//                         </span>
-//                     </button>
-//                     <div className="scenario-btn static-info-btn">
-//                         <span className="scenario-num">LOT ID</span>
-//                         <span className="scenario-name">{fm.lotId}</span>
-//                         <span className="scenario-desc">Production Lot Information</span>
-//                     </div>
-//                     <div className="scenario-btn static-info-btn">
-//                         <span className="scenario-num">RECIPE</span>
-//                         <span className="scenario-name">{fm.recipe}</span>
-//                         <span className="scenario-desc">Current Process Recipe</span>
-//                     </div>
-//                 </div>
-
-//                 {/* Scenario info bar */}
-//                 {pebSc && (
-//                     <div className={`scenario-info-bar s${pebScenario}`}>
-//                         <div className="scenario-icon">{pebSc.icon}</div>
-//                         <div className="scenario-info-text">{pebSc.desc}</div>
-//                         {pebSc.warn && <div className="scenario-warn-badge">{pebSc.warn}</div>}
-//                     </div>
-//                 )}
-
-//                 {/* ACTION BUTTONS */}
-//                 <div className="row-zone-tabs">
-//                     <button
-//                         className={`zone-header-btn ${activeTab === 'rtmspc' ? 'active' : ''}`}
-//                         onClick={() => setActiveTab(activeTab === 'rtmspc' ? null : 'rtmspc')}
-//                     >
-//                         ⬡ Equipment RTM / Process SPC chart
-//                     </button>
-//                     <button
-//                         className={`zone-header-btn ${activeTab === 'troubleshooting' ? 'active' : ''}`}
-//                         onClick={toggleTroubleshooting}
-//                     >
-//                         ⬡ EQUIPMENT TROUBLESHOOTING
-//                     </button>
-//                     <button
-//                         className={`zone-header-btn ${activeTab === 'ocap' ? 'active' : ''}`}
-//                         onClick={toggleOCAP}
-//                     >
-//                         ⬡ PROCESS OCAP
-//                     </button>
-//                 </div>
-
-//                 {/* DANGER ZONE INDICATOR */}
-//                 {isPEB && pebSc && (
-//                     <div className="danger-zone-banner">
-//                         <div className="danger-zone-header">
-//                             <span className="danger-zone-icon">⚠</span>
-//                             <span className="danger-zone-title">ZONE {pebSc.dangerZone} — CRITICAL DEVIATION DETECTED</span>
-//                             <span className="danger-zone-badge">{pebSc.dangerStatus}</span>
-//                         </div>
-//                         <div className="zone-indicators-row">
-//                             {fm.zones.map((z, idx) => {
-//                                 const isDanger = idx === dangerZoneIndex;
-//                                 return (
-//                                     <div
-//                                         key={z.label}
-//                                         className={`zone-indicator ${isDanger ? 'zone-indicator--danger' : 'zone-indicator--ok'}`}
-//                                     >
-//                                         <div className="zone-indicator-label">{z.label}</div>
-//                                         <div className="zone-indicator-temp">
-//                                             {isDanger ? pebSc.dangerTemp : z.temp}
-//                                         </div>
-//                                         <div className="zone-indicator-status">
-//                                             {isDanger ? pebSc.dangerStatus : z.note}
-//                                         </div>
-//                                     </div>
-//                                 );
-//                             })}
-//                         </div>
-//                     </div>
-//                 )}
-
-//                 {/* EQUIPMENT TROUBLESHOOTING */}
-//                 {activeTab === 'troubleshooting' && (
-//                     <div className="full-action-section">
-//                         <div className="troubleshooting-block">
-//                             <div className="action-section-header">
-//                                 <span className="action-section-title">⬡ EQUIPMENT TROUBLESHOOTING</span>
-//                                 <span className="action-section-sub">{fm.name}</span>
-//                             </div>
-//                             <div className="trouble-steps-grid">
-//                                 {fm.troubleshootingSteps.map((step, idx) => (
-//                                     <div key={idx} className="trouble-item">
-//                                         <div className="trouble-item-number">{String(idx + 1).padStart(2, '0')}</div>
-//                                         <div className="trouble-item-body">
-//                                             <div className="trouble-item-title">
-//                                                 <span className="trouble-item-icon">{step.icon}</span>
-//                                                 {step.title}
-//                                             </div>
-//                                             <div className="trouble-item-desc">{step.description}</div>
-//                                             <button className="action-btn" onClick={() => alert(step.alertMessage)}>
-//                                                 {step.action}
-//                                             </button>
-//                                         </div>
-//                                     </div>
-//                                 ))}
-//                             </div>
-//                             <div className="restore-section">
-//                                 <div className="restore-section-label">ACTIONS TO RESTORE CONDITION</div>
-//                                 <div className="restore-buttons">
-//                                     {fm.restoreActions.map((a, idx) => (
-//                                         <button
-//                                             key={idx}
-//                                             className={`restore-btn ${a.primary ? 'primary' : ''}`}
-//                                             onClick={() => alert(a.alertMessage)}
-//                                         >
-//                                             {a.primary ? '★ ' : ''}{a.name}
-//                                         </button>
-//                                     ))}
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 )}
-
-//                 {/* PROCESS OCAP */}
-//                 {activeTab === 'ocap' && (
-//                     <div className="full-action-section">
-//                         <div className="ocap-block">
-//                             <div className="action-section-header">
-//                                 <span className="action-section-title">⬡ PROCESS OCAP</span>
-//                                 <span className="action-section-sub">{fm.name}</span>
-//                             </div>
-//                             <div className="ocap-flow-grid">
-//                                 {fm.ocapFlow.map((step, idx) => (
-//                                     <div key={idx} className={`ocap-flow-item ${step.state}`}>
-//                                         <div className="ocap-step-num">{idx + 1}</div>
-//                                         <div className="ocap-step-content">
-//                                             <div className="ocap-step-title">{step.title}</div>
-//                                             <div className="ocap-step-desc">{step.desc}</div>
-//                                             <button
-//                                                 className={`ocap-step-btn ${step.btnClass}`}
-//                                                 onClick={() => alert(step.alertMsg)}
-//                                             >
-//                                                 {step.btnLabel}
-//                                             </button>
-//                                         </div>
-//                                     </div>
-//                                 ))}
-//                             </div>
-//                             <div className="ocap-checklist-section">
-//                                 <div className="ocap-checklist-title">OCAP CHECKLIST</div>
-//                                 <div className="ocap-checklist-grid">
-//                                     {fm.ocap.map((item, idx) => (
-//                                         <div key={idx} className="checklist-item">
-//                                             <input type="checkbox" id={`ck-${currentFM}-${idx}`} />
-//                                             <label htmlFor={`ck-${currentFM}-${idx}`}>{item}</label>
-//                                         </div>
-//                                     ))}
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 )}
-
-//                 {/* CHARTS — only shown when no panel is open */}
-//                 {(activeTab === null || activeTab === 'rtmspc') && (
-//                     <>
-//                         <div className="charts-wafer-layout">
-//                             <div className="charts-grid-2x2">
-
-//                                 {/* RTM Chart */}
-//                                 <div className="chart-block">
-//                                     <div className="chart-block-label">
-//                                         <span>
-//                                             ⬡ {isPEB && pebSc
-//                                                 ? ` TEMP — RTM (°C) Real Time Monitoring / (SPC) Statistical Process Control`
-//                                                 : `RTM — ${fm.rtmLabel}`}
-//                                         </span>
-//                                     </div>
-
-//                                     {/* Zone Legend */}
-//                                     {/* Zone Legend */}
-//                                     <div
-//                                         style={{
-//                                             display: 'flex',
-//                                             gap: '20px',
-//                                             marginBottom: '10px',
-//                                             fontSize: '12px',
-//                                             flexWrap: 'wrap'
-//                                         }}
-//                                     >
-//                                         {[
-//                                             { id: 1, color: '#3a3232' },
-//                                             { id: 2, color: '#4ecdc4' },
-//                                             { id: 3, color: '#ffe66d' },
-//                                             { id: 4, color: '#95e77e' },
-//                                             { id: 5, color: '#a78bfa' }
-//                                         ].map((zone) => {
-//                                             // scenario based active zone
-//                                             const activeZone =
-//                                                 pebScenario === 1
-//                                                     ? 4
-//                                                     : pebScenario === 2
-//                                                         ? 4
-//                                                         : pebScenario === 3
-//                                                             ? 5
-//                                                             : null;
-
-//                                             const isActive = zone.id === activeZone;
-
-//                                             return (
-//                                                 <div
-//                                                     key={zone.id}
-//                                                     style={{
-//                                                         display: 'flex',
-//                                                         alignItems: 'center',
-//                                                         gap: '5px'
-//                                                     }}
-//                                                 >
-//                                                     <div
-//                                                         style={{
-//                                                             width: '20px',
-//                                                             height: '3px',
-//                                                             background: isActive ? '#ff0000' : zone.color,
-//                                                             boxShadow: isActive
-//                                                                 ? '0 0 8px #ff0000'
-//                                                                 : 'none',
-//                                                             transition: '0.3s ease'
-//                                                         }}
-//                                                     ></div>
-
-//                                                     <span
-//                                                         style={{
-//                                                             color: isActive ? '#ff0000' : '#000000',
-//                                                             fontWeight: isActive ? '700' : '500'
-//                                                         }}
-//                                                     >
-//                                                         Zone {zone.id}
-//                                                     </span>
-//                                                 </div>
-//                                             );
-//                                         })}
-
-
-//                                     </div>
-
-//                                     {/* UCL/LCL Reference Line Labels */}
-//                                     <div style={{
-//                                         display: 'flex',
-//                                         justifyContent: 'space-between',
-//                                         marginBottom: '5px',
-//                                         fontSize: '11px',
-//                                         color: '#666'
-//                                     }}>
-//                                         <span>UCL: 110.1°C</span>
-//                                         <span>LCL: 109.9°C</span>
-//                                     </div>
-
-//                                     <canvas ref={rtmCanvasRef} style={{ width: '100%', display: 'block' }} height="150" />
-//                                 </div>
-
-//                                 {/* Duty Cycle / Alarm Summary */}
-//                                 <div className="chart-block">
-//                                     <div className="chart-block-label">
-//                                         <span>
-//                                             ⬡ {isPEB && pebSc
-//                                                 ? ` HEATER DUTY CYCLE (%)`
-//                                                 : 'PROCESS LIFECYCLE — ALARM SUMMARY'}
-//                                         </span>
-//                                     </div>
-
-//                                     {/* Add same legend for Duty Cycle chart if needed */}
-//                                     {isPEB && pebSc && (
-//                                         <>
-//                                             <div
-//                                                 style={{
-//                                                     display: 'flex',
-//                                                     gap: '20px',
-//                                                     marginBottom: '10px',
-//                                                     fontSize: '12px',
-//                                                     flexWrap: 'wrap'
-//                                                 }}
-//                                             >
-//                                                 {[
-//                                                     { id: 1, color: '#3c3434' },
-//                                                     { id: 2, color: '#4ecdc4' },
-//                                                     { id: 3, color: '#ffe66d' },
-//                                                     { id: 4, color: '#95e77e' },
-//                                                     { id: 5, color: '#a78bfa' }
-//                                                 ].map((zone) => {
-
-//                                                     // scenario based active zone
-//                                                     const activeZone =
-//                                                         pebScenario === 1
-//                                                             ? 4
-//                                                             : pebScenario === 2
-//                                                                 ? 3
-//                                                                 : pebScenario === 3
-//                                                                     ? 5
-//                                                                     : null;
-
-//                                                     const isActive = zone.id === activeZone;
-
-//                                                     return (
-//                                                         <div
-//                                                             key={zone.id}
-//                                                             style={{
-//                                                                 display: 'flex',
-//                                                                 alignItems: 'center',
-//                                                                 gap: '5px'
-//                                                             }}
-//                                                         >
-//                                                             <div
-//                                                                 style={{
-//                                                                     width: '20px',
-//                                                                     height: '3px',
-//                                                                     background: isActive ? '#ff0000' : zone.color,
-//                                                                     boxShadow: isActive
-//                                                                         ? '0 0 8px #ff0000'
-//                                                                         : 'none',
-//                                                                     transition: '0.3s ease'
-//                                                                 }}
-//                                                             ></div>
-
-//                                                             <span
-//                                                                 style={{
-//                                                                     color: isActive ? '#ff0000' : '#000000',
-//                                                                     fontWeight: isActive ? '700' : '500'
-//                                                                 }}
-//                                                             >
-//                                                                 Zone {zone.id}
-//                                                             </span>
-//                                                         </div>
-//                                                     );
-//                                                 })}
-
-
-//                                             </div>
-
-//                                             {/* UCL/LCL Reference Line Labels for Duty Cycle */}
-//                                             <div style={{
-//                                                 display: 'flex',
-//                                                 justifyContent: 'space-between',
-//                                                 marginBottom: '5px',
-//                                                 fontSize: '11px',
-//                                                 color: '#666'
-//                                             }}>
-//                                                 <span>UCL: 110.1°C</span>
-//                                                 <span>LCL: 109.9°C</span>
-//                                             </div>
-//                                         </>
-//                                     )}
-
-//                                     {isPEB && pebSc ? (
-//                                         <canvas ref={dutyCanvasRef} style={{ width: '100%', display: 'block' }} height="150" />
-//                                     ) : (
-//                                         <div className="alarm-list">
-//                                             {fm.alarms.map((alarm) => (
-//                                                 <div key={alarm.id} className={`alarm-item alarm-${alarm.level}`}>
-//                                                     <div className="alarm-header">
-//                                                         <span className="alarm-id">{alarm.id}</span>
-//                                                         <span className="alarm-time">{alarm.time}</span>
-//                                                     </div>
-//                                                     <div className="alarm-name">{alarm.name}</div>
-//                                                     {Object.entries(alarm.params).slice(0, 3).map(([k, v]) => (
-//                                                         <div key={k} className="alarm-param">
-//                                                             <span>{k}</span><span>{v}</span>
-//                                                         </div>
-//                                                     ))}
-//                                                 </div>
-//                                             ))}
-//                                         </div>
-//                                     )}
-//                                 </div>
-
-//                                 {/* Offline CD-SEM */}
-//                                 <div className="chart-block">
-//                                     <div className="chart-block-label">
-//                                         <span>
-//                                             ⬡ OFFLINE CD-SEM (Average CD, <span className="lowercase-unit">nm</span>)
-//                                         </span>
-//                                         {isPEB && pebSc && (
-//                                             <span className="chart-badge-red">
-//                                                 {pebScenario === 2 ? 'OOS MIXTURE' : 'DOWNWARD SHIFT'}
-//                                             </span>
-//                                         )}
-//                                     </div>
-//                                     {isPEB && pebSc ? (
-//                                         <img
-//                                             src={pebScenario === 2 ? '/scenario2-cdoffline1.png' : '/scenarion1graph.png'}
-//                                             alt="CD-SEM chart"
-//                                             style={{ width: '100%', height: 'auto', objectFit: 'contain', objectPosition: 'center', borderRadius: '6px' }}
-//                                         />
-//                                     ) : (
-//                                         <div className="chart-empty">Select PEB Scenario to view CD-SEM data</div>
-//                                     )}
-//                                 </div>
-
-//                                 {/* CD Uniformity */}
-//                                 <div className="chart-block">
-//                                     <div className="chart-block-label">
-//                                         <span>
-//                                             ⬡ CD UNIFORMITY (Range, <span className="lowercase-unit">nm</span>)
-//                                         </span>
-//                                         {isPEB && pebSc && (
-//                                             <span className="chart-badge-orange">
-//                                                 {pebScenario === 2 ? 'HIGH VARIABILITY' : 'SPIKING'}
-//                                             </span>
-//                                         )}
-//                                     </div>
-//                                     {isPEB && pebSc ? (
-//                                         <img
-//                                             src={pebScenario === 2 ? '/scenario2-cduniform2.png' : '/scenario13-cduniform.png'}
-//                                             alt="CD Uniformity chart"
-//                                             style={{ width: '100%', height: 'auto', objectFit: 'contain', objectPosition: 'center', borderRadius: '6px' }}
-//                                         />
-//                                     ) : (
-//                                         <div className="chart-empty">Select PEB Scenario to view CD Uniformity data</div>
-//                                     )}
-//                                 </div>
-//                             </div>
-
-//                             {/* Wafer Map */}
-//                             <div className="wafer-map-block">
-//                                 <div className="chart-block-label">
-//                                     <span>⬡ 300mm WAFER CD MAP</span>
-//                                     {isPEB && pebSc && (
-//                                         <span className={`chart-badge-${pebScenario === 3 ? 'orange' : 'red'}`}>
-//                                             {pebScenario === 1 ? 'ZONE DROP' : pebScenario === 2 ? 'ERRATIC' : 'IDENTICAL TO SC1'}
-//                                         </span>
-//                                     )}
-//                                 </div>
-//                                 <div className="wafer-map-canvas-wrap">
-//                                     <img
-//                                         src={
-//                                             pebScenario === 2
-//                                                 ? "/waffermapscenario2.png"
-//                                                 : "/wafercd.png"
-//                                         }
-//                                         alt="Wafer CD Map"
-//                                         style={{
-//                                             width: '100%',
-//                                             height: '100%',
-//                                             objectFit: 'contain',
-//                                             display: 'block',
-//                                             borderRadius: '6px'
-//                                         }}
-//                                     />
-//                                 </div>
-//                                 <div className="wafer-map-block">
-//                                     <div className="chart-block-label">
-//                                         <span>⬡ 300mm WAFER CD MAP</span>
-//                                         {isPEB && pebSc && (
-//                                             <span className={`chart-badge-${pebScenario === 3 ? 'orange' : 'red'}`}>
-//                                                 {pebScenario === 1 ? 'ZONE DROP' : pebScenario === 2 ? 'ERRATIC' : 'IDENTICAL TO SC1'}
-//                                             </span>
-//                                         )}
-//                                     </div>
-//                                     <div className="wafer-map-info">
-
-//                                         <div className="wafer-info-row">
-//                                             <span>Center CD</span>
-//                                             <strong>22nm</strong>
-//                                         </div>
-
-//                                         <div className="wafer-info-row">
-//                                             <span>Failure Zone</span>
-//                                             <strong>
-//                                                 {pebScenario === 2 ? 'Zone 3' : 'Zone 4'}
-//                                             </strong>
-//                                         </div>
-
-//                                         <div className="wafer-info-row">
-//                                             <span>Thermal Pattern</span>
-//                                             <strong>
-//                                                 {pebScenario === 2
-//                                                     ? 'Erratic Thermal Noise'
-//                                                     : 'Cold Ring Drift'}
-//                                             </strong>
-//                                         </div>
-
-//                                         <div className="wafer-info-row">
-//                                             <span>Process Impact</span>
-//                                             <strong>
-//                                                 {pebScenario === 2
-//                                                     ? 'Random CD Variation / Scrap'
-//                                                     : 'CD Shift / Yield Loss'}
-//                                             </strong>
-//                                         </div>
-
-//                                         <div className="wafer-info-row">
-//                                             <span>Diagnosis</span>
-//                                             <strong>
-//                                                 {pebScenario === 2
-//                                                     ? 'Broken Thermocouple Sensor'
-//                                                     : 'Heater / SSR Failure'}
-//                                             </strong>
-//                                         </div>
-
-//                                     </div>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </>
-//                 )}
-
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default Failure;
-
-
-
-
-
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -2086,10 +92,18 @@ const FM_DATA: FailureMode[] = [
         id: "FM-001",
         name: "PEB Temperature Drift",
         severity: "CRITICAL",
-        type: "THERMAL",
+        type: "",
         lotId: "WF-2024-0447",
         recipe: "ArF_CAR_110C",
-        keyInfo: "<strong>PEB Temperature Deviation</strong> occurs when one or more hotplate zones drift beyond ±0.3°C of the 110°C setpoint. This directly impacts acid diffusion length in CAR (Chemically Amplified Resist), causing CD (critical dimension) shift. Zone 4 is reporting a deviation. Immediate OCAP action required.",
+        keyInfo: `
+<strong>PEB Temperature Deviation</strong> occurs when one or more hotplate zones drift beyond the control limit from the setpoint. This directly impacts acid diffusion length in CAR (Chemically Amplified Resist), causing CD (critical dimension) shift. Zone 4 is reporting a deviation. Immediate OCAP action required.
+<br/><br/>
+
+<strong>Underbaked at PEB:</strong> Partially reacted PR polymerizes into a cross-linked crust. The stripping solvent cannot dissolve it, leaving behind an insoluble residue resulting in wafer scrap.
+<br/><br/>
+
+<strong>Overbaked at PEB:</strong> Photoacid diffuses entirely through the PR and chemically attacks the underlying substrate, leaving behind a permanent chemical ghost image on the surface. This causes adhesion or focus defects on the next coat resulting in wafer scrap.
+`,
         zones: [
             { label: "ZONE 1", temp: "", status: "healthy", note: "" },
             { label: "ZONE 2", temp: "", status: "healthy", note: "" },
@@ -2151,7 +165,7 @@ const FM_DATA: FailureMode[] = [
         id: "FM-002",
         name: "Resist Dispense Bubble",
         severity: "CRITICAL",
-        type: "COATING",
+        type: "",
         fmeaScore: "9/10 (High)",
         lotId: "WF-2024-0448",
         recipe: "PR_COAT_1800RPM",
@@ -2253,109 +267,113 @@ const FM_DATA: FailureMode[] = [
         ],
     },
 
-    // =============================================
-    // FM-003: DEVELOPER CONCENTRATION (from Word doc)
-    // =============================================
+
     {
-        id: "FM-003",
-        name: "Developer Concentration",
+        id: "FM-005",
+        name: "EBR Nozzle Clog/Misalign",
         severity: "HIGH",
-        type: "CHEMICAL",
-        fmeaScore: "7/10 (High)",
-        lotId: "WF-2024-0452",
-        recipe: "DEV_TMAH_2.38PCT",
-        keyInfo: "<strong>Developer Concentration Drift</strong> — TMAH (Tetramethylammonium hydroxide) dissolves exposed resist areas. Dissolution rate is highly sensitive to normality (concentration). <strong>Higher concentration</strong> → increased dissolution → <em>Line Slimming</em> (smaller CD). <strong>Lower concentration</strong> → <em>Scumming / Under-development</em> (larger CD or residual resist in trenches). In-line conductivity sensor showing step-change deviation from 2.38% TMAH setpoint.",
-        physicsImpact: "TMAH dissolution rate is concentration-sensitive. Higher concentration causes Line Slimming (CD shrink). Lower concentration causes Scumming or Underdevelopment (CD grow, residual resist).",
+        type: "",
+        fmeaScore: "8/10 (High)",
+        lotId: "WF-2024-0461",
+        recipe: "EBR_SOLVENT_15ML",
+        keyInfo: "<strong>EBR Nozzle Clog / Misalignment</strong> — The Edge Bead Removal process uses a solvent stream to remove photoresist from the wafer's extreme periphery. A <strong>clog</strong> reduces solvent momentum → incomplete removal (<em>Residual PR</em>). A <strong>misalignment</strong> shifts the removal boundary — either leaving resist that flakes off in subsequent tools (causing particles) or encroaching into the active die area (reducing yield). Flow rate dropped to 8.0 ml/min vs 15.0 ml/min target.",
+        physicsImpact: "Clog reduces solvent momentum causing incomplete edge PR removal (Residual PR). Misalignment causes either particle contamination in downstream tools or yield loss from encroachment into active die area.",
         zones: [
-            { label: "ZONE 1", temp: "2.38%", status: "healthy", note: "NOMINAL" },
-            { label: "ZONE 2", temp: "2.38%", status: "healthy", note: "NOMINAL" },
-            { label: "ZONE 3", temp: "2.51%", status: "danger", note: "HIGH CONC" },
-            { label: "ZONE 4", temp: "2.38%", status: "healthy", note: "NOMINAL" },
-            { label: "ZONE 5", temp: "2.38%", status: "healthy", note: "NOMINAL" },
+            { label: "EBR FLOW", temp: "8.0 ml/min", status: "danger", note: "LOW FLOW" },
+            { label: "NOZZLE POS", temp: "147.2 mm", status: "danger", note: "MISALIGN" },
+            { label: "ZONE 3", temp: "OK", status: "healthy", note: "NORMAL" },
+            { label: "ZONE 4", temp: "OK", status: "healthy", note: "NORMAL" },
+            { label: "ZONE 5", temp: "OK", status: "healthy", note: "NORMAL" },
         ],
-        rtmLabel: "DEVELOPER CONDUCTIVITY (mS/cm — normalized)",
-        rtmSensorLabel: "In-line Conductivity Sensor (mS/cm) — normalized at 1.0 for 2.38% TMAH",
-        rtmNormalValue: "Flat horizontal trace at 2.38% TMAH (conductivity = 1.0 normalized)",
-        rtmFailureValue: "Step-change or gradual slope — blending error or day-tank evaporation",
-        rtmTarget: 1.0, rtmUcl: 1.04, rtmLcl: 0.96,
-        rtmData: [1.0, 1.0, 1.01, 1.0, 1.0, 0.99, 1.0, 1.0, 1.02, 1.03, 1.05, 1.07, 1.08, 1.07, 1.09, 1.08, 1.10, 1.09],
+        rtmLabel: "EBR SOLVENT FLOW RATE (ml/min)",
+        rtmSensorLabel: "EBR Solvent Flow Meter (sccm / ml/min)",
+        rtmNormalValue: "Flat plateau at 15.0 ml/min during 10-second EBR cycle",
+        rtmFailureValue: "Drop to 8.0 ml/min or spiky delivery (backpressure from partially obstructed nozzle tip)",
+        rtmTarget: 15.0, rtmUcl: 16.5, rtmLcl: 12.0,
+        rtmData: [15.0, 15.0, 15.1, 14.9, 15.0, 14.8, 14.5, 13.5, 12.0, 10.5, 9.0, 8.5, 8.2, 8.0, 8.0, 7.8, 8.2, 8.0],
         supportingGauges: [
-            { label: "Developer Temp", value: "23.4°C (±0.2°C spec)", status: "warn" },
-            { label: "TMAH Normality", value: "2.51% (target: 2.38%)", status: "danger" },
-            { label: "Conductivity Sensor", value: "1.09 normalized (OOC)", status: "danger" },
+            { label: "Nozzle Position X", value: "Actual: 147.2 mm (Target: 148.5 mm)", status: "danger" },
+            { label: "Nozzle Position Y", value: "Within spec", status: "ok" },
+            { label: "EBR Flow Rate", value: "8.0 ml/min (spec: 15.0 ml/min)", status: "danger" },
         ],
-        interlock: "Soft Lock — tool continues current wafer but flags OCAP required before next lot release.",
+        interlock: "Soft Lock — tool completes current wafer but inhibits 'Load' command for next wafer to prevent particle contamination excursion across lot.",
         interlockType: "soft",
         lifecycle: [
-            { icon: "🧪", label: "Conc.\nDrift", state: "done" },
-            { icon: "⚗️", label: "Dissolution\nRate Δ", state: "done" },
-            { icon: "📏", label: "CD\nShift", state: "error" },
-            { icon: "🔬", label: "CD-SEM\nReview", state: "active" },
+            { icon: "🚿", label: "Nozzle\nClog", state: "done" },
+            { icon: "🔩", label: "Flow\nDrop", state: "done" },
+            { icon: "🪨", label: "Residual\nPR Edge", state: "error" },
+            { icon: "🔬", label: "KLA\nDefect Scan", state: "active" },
             { icon: "⚠️", label: "Alarm\nTriggered", state: "active" },
-            { icon: "🛑", label: "Lot\nHold", state: "" },
-            { icon: "🔧", label: "Blending\nFix", state: "" },
+            { icon: "🛑", label: "Lot\nSoft Lock", state: "" },
+            { icon: "🔧", label: "Nozzle\nRepair", state: "" },
         ],
-        spcCpk: "0.88", spcSigma: "1.7σ",
-        spcMetrics: ["Offline CD-SEM (Critical Dimension)", "Unresolved Feature / Scumming Count (KLA SEM Review)"],
+        spcCpk: "0.67", spcSigma: "1.3σ",
+        spcMetrics: ["Offline Defect Adder Count (Edge Exclusion Zone)"],
         spcRulesTriggered: [
             "Rule 1: 1 Point outside 3-Sigma limits (Action Limit)",
-            "Rule 6: 7 Points trending in one direction (slow aging / evaporation drift)",
+            "Rule 2: Cluster detection — defects localized at 297–300 mm radius",
         ],
-        spcData: [22.0, 22.0, 22.0, 21.9, 21.9, 21.9, 21.8, 21.7, 21.6, 21.4, 21.2, 21.0, 20.8, 20.6, 20.4, 20.2, 20.0, 19.8],
+        spcData: [5, 6, 5, 7, 6, 8, 12, 25, 60, 110, 170, 195, 200, 205, 198, 202, 210, 208],
         alarms: [
             {
-                id: "ALM-602", name: "DEVELOPER NORMALITY OUT OF RANGE",
-                level: "critical", time: "11:12:33",
-                params: { "Trigger": "Conductivity deviation >±2% for >5 sec", "Setpoint": "2.38% TMAH", "Actual": "2.51% TMAH", "Delta": "+0.13%", "Lot": "WF-2024-0452" }
+                id: "ALM-501", name: "EBR SOLVENT FLOW RATE LOW / UNSTABLE",
+                level: "critical", time: "16:22:44",
+                params: { "Trigger": "Flow <12.0 ml/min for >1 sec", "Actual": "8.0 ml/min", "Target": "15.0 ml/min", "Interlock": "Soft Lock", "Lot": "WF-2024-0461" }
             },
             {
-                id: "ALM-603", name: "CD-SEM TRENDING — LINE SLIMMING",
-                level: "warning", time: "11:13:05",
-                params: { "CD Target": "22.0 nm", "Actual": "19.8 nm", "Trend": "7-pt downward", "Rule": "SPC Rule 6" }
+                id: "ALM-502", name: "EBR NOZZLE POSITION DEVIATION",
+                level: "warning", time: "16:22:40",
+                params: { "Target X": "148.5 mm", "Actual X": "147.2 mm", "Delta": "-1.3 mm", "Impact": "Removal boundary shift" }
+            },
+            {
+                id: "ALM-503", name: "EDGE DEFECT COUNT SPIKE — CLUSTER AT 297–300mm",
+                level: "critical", time: "16:23:15",
+                params: { "Count": ">200 adders", "Baseline": "<10", "Location": "297–300 mm radius", "Rule": "Cluster detection Rule 2" }
             },
         ],
         ocap: [
-            "Check chemical blending system — verify TMAH dilution ratio and DI water flow.",
-            "Check day-tank level — evaporation of DI water raises TMAH concentration.",
-            "Verify in-line conductivity sensor calibration against reference standard.",
-            "Review developer temperature — temperature drift changes dissolution rate independent of concentration.",
-            "Hold current lot — send wafers to CD-SEM for dimensional verification.",
-            "Flush and recirculate day-tank if concentration deviation >±5%.",
+            "Soft Lock active — complete current wafer, inhibit next wafer load.",
+            "Inspect EBR nozzle tip for photoresist residue buildup causing backpressure.",
+            "Check nozzle XY position calibration — compare actual vs target coordinates.",
+            "Run EBR test on dummy wafer to measure flow rate and removal boundary.",
+            "If misalignment confirmed, run nozzle re-teach procedure.",
+            "If clog confirmed, perform nozzle soak in solvent or replace tip insert.",
         ],
         troubleshootingSteps: [
             {
-                icon: "📡", title: "Conductivity Sensor Verification",
-                description: "Verify in-line conductivity reading against reference titration standard. Confirm step-change or gradual slope pattern in RTM trace.",
-                action: "VERIFY CONDUCTIVITY READING",
-                alertMessage: "Conductivity reading: 1.09 normalized (2.51% TMAH). Reference titration confirms HIGH concentration — sensor reading is accurate."
+                icon: "🔍", title: "Nozzle Tip Inspection — Clog Check",
+                description: "Visually inspect EBR nozzle tip for dried photoresist buildup. Check for discoloration or partial obstruction reducing flow area.",
+                action: "INSPECT EBR NOZZLE TIP",
+                alertMessage: "Dried resist crust visible on 40% of nozzle tip orifice — partial clog confirmed. Flow restricted to 8.0 ml/min (spec 15.0 ml/min)."
             },
             {
-                icon: "🌡️", title: "Developer Temperature Check",
-                description: "Check developer temperature at 23.0°C ±0.2°C. Temperature drift alters dissolution rate even with stable concentration.",
-                action: "CHECK DEV TEMPERATURE",
-                alertMessage: "Developer temperature: 23.4°C (0.4°C above target). Combined with high concentration — double contribution to CD shift."
+                icon: "📐", title: "Nozzle Position XY Verification",
+                description: "Verify nozzle XY position coordinates against recipe setpoints. Check for arm teach drift or mechanical play in the positioning servo.",
+                action: "CHECK NOZZLE XY POSITION",
+                alertMessage: "Nozzle X-position: 147.2 mm (Target: 148.5 mm). Delta = -1.3 mm. Arm teach drift confirmed — re-teach required."
             },
             {
-                icon: "🧪", title: "Day-Tank Level & Blending Check",
-                description: "Inspect day-tank DI water level for evaporation. Check blending system dilution ratio for controller fault.",
-                action: "INSPECT DAY-TANK",
-                alertMessage: "Day-tank DI water level LOW — evaporation has increased TMAH concentration from 2.38% to 2.51%. Blending controller fault confirmed."
+                icon: "💧", title: "Dummy Wafer EBR Flow Test",
+                description: "Run EBR cycle on dummy wafer to measure actual flow rate and inspect removal boundary position and completeness.",
+                action: "RUN EBR DUMMY TEST",
+                alertMessage: "Dummy wafer test: Flow = 8.2 ml/min, Removal boundary at 147.0 mm (should be 148.5 mm). Both clog AND misalignment confirmed."
             },
         ],
         restoreActions: [
-            { name: "Refill Day-Tank DI Water", alertMessage: "Refilling DI water in day-tank — TMAH concentration returning to 2.38%. Conductivity stabilizing.", primary: false },
-            { name: "Recalibrate Blending System", alertMessage: "Recalibrating chemical blending controller — dilution ratio corrected to 2.38% TMAH setpoint.", primary: true },
-            { name: "Flush & Recirculate Day-Tank", alertMessage: "Flushing day-tank and recirculating at correct concentration — normality verified at 2.38%.", primary: false },
+            { name: "Nozzle Soak & Clean", alertMessage: "Soaking EBR nozzle tip in solvent — resist crust dissolved. Flow rate returned to 15.0 ml/min.", primary: false },
+            { name: "Replace Nozzle Tip Insert", alertMessage: "Replacing nozzle tip insert — clog cleared. Flow: 15.1 ml/min (within spec).", primary: true },
+            { name: "Re-Teach Nozzle XY Position", alertMessage: "Re-teaching nozzle XY position. New coordinates: X = 148.5 mm ✓. Removal boundary verified on dummy wafer.", primary: false },
         ],
         ocapFlow: [
-            { title: "CONTAINMENT", desc: "Hold lot — prevent under/over-developed wafers from escaping to etch", btnLabel: "HOLD LOT", btnClass: "", alertMsg: "Lot on HOLD — dimensional excursion contained. CD-SEM review initiated.", state: "completed" },
-            { title: "METROLOGY VERIFICATION", desc: "CD-SEM review — confirm Line Slimming or Scumming pattern on wafers", btnLabel: "RUN CD-SEM REVIEW", btnClass: "", alertMsg: "CD-SEM confirmed: Line Slimming detected. Mean CD = 19.8 nm (target 22.0 nm) — high concentration confirmed.", state: "completed" },
-            { title: "ROOT CAUSE ANALYSIS", desc: "Identify blending system fault or day-tank evaporation as root cause", btnLabel: "FLAG RCA — BLENDING", btnClass: "rca", alertMsg: "RCA Confirmed: Day-tank DI water evaporation raised TMAH from 2.38% to 2.51%. Blending controller fault contributing.", state: "active" },
-            { title: "HARDWARE RECOVERY", desc: "Refill day-tank DI water + recalibrate blending controller", btnLabel: "REFILL + RECALIBRATE", btnClass: "recovery", alertMsg: "Day-tank refilled. Blending controller recalibrated. TMAH normality = 2.38% — conductivity nominal.", state: "" },
-            { title: "DISPOSITION", desc: "Re-develop affected wafers if within CD budget window", btnLabel: "RE-DEVELOP WAFERS", btnClass: "disposition", alertMsg: "Affected wafers re-developed at correct concentration. CD remeasured.", state: "" },
-            { title: "VALIDATION", desc: "Run 5-wafer lot — CD-SEM and conductivity trace must return to target", btnLabel: "RUN VALIDATION", btnClass: "", alertMsg: "Validation complete: CD = 22.0 nm, conductivity = 1.00 normalized → Tool status GREEN.", state: "" },
+            { title: "CONTAINMENT", desc: "Soft Lock active — complete current wafer, inhibit next load", btnLabel: "CONFIRM SOFT LOCK", btnClass: "", alertMsg: "Soft Lock confirmed. Current wafer completing. Next wafer load inhibited — particle contamination risk contained.", state: "completed" },
+            { title: "METROLOGY VERIFICATION", desc: "KLA scan — confirm edge defect cluster at 297–300 mm radius", btnLabel: "RUN KLA EDGE SCAN", btnClass: "", alertMsg: "KLA confirmed: >200 edge defects/wafer, clustered at 297–300 mm. Baseline <10. Both flow and position deviation confirmed.", state: "completed" },
+            { title: "ROOT CAUSE ANALYSIS", desc: "Identify nozzle clog, misalignment, or both as root cause", btnLabel: "FLAG RCA — NOZZLE", btnClass: "rca", alertMsg: "RCA Confirmed: Dual failure — dried resist clog (40% orifice blocked) + arm teach drift (-1.3 mm X-offset).", state: "active" },
+            { title: "HARDWARE RECOVERY", desc: "Replace nozzle tip + re-teach XY position. Run dummy wafer verification.", btnLabel: "REPLACE + RE-TEACH", btnClass: "recovery", alertMsg: "Nozzle tip replaced. XY re-taught to 148.5 mm. Dummy wafer: Flow = 15.1 ml/min, boundary correct.", state: "" },
+            { title: "DISPOSITION", desc: "Evaluate lot — wafers with residual PR edge flaking risk may need strip", btnLabel: "EVALUATE EDGE WAFERS", btnClass: "disposition", alertMsg: "5 wafers with residual PR edge confirmed by SEM — sent for strip. Remaining lot released after re-inspect.", state: "" },
+            { title: "VALIDATION", desc: "Run 3-wafer EBR validation — flow and edge defect count must be nominal", btnLabel: "RUN EBR VALIDATION", btnClass: "", alertMsg: "Validation complete: Flow = 15.0 ml/min, Edge defects <8/wafer → Tool status GREEN (PROD).", state: "" },
         ],
     },
+
 
     // =============================================
     // FM-004: EXHAUST FAN FAILURE (from Word doc)
@@ -2364,7 +382,7 @@ const FM_DATA: FailureMode[] = [
         id: "FM-004",
         name: "Exhaust Fan Failure",
         severity: "CRITICAL",
-        type: "MECHANICAL",
+        type: "",
         fmeaScore: "8/10 (High — Safety & Process Impact)",
         lotId: "WF-2024-0455",
         recipe: "PR_COAT_SPIN_3000RPM",
@@ -2467,113 +485,115 @@ const FM_DATA: FailureMode[] = [
     },
 
     // =============================================
-    // FM-005: EBR NOZZLE CLOG / MISALIGN (from Word doc)
+    // FM-003: DEVELOPER CONCENTRATION (from Word doc)
     // =============================================
     {
-        id: "FM-005",
-        name: "EBR Nozzle Clog/Misalign",
+        id: "FM-003",
+        name: "Developer Concentration",
         severity: "HIGH",
-        type: "COATING",
-        fmeaScore: "8/10 (High)",
-        lotId: "WF-2024-0461",
-        recipe: "EBR_SOLVENT_15ML",
-        keyInfo: "<strong>EBR Nozzle Clog / Misalignment</strong> — The Edge Bead Removal process uses a solvent stream to remove photoresist from the wafer's extreme periphery. A <strong>clog</strong> reduces solvent momentum → incomplete removal (<em>Residual PR</em>). A <strong>misalignment</strong> shifts the removal boundary — either leaving resist that flakes off in subsequent tools (causing particles) or encroaching into the active die area (reducing yield). Flow rate dropped to 8.0 ml/min vs 15.0 ml/min target.",
-        physicsImpact: "Clog reduces solvent momentum causing incomplete edge PR removal (Residual PR). Misalignment causes either particle contamination in downstream tools or yield loss from encroachment into active die area.",
+        type: "",
+        fmeaScore: "7/10 (High)",
+        lotId: "WF-2024-0452",
+        recipe: "DEV_TMAH_2.38PCT",
+        keyInfo: "<strong>Developer Concentration Drift</strong> — TMAH (Tetramethylammonium hydroxide) dissolves exposed resist areas. Dissolution rate is highly sensitive to normality (concentration). <strong>Higher concentration</strong> → increased dissolution → <em>Line Slimming</em> (smaller CD). <strong>Lower concentration</strong> → <em>Scumming / Under-development</em> (larger CD or residual resist in trenches). In-line conductivity sensor showing step-change deviation from 2.38% TMAH setpoint.",
+        physicsImpact: "TMAH dissolution rate is concentration-sensitive. Higher concentration causes Line Slimming (CD shrink). Lower concentration causes Scumming or Underdevelopment (CD grow, residual resist).",
         zones: [
-            { label: "EBR FLOW", temp: "8.0 ml/min", status: "danger", note: "LOW FLOW" },
-            { label: "NOZZLE POS", temp: "147.2 mm", status: "danger", note: "MISALIGN" },
-            { label: "ZONE 3", temp: "OK", status: "healthy", note: "NORMAL" },
-            { label: "ZONE 4", temp: "OK", status: "healthy", note: "NORMAL" },
-            { label: "ZONE 5", temp: "OK", status: "healthy", note: "NORMAL" },
+            { label: "ZONE 1", temp: "2.38%", status: "healthy", note: "NOMINAL" },
+            { label: "ZONE 2", temp: "2.38%", status: "healthy", note: "NOMINAL" },
+            { label: "ZONE 3", temp: "2.51%", status: "danger", note: "HIGH CONC" },
+            { label: "ZONE 4", temp: "2.38%", status: "healthy", note: "NOMINAL" },
+            { label: "ZONE 5", temp: "2.38%", status: "healthy", note: "NOMINAL" },
         ],
-        rtmLabel: "EBR SOLVENT FLOW RATE (ml/min)",
-        rtmSensorLabel: "EBR Solvent Flow Meter (sccm / ml/min)",
-        rtmNormalValue: "Flat plateau at 15.0 ml/min during 10-second EBR cycle",
-        rtmFailureValue: "Drop to 8.0 ml/min or spiky delivery (backpressure from partially obstructed nozzle tip)",
-        rtmTarget: 15.0, rtmUcl: 16.5, rtmLcl: 12.0,
-        rtmData: [15.0, 15.0, 15.1, 14.9, 15.0, 14.8, 14.5, 13.5, 12.0, 10.5, 9.0, 8.5, 8.2, 8.0, 8.0, 7.8, 8.2, 8.0],
+        rtmLabel: "DEVELOPER CONDUCTIVITY (mS/cm — normalized)",
+        rtmSensorLabel: "In-line Conductivity Sensor (mS/cm) — normalized at 1.0 for 2.38% TMAH",
+
+        rtmChartImage: "/DeveloperconcentrationRTM.jpeg",
+        rtmTarget: 1.0, rtmUcl: 1.04, rtmLcl: 0.96,
+        rtmData: [1.0, 1.0, 1.01, 1.0, 1.0, 0.99, 1.0, 1.0, 1.02, 1.03, 1.05, 1.07, 1.08, 1.07, 1.09, 1.08, 1.10, 1.09],
         supportingGauges: [
-            { label: "Nozzle Position X", value: "Actual: 147.2 mm (Target: 148.5 mm)", status: "danger" },
-            { label: "Nozzle Position Y", value: "Within spec", status: "ok" },
-            { label: "EBR Flow Rate", value: "8.0 ml/min (spec: 15.0 ml/min)", status: "danger" },
+            { label: "Developer Temp", value: "23.4°C (±0.2°C spec)", status: "warn" },
+            { label: "TMAH Normality", value: "2.51% (target: 2.38%)", status: "danger" },
+            { label: "Conductivity Sensor", value: "1.09 normalized (OOC)", status: "danger" },
         ],
-        interlock: "Soft Lock — tool completes current wafer but inhibits 'Load' command for next wafer to prevent particle contamination excursion across lot.",
+        interlock: "Soft Lock — tool continues current wafer but flags OCAP required before next lot release.",
         interlockType: "soft",
         lifecycle: [
-            { icon: "🚿", label: "Nozzle\nClog", state: "done" },
-            { icon: "🔩", label: "Flow\nDrop", state: "done" },
-            { icon: "🪨", label: "Residual\nPR Edge", state: "error" },
-            { icon: "🔬", label: "KLA\nDefect Scan", state: "active" },
+            { icon: "🧪", label: "Conc.\nDrift", state: "done" },
+            { icon: "⚗️", label: "Dissolution\nRate Δ", state: "done" },
+            { icon: "📏", label: "CD\nShift", state: "error" },
+            { icon: "🔬", label: "CD-SEM\nReview", state: "active" },
             { icon: "⚠️", label: "Alarm\nTriggered", state: "active" },
-            { icon: "🛑", label: "Lot\nSoft Lock", state: "" },
-            { icon: "🔧", label: "Nozzle\nRepair", state: "" },
+            { icon: "🛑", label: "Lot\nHold", state: "" },
+            { icon: "🔧", label: "Blending\nFix", state: "" },
         ],
-        spcCpk: "0.67", spcSigma: "1.3σ",
-        spcMetrics: ["Offline Defect Adder Count (Edge Exclusion Zone)"],
+        spcCpk: "0.88", spcSigma: "1.7σ",
+        spcMetrics: ["Offline CD-SEM (Critical Dimension)", "Unresolved Feature / Scumming Count (KLA SEM Review)"],
         spcRulesTriggered: [
             "Rule 1: 1 Point outside 3-Sigma limits (Action Limit)",
-            "Rule 2: Cluster detection — defects localized at 297–300 mm radius",
+            "Rule 6: 7 Points trending in one direction (slow aging / evaporation drift)",
         ],
-        spcData: [5, 6, 5, 7, 6, 8, 12, 25, 60, 110, 170, 195, 200, 205, 198, 202, 210, 208],
+        spcData: [22.0, 22.0, 22.0, 21.9, 21.9, 21.9, 21.8, 21.7, 21.6, 21.4, 21.2, 21.0, 20.8, 20.6, 20.4, 20.2, 20.0, 19.8],
         alarms: [
             {
-                id: "ALM-501", name: "EBR SOLVENT FLOW RATE LOW / UNSTABLE",
-                level: "critical", time: "16:22:44",
-                params: { "Trigger": "Flow <12.0 ml/min for >1 sec", "Actual": "8.0 ml/min", "Target": "15.0 ml/min", "Interlock": "Soft Lock", "Lot": "WF-2024-0461" }
+                id: "ALM-602", name: "DEVELOPER NORMALITY OUT OF RANGE",
+                level: "critical", time: "11:12:33",
+                params: { "Trigger": "Conductivity deviation >±2% for >5 sec", "Setpoint": "2.38% TMAH", "Actual": "2.51% TMAH", "Delta": "+0.13%", "Lot": "WF-2024-0452" }
             },
             {
-                id: "ALM-502", name: "EBR NOZZLE POSITION DEVIATION",
-                level: "warning", time: "16:22:40",
-                params: { "Target X": "148.5 mm", "Actual X": "147.2 mm", "Delta": "-1.3 mm", "Impact": "Removal boundary shift" }
-            },
-            {
-                id: "ALM-503", name: "EDGE DEFECT COUNT SPIKE — CLUSTER AT 297–300mm",
-                level: "critical", time: "16:23:15",
-                params: { "Count": ">200 adders", "Baseline": "<10", "Location": "297–300 mm radius", "Rule": "Cluster detection Rule 2" }
+                id: "ALM-603", name: "CD-SEM TRENDING — LINE SLIMMING",
+                level: "warning", time: "11:13:05",
+                params: { "CD Target": "22.0 nm", "Actual": "19.8 nm", "Trend": "7-pt downward", "Rule": "SPC Rule 6" }
             },
         ],
         ocap: [
-            "Soft Lock active — complete current wafer, inhibit next wafer load.",
-            "Inspect EBR nozzle tip for photoresist residue buildup causing backpressure.",
-            "Check nozzle XY position calibration — compare actual vs target coordinates.",
-            "Run EBR test on dummy wafer to measure flow rate and removal boundary.",
-            "If misalignment confirmed, run nozzle re-teach procedure.",
-            "If clog confirmed, perform nozzle soak in solvent or replace tip insert.",
+            "Check chemical blending system — verify TMAH dilution ratio and DI water flow.",
+            "Check day-tank level — evaporation of DI water raises TMAH concentration.",
+            "Verify in-line conductivity sensor calibration against reference standard.",
+            "Review developer temperature — temperature drift changes dissolution rate independent of concentration.",
+            "Hold current lot — send wafers to CD-SEM for dimensional verification.",
+            "Flush and recirculate day-tank if concentration deviation >±5%.",
         ],
         troubleshootingSteps: [
             {
-                icon: "🔍", title: "Nozzle Tip Inspection — Clog Check",
-                description: "Visually inspect EBR nozzle tip for dried photoresist buildup. Check for discoloration or partial obstruction reducing flow area.",
-                action: "INSPECT EBR NOZZLE TIP",
-                alertMessage: "Dried resist crust visible on 40% of nozzle tip orifice — partial clog confirmed. Flow restricted to 8.0 ml/min (spec 15.0 ml/min)."
+                icon: "📡", title: "Conductivity Sensor Verification",
+                description: "Verify in-line conductivity reading against reference titration standard. Confirm step-change or gradual slope pattern in RTM trace.",
+                action: "VERIFY CONDUCTIVITY READING",
+                alertMessage: "Conductivity reading: 1.09 normalized (2.51% TMAH). Reference titration confirms HIGH concentration — sensor reading is accurate."
             },
             {
-                icon: "📐", title: "Nozzle Position XY Verification",
-                description: "Verify nozzle XY position coordinates against recipe setpoints. Check for arm teach drift or mechanical play in the positioning servo.",
-                action: "CHECK NOZZLE XY POSITION",
-                alertMessage: "Nozzle X-position: 147.2 mm (Target: 148.5 mm). Delta = -1.3 mm. Arm teach drift confirmed — re-teach required."
+                icon: "🌡️", title: "Developer Temperature Check",
+                description: "Check developer temperature at 23.0°C ±0.2°C. Temperature drift alters dissolution rate even with stable concentration.",
+                action: "CHECK DEV TEMPERATURE",
+                alertMessage: "Developer temperature: 23.4°C (0.4°C above target). Combined with high concentration — double contribution to CD shift."
             },
             {
-                icon: "💧", title: "Dummy Wafer EBR Flow Test",
-                description: "Run EBR cycle on dummy wafer to measure actual flow rate and inspect removal boundary position and completeness.",
-                action: "RUN EBR DUMMY TEST",
-                alertMessage: "Dummy wafer test: Flow = 8.2 ml/min, Removal boundary at 147.0 mm (should be 148.5 mm). Both clog AND misalignment confirmed."
+                icon: "🧪", title: "Day-Tank Level & Blending Check",
+                description: "Inspect day-tank DI water level for evaporation. Check blending system dilution ratio for controller fault.",
+                action: "INSPECT DAY-TANK",
+                alertMessage: "Day-tank DI water level LOW — evaporation has increased TMAH concentration from 2.38% to 2.51%. Blending controller fault confirmed."
             },
         ],
         restoreActions: [
-            { name: "Nozzle Soak & Clean", alertMessage: "Soaking EBR nozzle tip in solvent — resist crust dissolved. Flow rate returned to 15.0 ml/min.", primary: false },
-            { name: "Replace Nozzle Tip Insert", alertMessage: "Replacing nozzle tip insert — clog cleared. Flow: 15.1 ml/min (within spec).", primary: true },
-            { name: "Re-Teach Nozzle XY Position", alertMessage: "Re-teaching nozzle XY position. New coordinates: X = 148.5 mm ✓. Removal boundary verified on dummy wafer.", primary: false },
+            { name: "Refill Day-Tank DI Water", alertMessage: "Refilling DI water in day-tank — TMAH concentration returning to 2.38%. Conductivity stabilizing.", primary: false },
+            { name: "Recalibrate Blending System", alertMessage: "Recalibrating chemical blending controller — dilution ratio corrected to 2.38% TMAH setpoint.", primary: true },
+            { name: "Flush & Recirculate Day-Tank", alertMessage: "Flushing day-tank and recirculating at correct concentration — normality verified at 2.38%.", primary: false },
         ],
         ocapFlow: [
-            { title: "CONTAINMENT", desc: "Soft Lock active — complete current wafer, inhibit next load", btnLabel: "CONFIRM SOFT LOCK", btnClass: "", alertMsg: "Soft Lock confirmed. Current wafer completing. Next wafer load inhibited — particle contamination risk contained.", state: "completed" },
-            { title: "METROLOGY VERIFICATION", desc: "KLA scan — confirm edge defect cluster at 297–300 mm radius", btnLabel: "RUN KLA EDGE SCAN", btnClass: "", alertMsg: "KLA confirmed: >200 edge defects/wafer, clustered at 297–300 mm. Baseline <10. Both flow and position deviation confirmed.", state: "completed" },
-            { title: "ROOT CAUSE ANALYSIS", desc: "Identify nozzle clog, misalignment, or both as root cause", btnLabel: "FLAG RCA — NOZZLE", btnClass: "rca", alertMsg: "RCA Confirmed: Dual failure — dried resist clog (40% orifice blocked) + arm teach drift (-1.3 mm X-offset).", state: "active" },
-            { title: "HARDWARE RECOVERY", desc: "Replace nozzle tip + re-teach XY position. Run dummy wafer verification.", btnLabel: "REPLACE + RE-TEACH", btnClass: "recovery", alertMsg: "Nozzle tip replaced. XY re-taught to 148.5 mm. Dummy wafer: Flow = 15.1 ml/min, boundary correct.", state: "" },
-            { title: "DISPOSITION", desc: "Evaluate lot — wafers with residual PR edge flaking risk may need strip", btnLabel: "EVALUATE EDGE WAFERS", btnClass: "disposition", alertMsg: "5 wafers with residual PR edge confirmed by SEM — sent for strip. Remaining lot released after re-inspect.", state: "" },
-            { title: "VALIDATION", desc: "Run 3-wafer EBR validation — flow and edge defect count must be nominal", btnLabel: "RUN EBR VALIDATION", btnClass: "", alertMsg: "Validation complete: Flow = 15.0 ml/min, Edge defects <8/wafer → Tool status GREEN (PROD).", state: "" },
+            { title: "CONTAINMENT", desc: "Hold lot — prevent under/over-developed wafers from escaping to etch", btnLabel: "HOLD LOT", btnClass: "", alertMsg: "Lot on HOLD — dimensional excursion contained. CD-SEM review initiated.", state: "completed" },
+            { title: "METROLOGY VERIFICATION", desc: "CD-SEM review — confirm Line Slimming or Scumming pattern on wafers", btnLabel: "RUN CD-SEM REVIEW", btnClass: "", alertMsg: "CD-SEM confirmed: Line Slimming detected. Mean CD = 19.8 nm (target 22.0 nm) — high concentration confirmed.", state: "completed" },
+            { title: "ROOT CAUSE ANALYSIS", desc: "Identify blending system fault or day-tank evaporation as root cause", btnLabel: "FLAG RCA — BLENDING", btnClass: "rca", alertMsg: "RCA Confirmed: Day-tank DI water evaporation raised TMAH from 2.38% to 2.51%. Blending controller fault contributing.", state: "active" },
+            { title: "HARDWARE RECOVERY", desc: "Refill day-tank DI water + recalibrate blending controller", btnLabel: "REFILL + RECALIBRATE", btnClass: "recovery", alertMsg: "Day-tank refilled. Blending controller recalibrated. TMAH normality = 2.38% — conductivity nominal.", state: "" },
+            { title: "DISPOSITION", desc: "Re-develop affected wafers if within CD budget window", btnLabel: "RE-DEVELOP WAFERS", btnClass: "disposition", alertMsg: "Affected wafers re-developed at correct concentration. CD remeasured.", state: "" },
+            { title: "VALIDATION", desc: "Run 5-wafer lot — CD-SEM and conductivity trace must return to target", btnLabel: "RUN VALIDATION", btnClass: "", alertMsg: "Validation complete: CD = 22.0 nm, conductivity = 1.00 normalized → Tool status GREEN.", state: "" },
         ],
     },
+
+
+
+    // =============================================
+    // FM-005: EBR NOZZLE CLOG / MISALIGN (from Word doc)
+    // =============================================
+
 ];
 
 // =============================================
@@ -2870,18 +890,25 @@ function getScenario13Duty(dutyJump: number): number[][] {
     const dz2 = makeDuty(102, 48);
     const dz3 = makeDuty(103, 46);
     const dz5 = makeDuty(105, 52);
-    const dz4 = Array.from({ length: CHART_N }, (_, i) =>
-        i < dutyJump ? 38 + seededRand(203 + i)() * 6 : 100
-    );
+    const dz4 = Array.from({ length: CHART_N }, (_, i) => {
+        const rand = seededRand(203 + i);
+        if (i < dutyJump) {
+            // From start: zigzag erratically around 46% — merged with other zones
+            const zigzag = Math.sin(i * 1.5) * 3 + Math.sin(i * 3.2) * 2 + Math.cos(i * 2.1) * 2;
+            return Math.min(55, Math.max(38, 46 + zigzag + (rand() - 0.5) * 4));
+        } else {
+            // After failure: pinned flat at 100%
+            return 100;
+        }
+    });
     return [dz1, dz2, dz3, dz4, dz5];
 }
 
 function getScenario2Duty(): number[][] {
     const makeDuty = (seed: number, base: number) => {
         const rand = seededRand(seed);
-        return Array.from({ length: CHART_N }, (_, i) => {
-            const drift = (i / CHART_N) * 16;
-            return Math.min(68, Math.max(28, base + drift + (rand() - 0.5) * 10));
+        return Array.from({ length: CHART_N }, () => {
+            return Math.min(50, Math.max(28, base + (rand() - 0.5) * 6));
         });
     };
     const dz1 = makeDuty(101, 38);
@@ -3184,6 +1211,8 @@ const Failure: React.FC = () => {
     const waferMapCanvasRef = useRef<HTMLCanvasElement>(null);
     const newRtmCanvasRef = useRef<HTMLCanvasElement>(null);
     const newSpcCanvasRef = useRef<HTMLCanvasElement>(null);
+    const [scenario, setScenario] = useState<1 | 2 | 3>(1);
+    const [selectedRepair, setSelectedRepair] = useState('');
 
     const fm = FM_DATA[currentFM];
     const isPEB = currentFM === 0;
@@ -3338,9 +1367,9 @@ const Failure: React.FC = () => {
                     '#ffffff',
                     (ctx, sx, sy, W, H, pad) => {
                         const arrowTipX = sx(SPIKE_START + 55); const arrowTipY = sy(370);
-                        const labelX = arrowTipX + 6; const labelY = arrowTipY - 14;
+                        const labelX = arrowTipX - 12; const labelY = arrowTipY - 24;
                         ctx.beginPath(); ctx.moveTo(labelX + 2, labelY + 2); ctx.lineTo(arrowTipX, arrowTipY);
-                        ctx.strokeStyle = 'rgba(232,160,32,0.7)'; ctx.lineWidth = 1.1; ctx.setLineDash([]); ctx.stroke();
+                        ctx.strokeStyle = 'rgba(232,160,32,0.7)'; ctx.lineWidth = 2.1; ctx.setLineDash([]); ctx.stroke();
                         ctx.fillStyle = '#e8a020'; ctx.font = 'bold 9px "Share Tech Mono", monospace'; ctx.textAlign = 'left';
                         ctx.fillText('SEVERE TC SPIKES', labelX, labelY);
                     }
@@ -3382,7 +1411,7 @@ const Failure: React.FC = () => {
                         ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1; ctx.stroke();
                         const labelX = dotX + 10; const labelY = dotY + 16;
                         ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Share Tech Mono", monospace'; ctx.textAlign = 'left';
-                        ctx.fillText('FAILURE POINT:', labelX, labelY); ctx.fillText('HEATER FAIL', labelX, labelY + 12);
+                        ctx.fillText('', labelX, labelY); ctx.fillText('', labelX, labelY + 12);
                     },
                 );
             }
@@ -3484,55 +1513,6 @@ const Failure: React.FC = () => {
 
         return (
             <>
-                {/* FMEA Overview Card */}
-                <div className="nm-overview-grid">
-                    <div className="nm-overview-card">
-                        <div className="nm-card-label">FMEA SEVERITY SCORE</div>
-                        <div className={`nm-severity-badge nm-sev-${fm.severity.toLowerCase()}`}>{fm.fmeaScore}</div>
-                    </div>
-                    <div className="nm-overview-card nm-physics-card">
-                        <div className="nm-card-label">PHYSICS IMPACT</div>
-                        <div className="nm-physics-text">{fm.physicsImpact}</div>
-                    </div>
-                    <div className="nm-overview-card">
-                        <div className="nm-card-label">INTERLOCK TYPE</div>
-                        <div className={`nm-interlock-badge ${interlockColor}`}>
-                            {fm.interlockType === 'hard' ? '🔴 HARD LOCK' : '🟡 SOFT LOCK'}
-                        </div>
-                        <div className="nm-interlock-desc">{fm.interlock}</div>
-                    </div>
-                </div>
-
-                {/* Supporting Gauges */}
-                {fm.supportingGauges && (
-                    <div className="nm-gauges-row">
-                        <div className="nm-section-label">⬡ LIVE SENSOR GAUGES</div>
-                        <div className="nm-gauges-grid">
-                            {fm.supportingGauges.map((g, i) => (
-                                <div key={i} className={`nm-gauge-card nm-gauge-${g.status}`}>
-                                    <div className="nm-gauge-label">{g.label}</div>
-                                    <div className="nm-gauge-value">{g.value}</div>
-                                    <div className={`nm-gauge-status-dot nm-dot-${g.status}`} />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Zone Status */}
-                <div className="nm-zones-panel">
-                    <div className="nm-section-label">⬡ MODULE ZONE STATUS</div>
-                    <div className="nm-zones-grid">
-                        {fm.zones.map((z, idx) => (
-                            <div key={idx} className={`nm-zone-card nm-zone-${z.status}`}>
-                                <div className="nm-zone-label">{z.label}</div>
-                                <div className="nm-zone-value">{z.temp}</div>
-                                <div className="nm-zone-note">{z.note}</div>
-                                <div className={`nm-zone-indicator nm-zi-${z.status}`} />
-                            </div>
-                        ))}
-                    </div>
-                </div>
 
                 {/* Charts section */}
                 {(activeTab === null || activeTab === 'rtmspc') && (
@@ -3608,9 +1588,9 @@ const Failure: React.FC = () => {
                                     <div className="nm-chart-header">
                                         <span className="nm-chart-title">⬡ ACTIVE ALARM LOG</span>
 
-                                        <span className={`nm-alarm-count nm-alarm-count-${fm.alarms.some(a => a.level === 'critical') ? 'critical' : 'warning'}`}>
+                                        {/* <span className={`nm-alarm-count nm-alarm-count-${fm.alarms.some(a => a.level === 'critical') ? 'critical' : 'warning'}`}>
                                             {fm.alarms.length} ACTIVE
-                                        </span>
+                                        </span> */}
                                     </div>
 
                                     <div className="nm-alarm-list">
@@ -3634,15 +1614,24 @@ const Failure: React.FC = () => {
                             <div className="nm-chart-header">
                                 <span className="nm-chart-title">⬡ PROCESS SPC CHART Thikness Uniformity </span>
                                 <div className="nm-spc-stats">
-                                    <span className="nm-stat-chip">Cpk: {fm.spcCpk}</span>
-                                    <span className="nm-stat-chip nm-stat-red">{fm.spcSigma}</span>
+
+
                                 </div>
                             </div>
 
                             {fm.spcMetrics && (
                                 <div className="nm-spc-metrics">
                                     {fm.spcMetrics.map((m, i) => (
-                                        <span key={i} className="nm-spc-metric-chip">📊 {m}</span>
+                                        <span
+                                            key={i}
+                                            className={
+                                                m.includes("Offline")
+                                                    ? "nm-spc-metric-chip right-heading"
+                                                    : "nm-spc-metric-chip left-heading"
+                                            }
+                                        >
+                                            📊 {m}
+                                        </span>
                                     ))}
                                 </div>
                             )}
@@ -3738,7 +1727,7 @@ const Failure: React.FC = () => {
             <nav className="top-nav">
                 <div className="nav-logo">
                     <span className="logo-icon">⬡</span>
-                    <span>SEM<span className="accent">ATI</span></span>
+                    <span>SMa<span className="accent">RT</span></span>
                 </div>
                 <div className="nav-links">
                     <a href="#" className="nav-link">HOME</a>
@@ -3753,12 +1742,11 @@ const Failure: React.FC = () => {
 
             <div className="page-header">
                 <div>
-                    <div className="page-breadcrumb">SEMATI / MODULE 04</div>
-                    <div className="page-title">FAILURE MODE <span>SIMULATION</span></div>
+
+                    <div className="page-title">SMaRT  <span>Simulator</span></div>
                 </div>
                 <div className="header-stats">
-                    <div className="h-stat"><div className="h-stat-val">5</div><div className="h-stat-lbl">FMEA MODES</div></div>
-                    <div className="h-stat"><div className="h-stat-val">{fm.alarms.length}</div><div className="h-stat-lbl">ACTIVE ALARMS</div></div>
+
                     <div className="h-stat"><div className="h-stat-val">300mm</div><div className="h-stat-lbl">WAFER SIZE</div></div>
                 </div>
             </div>
@@ -3779,52 +1767,124 @@ const Failure: React.FC = () => {
                     ))}
                 </div>
 
-                {/* KEY INFO — UNCHANGED */}
-                <div className="row-key-info">
-                    <div className="key-info-label">⬡ KEY INFORMATION</div>
-                    <div className="key-info-content" dangerouslySetInnerHTML={{ __html: fm.keyInfo }} />
+                {/* KEY INFO + WAFER IMAGE SIDE BY SIDE */}
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                    <div className="row-key-info" style={{ flex: 1 }}>
+                        <div className="key-info-label">⬡ KEY INFORMATION</div>
+                        <div className="key-info-content" dangerouslySetInnerHTML={{ __html: fm.keyInfo }} />
+                    </div>
+
+                    {isPEB && (
+                        <div style={{ flexShrink: 0, width: '420px' }}>
+                            <Image
+                                src="/thermo-couple.png"
+                                alt="Thermocouple Image"
+                                width={320}
+                                height={300}
+                                style={{ width: '100%', height: '190px', borderRadius: '8px', display: 'block' }}
+                            />
+                        </div>
+                    )}
+                    {fm.name === "Resist Dispense Bubble" && (
+                        <div style={{ flexShrink: 0, width: '420px' }}>
+                            <Image
+                                src="/visualinspection3rdmdoule.png"
+                                alt="EBR Nozzle Clog/Misalign Image"
+                                width={320}
+                                height={300}
+                                style={{ width: '100%', height: '190px', borderRadius: '8px', display: 'block' }}
+                            />
+                        </div>
+                    )}
+
+                    {fm.name === "EBR Nozzle Clog/Misalign" && (
+                        <div style={{ flexShrink: 0, width: '420px' }}>
+                            <Image
+                                src="/clogdeffect3rdmodule.png"
+                                alt="EBR Nozzle Clog/Misalign Image"
+                                width={320}
+                                height={300}
+                                style={{ width: '100%', height: '190px', borderRadius: '8px', display: 'block' }}
+                            />
+                        </div>
+                    )}
+
+                    {fm.name === "Exhaust Fan Failure" && (
+                        <div style={{ flexShrink: 0, width: '420px' }}>
+                            <Image
+                                src="/viewthikness4thmodule.png"
+                                alt="EBR Nozzle Clog/Misalign Image"
+                                width={320}
+                                height={300}
+                                style={{ width: '100%', height: '190px', borderRadius: '8px', display: 'block' }}
+                            />
+                        </div>
+                    )}
+
+
+                    {fm.name === "Developer Concentration" && (
+                        <div style={{ flexShrink: 0, width: '420px' }}>
+                            <Image
+                                src="/regonia5thmodule.png"
+                                alt="EBR Nozzle Clog/Misalign Image"
+                                width={320}
+                                height={300}
+                                style={{ width: '100%', height: '190px', borderRadius: '8px', display: 'block' }}
+                            />
+                        </div>
+                    )}
                 </div>
 
-                {/* SCENARIOS — only shown for PEB module (unchanged) */}
-                <div className="row-scenarios">
-                    <button
-                        className={`scenario-btn ${isPEB && pebScenario === 1 ? 'active' : ''}`}
-                        onClick={() => isPEB && setPebScenario(pebScenario === 1 ? null : 1)}
-                        disabled={!isPEB}
-                        style={{ opacity: isPEB ? 1 : 0.4, cursor: isPEB ? 'pointer' : 'not-allowed' }}
-                    >
-                        <span className="scenario-num">SCENARIO 1</span>
-                        <span className="scenario-name">Failing Heating Element</span>
-                    </button>
-                    <button
-                        className={`scenario-btn ${isPEB && pebScenario === 2 ? 'active' : ''}`}
-                        onClick={() => isPEB && setPebScenario(pebScenario === 2 ? null : 2)}
-                        disabled={!isPEB}
-                        style={{ opacity: isPEB ? 1 : 0.4, cursor: isPEB ? 'pointer' : 'not-allowed' }}
-                    >
-                        <span className="scenario-num">SCENARIO 2</span>
-                        <span className="scenario-name">Broken Thermocouple</span>
-                    </button>
-                    <button
-                        className={`scenario-btn ${isPEB && pebScenario === 3 ? 'active' : ''}`}
-                        onClick={() => isPEB && setPebScenario(pebScenario === 3 ? null : 3)}
-                        disabled={!isPEB}
-                        style={{ opacity: isPEB ? 1 : 0.4, cursor: isPEB ? 'pointer' : 'not-allowed' }}
-                    >
-                        <span className="scenario-num">SCENARIO 3</span>
-                        <span className="scenario-name">Blown Solid State Relay (SSR)</span>
-                    </button>
-                    <div className="scenario-btn static-info-btn">
-                        <span className="scenario-num">LOT ID</span>
-                        <span className="scenario-name">{fm.lotId}</span>
-                        <span className="scenario-desc">Production Lot Information</span>
+                {/* SCENARIOS — show ONLY for PEB Temperature Drift */}
+                {fm.id === "FM-001" && (
+                    <div className="row-scenarios">
+                        <button
+                            className={`scenario-btn ${pebScenario === 1 ? 'active' : ''}`}
+                            onClick={() => setPebScenario(pebScenario === 1 ? null : 1)}
+                        >
+                            <span className="scenario-num">SCENARIO 1</span>
+                            <span className="scenario-name">
+                                Failing Heating Element
+                            </span>
+                        </button>
+                        <button
+                            className={`scenario-btn ${pebScenario === 2 ? 'active' : ''}`}
+                            onClick={() => setPebScenario(pebScenario === 2 ? null : 2)}
+                        >
+                            <span className="scenario-num">SCENARIO 2</span>
+                            <span className="scenario-name">
+                                Broken Thermocouple
+                            </span>
+                        </button>
+
+                        <button
+                            className={`scenario-btn ${pebScenario === 3 ? 'active' : ''}`}
+                            onClick={() => setPebScenario(pebScenario === 3 ? null : 3)}
+                        >
+                            <span className="scenario-num">SCENARIO 3</span>
+                            <span className="scenario-name">
+                                Blown Solid State Relay (SSR)
+                            </span>
+                        </button>
+
+                        <div className="lot-recipe-column">
+
+                            <div className="scenario-btn static-info-btn">
+                                <span className="scenario-text">
+                                    <strong>LOT ID :</strong> {fm.lotId}
+                                </span>
+                            </div>
+
+                            <div className="scenario-btn static-info-btn">
+                                <span className="scenario-text">
+                                    <strong>RECIPE :</strong> {fm.recipe}
+                                </span>
+                            </div>
+
+                        </div>
+
                     </div>
-                    <div className="scenario-btn static-info-btn">
-                        <span className="scenario-num">RECIPE</span>
-                        <span className="scenario-name">{fm.recipe}</span>
-                        <span className="scenario-desc">Current Process Recipe</span>
-                    </div>
-                </div>
+                )}
 
                 {/* Scenario info bar — PEB only, UNCHANGED */}
                 {pebSc && (
@@ -3836,26 +1896,33 @@ const Failure: React.FC = () => {
                 )}
 
                 {/* ACTION BUTTONS — UNCHANGED */}
-                <div className="row-zone-tabs">
-                    <button
-                        className={`zone-header-btn ${activeTab === 'rtmspc' ? 'active' : ''}`}
-                        onClick={() => setActiveTab(activeTab === 'rtmspc' ? null : 'rtmspc')}
-                    >
-                        ⬡ Equipment RTM / Process SPC chart
-                    </button>
-                    <button
-                        className={`zone-header-btn ${activeTab === 'troubleshooting' ? 'active' : ''}`}
-                        onClick={toggleTroubleshooting}
-                    >
-                        ⬡ EQUIPMENT TROUBLESHOOTING
-                    </button>
-                    <button
-                        className={`zone-header-btn ${activeTab === 'ocap' ? 'active' : ''}`}
-                        onClick={toggleOCAP}
-                    >
-                        ⬡ PROCESS OCAP
-                    </button>
-                </div>
+                {(!isPEB || pebScenario) && (
+                    <div className="row-zone-tabs">
+                        <button
+                            className={`zone-header-btn ${activeTab === 'rtmspc' ? 'active' : ''}`}
+                            onClick={() => setActiveTab(activeTab === 'rtmspc' ? null : 'rtmspc')}
+                        >
+                            ⬡ Equipment RTM / Process SPC chart
+                        </button>
+                        <button
+                            className={`zone-header-btn ${activeTab === 'troubleshooting' || activeTab === 'ocap'
+                                ? 'active'
+                                : ''
+                                }`}
+                            onClick={toggleTroubleshooting}
+                        >
+                            ⬡ Equipment troubleshooting, Process OCAP (Out of Control Action Plan)
+                        </button>
+                    </div>
+                )}
+
+                {/* PEB — no scenario selected: show prompt */}
+                {isPEB && !pebScenario && (
+                    <div className="peb-select-prompt">
+                        <span className="peb-prompt-icon">⬡</span>
+                        <span className="peb-prompt-text">Please select a scenario above to view RTM charts, SPC data, wafer map and troubleshooting tools</span>
+                    </div>
+                )}
 
                 {/* DANGER ZONE BANNER — PEB only, UNCHANGED */}
                 {isPEB && pebSc && (
@@ -3892,48 +1959,786 @@ const Failure: React.FC = () => {
                 ============================================= */}
                 {isNewModule && renderNewModule()}
 
-                {/* EQUIPMENT TROUBLESHOOTING — UNCHANGED STRUCTURE */}
-                {activeTab === 'troubleshooting' && (
+
+                {/* EQUIPMENT TROUBLESHOOTING — UNCHANGED STRUCTURE  1 st */}
+                {activeTab === 'troubleshooting' && isPEB && (
                     <div className="full-action-section">
-                        <div className="troubleshooting-block">
-                            <div className="action-section-header">
-                                <span className="action-section-title">⬡ EQUIPMENT TROUBLESHOOTING</span>
-                                <span className="action-section-sub">{fm.name}</span>
-                            </div>
-                            <div className="trouble-steps-grid">
-                                {fm.troubleshootingSteps.map((step, idx) => (
-                                    <div key={idx} className="trouble-item">
-                                        <div className="trouble-item-number">{String(idx + 1).padStart(2, '0')}</div>
-                                        <div className="trouble-item-body">
-                                            <div className="trouble-item-title">
-                                                <span className="trouble-item-icon">{step.icon}</span>
-                                                {step.title}
-                                            </div>
-                                            <div className="trouble-item-desc">{step.description}</div>
-                                            <button className="action-btn" onClick={() => alert(step.alertMessage)}>
-                                                {step.action}
+                        <div className="peb-ocap-panel">
+
+                            {/* ── LEFT COLUMN ── */}
+                            <div className="peb-ocap-left-col">
+
+                                {/* TOP PAIR: Containment + Verification side by side */}
+                                <div className="peb-ocap-top-pair">
+
+                                    {/* 1. Containment & Disposition */}
+                                    {/* 1. Containment & Disposition */}
+                                    <div className="peb-ocap-card peb-card-containment">
+                                        <div className="peb-card-title">Containment &amp; Disposition</div>
+
+                                        <div className="peb-card-body">
+                                            <button
+                                                className="peb-action-btn"
+                                                onClick={() =>
+                                                    alert('Perform Tool LOTO (Lock Out Tag Out); Scrap wafers')
+                                                }
+                                            >
+                                                Perform Tool LOTO (Lock Out Tag Out); Scrap wafers
                                             </button>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                            <div className="restore-section">
-                                <div className="restore-section-label">ACTIONS TO RESTORE CONDITION</div>
-                                <div className="restore-buttons">
-                                    {fm.restoreActions.map((a, idx) => (
-                                        <button
-                                            key={idx}
-                                            className={`restore-btn ${a.primary ? 'primary' : ''}`}
-                                            onClick={() => alert(a.alertMessage)}
-                                        >
-                                            {a.primary ? '★ ' : ''}{a.name}
-                                        </button>
-                                    ))}
+
+                                    {/* 2. Verification */}
+                                    {/* 2. Verification */}
+                                    <div className="peb-ocap-card peb-card-verification">
+                                        <div className="peb-card-title">Verification</div>
+
+                                        <div className="peb-card-body">
+                                            <button
+                                                className="peb-action-btn"
+                                                onClick={() =>
+                                                    alert('Re-measure wafer CD. Result: Same as 1st measurement; Troubleshoot tool')
+                                                }
+                                            >
+                                                Re-measure wafer CD. Result: Same as 1st measurement;
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 4. Root Cause Table — full left width below top pair */}
+                                <div className="peb-ocap-root-cause">
+                                    <div className="peb-rc-title">Root cause</div>
+                                    <div className="peb-rc-table-wrap">
+                                        <table className="peb-rc-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>ROOT CAUSE ANALYSIS</th>
+                                                    <th>ZONE 4 TEMPERATURE</th>
+                                                    <th>ZONE 4 DUTY CYCLE</th>
+                                                    <th>HEATER OHMIC TEST</th>
+                                                    <th>TC SENSOR OHMIC TEST</th>
+                                                    <th>SSR OHMIC TEST</th>
+                                                    <th>HEATER VISUAL INSPECTION</th>
+                                                    <th>CD (nm)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr className="peb-rc-row-heater">
+                                                    <td className="peb-rc-label">HEATER FAIL</td>
+                                                    <td className="peb-rc-cell-yellow">REDUCES TO AMBIENT</td>
+                                                    <td className="peb-rc-cell-yellow">PINNED AT 100%</td>
+                                                    <td className="peb-rc-cell-red peb-rc-open">OPEN</td>
+                                                    <td className="peb-rc-cell-green">OK</td>
+                                                    <td className="peb-rc-cell-green">OK</td>
+                                                    <td className="peb-rc-cell-red">BURN SPOT</td>
+                                                    <td className="peb-rc-cell-yellow">DOWN SHIFT, OOC</td>
+                                                </tr>
+                                                <tr className="peb-rc-row-tc">
+                                                    <td className="peb-rc-label">TC BROKEN</td>
+                                                    <td className="peb-rc-cell-yellow">FLUCTUATES</td>
+                                                    <td className="peb-rc-cell-yellow">FLUCTUATES</td>
+                                                    <td className="peb-rc-cell-green">OK</td>
+                                                    <td className="peb-rc-cell-red peb-rc-open">OPEN</td>
+                                                    <td className="peb-rc-cell-green">OK</td>
+                                                    <td className="peb-rc-cell-green">OK</td>
+                                                    <td className="peb-rc-cell-yellow">MORE VARIABILITY, OOC</td>
+                                                </tr>
+                                                <tr className="peb-rc-row-ssr">
+                                                    <td className="peb-rc-label">SSR FAIL</td>
+                                                    <td className="peb-rc-cell-yellow">REDUCES TO AMBIENT</td>
+                                                    <td className="peb-rc-cell-yellow">PINNED AT 100%</td>
+                                                    <td className="peb-rc-cell-green">OK</td>
+                                                    <td className="peb-rc-cell-green">OK</td>
+                                                    <td className="peb-rc-cell-red peb-rc-open">OPEN</td>
+                                                    <td className="peb-rc-cell-green">OK</td>
+                                                    <td className="peb-rc-cell-yellow">DOWN SHIFT, OOC</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* ── RIGHT COLUMN ── */}
+                            <div className="peb-ocap-right-col">
+
+                                {/* 3. Actions */}
+                                {/* 3. Actions */}
+                                <div className="peb-ocap-card peb-card-actions">
+                                    <div className="peb-card-title">Actions</div>
+
+                                    <div className="peb-actions-layout">
+
+                                        <div className="peb-action-buttons">
+
+                                            {/* Scenario 1 → Heater */}
+                                            <button
+                                                className="peb-action-btn"
+                                                onClick={() => {
+
+                                                    if (scenario === 1) {
+                                                        setSelectedRepair('heater');
+
+                                                        alert(
+                                                            'VALIDATION SUCCESS: Replacing faulty heater'
+                                                        );
+                                                    } else {
+                                                        alert(
+                                                            'ERROR: REPLACED PART DOES NOT MATCH FAILURE SCENARIO'
+                                                        );
+                                                    }
+
+                                                }}
+                                            >
+                                                Replace faulty heater
+                                            </button>
+
+
+                                            {/* Scenario 2 → Thermocouple */}
+                                            <button
+                                                className="peb-action-btn"
+                                                onClick={() => {
+
+                                                    if (scenario === 2) {
+                                                        setSelectedRepair('tc');
+
+                                                        alert(
+                                                            'VALIDATION SUCCESS: Replacing faulty Thermocouple'
+                                                        );
+                                                    } else {
+                                                        alert(
+                                                            'ERROR: REPLACED PART DOES NOT MATCH FAILURE SCENARIO'
+                                                        );
+                                                    }
+
+                                                }}
+                                            >
+                                                Replace faulty Thermocouple
+                                            </button>
+
+
+                                            {/* Scenario 3 → SSR */}
+                                            <button
+                                                className="peb-action-btn"
+                                                onClick={() => {
+
+                                                    if (scenario === 3) {
+                                                        setSelectedRepair('ssr');
+
+                                                        alert(
+                                                            'VALIDATION SUCCESS: Replacing faulty SSR'
+                                                        );
+                                                    } else {
+                                                        alert(
+                                                            'ERROR: REPLACED PART DOES NOT MATCH FAILURE SCENARIO'
+                                                        );
+                                                    }
+
+                                                }}
+                                            >
+                                                Replace faulty SSR
+                                            </button>
+
+                                        </div>
+
+                                        <div className="peb-action-detail">
+                                            <strong>Details of actions:</strong>
+
+                                            <p>
+                                                Replace relevant hardware element depending on
+                                                the selected failure scenario.
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                {/* 5. Validation */}
+                                <div className="peb-ocap-card peb-card-validation">
+                                    <div className="peb-card-title">Validation</div>
+                                    <div className="peb-validation-layout">
+                                        <div className="peb-validation-steps">
+                                            <button className="peb-action-btn" onClick={() => alert('Running 5-wafer Marathon test — all zones heating normally. Zone 4 temperature stable at 110.0°C ±0.1°C.')}>
+                                                Run 5 wafer Marathon test
+                                            </button>
+                                            <button className="peb-action-btn" onClick={() => alert('CD and CD uniformity measurement complete — both parameters returned to baseline. Tool status: GREEN (PROD).')}>
+                                                CD and CD uniformity back to baseline
+                                            </button>
+                                        </div>
+                                        <div className="peb-validation-chart">
+                                            <img
+                                                src="/cduniformityppt.png"
+                                                alt="CD CD Uniformity"
+                                                style={{ width: '200px', height: '110px', marginTop: '20px', objectFit: 'contain', borderRadius: '4px', display: 'block' }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 6. Release & Monitor */}
+                                {/* 6. Release & Monitor */}
+                                <div className="peb-ocap-card peb-card-release">
+                                    <div className="peb-card-title">Release &amp; Monitor</div>
+
+                                    <div className="peb-card-body">
+                                        <button
+                                            className="peb-action-btn"
+                                            onClick={() =>
+                                                alert('Release tool for production; Record OCAP data base')
+                                            }
+                                        >
+                                            Release tool for production; Record OCAP data base
+
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                            {/* ── END RIGHT COLUMN ── */}
+
                         </div>
                     </div>
                 )}
+
+
+                {/* EQUIPMENT TROUBLESHOOTING — FM-002 Resist Dispense Bubble 2nd  */}
+                {activeTab === 'troubleshooting' && fm.id === 'FM-002' && (
+                    <div className="full-action-section">
+                        <div className="rdb-ocap-panel">
+
+                            {/* ── LEFT COLUMN ── */}
+                            <div className="rdb-col-left">
+
+                                {/* Containment & Disposition */}
+                                <div className="rdb-card">
+                                    <div className="rdb-card-title">Containment &amp; Disposition</div>
+                                    <div className="rdb-card-body">
+                                        <p>Perform Tool LOTO<br />(Lock Out Tag Out);<br />Hold lot, Strip &amp; rework wafers</p>
+                                    </div>
+                                </div>
+
+                                {/* Root Cause */}
+                                <div className="rdb-card" style={{ flex: 1 }}>
+                                    <div className="rdb-card-title">Root cause</div>
+
+                                    {/* Text box */}
+                                    <div className="rdb-rc-textbox">
+                                        <p>1. Perform filter ΔP test to decide on filter replacement</p>
+                                    </div>
+
+                                    {/* HIGH ΔP Gauge SVG */}
+                                    <div className="rdb-deltap-wrap">
+                                        <svg viewBox="0 0 180 100" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', display: 'block' }}>
+                                            <rect width="180" height="100" fill="#0a0a0a" rx="6" />
+                                            <path d="M 22 82 A 68 68 0 0 1 158 82" fill="none" stroke="#1a1a1a" strokeWidth="16" strokeLinecap="round" />
+                                            <path d="M 22 82 A 68 68 0 0 1 158 82" fill="none" stroke="#ff1744" strokeWidth="16" strokeLinecap="round" strokeDasharray="215" strokeDashoffset="0" />
+                                            <path d="M 22 82 A 68 68 0 0 1 90 14" fill="none" stroke="#00c853" strokeWidth="16" strokeLinecap="round" />
+                                            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => {
+                                                const angle = (-180 + (i / 8) * 180) * Math.PI / 180;
+                                                return (
+                                                    <line key={i}
+                                                        x1={90 + 58 * Math.cos(angle)} y1={82 + 58 * Math.sin(angle)}
+                                                        x2={90 + 68 * Math.cos(angle)} y2={82 + 68 * Math.sin(angle)}
+                                                        stroke="#333" strokeWidth="1.5"
+                                                    />
+                                                );
+                                            })}
+                                            <line x1="90" y1="82" x2="152" y2="46" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+                                            <circle cx="90" cy="82" r="6" fill="#333" />
+                                            <circle cx="90" cy="82" r="3" fill="#ffffff" />
+                                            <text x="90" y="58" textAnchor="middle" fontSize="13" fontWeight="900" fill="#ff1744" fontFamily="monospace">HIGH</text>
+                                            <text x="90" y="72" textAnchor="middle" fontSize="11" fontWeight="700" fill="#ff5252" fontFamily="monospace">ΔP</text>
+                                            <text x="20" y="94" textAnchor="middle" fontSize="8" fill="#00c853" fontFamily="monospace">LOW</text>
+                                            <text x="160" y="94" textAnchor="middle" fontSize="8" fill="#ff1744" fontFamily="monospace">HIGH</text>
+                                            <rect width="178" height="98" x="1" y="1" fill="none" stroke="rgba(255,23,68,0.4)" strokeWidth="1.5" rx="5" />
+                                        </svg>
+                                    </div>
+
+
+                                </div>
+                            </div>
+
+                            {/* ── MIDDLE COLUMN ── */}
+                            <div className="rdb-col-mid">
+
+                                {/* Verification */}
+                                <div className="rdb-card">
+                                    <div className="rdb-card-title">Verification</div>
+                                    <div className="rdb-card-body">
+                                        <p>Perform wafer visual inspection and re-measure wafer Thickness uniformity. Result: Same as 1<sup>st</sup> measurement; Troubleshoot tool</p>
+                                    </div>
+                                </div>
+
+                                {/* Air pocket card */}
+                                <div className="rdb-card rdb-air-card">
+                                    <div className="rdb-card-body">
+                                        <p><strong>2. Air pocket – Empty resist bottle</strong></p>
+                                    </div>
+                                </div>
+
+                                {/* Supporting image */}
+                                <div className="rdb-mid-img-wrap">
+                                    <img
+                                        src="/resistbubblebottle.png"
+                                        alt="Resist Bottle & Degasser Gauge"
+                                        style={{ width: '100%', display: 'block', borderRadius: '5px', border: '1px solid rgba(0,229,255,0.18)' }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* ── RIGHT COLUMN ── */}
+                            <div className="rdb-col-right">
+
+                                {/* Actions card — full flex column */}
+                                <div className="rdb-card" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <div className="rdb-card-title">Actions</div>
+
+                                    {/* Action button 1 */}
+                                    <button className="rdb-action-btn" onClick={() => alert('Filter Prime initiated — Evacuate filter housing, saturate membrane with fresh resist, pressurize to remove microbubbles (<0.1 μm). Filter ΔP returned to nominal.')}>
+                                        <span className="rdb-action-num">1.</span>
+                                        Replace filter if high ΔP, Filter Prime – Evacuate, Saturate, Pressurize filter to remove microbubbles
+                                    </button>
+
+                                    {/* Action button 2 */}
+                                    <button className="rdb-action-btn" style={{ marginTop: '8px' }} onClick={() => alert('Bottle changed to fresh vented lot — Level restored to 100%.\nSystem purge: 5 dummy dispense cycles into drain. Pressure trace nominal at 15.0 PSI — no cavitation spikes.')}>
+                                        <span className="rdb-action-num">2.</span>
+                                        Change to fresh resist bottle; System purge – Dummy dispense 5x cycles to purge air pocket
+                                    </button>
+
+                                    <div style={{ flex: 1 }} />
+
+                                    {/* Validation */}
+                                    <div className="rdb-validation-section">
+                                        <div className="rdb-validation-title">Validation</div>
+                                        <div className="rdb-validation-row">
+                                            <div className="rdb-validation-btns">
+                                                <button className="rdb-validation-btn" onClick={() => alert('Running 3-wafer thickness check — dispense uniformity measuring across 49 points per wafer.')}>
+                                                    Run 3 wafer thickness check
+                                                </button>
+                                                <button className="rdb-validation-btn" onClick={() => alert('Wafer thickness uniformity: 0.8% (spec <1.0%) — returned to baseline. Tool status GREEN (PROD).')}>
+                                                    Wafer thickness uniformity back to baseline
+                                                </button>
+                                            </div>
+                                            <div className="rdb-green-badge">
+                                                <div className="rdb-badge-l1">THICKNESS UNIFORMITY</div>
+                                                <div className="rdb-badge-l2">RETURNS TO &lt; 1%</div>
+                                                <div className="rdb-badge-div" />
+                                                <div className="rdb-badge-l3">VALIDATION SUCCESS</div>
+                                                <div className="rdb-badge-l4">SYSTEM STATUS: GREEN (PROD)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Release & Monitor */}
+                                    <div className="rdb-release-section">
+                                        <div className="rdb-release-title">Release &amp; Monitor</div>
+                                        <div className="rdb-release-body">
+                                            <p>Release tool for production; Record OCAP data base</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
+
+
+
+
+
+                {activeTab === 'troubleshooting' && fm.id === 'FM-005' && (
+                    <div className="full-action-section">
+                        <div className="ebr-ocap-panel">
+
+                            {/* LEFT COLUMN */}
+                            <div className="ebr-col-left">
+                                <div className="ebr-card">
+                                    <div className="ebr-card-title">Containment &amp; Disposition</div>
+                                    <button className="ebr-clickable-btn" onClick={() => alert('Lock out / tag out EBR module. Hold lot. Strip & rework affected wafers.')}>
+                                        Perform Tool LOTO (Lock Out Tag Out); Hold lot, Strip &amp; rework wafers
+                                    </button>
+                                </div>
+
+                                <div className="ebr-card" style={{ flex: 1 }}>
+                                    <div className="ebr-card-title">Root cause</div>
+                                    <div className="ebr-rc-textbox">1. Perform solvent line pressure test — Flow drop</div>
+                                    <div className="ebr-rc-textbox">2. Perform misalignment test — Positional deviation</div>
+
+                                    <div className="ebr-misalign-badge">
+                                        <div className="ebr-misalign-title">MISALIGNMENT TEST</div>
+                                        <div className="ebr-misalign-sub">Positional X-Y Coordinates (mm)</div>
+                                        <div className="ebr-misalign-target-label">Target:</div>
+                                        <div className="ebr-misalign-val">148.5 mm</div>
+                                    </div>
+
+                                    <div style={{ marginTop: '10px', overflowX: 'auto' }}>
+                                        <table className="ebr-rc-table">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>EBR Nozzle Clog</th>
+                                                    <th>EBR Arm Misalignment</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td className="ebr-rc-label">EBR Flow</td><td className="ebr-cell-red">Deflected Spray</td><td className="ebr-cell-gray">Normal</td></tr>
+                                                <tr><td className="ebr-rc-label">EBR Position with respect to wafer</td><td className="ebr-cell-green">Aligned correctly</td><td className="ebr-cell-red">Misaligned, Offset</td></tr>
+                                                <tr><td className="ebr-rc-label">Pressure</td><td className="ebr-cell-red">High</td><td className="ebr-cell-gray">Normal</td></tr>
+                                                <tr><td className="ebr-rc-label">Flow</td><td className="ebr-cell-red">Low</td><td className="ebr-cell-gray">Normal</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* MIDDLE COLUMN */}
+                            <div className="ebr-col-mid">
+                                <div className="ebr-card">
+                                    <div className="ebr-card-title">Verification</div>
+                                    <button className="ebr-clickable-btn" onClick={() => alert('Perform wafer visual inspection and re-measure EBR width. Result: Same as 1st measurement. Troubleshoot tool.')}>
+                                        Perform wafer visual inspection and re-measure wafer EBR width. Result: Same as 1st measurement; Troubleshoot tool.
+                                    </button>
+                                    <button className="ebr-clickable-btn" onClick={() => alert('Run nozzle XY positional test. Confirm deviation in X or Y axis — positional delta drives arm re-teach procedure.')}>
+                                        Perform misalignment test — Positional deviation
+                                    </button>
+                                </div>
+
+                                <div className="ebr-card ebr-img-card">
+                                    <Image
+                                        src="/ebrcutline.png"
+                                        alt="EBR Cut-line Width 1.5mm"
+                                        width={400}
+                                        height={220}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px', display: 'block' }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* RIGHT COLUMN */}
+                            <div className="ebr-col-right">
+                                <div className="ebr-card" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <div className="ebr-card-title">Actions</div>
+
+                                    <button className="ebr-action-btn" onClick={() => alert('Replace the clogged EBR nozzle tip insert. Confirm flow rate returns to 15.0 ml/min. Run dummy wafer to verify removal boundary.')}>
+                                        <span className="ebr-action-num">1.</span> Replace EBR nozzle tip
+                                    </button>
+                                    <button className="ebr-action-btn" onClick={() => alert('Re-teach nozzle XY position to target 148.5 mm. Verify arm coordinates match recipe setpoint. Run dummy wafer EBR cycle.')}>
+                                        <span className="ebr-action-num">2.</span> Re-calibrate EBR nozzle arm to position the spray
+                                    </button>
+
+                                    <div className="ebr-action-detail">
+                                        <strong>Details of actions:</strong>
+                                        <p>Replace relevant hardware element or perform re-calibration depending on the scenario observed.</p>
+                                    </div>
+
+                                    <div style={{ flex: 1 }} />
+
+                                    {/* Validation */}
+                                    <div className="ebr-section-divider">
+                                        <div className="ebr-card-title" style={{ marginBottom: '8px' }}>Validation</div>
+                                        <div className="ebr-valid-row">
+                                            <div className="ebr-valid-btns">
+                                                <button className="ebr-action-btn" onClick={() => alert('Run EBR cycle on dummy wafer. Confirm flow 15.0 ml/min, boundary at 148.5 mm ±0.5 mm.')}>
+                                                    Run EBR width dummy wafer
+                                                </button>
+                                                <button className="ebr-action-btn" onClick={() => alert('EBR removal boundary confirmed 148.5 mm. Flow = 15.0 ml/min. Edge defects &lt;10/wafer. Tool: GREEN (PROD).')}>
+                                                    EBR width back to baseline
+                                                </button>
+                                            </div>
+                                            <div className="ebr-green-badge">
+                                                <div className="ebr-badge-l1">EBR WIDTH</div>
+                                                <div className="ebr-badge-l2">NOMINAL</div>
+                                                <div className="ebr-badge-div" />
+                                                <div className="ebr-badge-l3">VALIDATION OK</div>
+                                                <div className="ebr-badge-l4">STATUS: GREEN (PROD)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Release */}
+                                    <div className="ebr-section-divider">
+                                        <div className="ebr-card-title" style={{ marginBottom: '6px' }}>Release &amp; Monitor</div>
+                                        <button className="ebr-clickable-btn" onClick={() => alert('Release tool for production. Record OCAP entry in database.')}>
+                                            Release tool for production; Record OCAP data base
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
+
+
+
+                {/* 4th module */}
+
+                {activeTab === 'troubleshooting' && fm.id === 'FM-004' && (
+                    <div className="full-action-section">
+                        <div className="exf-ocap-panel">
+
+                            {/* ── LEFT COLUMN ── */}
+                            <div className="exf-col-left">
+
+                                {/* Containment & Disposition */}
+                                <div className="exf-card">
+                                    <div className="exf-card-title">Containment &amp; Disposition</div>
+                                    <button
+                                        className="exf-text-btn"
+                                        onClick={() => alert('Tool LOTO applied. Hard Lock confirmed — robot WPR inhibited. Lot on HOLD. Affected wafers flagged for strip & rework evaluation.')}
+                                    >
+                                        Perform Tool LOTO (Lock Out Tag Out);<br />Hold lot, Strip &amp; rework wafers
+                                    </button>
+                                </div>
+
+                                {/* Root Cause */}
+                                <div className="exf-card exf-card-grow exf-root-wide">
+                                    <div className="exf-card-title">Root cause</div>
+
+                                    <div className="exf-rc-textbox">1. Check for blockages in exhaust plenum</div>
+                                    <div className="exf-rc-textbox">2. Check exhaust fan RPM</div>
+
+                                    {/* Two side-by-side images: grates + RPM gauge */}
+                                    <div className="exf-rc-dual-img">
+
+                                        {/* Exhaust Grates image */}
+                                        <div className="exf-rc-img-wrap">
+                                            <Image
+                                                src="/gratesmodule.png"
+                                                alt="Exhaust Grates Buildup"
+                                                width={400}
+                                                height={220}
+                                                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '6px', display: 'block' }}
+                                            />
+                                        </div>
+
+                                        {/* Fan RPM gauge image */}
+                                        <div className="exf-rc-img-wrap">
+                                            <Image
+                                                src="/fanrpm4thmodule.png"
+                                                alt="Exhaust Fan RPM Gauge"
+                                                width={400}
+                                                height={220}
+                                                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '6px', display: 'block' }}
+                                            />
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ── MIDDLE COLUMN ── */}
+                            <div className="exf-col-mid">
+
+                                {/* Verification */}
+                                <div className="exf-card">
+                                    <div className="exf-card-title">Verification</div>
+                                    <button
+                                        className="exf-text-btn"
+                                        onClick={() => alert('Wafer thickness check complete. Airflow confirmed at 0.10 m/s (spec 0.50 m/s). Thickness: 5250 Å (+5% shift). Troubleshoot tool.')}
+                                    >
+                                        Perform wafer thickness check and re-measure wafer Thickness uniformity. Result: Same as 1<sup>st</sup>
+                                    </button>
+                                </div>
+
+                            </div>
+
+                            {/* ── RIGHT COLUMN ── */}
+                            <div className="exf-col-right">
+                                <div className="exf-card exf-card-full">
+                                    <div className="exf-card-title">Actions</div>
+
+                                    {/* Two action buttons side by side */}
+                                    <div className="exf-actions-row">
+                                        <button
+                                            className="exf-action-btn"
+                                            onClick={() => alert('Cleaning exhaust grates — removing built-up debris from plenum filter. Airflow restored to 0.50 m/s. Fan RPM nominal.')}
+                                        >
+                                            1. Clean exhaust grates
+                                        </button>
+                                        <button
+                                            className="exf-action-btn"
+                                            onClick={() => alert('Replacing exhaust motor — 45 min downtime. Fan RPM returning to 1750 RPM. Airflow: 0.52 m/s (within spec). Hard Lock released.')}
+                                        >
+                                            2. Replace exhaust motor
+                                        </button>
+                                    </div>
+
+                                    {/* Details of actions */}
+                                    <div className="exf-action-detail">
+                                        <strong>Details of actions:</strong>
+                                        <p>Clean parts or replace relevant hardware element depending on the scenario observed.</p>
+                                    </div>
+
+                                    {/* Validation */}
+                                    <div className="exf-section-sep">
+                                        <div className="exf-card-title" style={{ marginBottom: '8px' }}>Validation</div>
+
+                                        <div className="exf-valid-row">
+                                            <div className="exf-valid-btns">
+                                                <button
+                                                    className="exf-text-btn"
+                                                    onClick={() => alert('Running 3-wafer thickness check — measuring uniformity across 49 points per wafer. Fan running at nominal RPM.')}
+                                                >
+                                                    Run 3 wafer thickness check and dry monitor defect map
+                                                </button>
+                                                <button
+                                                    className="exf-text-btn"
+                                                    onClick={() => alert('Wafer thickness uniformity: 0.6% (within spec). Dry monitor defect map: CLEAN. Tool status GREEN (PROD).')}
+                                                >
+                                                    Wafer thickness uniformity back to baseline; Dry monitor defect map is clean
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Release & Monitor */}
+                                    <div className="exf-section-sep">
+                                        <div className="exf-card-title" style={{ marginBottom: '6px' }}>Release &amp; Monitor</div>
+                                        <button
+                                            className="exf-text-btn"
+                                            onClick={() => alert('Tool released for production. OCAP entry recorded in database. Hard Lock lifted — robot WPR re-enabled.')}
+                                        >
+                                            Release tool for production; Record OCAP data base
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
+
+
+
+
+
+                {activeTab === 'troubleshooting' && fm.id === 'FM-003' && (
+                    <div className="full-action-section">
+                        <div className="dev-ocap-panel">
+
+                            {/* LEFT COLUMN */}
+                            <div className="dev-col-left">
+
+                                <div className="dev-card">
+                                    <div className="dev-card-title">Containment &amp; Disposition</div>
+                                    <button className="dev-grey-btn" onClick={() => alert('Tool LOTO applied. Lot on HOLD. Affected wafers flagged for strip & rework evaluation.')}>
+                                        Perform Tool LOTO (Lock Out Tag Out); Hold lot, Strip &amp; rework wafers
+                                    </button>
+                                </div>
+
+                                <div className="dev-card dev-card-grow">
+                                    <div className="dev-card-title">Root cause</div>
+                                    <div className="dev-rc-row">
+                                        <button className="dev-grey-btn dev-rc-half" onClick={() => alert('[CDS LOG — ERROR] DI Water Flow Stopped — System Interlock triggered. Chemical Dispense System halted blending.')}>
+                                            1. Check blending system – DI water flow stopped
+                                        </button>
+                                        <button className="dev-grey-btn dev-rc-half" onClick={() => alert('[HEAT EXCHANGER STATUS: CRITICAL — HIGH TEMP] Chiller unit failure detected. Developer temperature out of spec.')}>
+                                            2. Check chiller temperature – Heat exchanger failure
+                                        </button>
+                                    </div>
+
+                                    {/* Two clickable image-style buttons */}
+                                    <div className="dev-rc-img-row">
+                                        <button className="dev-img-btn" onClick={() => alert('[CDS LOG — ERROR] DI WATER FLOW STOPPED — SYSTEM INTERLOCK.')}>
+                                            <div className="dev-img-btn-label">①</div>
+                                            <div className="dev-img-btn-screen">
+                                                <div className="dev-screen-header">[VIEW CDS LOG]</div>
+                                                <div className="dev-screen-body">[COS LOG - ERROR] DI WATER FLOW<br />STOPPED - SYSTEM INTERLOCK.</div>
+                                            </div>
+                                        </button>
+                                        <button className="dev-img-btn" onClick={() => alert('[HEAT EXCHANGER STATUS: CRITICAL — HIGH TEMP] Chiller failure confirmed. Replace heat exchanger unit.')}>
+                                            <div className="dev-img-btn-label">②</div>
+                                            <div className="dev-img-btn-screen dev-screen-red">
+                                                <div className="dev-screen-header">[CHILLER UNIT STATUS]</div>
+                                                <div className="dev-screen-body">[HEAT EXCHANGER STATUS:<br />CRITICAL - HIGH TEMP]</div>
+                                            </div>
+                                        </button>
+                                    </div>
+
+                                    <div className="dev-cds-note">CDS — Chemical dispense system</div>
+                                </div>
+                            </div>
+
+                            {/* MIDDLE COLUMN */}
+                            <div className="dev-col-mid">
+
+                                <div className="dev-card">
+                                    <div className="dev-card-title">Verification</div>
+                                    <button className="dev-grey-btn" onClick={() => alert('Developer chemical sampling initiated. Manual titration result: 2.48% TMAH Normality — HIGH SPEC confirmed.')}>
+                                        Test developer chemical sampling
+                                    </button>
+                                    {/* Titration result box */}
+                                    <div className="dev-titration-box">
+                                        <div className="dev-titration-label">[PERFORM MANUAL TITRATION]</div>
+                                        <div className="dev-titration-result">
+                                            <span className="dev-titration-result-line">Result:</span>
+                                            <span className="dev-titration-value">2.48% TMAH<br />Normality<br />(HIGH SPEC)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {/* RIGHT COLUMN */}
+                            <div className="dev-col-right">
+
+                                <div className="dev-card dev-card-full">
+                                    <div className="dev-card-title">Actions</div>
+
+                                    <button className="dev-action-btn" onClick={() => alert('Restoring DI water flow to chemical blending system. TMAH normality returning to 2.38% setpoint.')}>
+                                        1. Restore DI water flow
+                                    </button>
+                                    <button className="dev-action-btn" onClick={() => alert('Fixing heat exchanger — chiller unit replacement initiated. Developer temperature returning to 23.0°C ±0.2°C.')}>
+                                        2. Fix heat exchanger
+                                    </button>
+                                    <button className="dev-action-btn" onClick={() => alert('Flushing developer line — recirculating at correct concentration. Normality verified at 2.38%.')}>
+                                        Flush developer line
+                                    </button>
+
+                                    <div className="dev-action-detail">
+                                        <strong>Details of actions:</strong>
+                                        <p>Perform relevant actions #1 or #2 depending on the scenario observed and then flush developer line</p>
+                                    </div>
+
+                                    <div style={{ flex: 1 }} />
+
+                                    {/* Validation */}
+                                    <div className="dev-section-sep">
+                                        <div className="dev-card-title" style={{ marginBottom: '8px' }}>Validation</div>
+                                        <button className="dev-grey-btn" onClick={() => alert('Verify wafer CD: CD-SEM remeasurement complete. ADI inspection for pitting defects — No abnormalities found. Tool status GREEN.')}>
+                                            Verify wafer CD and ADI inspection for pitting defects. No abnormalities.
+                                        </button>
+                                    </div>
+
+                                    {/* Release & Monitor */}
+                                    <div className="dev-section-sep">
+                                        <div className="dev-release-row">
+                                            <div className="dev-release-label">Release &amp;<br />Monitor</div>
+                                            <button className="dev-grey-btn dev-release-btn" onClick={() => alert('Tool released for production. OCAP entry recorded in database.')}>
+                                                Release tool for production; Record OCAP data base
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
+
+
+
+
 
                 {/* PROCESS OCAP — UNCHANGED STRUCTURE */}
                 {activeTab === 'ocap' && (
@@ -3950,12 +2755,16 @@ const Failure: React.FC = () => {
                                         <div className="ocap-step-content">
                                             <div className="ocap-step-title">{step.title}</div>
                                             <div className="ocap-step-desc">{step.desc}</div>
-                                            <button
-                                                className={`ocap-step-btn ${step.btnClass}`}
-                                                onClick={() => alert(step.alertMsg)}
-                                            >
-                                                {step.btnLabel}
-                                            </button>
+                                            {idx === 0 && (
+
+                                                <button
+                                                    className={`ocap-step-btn ${step.btnClass}`}
+                                                    onClick={() => alert(step.alertMsg)}
+                                                >
+                                                    {step.btnLabel}
+                                                </button>
+
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -3976,7 +2785,7 @@ const Failure: React.FC = () => {
                 )}
 
                 {/* PEB CHARTS — only shown for PEB module, COMPLETELY UNCHANGED */}
-                {isPEB && (activeTab === null || activeTab === 'rtmspc') && (
+                {isPEB && pebScenario && (activeTab === null || activeTab === 'rtmspc') && (
                     <>
                         <div className="charts-wafer-layout">
                             <div className="charts-grid-2x2">
@@ -4143,7 +2952,6 @@ const Failure: React.FC = () => {
                         </div>
                     </>
                 )}
-
             </div>
         </div>
     );

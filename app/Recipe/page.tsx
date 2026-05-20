@@ -1,333 +1,215 @@
-﻿"use client";
-// Recipe.tsx
-import React, { useState, useEffect } from 'react';
-import '../Recipe.css';
+﻿
+"use client"
 
-type RecipeType = 'PEB Temperature Drift' | 'Resist Dispense Bubble' | 'EBR Nozzle Clog/Misalign' | 'Exhaust Fan Failure' | 'Developer Concentration';
+import { useState, useEffect, useCallback } from "react"
 
+// Types
 interface RecipeStep {
-  id: string;
-  name: string;
-  description: string;
-  order: number;
+  id: number
+  step: string
+  module: string
+  parameters: string
+  objective: string
 }
 
-const recipeStepsData: Record<RecipeType, RecipeStep[]> = {
-  'PEB Temperature Drift': [
-    { id: 'step1', name: 'Pre-Bake / Dehydration Bake', description: 'Thermally desorbs adsorbed water molecules from the wafer surface.', order: 1 },
-    { id: 'step2', name: 'HMDS Vapor Prime', description: 'Silylation reaction to convert surface to hydrophobic.', order: 2 },
-    { id: 'step3', name: 'Photoresist Coating', description: 'Spin coating of photoresist onto wafer surface.', order: 3 },
-    { id: 'step4', name: 'Soft Bake / PAB', description: 'Evaporates casting solvent to solidify the film.', order: 4 },
-    { id: 'step5', name: 'Exposure (Scanner)', description: 'Pattern transfer via light exposure.', order: 5 },
-    { id: 'step6', name: 'Post-Exposure Bake (PEB)', description: 'Acid-catalyzed deprotection reaction.', order: 6 },
-    { id: 'step7', name: 'Development', description: 'Selective dissolution of exposed resist.', order: 7 },
-    { id: 'step8', name: 'Hard Bake', description: 'Cross-linking for mechanical stability.', order: 8 }
-  ],
-  'Resist Dispense Bubble': [
-    { id: 'step1', name: 'Wafer Loading (EFEM)', description: 'FOUP opening and wafer mapping.', order: 1 },
-    { id: 'step2', name: 'Dehydration Bake', description: 'Surface moisture removal.', order: 2 },
-    { id: 'step3', name: 'Adhesion Promoter (HMDS)', description: 'Primer application.', order: 3 },
-    { id: 'step4', name: 'Resist Dispense', description: 'Bubble-free photoresist application.', order: 4 },
-    { id: 'step5', name: 'Spin Speed Ramp', description: 'Thickness uniformity control.', order: 5 },
-    { id: 'step6', name: 'Edge Bead Removal', description: 'Peripheral resist removal.', order: 6 },
-    { id: 'step7', name: 'Soft Bake', description: 'Solvent evaporation.', order: 7 }
-  ],
-  'EBR Nozzle Clog/Misalign': [
-    { id: 'step1', name: 'Mount Wafer on Chuck', description: 'Vacuum securement.', order: 1 },
-    { id: 'step2', name: 'Resist Dispense', description: 'Center dispense of photoresist.', order: 2 },
-    { id: 'step3', name: 'Spin to Spread', description: 'Low RPM spread cycle.', order: 3 },
-    { id: 'step4', name: 'Spin to Thickness', description: 'High RPM final thickness.', order: 4 },
-    { id: 'step5', name: 'EBR Application', description: 'Edge bead removal solvent spray.', order: 5 },
-    { id: 'step6', name: 'Backside Rinse', description: 'Clean wafer backside.', order: 6 }
-  ],
-  'Exhaust Fan Failure': [
-    { id: 'step1', name: 'Load Wafer', description: 'Transfer to coater bowl.', order: 1 },
-    { id: 'step2', name: 'Dispense Resist', description: 'Chemical application.', order: 2 },
-    { id: 'step3', name: 'Spin Cycle', description: 'Film thickness generation.', order: 3 },
-    { id: 'step4', name: 'Exhaust Flow', description: 'Solvent vapor removal.', order: 4 },
-    { id: 'step5', name: 'Edge Bead Removal', description: 'Solvent application.', order: 5 },
-    { id: 'step6', name: 'Transfer to Hotplate', description: 'Soft bake transfer.', order: 6 }
-  ],
-  'Developer Concentration': [
-    { id: 'step1', name: 'Post-Exposure Bake', description: 'Chemical amplification.', order: 1 },
-    { id: 'step2', name: 'Cool Down', description: 'Temperature stabilization.', order: 2 },
-    { id: 'step3', name: 'Developer Dispense', description: 'TMAH application.', order: 3 },
-    { id: 'step4', name: 'Puddle Development', description: 'Selective dissolution.', order: 4 },
-    { id: 'step5', name: 'DI Water Rinse', description: 'Development stop.', order: 5 },
-    { id: 'step6', name: 'Spin Dry', description: 'Wafer drying.', order: 6 },
-    { id: 'step7', name: 'Hard Bake', description: 'Final cross-linking.', order: 7 }
+// Recipe Steps Data (Standard ArF 193nm)
+const RECIPE_STEPS: RecipeStep[] = [
+  { id: 1, step: "Loading", module: "Load Port/EFEM", parameters: "FOUP Door Opener; N₂ Purge 5–10 LPM", objective: "Maintain ISO Class 1; prevent AMC" },
+  { id: 2, step: "Dehydration", module: "D-Bake", parameters: "150°C; 60s; Proximity 0.1mm", objective: "Desorb H₂O; expose Si-OH groups" },
+  { id: 3, step: "Adhesion", module: "HMDS Prime", parameters: "110°C; <1 Torr; 30s", objective: "Silylation; Contact Angle >70°" },
+  { id: 4, step: "Cooling", module: "Chill Plate", parameters: "22.0°C ±0.1°C; 45s", objective: "Normalize enthalpy for resist viscosity" },
+  { id: 5, step: "Dispense", module: "COT", parameters: "Dynamic Dispense; 500 RPM; 2.0cc", objective: "Minimize starvation; optimized suck-back" },
+  { id: 6, step: "Spin Coat", module: "COT", parameters: "1500–3000 RPM; Accel 20k RPM/s", objective: "Define film thickness" },
+  { id: 7, step: "EBR/WEE", module: "COT", parameters: "Solvent PGMEA; Backside/Edge Rinse", objective: "Remove edge bead; prevent comet defects" },
+  { id: 8, step: "Soft Bake", module: "PAB", parameters: "100–120°C; 60–90s", objective: "Drive off ~90% casting solvent" },
+  { id: 9, step: "Cooling", module: "Chill Plate", parameters: "22.0°C; 30s", objective: "Stabilize film before scanner transfer" },
+  { id: 10, step: "Interface", module: "IFB", parameters: "Optimized WPH handling speed", objective: "Manage TTE window; prevent contamination" },
+  { id: 11, step: "Exposure", module: "300mm Scanner", parameters: "193nm ArF; Dose 20–50 mJ/cm²", objective: "Generate PAGs in latent image" },
+  { id: 12, step: "PEB", module: "PEB Hotplate", parameters: "110°C (Critical); 60s", objective: "Acid-catalyzed deprotection; smooth standing waves" },
+  { id: 13, step: "Cooling", module: "Chill Plate", parameters: "22.0°C; 45s", objective: "Terminate deprotection; control CD" },
+  { id: 14, step: "Develop", module: "DEV", parameters: "2.38% TMAH; Puddle 30–60s", objective: "Selective dissolution of exposed polymer" },
+  { id: 15, step: "Rinse/Dry", module: "DEV/Spin Dry", parameters: "DIW Rinse; N₂ Purge; 4000 RPM", objective: "Remove salts; prevent water marks" },
+  { id: 16, step: "Hard Bake", module: "HP", parameters: "130°C; 60s", objective: "Cross-link polymer; increase etch resistance" },
+  { id: 17, step: "Unloading", module: "EFEM/FOUP 3", parameters: "Slot Verification; Lot End Signal", objective: "Finalize process log and SPC data" }
+]
+
+// LED Component — unchanged
+function LED({ color, pulse = false, size = "md" }: { color: "green" | "red" | "amber" | "cyan"; pulse?: boolean; size?: "sm" | "md" | "lg" }) {
+  const sizeClasses = { sm: "w-2 h-2", md: "w-3 h-3", lg: "w-4 h-4" }
+  const colorClasses = { green: "bg-green-500", red: "bg-red-500", amber: "bg-amber-500", cyan: "bg-cyan-500" }
+  return (
+    <div className={`rounded-full ${sizeClasses[size]} ${colorClasses[color]} ${pulse ? "animate-pulse" : ""}`} />
+  )
+}
+
+// Main Recipe Sequencer Component
+export function RecipeSequencer({ onComplete }: { onComplete?: () => void }) {
+  const [selectedRecipe, setSelectedRecipe] = useState<"A" | "B" | "C" | null>(null)
+  const [shuffledSteps, setShuffledSteps] = useState<RecipeStep[]>([])
+  const [draggedStep, setDraggedStep] = useState<number | null>(null)
+  const [completed, setCompleted] = useState(false)
+
+  const recipes = [
+    { id: "A" as const, name: "Standard ArF 193nm Positive Resist", steps: 17 },
+    { id: "B" as const, name: "i-Line 365nm Resist (Abbreviated)", steps: 12 },
+    { id: "C" as const, name: "NTD (Negative Tone Developer) Resist", steps: 15 }
   ]
-};
 
-const Recipe: React.FC = () => {
-  const [selectedRecipe, setSelectedRecipe] = useState<RecipeType>('PEB Temperature Drift');
-  const [randomSteps, setRandomSteps] = useState<RecipeStep[]>([]);
-  const [userSequence, setUserSequence] = useState<RecipeStep[]>([]);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
-
-  // Shuffle array function
-  const shuffleArray = (array: RecipeStep[]): RecipeStep[] => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  const shuffleSteps = useCallback(() => {
+    const steps = [...RECIPE_STEPS]
+    const swapCount = 3 + Math.floor(Math.random() * 3)
+    for (let i = 0; i < swapCount; i++) {
+      const idx1 = Math.floor(Math.random() * steps.length)
+      let idx2 = Math.floor(Math.random() * steps.length)
+      while (idx2 === idx1) { idx2 = Math.floor(Math.random() * steps.length) }
+      ;[steps[idx1], steps[idx2]] = [steps[idx2], steps[idx1]]
     }
-    return shuffled;
-  };
+    setShuffledSteps(steps)
+    setCompleted(false)
+  }, [])
 
-  // Generate random sequence with 3-5 wrong steps (positions swapped)
-  const generateRandomSequence = (correctSteps: RecipeStep[]): RecipeStep[] => {
-    const shuffled = shuffleArray(correctSteps);
-    const numWrong = Math.floor(Math.random() * 3) + 3; // 3 to 5 wrong placements
-    for (let i = 0; i < numWrong && i < shuffled.length - 1; i++) {
-      const swapIndex = Math.floor(Math.random() * (shuffled.length - 1)) + 1;
-      [shuffled[i], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[i]];
-    }
-    return shuffled;
-  };
-
-  // Initialize or reset sequence when recipe changes
   useEffect(() => {
-    const correctSteps = recipeStepsData[selectedRecipe];
-    const randomSeq = generateRandomSequence(correctSteps);
-    setRandomSteps(randomSeq);
-    setUserSequence([]);
-    setIsCorrect(null);
-  }, [selectedRecipe]);
+    if (selectedRecipe) shuffleSteps()
+  }, [selectedRecipe, shuffleSteps])
 
-  // Handle step click from random steps (add to user sequence)
-  const handleStepClick = (step: RecipeStep, index: number) => {
-    if (isCorrect === true) return;
-    
-    // Check if step already in user sequence
-    if (userSequence.some(s => s.id === step.id)) return;
-    
-    setUserSequence([...userSequence, step]);
-    setRandomSteps(randomSteps.filter((_, i) => i !== index));
-  };
+  const getCorrectCount = () => shuffledSteps.filter((step, idx) => step.id === idx + 1).length
 
-  // Remove step from user sequence
-  const handleRemoveStep = (step: RecipeStep, index: number) => {
-    if (isCorrect === true) return;
-    
-    setRandomSteps([...randomSteps, step]);
-    setUserSequence(userSequence.filter((_, i) => i !== index));
-  };
-
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, step: RecipeStep, fromUserSeq: boolean, index: number) => {
-    if (isCorrect === true) return;
-    e.dataTransfer.setData('text/plain', JSON.stringify({ step, fromUserSeq, index }));
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    setDragOverId(targetId);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverId(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, targetFromUserSeq: boolean, targetIndex?: number) => {
-    e.preventDefault();
-    setDragOverId(null);
-    if (isCorrect === true) return;
-
-    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-    const { step, fromUserSeq, index: sourceIndex } = data;
-
-    if (fromUserSeq) {
-      // Moving from user sequence to random steps
-      setUserSequence(userSequence.filter((_, i) => i !== sourceIndex));
-      setRandomSteps([...randomSteps, step]);
-    } else {
-      // Moving from random steps to user sequence
-      if (targetFromUserSeq) {
-        // Insert at specific position in user sequence
-        const newUserSeq = [...userSequence];
-        if (targetIndex !== undefined && targetIndex >= 0) {
-          newUserSeq.splice(targetIndex, 0, step);
-        } else {
-          newUserSeq.push(step);
-        }
-        setUserSequence(newUserSeq);
-        setRandomSteps(randomSteps.filter((_, i) => i !== sourceIndex));
-      } else {
-        // Just reorder within random steps? Not needed for now
-        setUserSequence([...userSequence, step]);
-        setRandomSteps(randomSteps.filter((_, i) => i !== sourceIndex));
-      }
-    }
-  };
-
-  // Check sequence correctness
-  const checkSequence = () => {
-    const correctSteps = recipeStepsData[selectedRecipe];
-    const isSeqCorrect = userSequence.length === correctSteps.length &&
-      userSequence.every((step, idx) => step.id === correctSteps[idx].id);
-    setIsCorrect(isSeqCorrect);
-  };
-
-  // Reset the exercise
-  const resetSequence = () => {
-    const correctSteps = recipeStepsData[selectedRecipe];
-    const randomSeq = generateRandomSequence(correctSteps);
-    setRandomSteps(randomSeq);
-    setUserSequence([]);
-    setIsCorrect(null);
-  };
-
-  // Toggle dark mode
   useEffect(() => {
-    document.body.classList.toggle('dark-mode', isDarkMode);
-  }, [isDarkMode]);
+    if (shuffledSteps.length > 0 && getCorrectCount() === 17 && !completed) {
+      setCompleted(true)
+      onComplete?.()
+    }
+  }, [shuffledSteps, completed, onComplete])
 
-  // Get correct order steps for reference
-  const correctSteps = recipeStepsData[selectedRecipe];
+  const handleDragStart = (idx: number) => setDraggedStep(idx)
+  const handleDragOver = (e: React.DragEvent) => e.preventDefault()
+  const handleDrop = (e: React.DragEvent, dropIdx: number) => {
+    e.preventDefault()
+    if (draggedStep === null) return
+    const newSteps = [...shuffledSteps]
+    const [dragged] = newSteps.splice(draggedStep, 1)
+    newSteps.splice(dropIdx, 0, dragged)
+    setShuffledSteps(newSteps)
+    setDraggedStep(null)
+  }
+
+  // ── RECIPE SELECTOR ──────────────────────────────────────────────
+  if (!selectedRecipe) {
+    return (
+      // ✅ CHANGED: added bg-slate-50 min-h-full p-6 to cover the full panel background
+      <div className="flex flex-col gap-6 h-full bg-slate-50 min-h-full p-6 rounded-lg">
+        <h2 className="font-display text-2xl font-semibold text-gray-800">Recipe Sequencer</h2>
+        <p className="text-gray-800">Select a recipe to begin the sequencing challenge:</p>
+
+        <div className="grid grid-cols-3 gap-4">
+          {recipes.map(recipe => (
+            <button
+              key={recipe.id}
+              onClick={() => setSelectedRecipe(recipe.id)}
+              // ✅ CHANGED: bg-gray-800/50 → bg-white/90  |  border-gray-700 → border-blue-200
+              className="bg-white/90 p-6 rounded-lg border-2 border-blue-200 hover:border-cyan-500 transition-all text-left"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-cyan-400 font-bold text-lg">Recipe {recipe.id}</span>
+                <LED color="amber" size="sm" />
+              </div>
+              <p className="text-gray-600 text-sm mb-2">{recipe.name}</p>
+              <span className="text-gray-400 text-xs">{recipe.steps} Steps</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // ── SEQUENCER VIEW ───────────────────────────────────────────────
+  const correctCount = getCorrectCount()
 
   return (
-    <div className={`recipe-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <div className="recipe-header">
-        <h1 className="recipe-title">Photoresist Coater-Developer Track</h1>
-        <div className="header-controls">
-          <button 
-            className="theme-toggle"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            aria-label="Toggle dark mode"
-          >
-            {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-          </button>
-          <div className="recipe-selector">
-            <label htmlFor="recipe-select">Select Recipe: </label>
-            <select
-              id="recipe-select"
-              value={selectedRecipe}
-              onChange={(e) => setSelectedRecipe(e.target.value as RecipeType)}
-              disabled={isCorrect === true}
-            >
-              <option value="PEB Temperature Drift">PEB Temperature Drift</option>
-              <option value="Resist Dispense Bubble">Resist Dispense Bubble</option>
-              <option value="EBR Nozzle Clog/Misalign">EBR Nozzle Clog/Misalign</option>
-              <option value="Exhaust Fan Failure">Exhaust Fan Failure</option>
-              <option value="Developer Concentration">Developer Concentration</option>
-            </select>
+    <div className="flex flex-col gap-4 h-full bg-slate-50 min-h-full p-6 rounded-lg">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-semibold text-gray-800">Recipe Sequencer</h2>
+          <span className="text-gray-800 text-sm">Recipe {selectedRecipe}: Standard ArF 193nm Positive Resist</span>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* ✅ CHANGED: bg-gray-800 → bg-white/90  |  border-gray-700 → border-blue-200 */}
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-white/90 rounded border border-blue-200">
+            <span className="text-gray-800 text-sm">Correct:</span>
+            <span className={`font-mono font-bold ${correctCount === 17 ? "text-green-400" : "text-amber-400"}`}>
+              {correctCount} / 17
+            </span>
           </div>
+          <button
+            onClick={shuffleSteps}
+            className="px-4 py-2 bg-amber-500 text-gray-900 font-bold rounded hover:bg-amber-400 transition-colors"
+          >
+            RESET
+          </button>
+          <button
+            onClick={() => setSelectedRecipe(null)}
+            className="px-4 py-2 border border-gray-700 text-gray-800 rounded hover:border-cyan-500 hover:text-gray-200 transition-colors"
+          >
+            Change Recipe
+          </button>
         </div>
       </div>
 
-      <div className="recipe-description">
-        <p>Arrange the process steps in the correct chronological order. Drag and drop or click steps to build the sequence.</p>
-        <div className="status-indicator">
-          <div className={`status-led ${isCorrect === true ? 'green' : isCorrect === false ? 'red' : 'gray'}`}></div>
-          <span>
-            {isCorrect === null ? 'Sequence not validated' : isCorrect ? '✓ Correct Sequence!' : '✗ Incorrect Sequence'}
-          </span>
+      {completed && (
+        <div className="bg-green-500/20 border border-green-500 rounded-lg p-4 flex items-center justify-center gap-3">
+          <LED color="green" pulse />
+          <span className="text-green-400 font-bold text-lg">SEQUENCE VALIDATED ✓</span>
+          <LED color="green" pulse />
         </div>
-      </div>
+      )}
 
-      <div className="sequence-container">
-        <div className="available-steps-panel">
-          <h2>Available Steps</h2>
-          <div className="steps-grid">
-            {randomSteps.map((step, idx) => (
+      <div className="flex-1 overflow-auto">
+        <div className="grid gap-2">
+          {shuffledSteps.map((step, idx) => {
+            const isCorrect = step.id === idx + 1
+            return (
               <div
                 key={step.id}
-                className="step-card draggable"
-                draggable={isCorrect !== true}
-                onDragStart={(e) => handleDragStart(e, step, false, idx)}
-                onDragOver={(e) => handleDragOver(e, `random-${step.id}`)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, false)}
-                onClick={() => handleStepClick(step, idx)}
+                draggable
+                onDragStart={() => handleDragStart(idx)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, idx)}
+                // ✅ CHANGED: bg-gray-800/50 → bg-white/90
+                className={`bg-white/90 p-3 rounded border-2 cursor-move transition-all
+                  ${isCorrect ? "border-green-500 bg-green-500/5" : "border-red-500 bg-red-500/5"}
+                  ${draggedStep === idx ? "opacity-50" : ""}`}
               >
-                <div className="step-order">{idx + 1}</div>
-                <div className="step-content">
-                  <h3>{step.name}</h3>
-                  <p>{step.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="user-sequence-panel">
-          <h2>Your Sequence (Correct Order)</h2>
-          <div 
-            className="sequence-list"
-            onDragOver={(e) => handleDragOver(e, 'user-sequence')}
-            onDragLeave={handleDragLeave}
-            onDrop={(e) => handleDrop(e, true)}
-          >
-            {userSequence.length === 0 ? (
-              <div className="empty-sequence">
-                <p>Drop steps here to build sequence</p>
-              </div>
-            ) : (
-              userSequence.map((step, idx) => (
-                <div
-                  key={step.id}
-                  className={`step-card sequence-step ${dragOverId === `user-${step.id}` ? 'drag-over' : ''}`}
-                  draggable={isCorrect !== true}
-                  onDragStart={(e) => handleDragStart(e, step, true, idx)}
-                  onDragOver={(e) => handleDragOver(e, `user-${step.id}`)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, true, idx)}
-                >
-                  <div className="step-order">{idx + 1}</div>
-                  <div className="step-content">
-                    <h3>{step.name}</h3>
-                    <p>{step.description}</p>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 min-w-[60px]">
+                    <LED color={isCorrect ? "green" : "red"} size="sm" />
+                    <span className="text-gray-500 font-mono text-sm">#{idx + 1}</span>
                   </div>
-                  {isCorrect !== true && (
-                    <button 
-                      className="remove-btn"
-                      onClick={() => handleRemoveStep(step, idx)}
-                      aria-label="Remove step"
-                    >
-                      ✕
-                    </button>
-                  )}
+                  <div className="flex-1 grid grid-cols-4 gap-4">
+                    <div>
+                      <span className="text-gray-500 text-[10px] uppercase">Step</span>
+                      <p className="text-gray-300 text-sm font-medium">{step.step}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 text-[10px] uppercase">Module</span>
+                      <p className="text-cyan-400 text-sm">{step.module}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 text-[10px] uppercase">Parameters</span>
+                      <p className="text-gray-400 text-xs">{step.parameters}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 text-[10px] uppercase">Objective</span>
+                      <p className="text-gray-400 text-xs">{step.objective}</p>
+                    </div>
+                  </div>
                 </div>
-              ))
-            )}
-          </div>
+              </div>
+            )
+          })}
         </div>
       </div>
-
-      <div className="action-buttons">
-        <button 
-          className="btn btn-primary" 
-          onClick={checkSequence}
-          disabled={userSequence.length !== randomSteps.length + userSequence.length}
-        >
-          Validate Sequence
-        </button>
-        <button className="btn btn-secondary" onClick={resetSequence}>
-          Reset
-        </button>
-      </div>
-
-      {isCorrect === true && (
-        <div className="success-message">
-          <h3>✅ Recipe Sequence Correct!</h3>
-          <p>The tool is now ready for production. LED is GREEN.</p>
-        </div>
-      )}
-      {isCorrect === false && (
-        <div className="error-message">
-          <h3>⚠️ Incorrect Sequence</h3>
-          <p>Please review the process flow and try again. LED is RED.</p>
-          <button className="btn btn-secondary" onClick={resetSequence}>
-            Try Again
-          </button>
-        </div>
-      )}
     </div>
-  );
-};
+  )
+}
 
-export default Recipe;
+export default RecipeSequencer
