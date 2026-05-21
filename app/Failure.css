@@ -1350,7 +1350,7 @@
 /* RTM image — fits perfectly inside card, no overflow */
 .nm-rtm-image-wrapper {
   width: 100%;
-  height: 175px;
+  height: 270px;
   border-radius: 10px;
   overflow: hidden;
   background: var(--panel2);
@@ -1362,7 +1362,7 @@
 
 .nm-rtm-image {
   width: 100% !important;
-  height: 160px !important;  /* ← CHANGE THIS */
+  height: 245px !important;  /* ← CHANGE THIS */
   display: block;
   object-fit: fill;         /* ← CHANGE contain → cover */
 }
@@ -1400,7 +1400,7 @@
 /* Alarm image wrapper — properly sized, no overflow */
 .nm-alarm-image-wrapper {
   width: 100%;
-  height: 250px;
+  height: 370px;
   border-radius: 10px;
   overflow: hidden;
   background: var(--panel2);
@@ -1513,7 +1513,7 @@
 /* SPC image card */
 .nm-spc-image-wrapper {
   width: 100%;
-  height: 260px;
+  height: 280px;
   border-radius: 10px;
   overflow: hidden;
   background: var(--panel2);
@@ -1562,7 +1562,7 @@
 
 .nm-offline-image {
   width: 100% !important;
-  height: 90% !important;
+  height: 100% !important;
   display: block;
   object-fit: fill;
 }
@@ -1706,12 +1706,28 @@
 ============================================= */
 .peb-ocap-panel {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr; /* exact left 50% and right 50% */
+    gap: 16px;
     padding: 20px;
     background: var(--bg, #111927);
     border: 1px solid var(--border, rgba(0,229,255,0.15));
     border-radius: 8px;
+    align-items: start;
+}
+
+.peb-ocap-left-col,
+.peb-ocap-right-col {
+    width: 100%;
+    min-width: 0;
+}
+
+.peb-rc-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.peb-rc-table {
+    min-width: 720px;
 }
 
 /* LEFT COLUMN wrapper */
@@ -1879,10 +1895,11 @@
 
 .peb-rc-table {
     width: 100%;
+    min-width: 100%;
     border-collapse: collapse;
-    font-size: 11px;
+    font-size: 9px;
     font-family: 'Share Tech Mono', monospace;
-    min-width: 720px;
+    table-layout: fixed;
 }
 
 .peb-rc-table thead tr {
@@ -1894,13 +1911,10 @@
 }
 
 .peb-rc-table th {
-    padding: 8px 10px;
-    text-align: center;
-    font-size: 10px;
-    letter-spacing: 0.04em;
-    color: var(--text, #c8d8e8);
-    border: 1px solid rgba(0,229,255,0.12);
-    white-space: nowrap;
+    padding: 6px 14px;
+    font-size: 8px;
+    white-space: normal;
+    word-break: break-word;
 }
 
 [data-theme='light'] .peb-rc-table th {
@@ -1909,12 +1923,9 @@
 }
 
 .peb-rc-table td {
-    padding: 9px 10px;
-    text-align: center;
-    border: 1px solid rgba(255,255,255,0.06);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    padding: 7px 4px;
+    font-size: 9px;
+    word-break: break-word;
 }
 
 [data-theme='light'] .peb-rc-table td {
@@ -2158,7 +2169,7 @@
 
 /* Misalignment badge */
 .ebr-misalign-badge {
-    background: #111;
+    background: #ffffff;
     border: 1.5px solid #ff4444;
     border-radius: 6px;
     padding: 10px 12px;
@@ -2169,7 +2180,7 @@
 .ebr-misalign-title {
     font-size: 10px;
     font-weight: 700;
-    color: #ccc;
+    color: #000000;
     letter-spacing: 0.08em;
     margin-bottom: 2px;
     font-family: 'Share Tech Mono', monospace;
@@ -2177,14 +2188,14 @@
 
 .ebr-misalign-sub {
     font-size: 9px;
-    color: #aaa;
+    color: #000000;
     margin-bottom: 6px;
     font-family: 'Share Tech Mono', monospace;
 }
 
 .ebr-misalign-target-label {
     font-size: 9px;
-    color: #aaa;
+    color: #000000;
     font-family: 'Share Tech Mono', monospace;
     margin-bottom: 2px;
 }
@@ -2551,12 +2562,12 @@
     height: 170px;
     border-radius: 6px;
     overflow: hidden;
-    border: 1px solid rgba(0, 229, 255, 0.15);
-    background: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #ffffff;
 }
 
 [data-theme='light'] .exf-rc-img-wrap {
-    border-color: rgba(0, 80, 160, 0.18);
+    border-color: rgba(255, 255, 255, 0.18);
     background: #f0f4f8;
 }
 
@@ -2798,7 +2809,7 @@
 
 .dev-img-btn {
     position: relative;
-    background: #0a0a0a;
+    background: #ffffff;
     border: 1.5px solid rgba(0,229,255,0.35);
     border-radius: 5px;
     padding: 8px 10px 10px;
@@ -3695,4 +3706,72 @@
   margin-bottom: 6px; 
   margin-right:20px;
 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Only for FM-002 / FM-003 / FM-004 / FM-005 */
+.new-module-zone-tabs {
+  margin-top: -82px;      /* move buttons top */
+  width: 50%;             /* make full box smaller */
+  margin-left: 0;
+}
+
+.new-module-zone-tabs .zone-header-btn {
+  padding: 10px 16px;     /* reduce height */
+  font-size: 10px;
+  border-radius: 8px;
+}
+
+
+
+
+
+
+
+
+
+
+/* LOT ID + RECIPE only for FM-002 / FM-003 / FM-004 / FM-005 */
+.new-module-lot-recipe {
+  position: absolute;
+  left: 810px;
+  top: 390px;   /* little top align */
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.new-module-lot-recipe .static-info-btn {
+  top: 0 !important;
+  height: 32px !important;
+  min-height: 32px !important;
+}
+
+/* FM-002 ONLY — RTM + Alarm panels take 70% width, 30% right space */
+.fm002-charts-row {
+  grid-template-columns: 1fr 1fr 0.857fr !important;
+}
+
+.fm002-charts-row > .nm-spc-panel {
+  grid-column: 1 / -1;
 }

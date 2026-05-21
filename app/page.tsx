@@ -24036,8 +24036,6 @@ import {
 
 
 
-
-
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // and remove the require() inside buildRobotGLB — use the import instead
@@ -26897,6 +26895,687 @@ function buildInfoBox(scene: THREE.Scene) {
 // }
 
 
+// class SpinCoatAnimator {
+//   group: THREE.Group;
+//   spinChuck: THREE.Group;
+//   spinDisc: THREE.Mesh;
+//   resistRings: THREE.Mesh[] = [];
+//   resistGroup: THREE.Group;
+//   bowl: THREE.Mesh;
+  
+//   // ── SWING ARM ASSEMBLY ──
+//   pivotPost: THREE.Mesh;        // fixed vertical column
+//   swingBar: THREE.Group;        // rotates around pivot post (origin at post)
+//   valveBody: THREE.Mesh;
+//   nozzleTip: THREE.Mesh;
+//   tipGlow: THREE.Mesh;
+  
+//   // ── CONTINUOUS STREAM ──
+//   liquidStream: THREE.Mesh;
+//   streamMat: THREE.MeshStandardMaterial;
+  
+//   // ── SPIRAL TRAIL PATTERN ──
+//   spiralCanvas!: HTMLCanvasElement;
+//   spiralCtx!: CanvasRenderingContext2D;
+//   spiralTex!: THREE.CanvasTexture;
+//   spiralMesh!: THREE.Mesh;
+//   spiralAngle = 0;
+
+//   phase: "idle"|"swing_in"|"dispense"|"spinup"|"coating"|"swing_out"|"spindown"|"done" = "idle";
+//   phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
+//   resistRadius = 0; coatColor = 0x9922ff; active = false;
+  
+// 	// ── SWING DIRECTION / TUNING ──
+// 	readonly SWING_PARKED = Math.PI;     // 180° — arm points away from chuck
+// 	readonly SWING_OVER   = 0;           // 0° — arm points +X toward chuck
+//   swingAngle = Math.PI;
+
+//   readonly CHUCK_Y = 0.35;
+//   readonly POST_HEIGHT = 2.0;
+//   readonly POST_X = -1.3;
+//   readonly POST_Z = 0.0;
+//   readonly BAR_LENGTH = 1.4;
+//   readonly NOZZLE_DROP = 0.5;
+//   readonly TIP_DROP = 0.8;
+
+//   constructor(scene: THREE.Scene) {
+//     this.group = new THREE.Group();
+//     scene.add(this.group);
+//     this.group.visible = false;
+
+//     // ── BOWL (small, low profile) ──
+//     const bowlMat = new THREE.MeshStandardMaterial({
+//       color: 0xeef3f8,
+//       roughness: 0.28,
+//       metalness: 0.05,
+//     });
+//     this.bowl = new THREE.Mesh(
+//       new THREE.CylinderGeometry(1.4, 1.4, 0.25, 64, 1, true),
+//       bowlMat
+//     );
+//     this.bowl.position.y = 0.6;
+//     this.group.add(this.bowl);
+
+//     // Bowl ridges
+//     for (let i = 0; i < 5; i++) {
+//       const r = 1.1 + i * 0.08;
+//       const ridge = new THREE.Mesh(
+//         new THREE.TorusGeometry(r, 0.018, 8, 64),
+//         new THREE.MeshStandardMaterial({ color: 0xdde8f0, roughness: 0.3, metalness: 0.1 })
+//       );
+//       ridge.rotation.x = Math.PI / 2;
+//       ridge.position.y = 0.38 + i * 0.04;
+//       this.group.add(ridge);
+//     }
+
+//     const baseRing = new THREE.Mesh(
+//       new THREE.RingGeometry(0.95, 1.4, 64),
+//       new THREE.MeshStandardMaterial({
+//         color: 0xe8eef5,
+//         roughness: 0.22,
+//         metalness: 0.08,
+//         side: THREE.DoubleSide,
+//       })
+//     );
+//     baseRing.rotation.x = -Math.PI / 2;
+//     baseRing.position.y = 0.01;
+//     this.group.add(baseRing);
+
+//     // ── SPIN CHUCK ──
+//     this.spinChuck = new THREE.Group();
+//     this.spinChuck.position.y = this.CHUCK_Y;
+//     this.group.add(this.spinChuck);
+    
+//     this.spinDisc = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.92, 0.92, 0.08, 80),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x556677,
+//         roughness: 0.12,
+//         metalness: 0.92,
+//         emissive: 0x223355,
+//         emissiveIntensity: 0.4,
+//       })
+//     );
+//     this.spinDisc.position.y = 0;
+//     this.spinChuck.add(this.spinDisc);
+
+//     for (let i = 0; i < 6; i++) {
+//       const a = (i / 6) * Math.PI * 2;
+//       const port = new THREE.Mesh(
+//         new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12),
+//         new THREE.MeshStandardMaterial({
+//           color: 0x111122,
+//           emissive: 0x004488,
+//           emissiveIntensity: 1.0,
+//         })
+//       );
+//       port.position.set(Math.cos(a) * 0.65, 0.06, Math.sin(a) * 0.65);
+//       this.spinChuck.add(port);
+//     }
+
+//     // ── RESIST RING LAYERS ──
+//     this.resistGroup = new THREE.Group();
+//     this.resistGroup.position.y = 0.05;
+//     this.spinChuck.add(this.resistGroup);
+//     const numRings = 18;
+//     for (let i = 0; i < numRings; i++) {
+//       const r0 = (i / numRings) * 0.88, r1 = ((i + 1) / numRings) * 0.88;
+//       const ring = new THREE.Mesh(
+//         new THREE.RingGeometry(r0, r1, 64),
+//         new THREE.MeshStandardMaterial({
+//           color: 0x9922ff, emissive: 0x5511aa, emissiveIntensity: 0.6,
+//           roughness: 0.15, metalness: 0.05, transparent: true, opacity: 0,
+//           side: THREE.DoubleSide, depthWrite: false,
+//         })
+//       );
+//       ring.rotation.x = -Math.PI / 2;
+//       ring.position.y = 0.001 * i;
+//       this.resistGroup.add(ring);
+//       this.resistRings.push(ring);
+//     }
+
+//     // ── SPIRAL PATTERN ──
+//     this.spiralCanvas = document.createElement("canvas");
+//     this.spiralCanvas.width = 512;
+//     this.spiralCanvas.height = 512;
+//     this.spiralCtx = this.spiralCanvas.getContext("2d")!;
+//     this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
+    
+//     this.spiralMesh = new THREE.Mesh(
+//       new THREE.CircleGeometry(0.88, 80),
+//       new THREE.MeshBasicMaterial({
+//         map: this.spiralTex,
+//         transparent: true,
+//         opacity: 0,
+//         depthWrite: false,
+//         side: THREE.DoubleSide,
+//       })
+//     );
+//     this.spiralMesh.rotation.x = -Math.PI / 2;
+//     this.spiralMesh.position.y = 0.08;
+//     this.spiralMesh.renderOrder = 10;
+//     this.spinChuck.add(this.spiralMesh);
+
+//     // ══════════════════════════════════════════════════════════════════════
+//     // ── DISPENSE ARM ASSEMBLY — fully grounded on module surface ──
+//     // ══════════════════════════════════════════════════════════════════════
+    
+//     // ── 1. LARGE BASE PEDESTAL ──
+//     const basePedestal = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.32, 0.38, 0.5, 24),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x2a3340,
+//         roughness: 0.30,
+//         metalness: 0.88,
+//         emissive: 0x0a1525,
+//         emissiveIntensity: 0.4,
+//       })
+//     );
+//     basePedestal.position.set(this.POST_X, 0.25, this.POST_Z);
+//     basePedestal.castShadow = true;
+//     this.group.add(basePedestal);
+
+//     // ── 2. PEDESTAL TOP CAP ──
+//     const pedestalCap = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.34, 0.32, 0.06, 24),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x556677,
+//         roughness: 0.18,
+//         metalness: 0.95,
+//         emissive: 0x112233,
+//         emissiveIntensity: 0.3,
+//       })
+//     );
+//     pedestalCap.position.set(this.POST_X, 0.53, this.POST_Z);
+//     this.group.add(pedestalCap);
+
+//     // ── 3. CIRCULAR MOUNTING BOLTS around pedestal cap ──
+//     for (let i = 0; i < 8; i++) {
+//       const angle = (i / 8) * Math.PI * 2;
+//       const bx = this.POST_X + Math.cos(angle) * 0.28;
+//       const bz = this.POST_Z + Math.sin(angle) * 0.28;
+      
+//       const bolt = new THREE.Mesh(
+//         new THREE.CylinderGeometry(0.025, 0.025, 0.03, 6),
+//         new THREE.MeshStandardMaterial({
+//           color: 0x222233,
+//           metalness: 0.98,
+//           roughness: 0.2,
+//         })
+//       );
+//       bolt.position.set(bx, 0.57, bz);
+//       this.group.add(bolt);
+//     }
+
+//     // ── 4. GLOWING STATUS RING around pedestal ──
+//     const statusRing = new THREE.Mesh(
+//       new THREE.TorusGeometry(0.36, 0.025, 8, 32),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x00ddff,
+//         emissive: 0x00aaff,
+//         emissiveIntensity: 2.0,
+//         roughness: 0.3,
+//       })
+//     );
+//     statusRing.rotation.x = Math.PI / 2;
+//     statusRing.position.set(this.POST_X, 0.10, this.POST_Z);
+//     this.group.add(statusRing);
+
+//     // ── 5. HORIZONTAL CABLE TRAY from pedestal toward module body ──
+//     const cableTray = new THREE.Mesh(
+//       new THREE.BoxGeometry(0.6, 0.08, 0.15),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x1c2530,
+//         roughness: 0.4,
+//         metalness: 0.7,
+//       })
+//     );
+//     cableTray.position.set(this.POST_X + 0.35, 0.06, this.POST_Z);
+//     this.group.add(cableTray);
+
+//     // Cable tray cover with vents
+//     const cableTrayCover = new THREE.Mesh(
+//       new THREE.BoxGeometry(0.58, 0.02, 0.12),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x445566,
+//         roughness: 0.25,
+//         metalness: 0.85,
+//       })
+//     );
+//     cableTrayCover.position.set(this.POST_X + 0.35, 0.11, this.POST_Z);
+//     this.group.add(cableTrayCover);
+
+//     // ── 6. FLEXIBLE CONDUIT (visible cables going up into post) ──
+//     for (let i = 0; i < 3; i++) {
+//       const cable = new THREE.Mesh(
+//         new THREE.CylinderGeometry(0.018, 0.018, 0.35, 6),
+//         new THREE.MeshStandardMaterial({
+//           color: i === 0 ? 0x1a1a1a : i === 1 ? 0x2a1a1a : 0x1a1a2a,
+//           roughness: 0.7,
+//           metalness: 0.15,
+//         })
+//       );
+//       cable.position.set(
+//         this.POST_X + 0.08 + i * 0.04, 
+//         0.35, 
+//         this.POST_Z - 0.05
+//       );
+//       cable.rotation.z = Math.PI / 40;
+//       this.group.add(cable);
+//     }
+
+//     // ── 7. THE PIVOT POST (clearly attached to pedestal cap) ──
+//     this.pivotPost = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.07, 0.09, this.POST_HEIGHT, 16),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x37404a,
+//         roughness: 0.12,
+//         metalness: 0.95,
+//       })
+//     );
+//     this.pivotPost.position.set(
+//       this.POST_X, 
+//       0.56 + this.POST_HEIGHT / 2, 
+//       this.POST_Z
+//     );
+//     this.group.add(this.pivotPost);
+
+//     // ── 8. POST REINFORCEMENT BANDS (3 rings around post for industrial look) ──
+//     [0.3, 0.6, 0.9].forEach((frac) => {
+//       const band = new THREE.Mesh(
+//         new THREE.TorusGeometry(0.075, 0.012, 6, 16),
+//         new THREE.MeshStandardMaterial({
+//           color: 0x556677,
+//           metalness: 0.95,
+//           roughness: 0.2,
+//         })
+//       );
+//       band.rotation.x = Math.PI / 2;
+//       band.position.set(
+//         this.POST_X, 
+//         0.56 + this.POST_HEIGHT * frac, 
+//         this.POST_Z
+//       );
+//       this.group.add(band);
+//     });
+
+//     // ── 9. SUPPORT BRACE (diagonal brace from post to module floor) ──
+//     const braceLength = 1.2;
+//     const brace = new THREE.Mesh(
+//       new THREE.BoxGeometry(0.05, braceLength, 0.05),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x445566,
+//         roughness: 0.25,
+//         metalness: 0.92,
+//       })
+//     );
+//     brace.position.set(
+//       this.POST_X + 0.35, 
+//       0.55, 
+//       this.POST_Z
+//     );
+//     brace.rotation.z = -Math.PI / 4;
+//     this.group.add(brace);
+
+//     // Brace mounting bracket at bottom
+//     const braceFoot = new THREE.Mesh(
+//       new THREE.BoxGeometry(0.12, 0.06, 0.10),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x2a3340,
+//         roughness: 0.35,
+//         metalness: 0.88,
+//       })
+//     );
+//     braceFoot.position.set(
+//       this.POST_X + 0.78, 
+//       0.05, 
+//       this.POST_Z
+//     );
+//     this.group.add(braceFoot);
+
+//     // ── 10. TOP CAP on post (where swing bar pivots) ──
+//     const postTopCap = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.10, 0.10, 0.08, 16),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x556677,
+//         roughness: 0.15,
+//         metalness: 0.94,
+//         emissive: 0x002244,
+//         emissiveIntensity: 0.4,
+//       })
+//     );
+//     postTopCap.position.set(
+//       this.POST_X, 
+//       0.56 + this.POST_HEIGHT, 
+//       this.POST_Z
+//     );
+//     this.group.add(postTopCap);
+
+//     // ══════════════════════════════════════════════════════════════════════
+//     // ── SWING BAR (rotates around pivot post) ──
+//     // Origin set so it rotates around the pivot — NOT around the bar's center
+//     // ══════════════════════════════════════════════════════════════════════
+//     this.swingBar = new THREE.Group();
+//     this.swingBar.position.set(this.POST_X, this.POST_HEIGHT - 0.05, 0);
+//     this.group.add(this.swingBar);
+
+//     // The actual swing bar mesh is OFFSET from the swingBar group's origin
+//     // This is equivalent to "set origin to pivot point" in Blender
+//     const barLength = this.BAR_LENGTH;
+//     const swingBarMesh = new THREE.Mesh(
+//       new THREE.BoxGeometry(barLength, 0.10, 0.12),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x37404a,
+//         roughness: 0.18,
+//         metalness: 0.92,
+//       })
+//     );
+//     swingBarMesh.position.set(barLength / 2 + 0.05, 0, 0);
+//     this.swingBar.add(swingBarMesh);
+
+//     // Reinforcement rib on top
+//     const barRib = new THREE.Mesh(
+//       new THREE.BoxGeometry(barLength * 0.85, 0.06, 0.06),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x6677aa,
+//         roughness: 0.2,
+//         metalness: 0.94,
+//         emissive: 0x223366,
+//         emissiveIntensity: 0.4,
+//       })
+//     );
+//     barRib.position.set(barLength / 2 + 0.05, 0.07, 0);
+//     this.swingBar.add(barRib);
+
+//     // ── VALVE BODY (parented to swing bar, hangs at end of bar) ──
+//     this.valveBody = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.10, 0.08, 0.32, 16),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x1a1f24,
+//         roughness: 0.55,
+//         metalness: 0.4,
+//         emissive: 0x002244,
+//         emissiveIntensity: 0.25,
+//       })
+//     );
+//     this.valveBody.position.set(barLength - 0.05, -this.NOZZLE_DROP, 0);
+//     this.swingBar.add(this.valveBody);
+
+//     // ── NOZZLE TIP (cone pointing down) ──
+//     this.nozzleTip = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.018, 0.04, 0.14, 16),
+//       new THREE.MeshStandardMaterial({
+//         color: 0xb8c4d0,
+//         roughness: 0.08,
+//         metalness: 0.98,
+//       })
+//     );
+//     this.nozzleTip.position.set(barLength - 0.05, -this.TIP_DROP, 0);
+//     this.swingBar.add(this.nozzleTip);
+
+//     const nozzleConnector = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.04, 0.04, 0.18, 16),
+//       new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.18, metalness: 0.92 })
+//     );
+//     nozzleConnector.rotation.z = Math.PI / 2;
+//     nozzleConnector.position.set(barLength - 0.05, -this.NOZZLE_DROP + 0.02, 0);
+//     this.swingBar.add(nozzleConnector);
+
+//     const nozzleJoint = new THREE.Mesh(
+//       new THREE.SphereGeometry(0.08, 14, 10),
+//       new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.12, metalness: 0.96 })
+//     );
+//     nozzleJoint.position.set(barLength - 0.05, -this.NOZZLE_DROP + 0.04, 0);
+//     this.swingBar.add(nozzleJoint);
+
+//     // ── TIP GLOW (orange droplet preview at nozzle exit) ──
+//     this.tipGlow = new THREE.Mesh(
+//       new THREE.SphereGeometry(0.025, 12, 12),
+//       new THREE.MeshStandardMaterial({
+//         color: 0xffaa00,
+//         emissive: 0xffaa00,
+//         emissiveIntensity: 2.5,
+//         roughness: 0.3,
+//       })
+//     );
+//     this.tipGlow.position.set(barLength - 0.05, -this.TIP_DROP - 0.12, 0);
+//     this.tipGlow.visible = false;  // only visible during dispense
+//     this.swingBar.add(this.tipGlow);
+
+//     // ── CONTINUOUS LIQUID STREAM (cylinder hanging from nozzle to wafer) ──
+//     this.streamMat = new THREE.MeshStandardMaterial({
+//       color: 0xcc1177,
+//       emissive: 0xcc1177,
+//       emissiveIntensity: 2.5,
+//       roughness: 0.1,
+//       metalness: 0.0,
+//       transparent: true,
+//       opacity: 0,
+//       depthWrite: false,
+//       side: THREE.DoubleSide,
+//     });
+//     this.liquidStream = new THREE.Mesh(
+//       new THREE.CylinderGeometry(0.035, 0.025, 2.0, 12, 1, true),
+//       this.streamMat
+//     );
+//     // Position so stream top connects to nozzle tip, bottom touches wafer
+//     this.liquidStream.position.set(barLength - 0.05, -this.TIP_DROP - 1.0, 0);
+//     this.swingBar.add(this.liquidStream);
+
+//     // Set initial swing angle (parked)
+//     this.swingBar.rotation.y = this.SWING_PARKED;
+//   }
+
+//   startCoat(wx: number, wz: number, color: number) {
+//     this.coatColor = color;
+//     // Position is fixed permanently in _build() — never reposition here
+//     this.group.visible = true;
+//     this.active = true;
+//     this.phase = "swing_in";
+//     this.phaseT = 0;
+//     this.phaseDur = 1.0;
+//     this.spinRPM = 0;
+//     this.spinAngle = 0;
+//     this.resistRadius = 0;
+//     this.spiralAngle = 0;
+//     this.swingAngle = this.SWING_PARKED;
+//     this.swingBar.rotation.y = this.SWING_PARKED;
+
+//     this.resistRings.forEach((r) => {
+//       (r.material as THREE.MeshStandardMaterial).opacity = 0;
+//       (r.material as THREE.MeshStandardMaterial).color.setHex(color);
+//       (r.material as THREE.MeshStandardMaterial).emissive.setHex(color);
+//     });
+
+//     // Stream takes wafer's color
+//     this.streamMat.color.setHex(color);
+//     this.streamMat.emissive.setHex(color);
+//     this.streamMat.opacity = 0;
+    
+//     // Tip glow takes the color too
+//     const tipGlowMat = this.tipGlow.material as THREE.MeshStandardMaterial;
+//     tipGlowMat.color.setHex(color);
+//     tipGlowMat.emissive.setHex(color);
+//     this.tipGlow.visible = false;
+
+//     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
+//     this.spiralCtx.clearRect(0, 0, 512, 512);
+//     this.spiralTex.needsUpdate = true;
+//   }
+
+//   stopCoat() {
+//     this.active = false;
+//     this.phase = "idle";
+//     this.streamMat.opacity = 0;
+//     this.tipGlow.visible = false;
+//   }
+
+//   private _drawSpiralTrail(centerSpiralRadius: number, spinSpeed: number, dt: number) {
+//     const ctx = this.spiralCtx;
+//     const C = 256;
+//     const maxR = 230;
+
+//     ctx.globalCompositeOperation = "source-over";
+//     const steps = Math.max(3, Math.floor(spinSpeed * dt * 60));
+
+//     for (let s = 0; s < steps; s++) {
+//       this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (dt / steps);
+//       const r = centerSpiralRadius * maxR;
+//       const px = C + Math.cos(this.spiralAngle) * r;
+//       const py = C + Math.sin(this.spiralAngle) * r;
+//       const css = `#${this.coatColor.toString(16).padStart(6, "0")}`;
+
+//       const grad = ctx.createRadialGradient(px, py, 0, px, py, 12);
+//       grad.addColorStop(0, css + "ff");
+//       grad.addColorStop(0.5, css + "88");
+//       grad.addColorStop(1, css + "00");
+//       ctx.fillStyle = grad;
+//       ctx.beginPath();
+//       ctx.arc(px, py, 12, 0, Math.PI * 2);
+//       ctx.fill();
+
+//       ctx.fillStyle = "#ffffff";
+//       ctx.globalAlpha = 0.6;
+//       ctx.beginPath();
+//       ctx.arc(px, py, 3, 0, Math.PI * 2);
+//       ctx.fill();
+//       ctx.globalAlpha = 1;
+//     }
+
+//     this.spiralTex.needsUpdate = true;
+//   }
+
+//   tick(dt: number, speed: number) {
+//     if (!this.active) {
+//       return;  // arm stays visible on module, just idle
+//     }
+
+//     const sDt = dt * speed;
+//     this.phaseT += sDt;
+//     const t = Math.min(this.phaseT / this.phaseDur, 1);
+
+//     // Smoothstep easing for swing motion
+//     const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+
+//     switch (this.phase) {
+//       case "swing_in": {
+//         // Rotate from parked (105°) to over wafer (0°)
+//         this.swingAngle = lerp(this.SWING_PARKED, this.SWING_OVER, ease);
+//         this.swingBar.rotation.y = this.swingAngle;
+//         if (t >= 1) {
+//           this.phase = "dispense";
+//           this.phaseT = 0;
+//           this.phaseDur = 1.2;
+//           this.tipGlow.visible = true;
+//         }
+//         break;
+//       }
+
+//       case "dispense": {
+//         // Stream fades in, glow pulses
+//         this.streamMat.opacity = Math.min(t * 2.5, 0.98);
+//         this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
+//         (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
+//           2.5 + 0.8 * Math.sin(this.phaseT * 22);
+//         // Begin slow rotation
+//         this.spinRPM = lerp(0, 120, t);
+//         if (t >= 1) {
+//           this.phase = "spinup";
+//           this.phaseT = 0;
+//           this.phaseDur = 1.0;
+//         }
+//         break;
+//       }
+
+//       case "spinup": {
+//         this.spinRPM = lerp(120, 2400, t * t);
+//         this.resistRadius = lerp(0, 0.2, t);
+//         this._updateResist();
+//         this.streamMat.opacity = 0.95;
+//         this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
+//         const spiralR = lerp(0.05, 0.3, t);
+//         this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
+//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.7, t);
+//         if (t >= 1) {
+//           this.phase = "coating";
+//           this.phaseT = 0;
+//           this.phaseDur = 2.5;
+//         }
+//         break;
+//       }
+
+//       case "coating": {
+//         this.spinRPM = 2400;
+//         this.resistRadius = lerp(0.2, 0.88, t);
+//         this._updateResist();
+//         // Stream stays on for first 30%, then fades as we prepare to swing out
+//         if (t < 0.3) {
+//           this.streamMat.opacity = 0.95;
+//         } else {
+//           this.streamMat.opacity = Math.max(0, 0.95 * (1 - (t - 0.3) / 0.4));
+//         }
+//         this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
+//         const spiralR = lerp(0.3, 0.95, t);
+//         this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
+//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0.85;
+//         if (t >= 1) {
+//           this.resistRadius = 0.88;
+//           this._updateResist(true);
+//           this.streamMat.opacity = 0;
+//           this.tipGlow.visible = false;
+//           this.phase = "swing_out";
+//           this.phaseT = 0;
+//           this.phaseDur = 1.0;
+//         }
+//         break;
+//       }
+
+//       case "swing_out": {
+//         // Rotate from over wafer (0°) back to parked (105°)
+//         this.swingAngle = lerp(this.SWING_OVER, this.SWING_PARKED, ease);
+//         this.swingBar.rotation.y = this.swingAngle;
+//         // Continue spinning during retract
+//         this.spinRPM = 2400;
+//         if (t >= 1) {
+//           this.phase = "spindown";
+//           this.phaseT = 0;
+//           this.phaseDur = 1.5;
+//         }
+//         break;
+//       }
+
+//       case "spindown": {
+//         this.spinRPM = lerp(2400, 0, t);
+//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0.85, 0.3, t);
+//         if (t >= 1) {
+//           this.phase = "done";
+//           this.phaseT = 0;
+//         }
+//         break;
+//       }
+
+//       case "done": {
+//         this.spinRPM = 0;
+//         break;
+//       }
+//     }
+
+//     this.spinAngle += (this.spinRPM / 60) * Math.PI * 2 * sDt;
+//     this.spinChuck.rotation.y = this.spinAngle;
+//   }
+
+//   private _updateResist(full = false) {
+//     const numRings = this.resistRings.length;
+//     const fillFraction = full ? 1 : this.resistRadius / 0.88;
+//     this.resistRings.forEach((ring, i) => {
+//       const ringFrac = (i + 1) / numRings;
+//       const mat = ring.material as THREE.MeshStandardMaterial;
+//       if (ringFrac <= fillFraction)
+//         mat.opacity = Math.min(mat.opacity + 0.06, 0.88 - i * 0.003);
+//     });
+//   }
+// }
+
 class SpinCoatAnimator {
   group: THREE.Group;
   spinChuck: THREE.Group;
@@ -26904,505 +27583,169 @@ class SpinCoatAnimator {
   resistRings: THREE.Mesh[] = [];
   resistGroup: THREE.Group;
   bowl: THREE.Mesh;
-  
-  // ── SWING ARM ASSEMBLY ──
-  pivotPost: THREE.Mesh;        // fixed vertical column
-  swingBar: THREE.Group;        // rotates around pivot post (origin at post)
+
+  // ── DISPENSE ARM ASSEMBLY ──
+  pivotPost: THREE.Mesh;
+  swingBar: THREE.Group;
   valveBody: THREE.Mesh;
   nozzleTip: THREE.Mesh;
   tipGlow: THREE.Mesh;
-  
-  // ── CONTINUOUS STREAM ──
   liquidStream: THREE.Mesh;
   streamMat: THREE.MeshStandardMaterial;
-  
-  // ── SPIRAL TRAIL PATTERN ──
+
+  // Spiral trail
   spiralCanvas!: HTMLCanvasElement;
   spiralCtx!: CanvasRenderingContext2D;
   spiralTex!: THREE.CanvasTexture;
   spiralMesh!: THREE.Mesh;
   spiralAngle = 0;
 
-  phase: "idle"|"swing_in"|"dispense"|"spinup"|"coating"|"swing_out"|"spindown"|"done" = "idle";
-  phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
-  resistRadius = 0; coatColor = 0x9922ff; active = false;
-  
-	// ── SWING DIRECTION / TUNING ──
-	readonly SWING_PARKED = Math.PI;     // 180° — arm points away from chuck
-	readonly SWING_OVER   = 0;           // 0° — arm points +X toward chuck
+  phase: "idle" | "swing_in" | "dispense" | "spinup" | "coating" | "swing_out" | "spindown" | "done" = "idle";
+  phaseT = 0; 
+  phaseDur = 1; 
+  spinRPM = 0; 
+  spinAngle = 0;
+  resistRadius = 0; 
+  coatColor = 0x9922ff; 
+  active = false;
+
+  // ── TUNING CONSTANTS ──
+  readonly SWING_PARKED = Math.PI * 0.85;   // Slightly less than 180° for better look
+  readonly SWING_OVER   = Math.PI * 0.05;   // Almost straight over chuck
   swingAngle = Math.PI;
 
-  readonly CHUCK_Y = 0.35;
-  readonly POST_HEIGHT = 2.0;
-  readonly POST_X = -1.3;
-  readonly POST_Z = 0.0;
-  readonly BAR_LENGTH = 1.4;
-  readonly NOZZLE_DROP = 0.5;
-  readonly TIP_DROP = 0.8;
+  readonly POST_X = -1.35;
+  readonly POST_Z = 0;
+  readonly POST_HEIGHT = 1.85;
+  readonly BAR_LENGTH = 1.65;
+  readonly NOZZLE_Y_OFFSET = -0.65;   // Distance from bar to nozzle tip
+  readonly TIP_Y_OFFSET = -0.95;
 
   constructor(scene: THREE.Scene) {
     this.group = new THREE.Group();
     scene.add(this.group);
     this.group.visible = false;
 
-    // ── BOWL (small, low profile) ──
-    const bowlMat = new THREE.MeshStandardMaterial({
-      color: 0xeef3f8,
-      roughness: 0.28,
-      metalness: 0.05,
-    });
-    this.bowl = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.4, 1.4, 0.25, 64, 1, true),
-      bowlMat
-    );
-    this.bowl.position.y = 0.6;
-    this.group.add(this.bowl);
+    // ... [Keep your existing bowl, spinChuck, resist rings, spiral code] ...
 
-    // Bowl ridges
-    for (let i = 0; i < 5; i++) {
-      const r = 1.1 + i * 0.08;
-      const ridge = new THREE.Mesh(
-        new THREE.TorusGeometry(r, 0.018, 8, 64),
-        new THREE.MeshStandardMaterial({ color: 0xdde8f0, roughness: 0.3, metalness: 0.1 })
-      );
-      ridge.rotation.x = Math.PI / 2;
-      ridge.position.y = 0.38 + i * 0.04;
-      this.group.add(ridge);
-    }
-
-    const baseRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.95, 1.4, 64),
-      new THREE.MeshStandardMaterial({
-        color: 0xe8eef5,
-        roughness: 0.22,
-        metalness: 0.08,
-        side: THREE.DoubleSide,
-      })
-    );
-    baseRing.rotation.x = -Math.PI / 2;
-    baseRing.position.y = 0.01;
-    this.group.add(baseRing);
-
-    // ── SPIN CHUCK ──
+    // ── SPIN CHUCK (keep as is) ──
     this.spinChuck = new THREE.Group();
-    this.spinChuck.position.y = this.CHUCK_Y;
+    this.spinChuck.position.y = 0.35;
     this.group.add(this.spinChuck);
-    
-    this.spinDisc = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.92, 0.92, 0.08, 80),
-      new THREE.MeshStandardMaterial({
-        color: 0x556677,
-        roughness: 0.12,
-        metalness: 0.92,
-        emissive: 0x223355,
-        emissiveIntensity: 0.4,
-      })
-    );
-    this.spinDisc.position.y = 0;
+
+    this.spinDisc = new THREE.Mesh(/* ... your existing spin disc ... */);
     this.spinChuck.add(this.spinDisc);
 
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * Math.PI * 2;
-      const port = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12),
-        new THREE.MeshStandardMaterial({
-          color: 0x111122,
-          emissive: 0x004488,
-          emissiveIntensity: 1.0,
-        })
-      );
-      port.position.set(Math.cos(a) * 0.65, 0.06, Math.sin(a) * 0.65);
-      this.spinChuck.add(port);
-    }
+    // Resist rings and spiral (keep your existing code)
 
-    // ── RESIST RING LAYERS ──
-    this.resistGroup = new THREE.Group();
-    this.resistGroup.position.y = 0.05;
-    this.spinChuck.add(this.resistGroup);
-    const numRings = 18;
-    for (let i = 0; i < numRings; i++) {
-      const r0 = (i / numRings) * 0.88, r1 = ((i + 1) / numRings) * 0.88;
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(r0, r1, 64),
-        new THREE.MeshStandardMaterial({
-          color: 0x9922ff, emissive: 0x5511aa, emissiveIntensity: 0.6,
-          roughness: 0.15, metalness: 0.05, transparent: true, opacity: 0,
-          side: THREE.DoubleSide, depthWrite: false,
-        })
-      );
-      ring.rotation.x = -Math.PI / 2;
-      ring.position.y = 0.001 * i;
-      this.resistGroup.add(ring);
-      this.resistRings.push(ring);
-    }
+    // ═══════════════════════════════════════════════════════════════
+    //                  FIXED NOZZLE ARM ASSEMBLY
+    // ═══════════════════════════════════════════════════════════════
 
-    // ── SPIRAL PATTERN ──
-    this.spiralCanvas = document.createElement("canvas");
-    this.spiralCanvas.width = 512;
-    this.spiralCanvas.height = 512;
-    this.spiralCtx = this.spiralCanvas.getContext("2d")!;
-    this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
-    
-    this.spiralMesh = new THREE.Mesh(
-      new THREE.CircleGeometry(0.88, 80),
-      new THREE.MeshBasicMaterial({
-        map: this.spiralTex,
-        transparent: true,
-        opacity: 0,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-      })
-    );
-    this.spiralMesh.rotation.x = -Math.PI / 2;
-    this.spiralMesh.position.y = 0.08;
-    this.spiralMesh.renderOrder = 10;
-    this.spinChuck.add(this.spiralMesh);
-
-    // ══════════════════════════════════════════════════════════════════════
-    // ── DISPENSE ARM ASSEMBLY — fully grounded on module surface ──
-    // ══════════════════════════════════════════════════════════════════════
-    
-    // ── 1. LARGE BASE PEDESTAL ──
+    // 1. Base Pedestal
     const basePedestal = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.32, 0.38, 0.5, 24),
-      new THREE.MeshStandardMaterial({
-        color: 0x2a3340,
-        roughness: 0.30,
-        metalness: 0.88,
-        emissive: 0x0a1525,
-        emissiveIntensity: 0.4,
-      })
+      new THREE.CylinderGeometry(0.32, 0.38, 0.55, 24),
+      new THREE.MeshStandardMaterial({ color: 0x2a3340, roughness: 0.3, metalness: 0.88 })
     );
-    basePedestal.position.set(this.POST_X, 0.25, this.POST_Z);
-    basePedestal.castShadow = true;
+    basePedestal.position.set(this.POST_X, 0.27, this.POST_Z);
     this.group.add(basePedestal);
 
-    // ── 2. PEDESTAL TOP CAP ──
-    const pedestalCap = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.34, 0.32, 0.06, 24),
-      new THREE.MeshStandardMaterial({
-        color: 0x556677,
-        roughness: 0.18,
-        metalness: 0.95,
-        emissive: 0x112233,
-        emissiveIntensity: 0.3,
-      })
-    );
-    pedestalCap.position.set(this.POST_X, 0.53, this.POST_Z);
-    this.group.add(pedestalCap);
-
-    // ── 3. CIRCULAR MOUNTING BOLTS around pedestal cap ──
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2;
-      const bx = this.POST_X + Math.cos(angle) * 0.28;
-      const bz = this.POST_Z + Math.sin(angle) * 0.28;
-      
-      const bolt = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.025, 0.025, 0.03, 6),
-        new THREE.MeshStandardMaterial({
-          color: 0x222233,
-          metalness: 0.98,
-          roughness: 0.2,
-        })
-      );
-      bolt.position.set(bx, 0.57, bz);
-      this.group.add(bolt);
-    }
-
-    // ── 4. GLOWING STATUS RING around pedestal ──
-    const statusRing = new THREE.Mesh(
-      new THREE.TorusGeometry(0.36, 0.025, 8, 32),
-      new THREE.MeshStandardMaterial({
-        color: 0x00ddff,
-        emissive: 0x00aaff,
-        emissiveIntensity: 2.0,
-        roughness: 0.3,
-      })
-    );
-    statusRing.rotation.x = Math.PI / 2;
-    statusRing.position.set(this.POST_X, 0.10, this.POST_Z);
-    this.group.add(statusRing);
-
-    // ── 5. HORIZONTAL CABLE TRAY from pedestal toward module body ──
-    const cableTray = new THREE.Mesh(
-      new THREE.BoxGeometry(0.6, 0.08, 0.15),
-      new THREE.MeshStandardMaterial({
-        color: 0x1c2530,
-        roughness: 0.4,
-        metalness: 0.7,
-      })
-    );
-    cableTray.position.set(this.POST_X + 0.35, 0.06, this.POST_Z);
-    this.group.add(cableTray);
-
-    // Cable tray cover with vents
-    const cableTrayCover = new THREE.Mesh(
-      new THREE.BoxGeometry(0.58, 0.02, 0.12),
-      new THREE.MeshStandardMaterial({
-        color: 0x445566,
-        roughness: 0.25,
-        metalness: 0.85,
-      })
-    );
-    cableTrayCover.position.set(this.POST_X + 0.35, 0.11, this.POST_Z);
-    this.group.add(cableTrayCover);
-
-    // ── 6. FLEXIBLE CONDUIT (visible cables going up into post) ──
-    for (let i = 0; i < 3; i++) {
-      const cable = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.018, 0.018, 0.35, 6),
-        new THREE.MeshStandardMaterial({
-          color: i === 0 ? 0x1a1a1a : i === 1 ? 0x2a1a1a : 0x1a1a2a,
-          roughness: 0.7,
-          metalness: 0.15,
-        })
-      );
-      cable.position.set(
-        this.POST_X + 0.08 + i * 0.04, 
-        0.35, 
-        this.POST_Z - 0.05
-      );
-      cable.rotation.z = Math.PI / 40;
-      this.group.add(cable);
-    }
-
-    // ── 7. THE PIVOT POST (clearly attached to pedestal cap) ──
+    // 2. Pivot Post
     this.pivotPost = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.07, 0.09, this.POST_HEIGHT, 16),
-      new THREE.MeshStandardMaterial({
-        color: 0x37404a,
-        roughness: 0.12,
-        metalness: 0.95,
-      })
+      new THREE.CylinderGeometry(0.08, 0.09, this.POST_HEIGHT, 16),
+      new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.12, metalness: 0.95 })
     );
-    this.pivotPost.position.set(
-      this.POST_X, 
-      0.56 + this.POST_HEIGHT / 2, 
-      this.POST_Z
-    );
+    this.pivotPost.position.set(this.POST_X, 0.55 + this.POST_HEIGHT / 2, this.POST_Z);
     this.group.add(this.pivotPost);
 
-    // ── 8. POST REINFORCEMENT BANDS (3 rings around post for industrial look) ──
-    [0.3, 0.6, 0.9].forEach((frac) => {
-      const band = new THREE.Mesh(
-        new THREE.TorusGeometry(0.075, 0.012, 6, 16),
-        new THREE.MeshStandardMaterial({
-          color: 0x556677,
-          metalness: 0.95,
-          roughness: 0.2,
-        })
-      );
-      band.rotation.x = Math.PI / 2;
-      band.position.set(
-        this.POST_X, 
-        0.56 + this.POST_HEIGHT * frac, 
-        this.POST_Z
-      );
-      this.group.add(band);
-    });
-
-    // ── 9. SUPPORT BRACE (diagonal brace from post to module floor) ──
-    const braceLength = 1.2;
-    const brace = new THREE.Mesh(
-      new THREE.BoxGeometry(0.05, braceLength, 0.05),
-      new THREE.MeshStandardMaterial({
-        color: 0x445566,
-        roughness: 0.25,
-        metalness: 0.92,
-      })
-    );
-    brace.position.set(
-      this.POST_X + 0.35, 
-      0.55, 
-      this.POST_Z
-    );
-    brace.rotation.z = -Math.PI / 4;
-    this.group.add(brace);
-
-    // Brace mounting bracket at bottom
-    const braceFoot = new THREE.Mesh(
-      new THREE.BoxGeometry(0.12, 0.06, 0.10),
-      new THREE.MeshStandardMaterial({
-        color: 0x2a3340,
-        roughness: 0.35,
-        metalness: 0.88,
-      })
-    );
-    braceFoot.position.set(
-      this.POST_X + 0.78, 
-      0.05, 
-      this.POST_Z
-    );
-    this.group.add(braceFoot);
-
-    // ── 10. TOP CAP on post (where swing bar pivots) ──
-    const postTopCap = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.10, 0.10, 0.08, 16),
-      new THREE.MeshStandardMaterial({
-        color: 0x556677,
-        roughness: 0.15,
-        metalness: 0.94,
-        emissive: 0x002244,
-        emissiveIntensity: 0.4,
-      })
-    );
-    postTopCap.position.set(
-      this.POST_X, 
-      0.56 + this.POST_HEIGHT, 
-      this.POST_Z
-    );
-    this.group.add(postTopCap);
-
-    // ══════════════════════════════════════════════════════════════════════
-    // ── SWING BAR (rotates around pivot post) ──
-    // Origin set so it rotates around the pivot — NOT around the bar's center
-    // ══════════════════════════════════════════════════════════════════════
+    // 3. Swing Bar Group (pivot point)
     this.swingBar = new THREE.Group();
-    this.swingBar.position.set(this.POST_X, this.POST_HEIGHT - 0.05, 0);
+    this.swingBar.position.set(this.POST_X, this.POST_HEIGHT + 0.48, this.POST_Z); // Critical pivot height
     this.group.add(this.swingBar);
 
-    // The actual swing bar mesh is OFFSET from the swingBar group's origin
-    // This is equivalent to "set origin to pivot point" in Blender
-    const barLength = this.BAR_LENGTH;
-    const swingBarMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(barLength, 0.10, 0.12),
-      new THREE.MeshStandardMaterial({
-        color: 0x37404a,
-        roughness: 0.18,
-        metalness: 0.92,
-      })
+    // Swing bar mesh (offset from pivot)
+    const barMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(this.BAR_LENGTH, 0.11, 0.13),
+      new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.18, metalness: 0.92 })
     );
-    swingBarMesh.position.set(barLength / 2 + 0.05, 0, 0);
-    this.swingBar.add(swingBarMesh);
+    barMesh.position.set(this.BAR_LENGTH / 2, 0, 0);
+    this.swingBar.add(barMesh);
 
-    // Reinforcement rib on top
-    const barRib = new THREE.Mesh(
-      new THREE.BoxGeometry(barLength * 0.85, 0.06, 0.06),
-      new THREE.MeshStandardMaterial({
-        color: 0x6677aa,
-        roughness: 0.2,
-        metalness: 0.94,
-        emissive: 0x223366,
-        emissiveIntensity: 0.4,
-      })
-    );
-    barRib.position.set(barLength / 2 + 0.05, 0.07, 0);
-    this.swingBar.add(barRib);
-
-    // ── VALVE BODY (parented to swing bar, hangs at end of bar) ──
+    // 4. Valve Body + Nozzle
     this.valveBody = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.10, 0.08, 0.32, 16),
-      new THREE.MeshStandardMaterial({
-        color: 0x1a1f24,
-        roughness: 0.55,
-        metalness: 0.4,
-        emissive: 0x002244,
-        emissiveIntensity: 0.25,
-      })
+      new THREE.CylinderGeometry(0.095, 0.075, 0.35, 16),
+      new THREE.MeshStandardMaterial({ color: 0x1a1f24, roughness: 0.45, metalness: 0.6 })
     );
-    this.valveBody.position.set(barLength - 0.05, -this.NOZZLE_DROP, 0);
+    this.valveBody.position.set(this.BAR_LENGTH - 0.08, this.NOZZLE_Y_OFFSET, 0);
     this.swingBar.add(this.valveBody);
 
-    // ── NOZZLE TIP (cone pointing down) ──
     this.nozzleTip = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.018, 0.04, 0.14, 16),
-      new THREE.MeshStandardMaterial({
-        color: 0xb8c4d0,
-        roughness: 0.08,
-        metalness: 0.98,
-      })
+      new THREE.CylinderGeometry(0.018, 0.038, 0.16, 16),
+      new THREE.MeshStandardMaterial({ color: 0xb8c4d0, roughness: 0.1, metalness: 0.95 })
     );
-    this.nozzleTip.position.set(barLength - 0.05, -this.TIP_DROP, 0);
+    this.nozzleTip.position.set(this.BAR_LENGTH - 0.08, this.TIP_Y_OFFSET, 0);
     this.swingBar.add(this.nozzleTip);
 
-    const nozzleConnector = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.04, 0.04, 0.18, 16),
-      new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.18, metalness: 0.92 })
-    );
-    nozzleConnector.rotation.z = Math.PI / 2;
-    nozzleConnector.position.set(barLength - 0.05, -this.NOZZLE_DROP + 0.02, 0);
-    this.swingBar.add(nozzleConnector);
-
-    const nozzleJoint = new THREE.Mesh(
-      new THREE.SphereGeometry(0.08, 14, 10),
-      new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.12, metalness: 0.96 })
-    );
-    nozzleJoint.position.set(barLength - 0.05, -this.NOZZLE_DROP + 0.04, 0);
-    this.swingBar.add(nozzleJoint);
-
-    // ── TIP GLOW (orange droplet preview at nozzle exit) ──
+    // Tip glow
     this.tipGlow = new THREE.Mesh(
-      new THREE.SphereGeometry(0.025, 12, 12),
+      new THREE.SphereGeometry(0.028, 12, 12),
       new THREE.MeshStandardMaterial({
-        color: 0xffaa00,
-        emissive: 0xffaa00,
-        emissiveIntensity: 2.5,
-        roughness: 0.3,
+        color: 0xff8800,
+        emissive: 0xff4400,
+        emissiveIntensity: 3.0,
+        transparent: true,
+        opacity: 0.9
       })
     );
-    this.tipGlow.position.set(barLength - 0.05, -this.TIP_DROP - 0.12, 0);
-    this.tipGlow.visible = false;  // only visible during dispense
+    this.tipGlow.position.set(this.BAR_LENGTH - 0.08, this.TIP_Y_OFFSET - 0.12, 0);
+    this.tipGlow.visible = false;
     this.swingBar.add(this.tipGlow);
 
-    // ── CONTINUOUS LIQUID STREAM (cylinder hanging from nozzle to wafer) ──
+    // Liquid stream
     this.streamMat = new THREE.MeshStandardMaterial({
       color: 0xcc1177,
       emissive: 0xcc1177,
-      emissiveIntensity: 2.5,
-      roughness: 0.1,
-      metalness: 0.0,
+      emissiveIntensity: 2.8,
       transparent: true,
       opacity: 0,
       depthWrite: false,
-      side: THREE.DoubleSide,
     });
+
     this.liquidStream = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.035, 0.025, 2.0, 12, 1, true),
+      new THREE.CylinderGeometry(0.028, 0.018, 1.8, 12, 1, true),
       this.streamMat
     );
-    // Position so stream top connects to nozzle tip, bottom touches wafer
-    this.liquidStream.position.set(barLength - 0.05, -this.TIP_DROP - 1.0, 0);
+    this.liquidStream.position.set(this.BAR_LENGTH - 0.08, this.TIP_Y_OFFSET - 0.9, 0);
     this.swingBar.add(this.liquidStream);
 
-    // Set initial swing angle (parked)
+    // Initial parked position
     this.swingBar.rotation.y = this.SWING_PARKED;
   }
 
   startCoat(wx: number, wz: number, color: number) {
     this.coatColor = color;
-    // Position is fixed permanently in _build() — never reposition here
     this.group.visible = true;
     this.active = true;
     this.phase = "swing_in";
     this.phaseT = 0;
-    this.phaseDur = 1.0;
+    this.phaseDur = 1.1;
     this.spinRPM = 0;
-    this.spinAngle = 0;
     this.resistRadius = 0;
-    this.spiralAngle = 0;
     this.swingAngle = this.SWING_PARKED;
     this.swingBar.rotation.y = this.SWING_PARKED;
 
-    this.resistRings.forEach((r) => {
-      (r.material as THREE.MeshStandardMaterial).opacity = 0;
-      (r.material as THREE.MeshStandardMaterial).color.setHex(color);
-      (r.material as THREE.MeshStandardMaterial).emissive.setHex(color);
+    // Reset visuals
+    this.resistRings.forEach(r => {
+      const mat = r.material as THREE.MeshStandardMaterial;
+      mat.opacity = 0;
+      mat.color.setHex(color);
+      mat.emissive.setHex(color);
     });
 
-    // Stream takes wafer's color
+    this.streamMat.opacity = 0;
+    this.tipGlow.visible = false;
     this.streamMat.color.setHex(color);
     this.streamMat.emissive.setHex(color);
-    this.streamMat.opacity = 0;
-    
-    // Tip glow takes the color too
-    const tipGlowMat = this.tipGlow.material as THREE.MeshStandardMaterial;
-    tipGlowMat.color.setHex(color);
-    tipGlowMat.emissive.setHex(color);
-    this.tipGlow.visible = false;
-
-    (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
-    this.spiralCtx.clearRect(0, 0, 512, 512);
-    this.spiralTex.needsUpdate = true;
   }
 
   stopCoat() {
@@ -27412,154 +27755,77 @@ class SpinCoatAnimator {
     this.tipGlow.visible = false;
   }
 
-  private _drawSpiralTrail(centerSpiralRadius: number, spinSpeed: number, dt: number) {
-    const ctx = this.spiralCtx;
-    const C = 256;
-    const maxR = 230;
-
-    ctx.globalCompositeOperation = "source-over";
-    const steps = Math.max(3, Math.floor(spinSpeed * dt * 60));
-
-    for (let s = 0; s < steps; s++) {
-      this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (dt / steps);
-      const r = centerSpiralRadius * maxR;
-      const px = C + Math.cos(this.spiralAngle) * r;
-      const py = C + Math.sin(this.spiralAngle) * r;
-      const css = `#${this.coatColor.toString(16).padStart(6, "0")}`;
-
-      const grad = ctx.createRadialGradient(px, py, 0, px, py, 12);
-      grad.addColorStop(0, css + "ff");
-      grad.addColorStop(0.5, css + "88");
-      grad.addColorStop(1, css + "00");
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(px, py, 12, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.globalAlpha = 0.6;
-      ctx.beginPath();
-      ctx.arc(px, py, 3, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-
-    this.spiralTex.needsUpdate = true;
-  }
-
   tick(dt: number, speed: number) {
-    if (!this.active) {
-      return;  // arm stays visible on module, just idle
-    }
+    if (!this.active) return;
 
     const sDt = dt * speed;
     this.phaseT += sDt;
     const t = Math.min(this.phaseT / this.phaseDur, 1);
-
-    // Smoothstep easing for swing motion
     const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
 
     switch (this.phase) {
-      case "swing_in": {
-        // Rotate from parked (105°) to over wafer (0°)
+      case "swing_in":
         this.swingAngle = lerp(this.SWING_PARKED, this.SWING_OVER, ease);
         this.swingBar.rotation.y = this.swingAngle;
+
         if (t >= 1) {
           this.phase = "dispense";
           this.phaseT = 0;
-          this.phaseDur = 1.2;
+          this.phaseDur = 1.3;
           this.tipGlow.visible = true;
         }
         break;
-      }
 
-      case "dispense": {
-        // Stream fades in, glow pulses
-        this.streamMat.opacity = Math.min(t * 2.5, 0.98);
-        this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
-        (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
-          2.5 + 0.8 * Math.sin(this.phaseT * 22);
-        // Begin slow rotation
-        this.spinRPM = lerp(0, 120, t);
+      case "dispense":
+        this.streamMat.opacity = Math.min(t * 2.8, 0.95);
+        this.streamMat.emissiveIntensity = 2.8 + Math.sin(this.phaseT * 20) * 0.6;
+        (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity = 3.5 + Math.sin(this.phaseT * 25) * 1.2;
+        this.spinRPM = lerp(0, 180, t);
         if (t >= 1) {
           this.phase = "spinup";
           this.phaseT = 0;
-          this.phaseDur = 1.0;
+          this.phaseDur = 0.9;
         }
         break;
-      }
 
-      case "spinup": {
-        this.spinRPM = lerp(120, 2400, t * t);
-        this.resistRadius = lerp(0, 0.2, t);
+      case "spinup":
+      case "coating":
+        // ... your existing spin logic ...
+        this.spinRPM = this.phase === "spinup" 
+          ? lerp(180, 2400, t * t) 
+          : 2400;
+        
+        this.resistRadius = this.phase === "spinup" 
+          ? lerp(0, 0.25, t) 
+          : lerp(0.25, 0.88, t);
+        
         this._updateResist();
-        this.streamMat.opacity = 0.95;
-        this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
-        const spiralR = lerp(0.05, 0.3, t);
-        this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
-        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.7, t);
-        if (t >= 1) {
-          this.phase = "coating";
-          this.phaseT = 0;
-          this.phaseDur = 2.5;
+        
+        if (this.phase === "coating" && t > 0.6) {
+          this.streamMat.opacity = Math.max(0, 0.95 * (1 - (t - 0.6) / 0.4));
         }
-        break;
-      }
-
-      case "coating": {
-        this.spinRPM = 2400;
-        this.resistRadius = lerp(0.2, 0.88, t);
-        this._updateResist();
-        // Stream stays on for first 30%, then fades as we prepare to swing out
-        if (t < 0.3) {
-          this.streamMat.opacity = 0.95;
-        } else {
-          this.streamMat.opacity = Math.max(0, 0.95 * (1 - (t - 0.3) / 0.4));
-        }
-        this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
-        const spiralR = lerp(0.3, 0.95, t);
-        this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
-        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0.85;
-        if (t >= 1) {
-          this.resistRadius = 0.88;
-          this._updateResist(true);
-          this.streamMat.opacity = 0;
-          this.tipGlow.visible = false;
+        if (t >= 1 && this.phase === "coating") {
           this.phase = "swing_out";
           this.phaseT = 0;
-          this.phaseDur = 1.0;
+          this.phaseDur = 1.1;
+          this.tipGlow.visible = false;
         }
         break;
-      }
 
-      case "swing_out": {
-        // Rotate from over wafer (0°) back to parked (105°)
+      case "swing_out":
         this.swingAngle = lerp(this.SWING_OVER, this.SWING_PARKED, ease);
         this.swingBar.rotation.y = this.swingAngle;
-        // Continue spinning during retract
-        this.spinRPM = 2400;
         if (t >= 1) {
           this.phase = "spindown";
           this.phaseT = 0;
-          this.phaseDur = 1.5;
+          this.phaseDur = 1.4;
         }
         break;
-      }
 
-      case "spindown": {
+      case "spindown":
         this.spinRPM = lerp(2400, 0, t);
-        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0.85, 0.3, t);
-        if (t >= 1) {
-          this.phase = "done";
-          this.phaseT = 0;
-        }
+        if (t >= 1) this.phase = "done";
         break;
-      }
-
-      case "done": {
-        this.spinRPM = 0;
-        break;
-      }
     }
 
     this.spinAngle += (this.spinRPM / 60) * Math.PI * 2 * sDt;
@@ -27567,13 +27833,13 @@ class SpinCoatAnimator {
   }
 
   private _updateResist(full = false) {
-    const numRings = this.resistRings.length;
-    const fillFraction = full ? 1 : this.resistRadius / 0.88;
+    const fill = full ? 1 : this.resistRadius / 0.88;
     this.resistRings.forEach((ring, i) => {
-      const ringFrac = (i + 1) / numRings;
-      const mat = ring.material as THREE.MeshStandardMaterial;
-      if (ringFrac <= fillFraction)
-        mat.opacity = Math.min(mat.opacity + 0.06, 0.88 - i * 0.003);
+      const frac = (i + 1) / this.resistRings.length;
+      if (frac <= fill) {
+        (ring.material as THREE.MeshStandardMaterial).opacity = 
+          Math.min(0.9, (ring.material as any).opacity + 0.08);
+      }
     });
   }
 }
@@ -29429,6 +29695,14 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
   }
 
   // Module name label
+ // Module name label
+  // ── SKIP floating label for virtual modules (no physical body present) ──
+  const SKIP_FLOATING_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out']);
+  if (SKIP_FLOATING_LABEL_IDS.has(mod.id)) {
+    console.log(`[buildModule] Skipping floating sprite for: ${mod.id}`);
+    return grp;     // ← exit early, no floating sprite created
+  }
+
   const labelHeight = mod.type === "scan" ? MODULE_BASE_Y + H * 6.0 : MODULE_BASE_Y + H + 2.4;
   
   const nc = document.createElement("canvas");
@@ -31092,12 +31366,78 @@ function buildRobotGLB(
 // }
 
 
+// function runIK(tgt: THREE.Vector3): void {
+//   // ── 1. Turret yaw ──
+//   const baseWP = new THREE.Vector3();
+//   root.getWorldPosition(baseWP);
+//   const dx = tgt.x - baseWP.x;
+//   const dz = tgt.z - baseWP.z;
+//   const r2d = Math.hypot(dx, dz) || 1;
+//   const rawYaw = Math.atan2(-dz, dx);
+
+//   const prev = root.userData._ikYaw as number;
+//   let delta = rawYaw - prev;
+//   while (delta >  Math.PI) delta -= 2 * Math.PI;
+//   while (delta < -Math.PI) delta += 2 * Math.PI;
+//   const newYaw = prev + delta;
+//   root.userData._ikYaw = newYaw;
+//   qTmp.setFromAxisAngle(axisY, newYaw);
+//   turret.quaternion.slerp(qTmp, 0.20).normalize();
+
+//   // ── 2. 2-link IK in shoulder-local plane ──
+//   const reachHoriz = Math.max(r2d, 0.1);  // tiny minimum to avoid singularity
+//   const verticalOff = tgt.y - (baseWP.y + SHOULDER_Y);
+
+//   const wx = reachHoriz - L3;
+//   const wy = verticalOff;
+
+//   let D = Math.hypot(wx, wy);
+//   const Dmax = (L1 + L2) * 0.98;
+//   const Dmin = Math.abs(L1 - L2) + 0.02;
+//   D = Math.max(Dmin, Math.min(Dmax, D));
+
+//   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
+//   const elbowInterior = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
+
+//   const wristDirAng = Math.atan2(wy, wx);
+//   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+//   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
+
+//   // ── ELBOW-UP branch ──
+//   let shoulderAngle = wristDirAng + shOff;
+//   let elbowAngle    = -(Math.PI - elbowInterior);
+
+//   // ── Joint limits (loose) ──
+//   shoulderAngle = Math.max(-0.4, Math.min(Math.PI * 0.7, shoulderAngle));
+//   elbowAngle    = Math.max(-Math.PI * 0.95, Math.min(-0.03, elbowAngle));
+
+//   let wristAngle = -(shoulderAngle + elbowAngle);
+//   wristAngle = Math.max(-Math.PI * 0.8, Math.min(Math.PI * 0.8, wristAngle));
+
+//   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
+//   shoulder.quaternion.slerp(qTmp, 0.22).normalize();
+
+//   qTmp.setFromAxisAngle(axisZ, elbowAngle);
+//   elbow.quaternion.slerp(qTmp, 0.22).normalize();
+
+//   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
+
+//   qTmp.setFromAxisAngle(axisZ, wristAngle);
+//   wrist.quaternion.slerp(qTmp, 0.22).normalize();
+// }
 function runIK(tgt: THREE.Vector3): void {
+  // ── FLOOR CLEARANCE GUARD ──────────────────────────────────────
+  // Clamp target Y so the end-effector never descends below a safe
+  // clearance height above the module tops (~3.7 units from floor).
+  const MIN_SAFE_Y = 3.7;          // ← tune: MODULE_BASE_Y + H + margin
+  const clampedTgt = tgt.clone();
+  clampedTgt.y = Math.max(tgt.y, MIN_SAFE_Y);
+
   // ── 1. Turret yaw ──
   const baseWP = new THREE.Vector3();
   root.getWorldPosition(baseWP);
-  const dx = tgt.x - baseWP.x;
-  const dz = tgt.z - baseWP.z;
+  const dx = clampedTgt.x - baseWP.x;
+  const dz = clampedTgt.z - baseWP.z;
   const r2d = Math.hypot(dx, dz) || 1;
   const rawYaw = Math.atan2(-dz, dx);
 
@@ -31111,8 +31451,8 @@ function runIK(tgt: THREE.Vector3): void {
   turret.quaternion.slerp(qTmp, 0.20).normalize();
 
   // ── 2. 2-link IK in shoulder-local plane ──
-  const reachHoriz = Math.max(r2d, 0.1);  // tiny minimum to avoid singularity
-  const verticalOff = tgt.y - (baseWP.y + SHOULDER_Y);
+  const reachHoriz = Math.max(r2d, 0.1);
+  const verticalOff = clampedTgt.y - (baseWP.y + SHOULDER_Y);  // ← use clamped Y
 
   const wx = reachHoriz - L3;
   const wy = verticalOff;
@@ -31133,12 +31473,16 @@ function runIK(tgt: THREE.Vector3): void {
   let shoulderAngle = wristDirAng + shOff;
   let elbowAngle    = -(Math.PI - elbowInterior);
 
-  // ── Joint limits (loose) ──
-  shoulderAngle = Math.max(-0.4, Math.min(Math.PI * 0.7, shoulderAngle));
-  elbowAngle    = Math.max(-Math.PI * 0.95, Math.min(-0.03, elbowAngle));
+  // ── Joint limits — tightened to prevent floor crash ──
+  // FIX: raised shoulder min from -0.4 → +0.05 so arm never dips below horizon
+  shoulderAngle = Math.max(0.05, Math.min(Math.PI * 0.7, shoulderAngle));
+  // FIX: tightened elbow upper bound from -0.03 → -0.10 prevents hyper-extension low
+  elbowAngle    = Math.max(-Math.PI * 0.95, Math.min(-0.10, elbowAngle));
 
+  // ── Wrist compensation with clearance clamp ──
   let wristAngle = -(shoulderAngle + elbowAngle);
-  wristAngle = Math.max(-Math.PI * 0.8, Math.min(Math.PI * 0.8, wristAngle));
+  // FIX: clamp wrist so it can't pitch the end-effector downward past level
+  wristAngle = Math.max(-Math.PI * 0.5, Math.min(Math.PI * 0.8, wristAngle));
 
   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
   shoulder.quaternion.slerp(qTmp, 0.22).normalize();
@@ -31151,6 +31495,8 @@ function runIK(tgt: THREE.Vector3): void {
   qTmp.setFromAxisAngle(axisZ, wristAngle);
   wrist.quaternion.slerp(qTmp, 0.22).normalize();
 }
+
+
  
       function getJoints(): JointData {
         eTmp.setFromQuaternion(turret.quaternion, "YXZ");
@@ -31218,20 +31564,39 @@ function normalizeAngle(angle: number): number {
 function positionWaferAnchorAboveChuck(
   placeholder: THREE.Group,
   glbRoot: THREE.Object3D,
-  extraClearance: number = 1.0
+  extraClearance: number = 0.05
 ): THREE.Object3D {
   glbRoot.updateWorldMatrix(true, true);
 
-  // Compute actual top of the GLB module to place wafer above it
-  const box = new THREE.Box3().setFromObject(glbRoot);
-  const moduleTopY = box.max.y;
-  // Ensure wafer sits above the module top, but never below the transfer height + clearance
-  const anchorWorldY = Math.max(moduleTopY + 0.4, WAFER_TRANSFER_Y + extraClearance);
+  // ── Step 1: Find the chuck (if it exists) and use ITS top as anchor reference ──
+  let chuckTopY: number | null = null;
+  const chuckGrp = placeholder.userData.waferChuck as THREE.Group | undefined;
+  
+  if (chuckGrp) {
+    chuckGrp.updateWorldMatrix(true, true);
+    const chuckBox = new THREE.Box3().setFromObject(chuckGrp);
+    chuckTopY = chuckBox.max.y;
+    console.log(`[ANCHOR] ${placeholder.userData.id}: using CHUCK top Y=${chuckTopY.toFixed(3)}`);
+  }
 
+  // ── Step 2: Fall back to GLB top if no chuck ──
+  if (chuckTopY === null) {
+    const box = new THREE.Box3().setFromObject(glbRoot);
+    chuckTopY = box.max.y;
+    console.log(`[ANCHOR] ${placeholder.userData.id}: using GLB top Y=${chuckTopY.toFixed(3)} (no chuck)`);
+  }
+
+  // ── Step 3: Wafer center sits at chuck top + half wafer thickness + tiny gap ──
+  const WAFER_HALF_THICKNESS = 0.035;          // wafer is 0.07 thick
+  const SEATING_GAP = 0.002;                    // 2mm visible gap (looks "placed" not "floating")
+  const anchorWorldY = chuckTopY + WAFER_HALF_THICKNESS + SEATING_GAP + extraClearance;
+
+  // ── Step 4: Convert world Y to local Y relative to placeholder ──
   const placeholderWorldPos = new THREE.Vector3();
   placeholder.getWorldPosition(placeholderWorldPos);
   const anchorLocalY = anchorWorldY - placeholderWorldPos.y;
 
+  // ── Step 5: Replace existing anchor ──
   const existing = placeholder.userData.waferAnchor as THREE.Object3D | undefined;
   if (existing) {
     placeholder.remove(existing);
@@ -31242,9 +31607,10 @@ function positionWaferAnchorAboveChuck(
   waferAnchor.position.set(0, anchorLocalY, 0);
   placeholder.add(waferAnchor);
   placeholder.userData.waferAnchor = waferAnchor;
+  placeholder.userData.chuckTopY = chuckTopY;
 
   console.log(
-    `[ANCHOR] ${placeholder.userData.id}: final wafer world Y=${anchorWorldY.toFixed(3)}`
+    `[ANCHOR] ${placeholder.userData.id}: wafer sits at world Y=${anchorWorldY.toFixed(3)} (local=${anchorLocalY.toFixed(3)})`
   );
   return waferAnchor;
 }
@@ -31352,7 +31718,7 @@ function buildDehydrationGLB(
       const moduleTopY = glbBox.max.y;
       chuck.position.y = moduleTopY + 0.05;
       console.log(`[CHUCK] ${mod.id}: forced to Y=${chuck.position.y.toFixed(2)} (GLB top=${moduleTopY.toFixed(2)})`);
-      positionWaferAnchorAboveChuck(placeholder, root, 4.0);
+      positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -31370,6 +31736,114 @@ function buildDehydrationGLB(
 
 
 
+
+// function buildHardBakeGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/hardbakeglb.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       const targetW = 4;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       const FLOOR_Y = 2;
+//       root.position.y = FLOOR_Y - box.min.y;
+//       const afterBox = new THREE.Box3().setFromObject(root);
+//       const afterCenter = new THREE.Vector3();
+//       afterBox.getCenter(afterCenter);
+//       root.position.x -= afterCenter.x;
+//       root.position.z -= afterCenter.z + 0.6;
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       const hotPlate =
+//         namedParts['HotPlate'] || namedParts['Hot_Plate'] ||
+//         namedParts['Plate'] || namedParts['Heater'] || namedParts['Top'];
+
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//       const scheme = { base: 0x4a1808, emissive: 0xff4422, light: 0xff3300, pl: 0xff3300 };
+
+//       if (hotPlate && (hotPlate as THREE.Mesh).isMesh) {
+//         const heatMat = new THREE.MeshStandardMaterial({
+//           color: scheme.base,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 2.2,
+//           roughness: 0.45,
+//           metalness: 0.5,
+//         });
+//         (hotPlate as THREE.Mesh).material = heatMat;
+//         placeholder.userData.heatMaterial = heatMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 7);
+//       pl.position.set(0, 1.2, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+//       // ── ADD BAKE CHUCK (positioning handled by addWaferChuck)
+//       const chuck = addWaferChuck(placeholder, 'bake');
+//       // Always visible so wafer has a surface to sit on
+//       chuck.visible = true;
+//       positionWaferAnchorAboveChuck(placeholder, root);
+
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => console.error('HardBake GLB failed to load:', err)
+//   );
+
+//   return placeholder;
+// }
 
 function buildHardBakeGLB(
   scene: THREE.Scene,
@@ -31403,7 +31877,7 @@ function buildHardBakeGLB(
       const afterCenter = new THREE.Vector3();
       afterBox.getCenter(afterCenter);
       root.position.x -= afterCenter.x;
-      root.position.z -= afterCenter.z + 0.6;
+      root.position.z -= afterCenter.z  - 0.1;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -31464,11 +31938,10 @@ function buildHardBakeGLB(
       placeholder.userData.loaded = true;
 
       addModuleLabel(placeholder, mod);
-      // ── ADD BAKE CHUCK (positioning handled by addWaferChuck)
-      const chuck = addWaferChuck(placeholder, 'bake');
-      // Keep bake chuck hidden until a wafer is transferred in
-      chuck.visible = false;
-      positionWaferAnchorAboveChuck(placeholder, root, 2.2);
+
+      // ── NO chuck added here — the GLB already has its own hotplate surface
+      // ── Just set the wafer anchor so robot knows where to place the wafer
+      positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -31585,7 +32058,7 @@ function buildPrCoatGLB(
       addModuleLabel(placeholder, mod);
       // ── ADD VISIBLE HOT PLATE CHUCK (HMDS warm chamber) ──
       addWaferChuck(placeholder, 'hotplate');
-      positionWaferAnchorAboveChuck(placeholder, root, 2.2);
+      positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -31816,7 +32289,7 @@ function buildScannerGLB(
       addModuleLabel(placeholder, mod);
       addWaferChuck(placeholder, 'spin');
 
-	positionWaferAnchorAboveChuck(placeholder, root, 2.5);
+  positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -32097,7 +32570,7 @@ function buildChillPlateGLB(
 			addModuleLabel(placeholder, mod);
 			addWaferChuck(placeholder, 'chill');
 
-		positionWaferAnchorAboveChuck(placeholder, root, 2.5);
+    positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -32107,6 +32580,108 @@ function buildChillPlateGLB(
 
   return placeholder;
 }
+
+
+// function buildHMDSGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/HMDS Vapour.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//      const tempBox  = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       const targetW = 2.5;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       // Place GLB so its base aligns with module floor
+//       root.position.y = MODULE_FLOOR_Y - box.min.y;
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = true;
+//           obj.receiveShadow = true;
+//         }
+//       });
+
+//       const chamber =
+//         namedParts['Chamber'] || namedParts['Vessel'] ||
+//         namedParts['Body']    || namedParts['Top']    || namedParts['Plate'];
+
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//       const scheme = { base: 0x1a0a00, emissive: 0xff8800, light: 0xffaa33, pl: 0xff7700 };
+
+//       if (chamber && (chamber as THREE.Mesh).isMesh) {
+//         const chamberMat = new THREE.MeshStandardMaterial({
+//           color: scheme.base,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 0.6,
+//           roughness: 0.25,
+//           metalness: 0.85,
+//         });
+//         (chamber as THREE.Mesh).material = chamberMat;
+//         placeholder.userData.chamberMaterial = chamberMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 7);
+//       pl.position.set(0, 1.5, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+
+//       addModuleLabel(placeholder, mod);
+//       // ── ADD VISIBLE SPIN CHUCK ──
+//       addWaferChuck(placeholder, 'spin');
+//       positionWaferAnchorAboveChuck(placeholder, root);
+
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => console.error('HMDS GLB failed:', err)
+//   );
+
+//   return placeholder;
+// }
 
 
 function buildHMDSGLB(
@@ -32129,14 +32704,25 @@ function buildHMDSGLB(
       const size = new THREE.Vector3();
       tempBox.getSize(size);
 
-      const targetW = 4.5;
+      const targetW = 2.5;
       const currentMax = Math.max(size.x, size.z);
       const scale = targetW / currentMax;
       root.scale.setScalar(scale);
+      // root.scale.y = scale * 0.01;
+
+      // ── ROTATE 180° to match other modules' orientation ──
+      root.rotation.y = Math.PI;
 
       const box = new THREE.Box3().setFromObject(root);
       // Place GLB so its base aligns with module floor
       root.position.y = MODULE_FLOOR_Y - box.min.y;
+
+      // ── Recenter X and Z after rotation (rotation shifts pivot) ──
+      const afterBox = new THREE.Box3().setFromObject(root);
+      const afterCenter = new THREE.Vector3();
+      afterBox.getCenter(afterCenter);
+      root.position.x -= afterCenter.x;
+      root.position.z -= afterCenter.z;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -32199,7 +32785,7 @@ function buildHMDSGLB(
       addModuleLabel(placeholder, mod);
       // ── ADD VISIBLE SPIN CHUCK ──
       addWaferChuck(placeholder, 'spin');
-      positionWaferAnchorAboveChuck(placeholder, root, 2.2);
+      positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -32308,7 +32894,7 @@ function buildPostBakeGLB(
       addModuleLabel(placeholder, mod);
       // ── ADD VISIBLE HOT PLATE CHUCK (PEB — post exposure bake) ──
       addWaferChuck(placeholder, 'hotplate');
-      positionWaferAnchorAboveChuck(placeholder, root, 5.5);
+      positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -32350,7 +32936,7 @@ function buildDIWaterRinseGLB(
 
       const box = new THREE.Box3().setFromObject(root);
       // Align DI water rinse model with module floor and add small visual offset
-      root.position.y = MODULE_FLOOR_Y - box.min.y + 0.1;
+      root.position.y = MODULE_FLOOR_Y - box.min.y - 1.0;
 
       // Center X only — no Z offset
       const afterBox = new THREE.Box3().setFromObject(root);
@@ -32436,7 +33022,7 @@ function buildDIWaterRinseGLB(
       addModuleLabel(placeholder, mod);
       // ── ADD VISIBLE SPIN CHUCK (rinse) ──
       addWaferChuck(placeholder, 'spin');
-      positionWaferAnchorAboveChuck(placeholder, root, 2.2);
+      positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -32554,7 +33140,7 @@ function buildDeveloperModuleGLB(
       addModuleLabel(placeholder, mod);
       // ── ADD VISIBLE SPIN CHUCK (developer) ──
       addWaferChuck(placeholder, 'spin');
-      positionWaferAnchorAboveChuck(placeholder, root, 2.2);
+      positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -32618,7 +33204,7 @@ function placeWaferAnchorOnChuck(
   placeholder: THREE.Group,
   glbRoot: THREE.Object3D,
 ): THREE.Object3D {
-  return positionWaferAnchorAboveChuck(placeholder, glbRoot, 0.05);
+  return positionWaferAnchorAboveChuck(placeholder, glbRoot);
 }
 
 // function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
@@ -32906,24 +33492,45 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
 function buildCombinedPlatform(scene: THREE.Scene): void {
   const modules = ALL_STEPS.filter(m => m.id !== 'output' && m.id !== 'scanner');
 
+  // ── TOP ROW (coater side, z < 0) ──
   const topModules = modules.filter(m => m.z < 0);
+  let topCenterX = 2;  // fallback
+  let topWidth = 30;
+
   if (topModules.length > 0) {
     const topMinX = Math.min(...topModules.map(m => m.x)) - 1.8;
     const topMaxX = Math.max(...topModules.map(m => m.x)) + 1.8;
-    const topZ = topModules[0].z;
-    const topWidth = topMaxX - topMinX;
-    buildPlatform(scene, (topMinX + topMaxX) / 2, topZ, topWidth, 4.5);
+    topCenterX = (topMinX + topMaxX) / 2;
+    topWidth = topMaxX - topMinX;
+    buildPlatform(scene, topCenterX, topModules[0].z, topWidth, 4.5);
   }
 
+  // ── BOTTOM ROW (developer side, z > 0) ──
   const botModules = modules.filter(m => m.z > 0);
   if (botModules.length > 0) {
     const botMinX = Math.min(...botModules.map(m => m.x)) - 1.8;
     const botMaxX = Math.max(...botModules.map(m => m.x)) + 1.8;
     const botZ = botModules[0].z;
     const botWidth = botMaxX - botMinX;
-    buildPlatform(scene, (botMinX + botMaxX) / 2, botZ, botWidth, 4.5);
+    const botCenterX = (botMinX + botMaxX) / 2;
+
+    // ── THE FIX: push bottom platform AWAY from robot rail and align left edge
+    const topModulesRef = modules.filter(m => m.z < 0);
+    const topMinXRef = topModulesRef.length > 0
+      ? Math.min(...topModulesRef.map(m => m.x)) - 1.8
+      : botMinX;
+
+    // Align left edge of bottom box to match left edge of top box
+    const shiftX = topMinXRef - botMinX;
+    const newBotCenterX = botCenterX + shiftX;
+
+    // Push bot platform deeper into its row (away from rail center)
+    const newBotZ = botZ + 1;
+
+    buildPlatform(scene, newBotCenterX, newBotZ, botWidth, 4.5);
   }
 
+  // ── CENTER ROW (EFEM / interface, z === 0) ──
   const centerModules = modules.filter(m => m.z === 0);
   if (centerModules.length > 0) {
     const centerMinX = Math.min(...centerModules.map(m => m.x)) - 1.8;
@@ -33060,143 +33667,566 @@ function buildPlatform(
 }
 
 function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
-  const CW = 512, CH = 160;
-  const nc = document.createElement("canvas");
-  nc.width = CW; nc.height = CH;
-  const ctx = nc.getContext("2d")!;
-  ctx.clearRect(0, 0, CW, CH);
-
-  // Dark background
-  ctx.fillStyle = "rgba(10, 18, 32, 0.92)";
-  ctx.beginPath();
-  const pillX = 8, pillY = 8, pillW = CW - 16, pillH = CH - 16, pillR = 12;
-  ctx.moveTo(pillX + pillR, pillY);
-  ctx.lineTo(pillX + pillW - pillR, pillY);
-  ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + pillR);
-  ctx.lineTo(pillX + pillW, pillY + pillH - pillR);
-  ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - pillR, pillY + pillH);
-  ctx.lineTo(pillX + pillR, pillY + pillH);
-  ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - pillR);
-  ctx.lineTo(pillX, pillY + pillR);
-  ctx.quadraticCurveTo(pillX, pillY, pillX + pillR, pillY);
-  ctx.closePath();
-  ctx.fill();
-
-  // Colored border
-  ctx.strokeStyle = hex2css(mod.color);
-  ctx.lineWidth = 3;
-  ctx.stroke();
-
-  // Short code
-  ctx.fillStyle = hex2css(mod.color);
-  ctx.font = "bold 52px 'Courier New', monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.shadowColor = hex2css(mod.color);
-  ctx.shadowBlur = 14;
-  ctx.fillText(mod.short, CW / 2, CH * 0.40);
-
-  // Full name
-  ctx.shadowBlur = 4;
-  ctx.fillStyle = "#e8f0ff";
-  ctx.font = "bold 20px 'Inter', 'Arial', sans-serif";
-  ctx.fillText(mod.name, CW / 2, CH * 0.72);
-
-  // Temperature badge
-  if (mod.temp !== null) {
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = mod.temp > 50 ? "#ff6633" : "#33aaff";
-    ctx.font = "bold 16px 'Courier New', monospace";
-    ctx.fillText(`${mod.temp}°C`, CW / 2, CH * 0.90);
+  // ── SKIP labels for virtual / non-physical modules ──
+  const SKIP_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out']);
+  if (SKIP_LABEL_IDS.has(mod.id)) {
+    console.log(`[LABEL] Skipping virtual module: ${mod.id}`);
+    return;
   }
 
-  const tex = new THREE.CanvasTexture(nc);
-  tex.minFilter = THREE.LinearFilter;
-  tex.magFilter = THREE.LinearFilter;
+  const CW = 512, CH = 160;
 
-  // ── VERTICAL FRONT SIGN: stands up, facing outward from the track ──
-  // Width 3.0 units, height 1.0 unit — legible from camera distances
+  // ── BUILD LABEL CANVAS (reusable for all faces) ──
+  const buildLabelCanvas = (): HTMLCanvasElement => {
+    const nc = document.createElement("canvas");
+    nc.width = CW;
+    nc.height = CH;
+    const ctx = nc.getContext("2d")!;
+    ctx.clearRect(0, 0, CW, CH);
+
+    // Dark background pill
+    ctx.fillStyle = "rgba(10, 18, 32, 0.92)";
+    ctx.beginPath();
+    const pillX = 8, pillY = 8, pillW = CW - 16, pillH = CH - 16, pillR = 12;
+    ctx.moveTo(pillX + pillR, pillY);
+    ctx.lineTo(pillX + pillW - pillR, pillY);
+    ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + pillR);
+    ctx.lineTo(pillX + pillW, pillY + pillH - pillR);
+    ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - pillR, pillY + pillH);
+    ctx.lineTo(pillX + pillR, pillY + pillH);
+    ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - pillR);
+    ctx.lineTo(pillX, pillY + pillR);
+    ctx.quadraticCurveTo(pillX, pillY, pillX + pillR, pillY);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = hex2css(mod.color);
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = hex2css(mod.color);
+    ctx.font = "bold 52px 'Courier New', monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = hex2css(mod.color);
+    ctx.shadowBlur = 14;
+    ctx.fillText(mod.short, CW / 2, CH * 0.40);
+
+    ctx.shadowBlur = 4;
+    ctx.fillStyle = "#e8f0ff";
+    ctx.font = "bold 20px 'Inter', 'Arial', sans-serif";
+    ctx.fillText(mod.name, CW / 2, CH * 0.72);
+
+    if (mod.temp !== null) {
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = mod.temp > 50 ? "#ff6633" : "#33aaff";
+      ctx.font = "bold 16px 'Courier New', monospace";
+      ctx.fillText(`${mod.temp}°C`, CW / 2, CH * 0.90);
+    }
+    return nc;
+  };
+
+  // ── LABEL DIMENSIONS ──
   const LABEL_W = 3.0;
   const LABEL_H = 1.0;
+  const SIDE_LABEL_W = LABEL_W * 0.75;
+  const SIDE_LABEL_H = LABEL_H * 0.75;
 
-  // Determine which side the label faces based on Z position
-  // Top track (z < 0): label faces toward camera (positive Z direction)
-  // Bot track (z > 0): label faces toward camera (negative Z direction)
-  // Center (z == 0): label faces +Z by default
-  const isFoup   = mod.type === 'foup';
-  const isScanner = mod.id === 'scanner';
+  const boxH = 2.7;
+  const boxD = 2.9;
+  const boxW = 4.0;
+  const MODULE_BASE_Y = 0.5;
+  const labelY = MODULE_BASE_Y + boxH * 0.5;
 
-  const frontPlane = new THREE.Mesh(
+  // ── ROW DETECTION ──
+  const isTopRow    = mod.z < -0.5;
+  const isBotRow    = mod.z >  0.5;
+  const isCenterRow = !isTopRow && !isBotRow;
+  const isFoup      = mod.type === 'foup';
+  const isScanner   = mod.id   === 'scanner';
+
+  console.log(`[LABEL] ${mod.id} z=${mod.z.toFixed(2)} isTopRow=${isTopRow} isBotRow=${isBotRow}`);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // CAMERA-FACING LABEL (the one user actually sees)
+  //
+  // Camera looks from positive Z toward negative Z direction.
+  // So the side of the module that faces the camera is the +Z side for
+  // EVERY row.
+  //
+  // - TOP ROW (z < 0): camera-facing side is +Z (i.e. toward z=0)
+  // - BOT ROW (z > 0): camera-facing side is -Z (i.e. toward z=0)
+  //
+  // Wait — let me reconsider. The camera orbits, but in the default 
+  // OVERVIEW preset, camera looks DOWN at an angle from +Z + +Y.
+  //
+  // For TOP row at z = -6, the camera (at z ≈ +20) is way on the +Z side.
+  // So the face of TOP row module facing camera is its +Z face.
+  // 
+  // For BOT row at z = +6, the camera is on the SAME +Z side, BUT looking
+  // back toward -Z. The face of BOT row facing camera is also its +Z face.
+  //
+  // BOTH ROWS should have labels on +Z face for the camera-facing label!
+  // ══════════════════════════════════════════════════════════════════════
+  
+  // ──────────────────────────────────────────────────────────────────────
+  // LABEL 1: CAMERA-FACING (always +Z side for both rows)
+  // ──────────────────────────────────────────────────────────────────────
+  const tex1 = new THREE.CanvasTexture(buildLabelCanvas());
+  tex1.minFilter = THREE.LinearFilter;
+  tex1.magFilter = THREE.LinearFilter;
+
+  const cameraFacingPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(LABEL_W, LABEL_H),
     new THREE.MeshBasicMaterial({
-      map: tex,
+      map: tex1,
       transparent: true,
       opacity: 0.97,
       depthWrite: false,
+      depthTest: true,
       side: THREE.DoubleSide,
     })
   );
 
-  // Place label vertically on the front face of the module box
-  // MODULE_FLOOR_Y ≈ 3.0, box height H = 2.7, so front face midpoint ≈ 4.35
-  // We place the label at mid-height of the box, sticking to the front face
-  const boxH = 2.7;
-  const boxD = 2.9; // module depth
-  const MODULE_BASE_Y = 0.5;
-  const labelY = MODULE_BASE_Y + boxH * 0.5; // vertically centered on the box
+  // Place on +Z face for ALL modules — this is the camera-facing side
+  cameraFacingPlane.position.set(0, labelY, boxD / 2 + 0.05);
+  cameraFacingPlane.rotation.y = 0;          // faces +Z (toward camera)
+  cameraFacingPlane.renderOrder = 100;
+  grp.add(cameraFacingPlane);
+  grp.userData.nameLabel = cameraFacingPlane;
 
-  // Z offset: push label just in front of the box face (+/- half depth)
-  // For top track (mod.z < 0): front face is at mod.z + boxD/2 (toward camera, positive Z side)
-  // For bot track (mod.z > 0): front face is at mod.z - boxD/2 (toward camera, negative Z side)
-  // For center/foup/scanner: use front face toward +Z
-  let labelZ: number;
-  if (mod.z < 0) {
-    // Top track: camera is toward positive Z, so front face is +Z side of module
-    labelZ = boxD / 2 + 0.02;
-    frontPlane.position.set(0, labelY, labelZ);
-    frontPlane.rotation.y = 0; // faces +Z (toward camera)
-  } else if (mod.z > 0) {
-    // Bottom track: camera is toward negative Z, so front face is -Z side
-    labelZ = -(boxD / 2 + 0.02);
-    frontPlane.position.set(0, labelY, labelZ);
-    frontPlane.rotation.y = Math.PI; // faces -Z (toward camera)
-  } else {
-    // Center row (FOUP, scanner, iface): face +Z
-    labelZ = boxD / 2 + 0.02;
-    frontPlane.position.set(0, labelY, labelZ);
-    frontPlane.rotation.y = 0;
-  }
+  // ──────────────────────────────────────────────────────────────────────
+  // LABEL 2: BACK SIDE (-Z face) — visible from behind/opposite angle
+  // ──────────────────────────────────────────────────────────────────────
+  if (!isFoup && !isScanner) {
+    const tex2 = new THREE.CanvasTexture(buildLabelCanvas());
+    tex2.minFilter = THREE.LinearFilter;
+    tex2.magFilter = THREE.LinearFilter;
 
-  frontPlane.renderOrder = 5;
-  grp.add(frontPlane);
-  grp.userData.nameLabel = frontPlane;
-
-  // ── OPTIONAL SIDE LABEL on the +X face for extra readability ──
-  // Smaller, rotated 90° to face along the track
-  if (!isScanner && !isFoup) {
-    const sideTex = new THREE.CanvasTexture(nc);
-    sideTex.minFilter = THREE.LinearFilter;
-
-    const sidePlane = new THREE.Mesh(
-      new THREE.PlaneGeometry(LABEL_W * 0.7, LABEL_H * 0.7),
+    const backPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(LABEL_W, LABEL_H),
       new THREE.MeshBasicMaterial({
-        map: sideTex,
+        map: tex2,
         transparent: true,
-        opacity: 0.80,
+        opacity: 0.92,
         depthWrite: false,
+        depthTest: true,
         side: THREE.DoubleSide,
       })
     );
+    // Place on -Z face
+    backPlane.position.set(0, labelY, -(boxD / 2 + 0.05));
+    backPlane.rotation.y = Math.PI;             // faces -Z
+    backPlane.renderOrder = 100;
+    grp.add(backPlane);
+    grp.userData.outerSideLabel = backPlane;
+  }
 
-    const boxW = 4;
-    // Place on +X face, slightly outward
-    sidePlane.position.set(boxW / 2 + 0.02, labelY, 0);
-    sidePlane.rotation.y = -Math.PI / 2; // rotate to face along +X axis
-    sidePlane.renderOrder = 5;
-    grp.add(sidePlane);
-    grp.userData.sideLabel = sidePlane;
+  // ──────────────────────────────────────────────────────────────────────
+  // LABEL 3: +X SIDE LABEL (small, side-on view)
+  // ──────────────────────────────────────────────────────────────────────
+  if (!isScanner && !isFoup) {
+    const tex3 = new THREE.CanvasTexture(buildLabelCanvas());
+    tex3.minFilter = THREE.LinearFilter;
+    tex3.magFilter = THREE.LinearFilter;
+
+    const sidePlaneX = new THREE.Mesh(
+      new THREE.PlaneGeometry(SIDE_LABEL_W, SIDE_LABEL_H),
+      new THREE.MeshBasicMaterial({
+        map: tex3,
+        transparent: true,
+        opacity: 0.80,
+        depthWrite: false,
+        depthTest: true,
+        side: THREE.DoubleSide,
+      })
+    );
+    sidePlaneX.position.set(boxW / 2 + 0.05, labelY, 0);
+    sidePlaneX.rotation.y = -Math.PI / 2;
+    sidePlaneX.renderOrder = 100;
+    grp.add(sidePlaneX);
+    grp.userData.sideLabelX = sidePlaneX;
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // LABEL 4: TOP-DOWN ROOF LABEL
+  // ──────────────────────────────────────────────────────────────────────
+  if (!isScanner) {
+    const tex4 = new THREE.CanvasTexture(buildLabelCanvas());
+    tex4.minFilter = THREE.LinearFilter;
+    tex4.magFilter = THREE.LinearFilter;
+
+    const roofPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(LABEL_W * 0.85, LABEL_H * 0.85),
+      new THREE.MeshBasicMaterial({
+        map: tex4,
+        transparent: true,
+        opacity: 0.75,
+        depthWrite: false,
+        depthTest: true,
+        side: THREE.DoubleSide,
+      })
+    );
+    roofPlane.position.set(0, MODULE_BASE_Y + boxH + 0.05, 0);
+    roofPlane.rotation.x = -Math.PI / 2;
+    roofPlane.renderOrder = 100;
+    grp.add(roofPlane);
+    grp.userData.roofLabel = roofPlane;
   }
 }
+
+
+
+
+
+
+// function addPlinthNameplates(scene: THREE.Scene): void {
+//   ALL_STEPS.forEach((mod) => {
+//     if (mod.id === 'foup' || mod.id === 'scanner' || mod.id === 'iface_in' || mod.id === 'iface_out') return;
+
+//     const makeNameplateMesh = (flipY = false): THREE.Mesh => {
+//       const CW = 512, CH = 80;
+//       const canvas = document.createElement('canvas');
+//       canvas.width = CW;
+//       canvas.height = CH;
+//       const ctx = canvas.getContext('2d')!;
+
+//       ctx.fillStyle = '#0a1020';
+//       ctx.fillRect(0, 0, CW, CH);
+
+//       const r = (mod.color >> 16) & 255;
+//       const g = (mod.color >> 8) & 255;
+//       const b = mod.color & 255;
+//       const css = `rgb(${r},${g},${b})`;
+
+//       ctx.fillStyle = css;
+//       ctx.fillRect(0, 0, CW, 8);
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.8)`;
+//       ctx.fillRect(0, CH - 6, CW, 6);
+
+//       ctx.font = 'bold 42px "Courier New", monospace';
+//       ctx.fillStyle = css;
+//       ctx.shadowColor = css;
+//       ctx.shadowBlur = 14;
+//       ctx.textAlign = 'left';
+//       ctx.fillText(mod.short, 12, 56);
+
+//       ctx.shadowBlur = 0;
+//       ctx.font = 'bold 18px Arial, sans-serif';
+//       ctx.fillStyle = '#ffffff';
+//       ctx.textAlign = 'right';
+//       ctx.fillText(
+//         mod.name.length > 20 ? mod.name.slice(0, 20) + '…' : mod.name,
+//         CW - 10, 36
+//       );
+
+//       if (mod.temp !== null) {
+//         ctx.font = 'bold 16px "Courier New", monospace';
+//         ctx.fillStyle = mod.temp > 50 ? '#ff5522' : '#22aaff';
+//         ctx.textAlign = 'right';
+//         ctx.fillText(`${mod.temp}°C`, CW - 10, 62);
+//       }
+
+//       const tex = new THREE.CanvasTexture(canvas);
+//       tex.minFilter = THREE.LinearFilter;
+//       tex.magFilter = THREE.LinearFilter;
+
+//       const plate = new THREE.Mesh(
+//         new THREE.PlaneGeometry(4.2, 0.65),
+//         new THREE.MeshBasicMaterial({
+//           map: tex,
+//           transparent: false,
+//           depthTest: true,
+//           depthWrite: true,
+//           side: THREE.FrontSide,
+//         })
+//       );
+
+//       if (flipY) plate.rotation.y = Math.PI;
+//       plate.renderOrder = 10;
+//       return plate;
+//     };
+
+//     // ── Side nameplate (smaller, for left/right X faces) ──
+//     const makeSideNameplateMesh = (flipY = false): THREE.Mesh => {
+//       const CW = 512, CH = 80;
+//       const canvas = document.createElement('canvas');
+//       canvas.width = CW;
+//       canvas.height = CH;
+//       const ctx = canvas.getContext('2d')!;
+
+//       ctx.fillStyle = '#0a1020';
+//       ctx.fillRect(0, 0, CW, CH);
+
+//       const r = (mod.color >> 16) & 255;
+//       const g = (mod.color >> 8) & 255;
+//       const b = mod.color & 255;
+//       const css = `rgb(${r},${g},${b})`;
+
+//       ctx.fillStyle = css;
+//       ctx.fillRect(0, 0, CW, 8);
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.8)`;
+//       ctx.fillRect(0, CH - 6, CW, 6);
+
+//       // Short code only on side plate (less space)
+//       ctx.font = 'bold 48px "Courier New", monospace';
+//       ctx.fillStyle = css;
+//       ctx.shadowColor = css;
+//       ctx.shadowBlur = 14;
+//       ctx.textAlign = 'center';
+//       ctx.fillText(mod.short, CW / 2, 58);
+
+//       const tex = new THREE.CanvasTexture(canvas);
+//       tex.minFilter = THREE.LinearFilter;
+//       tex.magFilter = THREE.LinearFilter;
+
+//       const plate = new THREE.Mesh(
+//         new THREE.PlaneGeometry(2.8, 0.65),   // narrower for side face
+//         new THREE.MeshBasicMaterial({
+//           map: tex,
+//           transparent: false,
+//           depthTest: true,
+//           depthWrite: true,
+//           side: THREE.FrontSide,
+//         })
+//       );
+
+//       if (flipY) plate.rotation.y = Math.PI;
+//       plate.renderOrder = 10;
+//       return plate;
+//     };
+
+//     const PLINTH_H     = 3.2;
+//     const PLINTH_Y0    = -0.5;
+//     const PLATE_Y      = PLINTH_Y0 + PLINTH_H * 0.40;
+//     const FACE_OFFSET  = 2.5;   // Z offset — front/back face
+//     const SIDE_OFFSET  = 2.6;   // X offset — left/right face (plinth W=5, half=2.5)
+
+//     const isTopRow = mod.z < 0;
+//     const isBotRow = mod.z > 0;
+
+//     if (isTopRow) {
+//       // ── FRONT face (+Z, toward camera) ──
+//       const front = makeNameplateMesh(false);
+//       front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+//       front.rotation.y = 0;
+//       scene.add(front);
+
+//       // ── LEFT side face (-X) ──
+//       const sideLeft = makeSideNameplateMesh(false);
+//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideLeft.rotation.y = Math.PI / 2;   // face -X direction
+//       scene.add(sideLeft);
+
+//       // ── RIGHT side face (+X) ──
+//       const sideRight = makeSideNameplateMesh(true);
+//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideRight.rotation.y = -Math.PI / 2;  // face +X direction
+//       scene.add(sideRight);
+
+//     } else if (isBotRow) {
+//       // ── FRONT face (-Z, toward camera) ──
+//       const front = makeNameplateMesh(true);
+//       front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+//       front.rotation.y = Math.PI;
+//       scene.add(front);
+
+//       // ── LEFT side face (-X) ──
+//       const sideLeft = makeSideNameplateMesh(false);
+//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideLeft.rotation.y = Math.PI / 2;
+//       scene.add(sideLeft);
+
+//       // ── RIGHT side face (+X) ──
+//       const sideRight = makeSideNameplateMesh(true);
+//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideRight.rotation.y = -Math.PI / 2;
+//       scene.add(sideRight);
+//     }
+//   });
+// }
+
+function addPlinthNameplates(scene: THREE.Scene): void {
+  ALL_STEPS.forEach((mod) => {
+    // ── SKIP virtual modules (no physical body, no floating label) ──
+    const SKIP_PLINTH_IDS = new Set([
+      'foup', 
+      'scanner', 
+      'iface_in', 
+      'iface_out',
+      'spindry',      // ← ADD: Spin Dry + N₂ Purge
+    ]);
+    if (SKIP_PLINTH_IDS.has(mod.id)) return;
+
+    const makeNameplateMesh = (): THREE.Mesh => {
+      const CW = 512, CH = 80;
+      const canvas = document.createElement('canvas');
+      canvas.width = CW;
+      canvas.height = CH;
+      const ctx = canvas.getContext('2d')!;
+
+      ctx.fillStyle = '#0a1020';
+      ctx.fillRect(0, 0, CW, CH);
+
+      const r = (mod.color >> 16) & 255;
+      const g = (mod.color >> 8) & 255;
+      const b = mod.color & 255;
+      const css = `rgb(${r},${g},${b})`;
+
+      ctx.fillStyle = css;
+      ctx.fillRect(0, 0, CW, 8);
+      ctx.fillStyle = `rgba(${r},${g},${b},0.8)`;
+      ctx.fillRect(0, CH - 6, CW, 6);
+
+      ctx.font = 'bold 42px "Courier New", monospace';
+      ctx.fillStyle = css;
+      ctx.shadowColor = css;
+      ctx.shadowBlur = 14;
+      ctx.textAlign = 'left';
+      ctx.fillText(mod.short, 12, 56);
+
+      ctx.shadowBlur = 0;
+      ctx.font = 'bold 18px Arial, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'right';
+      ctx.fillText(
+        mod.name.length > 20 ? mod.name.slice(0, 20) + '…' : mod.name,
+        CW - 10, 36
+      );
+
+      if (mod.temp !== null) {
+        ctx.font = 'bold 16px "Courier New", monospace';
+        ctx.fillStyle = mod.temp > 50 ? '#ff5522' : '#22aaff';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${mod.temp}°C`, CW - 10, 62);
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+
+      const plate = new THREE.Mesh(
+        new THREE.PlaneGeometry(4.2, 0.65),
+        new THREE.MeshBasicMaterial({
+          map: tex,
+          transparent: false,
+          depthTest: true,
+          depthWrite: true,
+          side: THREE.DoubleSide,   // ← DoubleSide so both directions visible
+        })
+      );
+      plate.renderOrder = 10;
+      return plate;
+    };
+
+    const makeSideNameplateMesh = (): THREE.Mesh => {
+      const CW = 512, CH = 80;
+      const canvas = document.createElement('canvas');
+      canvas.width = CW;
+      canvas.height = CH;
+      const ctx = canvas.getContext('2d')!;
+
+      ctx.fillStyle = '#0a1020';
+      ctx.fillRect(0, 0, CW, CH);
+
+      const r = (mod.color >> 16) & 255;
+      const g = (mod.color >> 8) & 255;
+      const b = mod.color & 255;
+      const css = `rgb(${r},${g},${b})`;
+
+      ctx.fillStyle = css;
+      ctx.fillRect(0, 0, CW, 8);
+      ctx.fillStyle = `rgba(${r},${g},${b},0.8)`;
+      ctx.fillRect(0, CH - 6, CW, 6);
+
+      ctx.font = 'bold 48px "Courier New", monospace';
+      ctx.fillStyle = css;
+      ctx.shadowColor = css;
+      ctx.shadowBlur = 14;
+      ctx.textAlign = 'center';
+      ctx.fillText(mod.short, CW / 2, 58);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+
+      const plate = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.8, 0.65),
+        new THREE.MeshBasicMaterial({
+          map: tex,
+          transparent: false,
+          depthTest: true,
+          depthWrite: true,
+          side: THREE.DoubleSide,   // ← DoubleSide fixes missing side plates
+        })
+      );
+      plate.renderOrder = 10;
+      return plate;
+    };
+
+    const PLINTH_H    = 3.2;
+    const PLINTH_Y0   = -0.5;
+    const PLATE_Y     = PLINTH_Y0 + PLINTH_H * 0.40;
+    const FACE_OFFSET = 2.5;    // Z distance — front/back
+    const SIDE_OFFSET = 2.6;    // X distance — left/right sides
+
+    const isTopRow = mod.z < 0;
+    const isBotRow = mod.z > 0;
+
+    if (isTopRow) {
+      // ── FRONT face: top row camera side is +Z ──
+      const front = makeNameplateMesh();
+      front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+      // No rotation needed — plane default faces +Z
+      scene.add(front);
+
+      // ── BACK face: opposite side ──
+      const back = makeNameplateMesh();
+      back.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+      back.rotation.y = Math.PI;
+      scene.add(back);
+
+      // ── LEFT side (-X face) ──
+      const sideLeft = makeSideNameplateMesh();
+      sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+      sideLeft.rotation.y = -Math.PI / 2;  // face toward -X
+      scene.add(sideLeft);
+
+      // ── RIGHT side (+X face) ──
+      const sideRight = makeSideNameplateMesh();
+      sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+      sideRight.rotation.y = Math.PI / 2;  // face toward +X
+      scene.add(sideRight);
+
+    } else if (isBotRow) {
+      // ── FRONT face: bottom row camera side is -Z ──
+      const front = makeNameplateMesh();
+      front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+      front.rotation.y = Math.PI;  // flip to face -Z
+      scene.add(front);
+
+      // ── BACK face ──
+      const back = makeNameplateMesh();
+      back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+      // No rotation — faces +Z
+      scene.add(back);
+
+      // ── LEFT side (-X face) ──
+      const sideLeft = makeSideNameplateMesh();
+      sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+      sideLeft.rotation.y = -Math.PI / 2;
+      scene.add(sideLeft);
+
+      // ── RIGHT side (+X face) ──
+      const sideRight = makeSideNameplateMesh();
+      sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+      sideRight.rotation.y = Math.PI / 2;
+      scene.add(sideRight);
+    }
+  });
+}
+
+
 
 function addRowLabelBars(scene: THREE.Scene): void {
   const rowLabels = [
@@ -33413,36 +34443,37 @@ attachTo(robot: RobotObject): void {
 
 
 detachAt(worldPos: THREE.Vector3): void {
-		if (!this.carrierRobot) return;
+    if (!this.carrierRobot) return;
 
-		this.scene.attach(this.mesh);
-		this.mesh.scale.setScalar(1);
+    // Preserve world transform by reattaching to scene
+    this.scene.attach(this.mesh);
+    // Ensure correct visual scale
+    this.mesh.scale.setScalar(1);
 
-		const VISIBLE_LIFT = 0.4;
-		const visibleY = Math.max(WAFER_TRANSFER_Y, 3.40) + VISIBLE_LIFT;
-		this.mesh.position.set(worldPos.x, visibleY, worldPos.z);
-		this.mesh.quaternion.setFromEuler(
-			new THREE.Euler(0, Math.random() * Math.PI * 2, 0, "YXZ")
-		);
+    // Use the provided anchor world position directly — robot delivered wafer to anchor
+    this.mesh.position.set(worldPos.x, worldPos.y, worldPos.z);
+    this.mesh.quaternion.setFromEuler(
+      new THREE.Euler(0, Math.random() * Math.PI * 2, 0, "YXZ")
+    );
 
-		this.mesh.renderOrder = 999;
-		this.mesh.traverse((child) => {
-			if ((child as THREE.Mesh).isMesh) {
-				const mesh = child as THREE.Mesh;
-				mesh.renderOrder = 999;
-				mesh.frustumCulled = false;
-				mesh.visible = true;
-			}
-		});
+    this.mesh.renderOrder = 999;
+    this.mesh.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        mesh.renderOrder = 999;
+        mesh.frustumCulled = false;
+        mesh.visible = true;
+      }
+    });
 
-		this.carrierRobot = null;
-		this.owner = "none";
-		this.mesh.visible = true;
+    this.carrierRobot = null;
+    this.owner = "none";
+    this.mesh.visible = true;
 
-		console.log(
-			`[DETACH] wafer ${this.wi} placed at`,
-			this.mesh.position.toArray().map((v) => v.toFixed(3))
-		);
+    console.log(
+      `[DETACH] wafer ${this.wi} placed at`,
+      this.mesh.position.toArray().map((v) => v.toFixed(3))
+    );
 }
 } 
 // ─── SIMULATION ──────────────────────────────────────────────────────────────
@@ -33482,6 +34513,12 @@ robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: Ro
     this._build(); this._bindEvents();
   }
 
+  // Signal that a video modal is open so the render loop can throttle/skip frames
+  setVideoOpen(open: boolean) {
+    (this as any)._videoOpen = open;
+    console.log("[PERF] Video open state:", open);
+  }
+
   private _addLog(msg: string, cls: LogEntry["cls"] = "") { this.onLog({ id: ++this._logSeq, msg, cls }); }
 
   private _build() {
@@ -33516,6 +34553,7 @@ ALL_STEPS.forEach((mod) => {
   this.modObjs[mod.id] = grp;
 });
     buildFlowArrows(this.scene);
+    addPlinthNameplates(this.scene);
     addRowLabelBars(this.scene);
     
     // ── Physical nameplates — attached to every module group ──
@@ -33689,120 +34727,253 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     }
   }
 
-  private _reconnectPrCoatNozzle(prCoatGroup: THREE.Group): void {
-    // Find or create nozzle assembly group
-    let nozzleGroup = prCoatGroup.userData.nozzleGroup as THREE.Group;
-    if (!nozzleGroup) {
-      nozzleGroup = new THREE.Group();
-      nozzleGroup.name = "NozzleAssembly";
-      prCoatGroup.add(nozzleGroup);
-      prCoatGroup.userData.nozzleGroup = nozzleGroup;
-    }
+  // private _reconnectPrCoatNozzle(prCoatGroup: THREE.Group): void {
+  //   // Find or create nozzle assembly group
+  //   let nozzleGroup = prCoatGroup.userData.nozzleGroup as THREE.Group;
+  //   if (!nozzleGroup) {
+  //     nozzleGroup = new THREE.Group();
+  //     nozzleGroup.name = "NozzleAssembly";
+  //     prCoatGroup.add(nozzleGroup);
+  //     prCoatGroup.userData.nozzleGroup = nozzleGroup;
+  //   }
     
-    // Clear existing nozzle parts to rebuild properly
-    while (nozzleGroup.children.length) {
-      nozzleGroup.remove(nozzleGroup.children[0]);
-    }
+  //   // Clear existing nozzle parts to rebuild properly
+  //   while (nozzleGroup.children.length) {
+  //     nozzleGroup.remove(nozzleGroup.children[0]);
+  //   }
     
-    // Materials
-    const metalMat = new THREE.MeshStandardMaterial({ color: 0x778899, roughness: 0.12, metalness: 0.94 });
-    const darkMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.15, metalness: 0.92 });
-    const tipMat = new THREE.MeshStandardMaterial({ color: 0xbb9966, metalness: 0.88, roughness: 0.1 });
-    const glowMat = new THREE.MeshStandardMaterial({ color: 0xff44cc, emissive: 0xff22aa, emissiveIntensity: 2.2 });
+  //   // Materials
+  //   const metalMat = new THREE.MeshStandardMaterial({ color: 0x778899, roughness: 0.12, metalness: 0.94 });
+  //   const darkMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.15, metalness: 0.92 });
+  //   const tipMat = new THREE.MeshStandardMaterial({ color: 0xbb9966, metalness: 0.88, roughness: 0.1 });
+  //   const glowMat = new THREE.MeshStandardMaterial({ color: 0xff44cc, emissive: 0xff22aa, emissiveIntensity: 2.2 });
     
-    // === CONTINUOUS PIPE FROM SOURCE TO TIP (NO GAPS) ===
+  //   // === CONTINUOUS PIPE FROM SOURCE TO TIP (NO GAPS) ===
     
-    // 1. Vertical supply pipe (from overhead)
-    const supplyPipe = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.085, 0.085, 1.5, 12),
-      metalMat
-    );
-    supplyPipe.position.set(0.8, 1.25, 0.6);
-    supplyPipe.castShadow = true;
-    nozzleGroup.add(supplyPipe);
+  //   // 1. Vertical supply pipe (from overhead)
+  //   const supplyPipe = new THREE.Mesh(
+  //     new THREE.CylinderGeometry(0.085, 0.085, 1.5, 12),
+  //     metalMat
+  //   );
+  //   supplyPipe.position.set(0.8, 1.25, 0.6);
+  //   supplyPipe.castShadow = true;
+  //   nozzleGroup.add(supplyPipe);
     
-    // 2. First elbow - connects vertical to horizontal (continuous)
-    const elbow1 = new THREE.Mesh(
-      new THREE.SphereGeometry(0.105, 16, 12),
-      metalMat
-    );
-    elbow1.position.set(0.8, 0.5, 0.6);
-    nozzleGroup.add(elbow1);
+  //   // 2. First elbow - connects vertical to horizontal (continuous)
+  //   const elbow1 = new THREE.Mesh(
+  //     new THREE.SphereGeometry(0.105, 16, 12),
+  //     metalMat
+  //   );
+  //   elbow1.position.set(0.8, 0.5, 0.6);
+  //   nozzleGroup.add(elbow1);
     
-    // 3. Horizontal pipe (touches elbow1 exactly)
-    const horizPipe = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.08, 0.08, 1.2, 12),
-      metalMat
-    );
-    horizPipe.rotation.z = Math.PI / 2;
-    horizPipe.position.set(1.4, 0.5, 0.6);
-    nozzleGroup.add(horizPipe);
+  //   // 3. Horizontal pipe (touches elbow1 exactly)
+  //   const horizPipe = new THREE.Mesh(
+  //     new THREE.CylinderGeometry(0.08, 0.08, 1.2, 12),
+  //     metalMat
+  //   );
+  //   horizPipe.rotation.z = Math.PI / 2;
+  //   horizPipe.position.set(1.4, 0.5, 0.6);
+  //   nozzleGroup.add(horizPipe);
     
-    // 4. Second elbow - connects horizontal to vertical down
-    const elbow2 = new THREE.Mesh(
-      new THREE.SphereGeometry(0.105, 16, 12),
-      metalMat
-    );
-    elbow2.position.set(2.0, 0.5, 0.6);
-    nozzleGroup.add(elbow2);
+  //   // 4. Second elbow - connects horizontal to vertical down
+  //   const elbow2 = new THREE.Mesh(
+  //     new THREE.SphereGeometry(0.105, 16, 12),
+  //     metalMat
+  //   );
+  //   elbow2.position.set(2.0, 0.5, 0.6);
+  //   nozzleGroup.add(elbow2);
     
-    // 5. Downward pipe (touches elbow2 exactly)
-    const downPipe = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.075, 0.075, 0.48, 12),
-      metalMat
-    );
-    downPipe.position.set(2.0, 0.26, 0.6);
-    nozzleGroup.add(downPipe);
+  //   // 5. Downward pipe (touches elbow2 exactly)
+  //   const downPipe = new THREE.Mesh(
+  //     new THREE.CylinderGeometry(0.075, 0.075, 0.48, 12),
+  //     metalMat
+  //   );
+  //   downPipe.position.set(2.0, 0.26, 0.6);
+  //   nozzleGroup.add(downPipe);
     
-    // 6. Nozzle valve body (directly connected, NO GAP)
-    const valveBody = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.13, 0.11, 0.32, 16),
-      darkMat
-    );
-    valveBody.position.set(2.0, 0.05, 0.6);
-    nozzleGroup.add(valveBody);
+  //   // 6. Nozzle valve body (directly connected, NO GAP)
+  //   const valveBody = new THREE.Mesh(
+  //     new THREE.CylinderGeometry(0.13, 0.11, 0.32, 16),
+  //     darkMat
+  //   );
+  //   valveBody.position.set(2.0, 0.05, 0.6);
+  //   nozzleGroup.add(valveBody);
     
-    // 7. Nozzle tip (directly connected to valve body)
-    const nozzleTip = new THREE.Mesh(
-      new THREE.ConeGeometry(0.048, 0.13, 12),
-      tipMat
-    );
-    nozzleTip.position.set(2.0, -0.08, 0.6);
-    nozzleGroup.add(nozzleTip);
+  //   // 7. Nozzle tip (directly connected to valve body)
+  //   const nozzleTip = new THREE.Mesh(
+  //     new THREE.ConeGeometry(0.048, 0.13, 12),
+  //     tipMat
+  //   );
+  //   nozzleTip.position.set(2.0, -0.08, 0.6);
+  //   nozzleGroup.add(nozzleTip);
     
-    // 8. Glow tip (at nozzle exit)
-    const tipGlow = new THREE.Mesh(
-      new THREE.SphereGeometry(0.03, 8, 8),
-      glowMat
-    );
-    tipGlow.position.set(2.0, -0.15, 0.6);
-    tipGlow.userData.isTipGlow = true;
-    nozzleGroup.add(tipGlow);
+  //   // 8. Glow tip (at nozzle exit)
+  //   const tipGlow = new THREE.Mesh(
+  //     new THREE.SphereGeometry(0.03, 8, 8),
+  //     glowMat
+  //   );
+  //   tipGlow.position.set(2.0, -0.15, 0.6);
+  //   tipGlow.userData.isTipGlow = true;
+  //   nozzleGroup.add(tipGlow);
     
-    // 9. Connection coupler - hides any remaining seam
-    const coupler = new THREE.Mesh(
-      new THREE.TorusGeometry(0.095, 0.025, 8, 24),
-      new THREE.MeshStandardMaterial({ color: 0xaa8866, metalness: 0.85, roughness: 0.2 })
-    );
-    coupler.rotation.x = Math.PI / 2;
-    coupler.position.set(2.0, 0.21, 0.6);
-    nozzleGroup.add(coupler);
+  //   // 9. Connection coupler - hides any remaining seam
+  //   const coupler = new THREE.Mesh(
+  //     new THREE.TorusGeometry(0.095, 0.025, 8, 24),
+  //     new THREE.MeshStandardMaterial({ color: 0xaa8866, metalness: 0.85, roughness: 0.2 })
+  //   );
+  //   coupler.rotation.x = Math.PI / 2;
+  //   coupler.position.set(2.0, 0.21, 0.6);
+  //   nozzleGroup.add(coupler);
     
-    // 10. Second coupler at elbow junction
-    const coupler2 = new THREE.Mesh(
-      new THREE.TorusGeometry(0.095, 0.02, 8, 24),
-      new THREE.MeshStandardMaterial({ color: 0xaa8866, metalness: 0.85, roughness: 0.2 })
-    );
-    coupler2.rotation.z = Math.PI / 2;
-    coupler2.position.set(1.4, 0.5, 0.6);
-    nozzleGroup.add(coupler2);
+  //   // 10. Second coupler at elbow junction
+  //   const coupler2 = new THREE.Mesh(
+  //     new THREE.TorusGeometry(0.095, 0.02, 8, 24),
+  //     new THREE.MeshStandardMaterial({ color: 0xaa8866, metalness: 0.85, roughness: 0.2 })
+  //   );
+  //   coupler2.rotation.z = Math.PI / 2;
+  //   coupler2.position.set(1.4, 0.5, 0.6);
+  //   nozzleGroup.add(coupler2);
     
-    // Store references for animation
-    prCoatGroup.userData.nozzleTipGlow = tipGlow;
-    prCoatGroup.userData.nozzleTip = nozzleTip;
+  //   // Store references for animation
+  //   prCoatGroup.userData.nozzleTipGlow = tipGlow;
+  //   prCoatGroup.userData.nozzleTip = nozzleTip;
     
-    console.log('[FIX] Nozzle pipe gap closed - continuous connection established');
+  //   console.log('[FIX] Nozzle pipe gap closed - continuous connection established');
+  // }
+
+private _reconnectPrCoatNozzle(prCoatGroup: THREE.Group): void {
+  // ── Remove any previously built nozzle from scene ──
+  const existing = this.scene.getObjectByName("PrCoatNozzleAssembly");
+  if (existing) this.scene.remove(existing);
+
+  const nozzleGroup = new THREE.Group();
+  nozzleGroup.name = "PrCoatNozzleAssembly";
+
+  const metalMat = new THREE.MeshStandardMaterial({ color: 0x778899, roughness: 0.12, metalness: 0.94 });
+  const darkMat  = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.15, metalness: 0.92 });
+  const tipMat   = new THREE.MeshStandardMaterial({ color: 0xbb9966, metalness: 0.88, roughness: 0.1 });
+  const glowMat  = new THREE.MeshStandardMaterial({ color: 0xff44cc, emissive: 0xff22aa, emissiveIntensity: 2.2 });
+
+  // ── Get the PR Coat module's world position ──
+  const modWorldPos = new THREE.Vector3();
+  prCoatGroup.getWorldPosition(modWorldPos);
+
+  // ── Find the top of the GLB (chuck surface) ──
+  const glbRoot = prCoatGroup.userData.glbRoot as THREE.Object3D | undefined;
+  let chuckTopY = MODULE_FLOOR_Y + 1.5; // fallback
+  if (glbRoot) {
+    const box = new THREE.Box3().setFromObject(glbRoot);
+    chuckTopY = box.max.y;
   }
+
+  // ── World-space anchor: center of the PR Coat module ──
+  const WX = modWorldPos.x;   // module world X
+  const WZ = modWorldPos.z;   // module world Z
+
+  // ── Geometry constants ──
+  const SUPPLY_H    = 1.8;
+  const HORIZ_W     = 1.4;
+  const DOWN_H      = 0.55;
+  const VALVE_H     = 0.35;
+  const TIP_H       = 0.15;
+
+  // Pipe starts above the chuck, offset to the side
+  const PIPE_X_OFF  = -1.0;   // offset left of module center
+  const PIPE_Z_OFF  =  0.5;   // offset toward camera
+
+  const supplyTopY    = chuckTopY + SUPPLY_H;
+  const supplyBotY    = chuckTopY;
+  const supplyMidY    = (supplyTopY + supplyBotY) / 2;
+
+  // 1. Vertical supply pipe
+  const supplyPipe = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.055, 0.055, SUPPLY_H, 12), metalMat
+  );
+  supplyPipe.position.set(WX + PIPE_X_OFF, supplyMidY, WZ + PIPE_Z_OFF);
+  nozzleGroup.add(supplyPipe);
+
+  // 2. Elbow 1 — at bottom of supply pipe
+  const elbow1Y = supplyBotY;
+  const elbow1 = new THREE.Mesh(new THREE.SphereGeometry(0.07, 16, 12), metalMat);
+  elbow1.position.set(WX + PIPE_X_OFF, elbow1Y, WZ + PIPE_Z_OFF);
+  nozzleGroup.add(elbow1);
+
+  // 3. Horizontal pipe — runs from elbow1 to above chuck center
+  const horizStartX = WX + PIPE_X_OFF;
+  const horizEndX   = WX + 0.2;          // ends near chuck center
+  const horizMidX   = (horizStartX + horizEndX) / 2;
+  const horizLen    = Math.abs(horizEndX - horizStartX);
+  const horizPipe = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, horizLen, 12), metalMat
+  );
+  horizPipe.rotation.z = Math.PI / 2;
+  horizPipe.position.set(horizMidX, elbow1Y, WZ + PIPE_Z_OFF);
+  nozzleGroup.add(horizPipe);
+
+  // 4. Elbow 2 — at end of horizontal pipe
+  const elbow2X = horizEndX;
+  const elbow2 = new THREE.Mesh(new THREE.SphereGeometry(0.07, 16, 12), metalMat);
+  elbow2.position.set(elbow2X, elbow1Y, WZ + PIPE_Z_OFF);
+  nozzleGroup.add(elbow2);
+
+  // 5. Down pipe — from elbow2 down toward chuck
+  const downPipeTopY    = elbow1Y;
+  const downPipeBotY    = downPipeTopY - DOWN_H;
+  const downPipeMidY    = (downPipeTopY + downPipeBotY) / 2;
+  const downPipe = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.048, 0.048, DOWN_H, 12), metalMat
+  );
+  downPipe.position.set(elbow2X, downPipeMidY, WZ + PIPE_Z_OFF);
+  nozzleGroup.add(downPipe);
+
+  // 6. Valve body — top flush with downPipe bottom
+  const valveTopY    = downPipeBotY;
+  const valveBotY    = valveTopY - VALVE_H;
+  const valveMidY    = (valveTopY + valveBotY) / 2;
+  const valveBody = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.085, 0.07, VALVE_H, 16), darkMat
+  );
+  valveBody.position.set(elbow2X, valveMidY, WZ + PIPE_Z_OFF);
+  nozzleGroup.add(valveBody);
+
+  // 7. Nozzle tip — top flush with valve bottom
+  const tipTopY  = valveBotY;
+  const tipBotY  = tipTopY - TIP_H;
+  const tipMidY  = (tipTopY + tipBotY) / 2;
+  const nozzleTip = new THREE.Mesh(
+    new THREE.ConeGeometry(0.032, TIP_H, 12), tipMat
+  );
+  nozzleTip.position.set(elbow2X, tipMidY, WZ + PIPE_Z_OFF);
+  nozzleGroup.add(nozzleTip);
+
+  // 8. Glow at tip exit
+  const tipGlow = new THREE.Mesh(
+    new THREE.SphereGeometry(0.022, 8, 8), glowMat
+  );
+  tipGlow.position.set(elbow2X, tipBotY, WZ + PIPE_Z_OFF);
+  tipGlow.userData.isTipGlow = true;
+  nozzleGroup.add(tipGlow);
+
+  // 9. Coupler at valve junction
+  const coupler = new THREE.Mesh(
+    new THREE.TorusGeometry(0.065, 0.018, 8, 24),
+    new THREE.MeshStandardMaterial({ color: 0xaa8866, metalness: 0.85, roughness: 0.2 })
+  );
+  coupler.rotation.x = Math.PI / 2;
+  coupler.position.set(elbow2X, valveTopY, WZ + PIPE_Z_OFF);
+  nozzleGroup.add(coupler);
+
+  // ── Add directly to scene (world space — no parent transform issues) ──
+  this.scene.add(nozzleGroup);
+
+  // Store refs for animation
+  prCoatGroup.userData.nozzleTipGlow = tipGlow;
+  prCoatGroup.userData.nozzleTip     = nozzleTip;
+  prCoatGroup.userData.nozzleGroup   = nozzleGroup;
+
+  console.log('[FIX] Nozzle built in world space at', WX.toFixed(2), chuckTopY.toFixed(2), WZ.toFixed(2));
+}
 
   private _driveRobotTo(rob: RobotObject, tgt: THREE.Vector3, dt: number, mult: number) {
     rob.runIK(tgt);
@@ -35193,8 +36364,8 @@ private _animRobots(dt: number) {
       const modGrp = this.modObjs[dropStep.id];
       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
       if (wa) {
+        // Use exact anchor world position (do not override Y)
         wa.getWorldPosition(dropWorld);
-        dropWorld.y = WAFER_TRANSFER_Y + 0.02;
       } else {
         dropWorld.set(dropStep.x, WAFER_TRANSFER_Y + 0.02, dropStep.z);
       }
@@ -36339,6 +37510,16 @@ case "track_place": {
     this._animId = requestAnimationFrame(this._loop);
     const now = performance.now();
     const rawDt = Math.min((now - this._lastT) / 1000, 0.05); this._lastT = now;
+
+    // ── SKIP ENTIRE FRAME if video popup is open (massive perf boost)
+    if ((this as any)._videoOpen) {
+      // Render at ~10fps to keep UI responsive while video plays
+      if (now - ((this as any)._lastVideoFrame || 0) < 100) return;
+      (this as any)._lastVideoFrame = now;
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
+
     this._frm++;
     if (now - this._lastFpsT > 1000) { this.fps = Math.round(this._frm * 1000 / (now - this._lastFpsT)); this._frm = 0; this._lastFpsT = now; }
     const dt = this.paused ? 0 : rawDt;
@@ -36953,6 +38134,7 @@ export default function EFEMSimulator() {
   const [activeProcessModule, setActiveProcessModule] = useState<"prcoat" | "develop" | null>(null);
   const [iframeUrl, setIframeUrl] = useState<string | null>(null);
   const [iframeTitle, setIframeTitle] = useState<string>("");
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   const [showCoatWidget, setShowCoatWidget] = useState(false);
   const [coatWidgetData, setCoatWidgetData] = useState<{ module: "prcoat" | "develop"; start: number; duration: number } | null>(null);
   const [ui, setUI]             = useState<UIState>({ wafers: [], simTime: 0, fps: 60, active: 0, completed: 0, jointsEFEM: null });
@@ -36994,16 +38176,34 @@ export default function EFEMSimulator() {
       duration: step?.time ?? 6,
     });
     if (popupModule === "prcoat") {
-      setIframeUrl("/spin_coat_perspective_15s.html");
+      // Use the preloaded MP4 in public/ (URL-encoded to handle spaces)
+      setIframeUrl("/WhatsApp%20Video%202026-05-21%20at%2010.33.59%20AM.mp4");
       setIframeTitle("PR Coat - Spin Coating Process");
     } else if (popupModule === "develop") {
-      setIframeUrl("/spin_coat_perspective_15s.html");
+      setIframeUrl("/WhatsApp%20Video%202026-05-21%20at%2010.33.59%20AM.mp4");
       setIframeTitle("Developer Module Process");
     } else {
       setIframeUrl(null);
       setIframeTitle("");
+      setIframeLoaded(false);
     }
   }, [popupModule, ui.simTime]);
+
+  // Performance: pause/skip the 3D render loop when the video popup is open
+  useEffect(() => {
+    if (!simRef.current) return;
+    if (iframeUrl) {
+      simRef.current.setVideoOpen(true);
+      simRef.current.paused = true; // stop simulation updates
+      simRef.current.renderer.setPixelRatio(0.5); // reduce render resolution
+      console.log("[PERF] Video open — PAUSING main scene");
+    } else {
+      simRef.current.setVideoOpen(false);
+      simRef.current.paused = paused; // restore user's pause state
+      simRef.current.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      console.log("[PERF] Video closed — resuming main scene");
+    }
+  }, [iframeUrl, paused]);
 
   const coatProgress = coatWidgetData
     ? Math.min(Math.max((ui.simTime - coatWidgetData.start) / coatWidgetData.duration, 0), 1)
@@ -37105,13 +38305,20 @@ export default function EFEMSimulator() {
         @keyframes slideInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
       `}</style>
 
-      <div ref={mountRef} style={{ position: "absolute", inset: 0 }} />
+      <div 
+        ref={mountRef} 
+        style={{ 
+          position: "absolute", 
+          inset: 0,
+          visibility: iframeUrl ? "hidden" : "visible",
+        }} 
+      />
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at center, transparent 45%, rgba(160,190,220,.35) 100%)", zIndex: 5 }} />
 
       {/* LOADING */}
-      {loading && (
+      {/* {loading && (
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#e8f2fa,#f0f5ff 50%,#e4f0e8)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
-          <div style={{ fontSize: 46, letterSpacing: 14, color: "#0055cc", fontWeight: "bold", textShadow: "0 2px 24px rgba(0,80,200,0.2)", marginBottom: 6 }}> Smart Simulator</div>
+          <div style={{ fontSize: 46, letterSpacing: 14, color: "#0055cc", fontWeight: "bold", textShadow: "0 2px 24px rgba(0,80,200,0.2)", marginBottom: 6 }}>SMaRT Simulator</div>
           <div style={{ fontSize: 9, color: "#3a6ea8", letterSpacing: 6, marginBottom: 3 }}>SEMICONDUCTOR MANUFACTURING SIMULATION</div>
           <div style={{ fontSize: 7.5, color: "#8aaccc", letterSpacing: 4, marginBottom: 36 }}>300mm PHOTOLITHOGRAPHY · EFEM + COATER/DEVELOPER · v13.0</div>
           <div style={{ width: 440 }}>
@@ -37124,16 +38331,100 @@ export default function EFEMSimulator() {
           </div>
           <div style={{ position: "absolute", bottom: 22, fontSize: 7.5, letterSpacing: 6, color: "#b0c8dc" }}>ISO-5 CLEANROOM · GENESIS EDUCATIONAL VISUALIZATION · v13.0</div>
         </div>
-      )}
+      )} */}
+
+
+      {loading && (
+  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#e8f2fa,#f0f5ff 50%,#e4f0e8)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
+
+    {/* Company logo top-left */}
+    <div style={{ position: "absolute", top: 24, left: 28, display: "flex", alignItems: "center", gap: 12 }}>
+      <img
+        src="/1681701746297.png"
+        alt="Semantic Skills Junction LLP"
+        style={{
+          width: 48, height: 48, borderRadius: 10,
+          objectFit: "contain",
+          border: "1px solid rgba(0,80,180,0.15)",
+          boxShadow: "0 2px 10px rgba(0,80,180,0.12)",
+          background: "#fff",
+        }}
+      />
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#0055cc", letterSpacing: 0.5 }}>
+          Semantic Skills Junction LLP
+        </span>
+        
+          <a
+            href="https://in.linkedin.com/company/semantic-skills-junction-llp"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 9, color: "#0077b5", textDecoration: "none", display: "flex", alignItems: "center", gap: 3, marginTop: 2 }}
+          >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="#0077b5">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+          View on LinkedIn
+        </a>
+      </div>
+    </div>
+
+    {/* Center logo + title */}
+    <img
+      src="/1681701746297.png"
+      alt="SSJ Logo"
+      style={{
+        width: 88, height: 88, borderRadius: 18,
+        objectFit: "contain",
+        border: "2px solid rgba(0,80,180,0.12)",
+        boxShadow: "0 6px 28px rgba(0,80,200,0.18)",
+        background: "#fff",
+        marginBottom: 20,
+      }}
+    />
+
+    <div style={{ fontSize: 46, letterSpacing: 14, color: "#0055cc", fontWeight: "bold", textShadow: "0 2px 24px rgba(0,80,200,0.2)", marginBottom: 4 }}>
+      SMaRT Simulator
+    </div>
+    <div style={{ fontSize: 12, color: "#3a6ea8", letterSpacing: 5, marginBottom: 2 }}>
+      SEMICONDUCTOR MANUFACTURING READINESS TRAINING
+    </div>
+    <div style={{ fontSize: 7.5, color: "#8aaccc", letterSpacing: 4, marginBottom: 36 }}>
+      300mm PHOTOLITHOGRAPHY · EFEM + COATER/DEVELOPER · v13.0
+    </div>
+
+    {/* Progress bar */}
+    <div style={{ width: 440 }}>
+      <div style={{ height: 2, background: "rgba(0,100,200,0.10)", borderRadius: 2, overflow: "hidden", marginBottom: 9 }}>
+        <div style={{ height: "100%", width: `${Math.min(loadPct, 100)}%`, background: "linear-gradient(90deg,#0066ee,#8844ff,#00cc88)", borderRadius: 2, boxShadow: "0 0 12px #0066ee", transition: "width .05s" }} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 7.5, color: "#8aaccc", letterSpacing: 2 }}>
+        <span>{loadMsg}</span><span>{Math.min(Math.round(loadPct), 100)}%</span>
+      </div>
+    </div>
+
+    {/* Footer */}
+    <div style={{ position: "absolute", bottom: 22, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      <span style={{ fontSize: 10, letterSpacing: 4, color: "#6688aa" }}>
+        POWERED BY SEMANTIC SKILLS JUNCTION 
+      </span>
+      {/* <span style={{ fontSize: 7, letterSpacing: 3, color: "#b0c8dc" }}>
+        ISO-5 CLEANROOM · GENESIS EDUCATIONAL VISUALIZATION · v13.0
+      </span> */}
+    </div>
+
+  </div>
+)}
+
 
       {!loading && (
         <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 10 }}>
 
           {/* TOP BAR */}
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 52, background: "rgba(255,255,255,0.95)", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 12, padding: "0 18px", backdropFilter: "blur(20px)", pointerEvents: "auto", boxShadow: "0 2px 12px rgba(0,80,180,0.08)" }}>
-            <span style={{ fontSize: 20, letterSpacing: 5, color: "#0055cc", fontWeight: "bold" }}>Smart Simulator</span>
+            <span style={{ fontSize: 20, letterSpacing: 5, color: "#0055cc", fontWeight: "bold" }}>SMaRT Simulator</span>
             <div style={{ width: 1, height: 22, background: T.border }} />
-            <span style={{ fontSize: 8, color: "#3a5588", letterSpacing: 1.5, maxWidth: 380 }}>Genesis — Educational visualization of 300mm wafer Photoresist Coater Developer Track for graduate engineering students</span>
+            <span style={{ fontSize: 12, color: "#3a5588", letterSpacing: 1.5, maxWidth: 380 }}>300mm wafer Photoresist Coater Developer Track</span>
             <div style={{ flex: 1 }} />
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
   <button
@@ -37364,12 +38655,11 @@ export default function EFEMSimulator() {
         <div style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.75)",
+          background: "#000000",
           zIndex: 9999,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backdropFilter: "blur(8px)",
           pointerEvents: "auto",
         }}
           onClick={() => setPopupModule(null)}
@@ -37424,14 +38714,33 @@ export default function EFEMSimulator() {
                 ✕
               </button>
             </div>
-            <iframe
-              src={iframeUrl}
-              title={iframeTitle}
+            <video
+              key={iframeUrl ?? "video-null"}
+              src={iframeUrl ?? undefined}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              disablePictureInPicture
+              disableRemotePlayback
+              onContextMenu={(e) => e.preventDefault()}
+              onLoadedData={() => setIframeLoaded(true)}
+              onCanPlay={() => setIframeLoaded(true)}
               style={{
                 flex: 1,
                 width: "100%",
-                border: "none",
+                height: "100%",
+                maxWidth: "720px",
+                maxHeight: "480px",
+                objectFit: "contain",
                 background: "#000",
+                opacity: iframeLoaded ? 1 : 0,
+                transition: "opacity 0.3s ease",
+                transform: "translateZ(0)",
+                willChange: "transform",
+                outline: "none",
+                imageRendering: "auto",
               }}
             />
           </div>
@@ -37443,3 +38752,4 @@ export default function EFEMSimulator() {
     </div>
   );
 }
+
