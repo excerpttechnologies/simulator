@@ -3663,7 +3663,7 @@
   flex-direction:column;
   gap:8px;
 
-  margin-top:-48px;
+  margin-top:-53px;
 
   position:relative;
   left:15px;   /* move right */
@@ -3736,9 +3736,11 @@
 }
 
 .new-module-zone-tabs .zone-header-btn {
-  padding: 10px 16px;     /* reduce height */
-  font-size: 10px;
+  padding: 10px 24px;     /* reduce height */
+  font-size: 12px;
   border-radius: 8px;
+  margin-bottom: 2px;
+  margin-top: -18px;
 }
 
 
@@ -3764,7 +3766,7 @@
 .new-module-lot-recipe .static-info-btn {
   top: 0 !important;
   height: 32px !important;
-  min-height: 32px !important;
+  min-height: 35px !important;
 }
 
 /* FM-002 ONLY — RTM + Alarm panels take 70% width, 30% right space */
@@ -3774,4 +3776,283 @@
 
 .fm002-charts-row > .nm-spc-panel {
   grid-column: 1 / -1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+.recipe-module-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.recipe-module-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* High / Normal flip buttons */
+.rdb-dp-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.rdb-dp-toggle-btn {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  color: #9fb8c8;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.rdb-dp-toggle-btn.active-high {
+  background: rgba(255, 23, 68, 0.18);
+  border-color: #ff1744;
+  color: #ff5252;
+  box-shadow: 0 0 12px rgba(255, 23, 68, 0.45);
+}
+
+.rdb-dp-toggle-btn.active-normal {
+  background: rgba(0, 200, 83, 0.18);
+  border-color: #00c853;
+  color: #00e676;
+  box-shadow: 0 0 12px rgba(0, 200, 83, 0.45);
+}
+
+/* Action highlight */
+.rdb-action-btn.highlight-high {
+  border-color: #ff1744;
+  box-shadow: 0 0 12px rgba(255, 23, 68, 0.35);
+}
+
+.rdb-action-btn.highlight-normal {
+  border-color: #00c853;
+  box-shadow: 0 0 12px rgba(0, 200, 83, 0.35);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ebr-only-chart-layout {
+  display: flex !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+}
+
+.ebr-only-chart-layout .nm-spc-left {
+  width: 45% !important;
+  max-width: 900px !important;
+  margin: 0 !important;
+}
+
+
+
+.ebr-only-chart-layout {
+  display: block !important;
+}
+
+.ebr-only-chart-layout .nm-spc-left {
+  width: 45% !important;
+  max-width: 900px !important;
+  margin: 0 !important;
+}
+
+.ebr-only-chart-layout .nm-spc-right {
+  display: none !important;
+}
+
+
+
+.ebr-only-chart-layout {
+  display: grid !important;
+  grid-template-columns: 45% !important;
+  width: 100% !important;
+  justify-content: start !important;
+}
+
+.ebr-only-chart-layout .nm-spc-left {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+.ebr-only-chart-layout .nm-spc-right {
+  display: none !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ebr-root-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ebr-root-toggle-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #444;
+  background: #fff;
+  color: #111;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ebr-root-toggle-btn.active {
+  background: #ffe600;
+  border-color: #111;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
+}
+
+.ebr-rootcause-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ebr-root-img {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 6px;
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ebr-root-switch-wrap {
+  margin-bottom: 12px;
+}
+
+.ebr-root-switch {
+  width: 170px;
+  height: 34px;
+  margin: 0 auto 10px;
+  display: block;
+  border-radius: 5px;
+  border: 2px solid #1f4f99;
+  background: #3f73bd;
+  position: relative;
+  cursor: pointer;
+}
+
+.ebr-root-switch-thumb {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  width: 42px;
+  height: 20px;
+  background: #fff;
+  border: 1px solid #777;
+  transition: 0.25s ease;
+}
+
+.ebr-root-switch-thumb.right {
+  left: calc(100% - 50px);
+}
+
+.ebr-root-tabs {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+}
+
+.ebr-root-tab {
+  background: #fff;
+  border: 1px solid #777;
+  padding: 8px 14px;
+  font-weight: 700;
+  color: #111;
+  cursor: pointer;
+}
+
+.ebr-root-tab.active {
+  border: 2px solid #1f4f99;
+  box-shadow: 0 0 0 2px rgba(31, 79, 153, 0.15);
 }
