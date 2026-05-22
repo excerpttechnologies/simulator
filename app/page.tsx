@@ -42682,7 +42682,7 @@ export default function EFEMSimulator() {
       boxShadow: "0 2px 8px rgba(0,80,180,0.10)"
     }}
   >
-    FAILURE
+    ALARM
   </button>
 
   <button

@@ -1,5 +1,6 @@
 
 
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -1216,6 +1217,7 @@ const Failure: React.FC = () => {
     const [selectedRepair, setSelectedRepair] = useState('');
     const [dpMode, setDpMode] = useState<'high' | 'normal'>('normal');
     const [ebrRootMode, setEbrRootMode] = useState<'clog' | 'misalign'>('clog');
+    const router = useRouter();
 
     const fm = FM_DATA[currentFM];
     const isPEB = currentFM === 0;
@@ -2098,7 +2100,7 @@ const Failure: React.FC = () => {
                     <span>SMa<span className="accent">RT</span></span>
                 </div>
                 <div className="nav-links">
-                    <a href="#" className="nav-link">HOME</a>
+                    <a href="/" className="nav-link">HOME</a>
                 </div>
                 <div className="nav-right">
                     <span className="status-dot" />
