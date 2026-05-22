@@ -74,7 +74,7 @@ html,
 /* TITLES */
 
 .recipe-title {
-  color: #0f172a !important;
+  color: #0034ad !important;
   background: none !important;
   -webkit-text-fill-color: #0f172a !important;
 }
@@ -184,3 +184,4 @@ main {
   background-color: #f8fafc !important; /* slate-50 */
   min-height: 100vh;
 }
+
