@@ -24183,6 +24183,14 @@ const WAFER_COLORS = [0xffaa00, 0x00eeff, 0xdd44ff, 0x44ffaa];
 const WAFER_NAMES  = ["W-001", "W-002", "W-003", "W-004"];
 const W_CSS        = ["#ffaa00", "#00eeff", "#dd44ff", "#44ffaa"];
 
+// ── PERFORMANCE: global geometry detail multiplier ──
+const PERF_DETAIL = 0.5;  // 0.5 = half segments everywhere (50% faster)
+
+// Helper for downscaled segment counts
+function perfSegments(n: number): number {
+  return Math.max(6, Math.round(n * PERF_DETAIL));
+}
+
 function buildWafer(color: number): THREE.Group {
   const g = new THREE.Group();
 
@@ -27837,6 +27845,12 @@ class SpinCoatAnimator {
   phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
   resistRadius = 0; coatColor = 0x9922ff; active = false;
   
+  // ── PERF: throttling state ──
+  private _drawAccum = 0;
+  private _cachedCss = '';
+  private _lastColor = 0;
+  private _matUpdateAccum = 0;
+  
   // ── DEVELOPER-STYLE SWING DIRECTION ──
   // ── PR COAT SWING DIRECTION (opposite of Developer — post at back) ──
   readonly SWING_PARKED = Math.PI / 2;    // +90° parked pointing away (-X direction)
@@ -27950,13 +27964,13 @@ class SpinCoatAnimator {
 
     // ── SPIRAL PATTERN ──
     this.spiralCanvas = document.createElement("canvas");
-    this.spiralCanvas.width = 512;
-    this.spiralCanvas.height = 512;
+    this.spiralCanvas.width = 256;   // ← 4× faster (was 512)
+    this.spiralCanvas.height = 256;  // ← 4× faster (was 512)
     this.spiralCtx = this.spiralCanvas.getContext("2d")!;
     this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
     
     this.spiralMesh = new THREE.Mesh(
-      new THREE.CircleGeometry(0.88, 80),
+      new THREE.CircleGeometry(0.88, perfSegments(80)),
       new THREE.MeshBasicMaterial({
         map: this.spiralTex,
         transparent: true,
@@ -28296,7 +28310,7 @@ class SpinCoatAnimator {
     tipGlowMat.emissiveIntensity = 0.5;
 
     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
-    this.spiralCtx.clearRect(0, 0, 512, 512);
+    this.spiralCtx.clearRect(0, 0, 256, 256);  // ← was 512, 512
     this.spiralTex.needsUpdate = true;
     
     console.log('[COAT] startCoat at', wx, wz, 'color:', color.toString(16));
@@ -28310,24 +28324,43 @@ class SpinCoatAnimator {
   }
 
   private _drawSpiralTrail(centerSpiralRadius: number, spinSpeed: number, dt: number) {
+    // ── PERF: throttle canvas updates to every 50ms (20 fps for canvas) ──
+    this._drawAccum += dt;
+    if (this._drawAccum < 0.05) return;
+    const drawDt = this._drawAccum;
+    this._drawAccum = 0;
+    
     const ctx = this.spiralCtx;
-    const C = 256;
-    const maxR = 230;
+    const C = 128;        // ← was 256 (canvas center for 256×256)
+    const maxR = 115;     // ← was 230 (max radius for 256×256)
+
+    // ── PERF: cache color string (avoid toString every step) ──
+    if (this.coatColor !== this._lastColor) {
+      this._cachedCss = `#${this.coatColor.toString(16).padStart(6, "0")}`;
+      this._lastColor = this.coatColor;
+    }
+    const css = this._cachedCss;
 
     ctx.globalCompositeOperation = "source-over";
-    const steps = Math.max(3, Math.floor(spinSpeed * dt * 60));
+    
+    // ── PERF: CAP max steps per frame (huge speedup at high RPM) ──
+    const steps = Math.min(8, Math.max(2, Math.floor(spinSpeed * drawDt * 20)));
+    
+    // ── PERF: pre-compute strings outside loop ──
+    const cssFull = css + "ff";
+    const cssMid = css + "88";
+    const cssZero = css + "00";
 
     for (let s = 0; s < steps; s++) {
-      this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (dt / steps);
+      this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (drawDt / steps);
       const r = centerSpiralRadius * maxR;
       const px = C + Math.cos(this.spiralAngle) * r;
       const py = C + Math.sin(this.spiralAngle) * r;
-      const css = `#${this.coatColor.toString(16).padStart(6, "0")}`;
 
       const grad = ctx.createRadialGradient(px, py, 0, px, py, 12);
-      grad.addColorStop(0, css + "ff");
-      grad.addColorStop(0.5, css + "88");
-      grad.addColorStop(1, css + "00");
+      grad.addColorStop(0, cssFull);
+      grad.addColorStop(0.5, cssMid);
+      grad.addColorStop(1, cssZero);
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(px, py, 12, 0, Math.PI * 2);
@@ -28346,9 +28379,16 @@ class SpinCoatAnimator {
 
   tick(dt: number, speed: number) {
     if (!this.active) return;
+    if (!this.group.visible) return;  // ← PERF: skip if hidden
 
     const sDt = dt * speed;
     this.phaseT += sDt;
+    
+    // ── PERF: throttle material flicker updates to 15fps ──
+    this._matUpdateAccum += sDt;
+    const updateMaterials = this._matUpdateAccum >= 0.066;
+    if (updateMaterials) this._matUpdateAccum = 0;
+    
     const t = Math.min(this.phaseT / this.phaseDur, 1);
     const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
 
@@ -28367,9 +28407,11 @@ class SpinCoatAnimator {
 
       case "dispense": {
         this.streamMat.opacity = Math.min(t * 2.5, 0.98);
-        this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
-        (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
-          2.5 + 0.8 * Math.sin(this.phaseT * 22);
+        if (updateMaterials) {  // ← only update flicker ~15fps
+          this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
+          (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
+            2.5 + 0.8 * Math.sin(this.phaseT * 22);
+        }
         this.spinRPM = lerp(0, 120, t);
         if (t >= 1) {
           this.phase = "spinup";
@@ -28449,7 +28491,8 @@ class SpinCoatAnimator {
       }
     }
 
-    this.spinAngle += (this.spinRPM / 60) * Math.PI * 2 * sDt;
+    // ── PERF: modulo to prevent floating-point precision issues ──
+    this.spinAngle = (this.spinAngle + (this.spinRPM / 60) * Math.PI * 2 * sDt) % (Math.PI * 2);
     this.spinChuck.rotation.y = this.spinAngle;
   }
 
@@ -29386,6 +29429,10 @@ class DevLiquidAnimator {
   spiralTex!: THREE.CanvasTexture;
   spiralMesh!: THREE.Mesh;
   spiralAngle = 0;
+  
+  // ── PERF: throttling state ──
+  private _drawAccum = 0;
+  private _matUpdateAccum = 0;
   
   poolGroup!: THREE.Group;
   poolSpin = 0;
