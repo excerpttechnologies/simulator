@@ -604,3 +604,203 @@
   transform: translateY(-2px);
   background: linear-gradient(180deg, #3d7cff, #174dcc);
 }
+
+
+/* ─────────────────────────────────────────────
+   EFFECTS — SINGLE-ROW HEADER
+   Replace old .effects-smart-top + .effects-smart-bottom
+   blocks in Effects.css with this
+───────────────────────────────────────────── */
+
+.effects-smart-header {
+  width: 100%;
+  background: #dfeaf5;
+  border-bottom: 1px solid #c8d6e5;
+  margin-bottom: 14px;
+}
+
+/* ONE ROW — logo | title | actions */
+.effects-smart-row {
+  height: 72px;
+  padding: 0 26px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(120, 140, 160, 0.14) 0px,
+    rgba(120, 140, 160, 0.14) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* LOGO */
+.effects-logo-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.effects-logo-icon {
+  color: #0066c9;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.effects-logo-text {
+  color: #12243b;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+/* TITLE — fills middle, centred */
+.effects-main-title {
+  flex: 1;
+  margin: 0;
+  color: #07192d;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.effects-main-title span {
+  color: #006ee6;
+}
+
+/* RIGHT CLUSTER */
+.effects-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+/* WAFER BOX */
+.effects-wafer-box {
+  text-align: center;
+  min-width: 80px;
+}
+
+.effects-wafer-box strong {
+  display: block;
+  color: #0057d8;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.effects-wafer-box span {
+  display: block;
+  margin-top: 2px;
+  color: #516174;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+/* MODULE BUTTONS */
+.effects-module-btn {
+  min-width: 140px;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2f6df6, #1f56d9);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(31, 86, 217, 0.22);
+  transition: transform 0.15s;
+}
+
+.effects-module-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* HOME LINK */
+.effects-home-link {
+  border: none;
+  background: transparent;
+  color: #18304d;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  cursor: pointer;
+}
+
+/* MODE BADGE */
+.effects-mode-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.effects-status-dot {
+  width: 8px;
+  height: 8px;
+  background: #4cc06b;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(76, 192, 107, 0.8);
+}
+
+.effects-light-mode {
+  border: 1px solid #b7c8da;
+  border-radius: 20px;
+  padding: 5px 14px;
+  color: #172b45;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .effects-smart-row {
+    height: auto;
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .effects-main-title {
+    order: -1;
+    flex-basis: 100%;
+    text-align: left;
+    font-size: 17px;
+  }
+
+  .effects-right-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .effects-module-btn {
+    min-width: 120px;
+    height: 38px;
+    font-size: 12px;
+  }
+}
+
+.effects-smart-row{
+  display:flex;
+  align-items:center;
+  position:relative;
+}
+
+/* TITLE → move slightly LEFT */
+.effects-main-title{
+  margin-left:12px;   /* adjust 8px–20px if needed */
+}
+
+/* HOME → perfectly CENTER */
+.effects-home-center{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+}

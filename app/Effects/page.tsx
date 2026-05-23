@@ -11,39 +11,39 @@ type CauseEffect = {
 };
 
 type EffectsProps = {
-    onComplete: () => void;
+    onComplete?: () => void;
 };
 
 const CAUSE_EFFECT_PAIRS: CauseEffect[] = [
     {
         id: 1,
-        cause: "Increase Developer Concentration",
-        effect: "Higher development rate",
+        cause: "Resist Dispense Pump Pressure (↑) (e.g., from 15psi to 25psi)",
+        effect: "Thickness Uniformity (↑) (Non-uniform coverage / streaks)",
     },
     {
         id: 2,
-        cause: "Decrease Developer Concentration",
-        effect: "Lower development rate",
+        cause: "PAB/Soft Bake Temp (↑) (e.g., from 100°C to 120°C)",
+        effect: "CD ↑ (Lines appear wider, due to over-hardening)",
     },
     {
         id: 3,
-        cause: "Increase Exposure Time",
-        effect: "More resist removal",
+        cause: "Coater Final Spin Speed (↓) (e.g., from 3000 RPM to 2000 RPM)",
+        effect: "Thickness Uniformity (↑) (Edge-Fast coverage) / Resist Thickness (↑)",
     },
     {
         id: 4,
-        cause: "Decrease Exposure Time",
-        effect: "Incomplete pattern development",
+        cause: "Develop Puddle Time (↑) (e.g., from 60s to 90s)",
+        effect: "CD ↓ (Lines appear skinnier, over-exposed effect)",
     },
     {
         id: 5,
-        cause: "Increase Bake Temperature",
-        effect: "Faster solvent evaporation",
+        cause: "HMDS Prime Time (↓) (e.g., from 30s to 10s)",
+        effect: "Adhesion Loss (Photoresist \"peeling\" or \"lifting\" off the wafer)",
     },
     {
         id: 6,
-        cause: "Decrease Bake Temperature",
-        effect: "Poor resist hardening",
+        cause: "Coater Cup Exhaust Fan (↑) (e.g., from 0.50 m/s to 1.0 m/s)",
+        effect: "Thickness Uniformity (↑) (Center-Fast coverage / Drying spots)",
     },
 ];
 
@@ -58,17 +58,19 @@ function EffectsLED({
 }) {
     return (
         <span
-            className={`effects-led effects-led-${color} ${size === "sm" ? "effects-led-sm" : "effects-led-md"
-                } ${pulse ? "effects-led-pulse" : ""}`}
+            className={`effects-led effects-led-${color} ${
+                size === "sm" ? "effects-led-sm" : "effects-led-md"
+            } ${pulse ? "effects-led-pulse" : ""}`}
         />
     );
 }
 
 export default function Effects({ onComplete }: EffectsProps) {
+    const router = useRouter();
+
     const [shuffledEffects, setShuffledEffects] = useState<CauseEffect[]>([]);
     const [selectedCause, setSelectedCause] = useState<number | null>(null);
     const [matched, setMatched] = useState<Set<number>>(new Set());
-    const router = useRouter();
     const [wrongPair, setWrongPair] = useState<{
         cause: number;
         effect: number;
@@ -92,7 +94,7 @@ export default function Effects({ onComplete }: EffectsProps) {
     useEffect(() => {
         if (matched.size === CAUSE_EFFECT_PAIRS.length && !completed) {
             setCompleted(true);
-            onComplete();
+            onComplete?.();
         }
     }, [matched, completed, onComplete]);
 
@@ -121,44 +123,60 @@ export default function Effects({ onComplete }: EffectsProps) {
 
     return (
         <section className="effects-page">
-            <header className="effects-smart-header">
-                <div className="effects-smart-top">
-                    <div className="effects-logo-box">
-                        <span className="effects-logo-icon">⬡</span>
-                        <span className="effects-logo-text">SMaRT</span>
-                    </div>
+<header className="effects-smart-header">
+  <div className="effects-smart-row">
 
-                    <button className="effects-home-link" onClick={() => router.push("/")}>
-                        HOME
-                    </button>
+    {/* LEFT — logo */}
+    <div className="effects-logo-box">
+      <span className="effects-logo-icon">⬡</span>
+      <span className="effects-logo-text">SMaRT</span>
+    </div>
 
+    {/* MOVE TITLE SLIGHTLY LEFT */}
+    <h1 className="effects-main-title">
+      SMaRT <span>Simulator</span>
+    </h1>
 
-                </div>
+    {/* CENTER — HOME */}
+    <div className="effects-home-center">
+      <button
+        className="effects-home-link"
+        onClick={() => router.push("/")}
+      >
+        HOME
+      </button>
+    </div>
 
-                <div className="effects-smart-bottom">
-                    <h1 className="effects-main-title">
-                        SMaRT <span>Simulator</span>
-                    </h1>
+    {/* RIGHT — actions */}
+    <div className="effects-right-actions">
 
-                    <div className="effects-right-actions">
+      <button
+        className="effects-module-btn"
+        onClick={() => router.push("/Failure")}
+      >
+        Failure Module
+      </button>
 
+      <button
+        className="effects-module-btn"
+        onClick={() => router.push("/Recipe")}
+      >
+        Recipe Module
+      </button>
 
-                        <button
-                            className="effects-module-btn"
-                            onClick={() => router.push("/Failure")}
-                        >
-                            Failure Module
-                        </button>
+      <div className="effects-wafer-box">
+        <strong>300 mm</strong>
+        <span>WAFER SIZE</span>
+      </div>
 
-                        <button
-                            className="effects-module-btn"
-                            onClick={() => router.push("/Recipe")}
-                        >
-                            Recipe Module
-                        </button>
-                    </div>
-                </div>
-            </header>
+      <div className="effects-mode-box">
+        <span className="effects-status-dot"></span>
+        <span className="effects-light-mode">☀ LIGHT MODE</span>
+      </div>
+
+    </div>
+  </div>
+</header>   
             <div className="effects-container">
                 <div className="effects-header">
                     <div className="effects-title-box">
@@ -172,16 +190,20 @@ export default function Effects({ onComplete }: EffectsProps) {
                         <div className="effects-score-box">
                             <span className="effects-score-label">Matched:</span>
                             <span
-                                className={`effects-score-value ${matched.size === CAUSE_EFFECT_PAIRS.length
-                                    ? "effects-score-complete"
-                                    : ""
-                                    }`}
+                                className={`effects-score-value ${
+                                    matched.size === CAUSE_EFFECT_PAIRS.length
+                                        ? "effects-score-complete"
+                                        : ""
+                                }`}
                             >
                                 {matched.size} / {CAUSE_EFFECT_PAIRS.length}
                             </span>
                         </div>
 
-                        <button className="effects-reset-btn" onClick={shuffleEffects}>
+                        <button
+                            className="effects-reset-btn"
+                            onClick={shuffleEffects}
+                        >
                             Reset
                         </button>
                     </div>
@@ -212,19 +234,23 @@ export default function Effects({ onComplete }: EffectsProps) {
                                         key={pair.id}
                                         onClick={() => handleCauseClick(pair.id)}
                                         disabled={isMatched}
-                                        className={`effects-card ${isMatched ? "effects-card-matched" : ""
-                                            } ${isSelected ? "effects-card-selected" : ""} ${isWrong ? "effects-card-wrong" : ""
-                                            }`}
+                                        className={`effects-card ${
+                                            isMatched ? "effects-card-matched" : ""
+                                        } ${
+                                            isSelected ? "effects-card-selected" : ""
+                                        } ${
+                                            isWrong ? "effects-card-wrong" : ""
+                                        }`}
                                     >
                                         <EffectsLED
                                             color={
                                                 isMatched
                                                     ? "green"
                                                     : isSelected
-                                                        ? "blue"
-                                                        : isWrong
-                                                            ? "red"
-                                                            : "orange"
+                                                    ? "blue"
+                                                    : isWrong
+                                                    ? "red"
+                                                    : "orange"
                                             }
                                             size="sm"
                                         />
@@ -250,14 +276,24 @@ export default function Effects({ onComplete }: EffectsProps) {
                                         key={pair.id}
                                         onClick={() => handleEffectClick(pair.id)}
                                         disabled={isMatched || selectedCause === null}
-                                        className={`effects-card ${isMatched ? "effects-card-matched" : ""
-                                            } ${isWrong ? "effects-card-wrong" : ""} ${selectedCause === null && !isMatched
+                                        className={`effects-card ${
+                                            isMatched ? "effects-card-matched" : ""
+                                        } ${
+                                            isWrong ? "effects-card-wrong" : ""
+                                        } ${
+                                            selectedCause === null && !isMatched
                                                 ? "effects-card-disabled"
                                                 : ""
-                                            }`}
+                                        }`}
                                     >
                                         <EffectsLED
-                                            color={isMatched ? "green" : isWrong ? "red" : "orange"}
+                                            color={
+                                                isMatched
+                                                    ? "green"
+                                                    : isWrong
+                                                    ? "red"
+                                                    : "orange"
+                                            }
                                             size="sm"
                                         />
                                         <span>{pair.effect}</span>
