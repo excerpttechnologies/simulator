@@ -32219,7 +32219,7 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
   // ══════════════════════════════════════════════════════════════════════
   let requiredLift = 0.0;
   if (isScanner) {
-    requiredLift = 2.5;          // high enough to reach scanner chuck
+    requiredLift = 0.8;          // high enough to reach scanner chuck
   } else if (isHMDS) {
     requiredLift = 0.28;
   } else if (isDIRinse) {
@@ -33107,7 +33107,7 @@ function buildScannerGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      root.position.y = 0 - box.min.y;
+      root.position.y = -2.5 - box.min.y;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -34676,7 +34676,7 @@ function buildPlatform(
 }
 
 function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
-  const SKIP = new Set(['spindry', 'iface_in', 'iface_out', 'scanner']);
+  const SKIP = new Set(['scanner', 'iface_in', 'iface_out']);
   if (SKIP.has(mod.id)) return;
 
   const CW = 512, CH = 140;
@@ -34685,121 +34685,147 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
     nc.width = CW; nc.height = CH;
     const ctx = nc.getContext("2d")!;
 
-    // Brushed aluminium base gradient
+    // Outer metal frame gradient
     const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
-    metalGrad.addColorStop(0, '#eef2f4');
-    metalGrad.addColorStop(0.18, '#f7f9fa');
-    metalGrad.addColorStop(0.5, '#dfe6ea');
-    metalGrad.addColorStop(0.82, '#f1f4f6');
-    metalGrad.addColorStop(1, '#d0d6db');
+    metalGrad.addColorStop(0, "#e2e6ea");
+    metalGrad.addColorStop(0.15, "#f5f7f9");
+    metalGrad.addColorStop(0.5, "#d0d5da");
+    metalGrad.addColorStop(0.85, "#eaedf0");
+    metalGrad.addColorStop(1, "#b8bec4");
     ctx.fillStyle = metalGrad;
     ctx.fillRect(0, 0, CW, CH);
 
-    // Subtle brushed noise (horizontal strokes)
-    ctx.globalAlpha = 0.06;
-    ctx.strokeStyle = '#ffffff';
+    // Thick bevel edges (5px) — light top/left, dark bottom/right
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.fillRect(0, 0, CW, 5);
+    ctx.fillRect(0, 0, 5, CH);
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.fillRect(0, CH - 5, CW, 5);
+    ctx.fillRect(CW - 5, 0, 5, CH);
+
+    // Inner recessed panel
+    const inset = 8;
+    const panelGrad = ctx.createLinearGradient(0, inset, 0, CH - inset);
+    panelGrad.addColorStop(0, "rgba(0,0,0,0.04)");
+    panelGrad.addColorStop(1, "rgba(0,0,0,0.08)");
+    ctx.fillStyle = panelGrad;
+    roundRect(ctx, inset, inset, CW - inset * 2, CH - inset * 2, 6);
+    ctx.fill();
+
+    // Subtle brushed horizontal lines on panel
+    ctx.globalAlpha = 0.05;
+    ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 1;
-    for (let y = 2; y < CH; y += 2) {
+    for (let y = inset + 2; y < CH - inset; y += 2) {
       ctx.beginPath();
-      ctx.moveTo(0, y + (Math.random() * 0.8 - 0.4));
-      ctx.lineTo(CW, y + (Math.random() * 0.8 - 0.4));
+      ctx.moveTo(inset + 2, y + (Math.random() * 0.6 - 0.3));
+      ctx.lineTo(CW - inset - 2, y + (Math.random() * 0.6 - 0.3));
       ctx.stroke();
     }
     ctx.globalAlpha = 1.0;
 
-    // Raised bevel: light top-left, dark bottom-right
-    const bevel = ctx.createLinearGradient(0, 0, 0, CH);
-    bevel.addColorStop(0, 'rgba(255,255,255,0.55)');
-    bevel.addColorStop(0.02, 'rgba(255,255,255,0.28)');
-    bevel.addColorStop(0.98, 'rgba(0,0,0,0.08)');
-    bevel.addColorStop(1, 'rgba(0,0,0,0.22)');
-    ctx.fillStyle = bevel;
-    ctx.fillRect(0, 0, CW, 6);
-    ctx.fillRect(0, CH - 6, CW, 6);
+    // Color accent bar with 3D inset look
+    const r = (mod.color >> 16) & 255;
+    const g = (mod.color >> 8) & 255;
+    const b = mod.color & 255;
+    const css = `rgb(${r},${g},${b})`;
+    ctx.fillStyle = `rgba(${r},${g},${b},0.25)`;
+    roundRect(ctx, 8, 8, 16, CH - 16, 4);
+    ctx.fill();
+    ctx.fillStyle = css;
+    roundRect(ctx, 8, 8, 10, CH - 16, 3);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    roundRect(ctx, 8, 8, 4, CH - 16, 2);
+    ctx.fill();
 
-    // Inner inset border for depth
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-    ctx.strokeRect(6, 6, CW - 12, CH - 12);
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-    ctx.strokeRect(7, 7, CW - 14, CH - 14);
-
-    // Left color accent strip
-    const col = hex2css(mod.color);
-    ctx.fillStyle = col;
-    ctx.fillRect(0, 0, 14, CH);
-    // Inner highlight on strip
-    ctx.fillStyle = 'rgba(255,255,255,0.28)';
-    ctx.fillRect(0, 0, 5, CH);
-
-    // Engraved text effect (shadow, highlight, main)
+    // Engraved short code text (deep shadow + highlight + main)
     ctx.font = "bold 62px 'Arial Black', Arial, sans-serif";
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    const tx = 26, ty = 92;
-    // Shadow (down-right)
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.fillText(mod.short, tx + 2, ty + 2);
-    // Highlight (up-left)
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.fillText(mod.short, tx - 2, ty - 2);
-    // Main engraved text
-    ctx.fillStyle = '#22272d';
-    ctx.fillText(mod.short, tx, ty);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    // Deep shadow (engraved)
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillText(mod.short, 35, 88);
+    // Top highlight
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.fillText(mod.short, 33, 86);
+    // Main face
+    ctx.fillStyle = "#1e2328";
+    ctx.fillText(mod.short, 34, 87);
 
-    // Temperature recessed pill (right side)
+    // Temp pill — recessed look
     if (mod.temp !== null) {
-      const pillW = 96, pillH = 38;
-      const px = CW - 18 - pillW;
-      const py = 18;
-      const radius = 8;
-      const tempBg = mod.temp > 50 ? 'rgba(180,60,20,0.15)' : 'rgba(0,60,140,0.12)';
-      const pillBorder = mod.temp > 50 ? 'rgba(180,60,20,0.4)' : 'rgba(0,80,160,0.35)';
-      // pill background
-      ctx.fillStyle = tempBg;
-      ctx.beginPath();
-      ctx.moveTo(px + radius, py);
-      ctx.arcTo(px + pillW, py, px + pillW, py + radius, radius);
-      ctx.arcTo(px + pillW, py + pillH, px + pillW - radius, py + pillH, radius);
-      ctx.arcTo(px, py + pillH, px, py + pillH - radius, radius);
-      ctx.arcTo(px, py, px + radius, py, radius);
-      ctx.closePath();
+      const px = CW - 118, py = 16, pw = 104, ph = 40, pr = 8;
+      // background
+      ctx.fillStyle = mod.temp > 50 ? "rgba(160,40,10,0.18)" : "rgba(0,50,120,0.15)";
+      roundRect(ctx, px, py, pw, ph, pr);
       ctx.fill();
-      // pill border
-      ctx.lineWidth = 1.2;
-      ctx.strokeStyle = pillBorder;
+      // inset stroke (dark)
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(0,0,0,0.25)";
+      roundRect(ctx, px + 0.5, py + 0.5, pw - 1, ph - 1, pr - 1);
+      ctx.stroke();
+      // inner highlight stroke
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(255,255,255,0.5)";
+      roundRect(ctx, px + 1, py + 1, pw - 2, ph - 2, pr - 1);
       ctx.stroke();
       // temp text
-      ctx.fillStyle = mod.temp > 50 ? '#cc3300' : '#005599';
-      ctx.font = "bold 30px 'Courier New', monospace";
-      ctx.textAlign = 'right';
-      ctx.fillText(`${mod.temp}°C`, CW - 22, py + pillH / 2 + 10);
-      ctx.textAlign = 'left';
+      ctx.fillStyle = mod.temp > 50 ? "#991100" : "#003d80";
+      ctx.font = "bold 28px 'Courier New', monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(`${mod.temp}°C`, CW - 18, py + ph / 2 + 10);
+      ctx.textAlign = "left";
     }
 
-    // Full name — smaller engraved line
+    // Module name — engraved small
     ctx.font = "500 20px Arial, sans-serif";
-    ctx.fillStyle = 'rgba(0,0,0,0.36)';
-    const name = mod.name.length > 32 ? mod.name.slice(0, 32) + '…' : mod.name;
-    ctx.fillText(name, 26, CH - 12);
-    ctx.fillStyle = '#3a4048';
-    ctx.fillText(name, 25, CH - 13);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    const name = mod.name.length > 26 ? mod.name.slice(0, 26) + "…" : mod.name;
+    ctx.fillText(name, 36, 126);
+    ctx.fillStyle = "#2e3540";
+    ctx.fillText(name, 35, 125);
 
-    // Rivet dots — four corners
+    // Corner rivets with radial gradient + screw slot
     const drawRivet = (rx: number, ry: number) => {
-      ctx.fillStyle = '#8a9098';
-      ctx.beginPath(); ctx.arc(rx, ry, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.beginPath(); ctx.arc(rx - 1.5, ry - 1.5, 2.2, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(0,0,0,0.28)';
-      ctx.beginPath(); ctx.arc(rx + 1.2, ry + 1.2, 2.2, 0, Math.PI * 2); ctx.fill();
+      // outer shadow
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      ctx.beginPath(); ctx.arc(rx + 1, ry + 1, 7, 0, Math.PI * 2); ctx.fill();
+      // base radial gradient
+      const rg = ctx.createRadialGradient(rx - 2, ry - 2, 0, rx, ry, 7);
+      rg.addColorStop(0, "#e8ecf0");
+      rg.addColorStop(0.4, "#a8adb2");
+      rg.addColorStop(1, "#787e84");
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(rx, ry, 7, 0, Math.PI * 2); ctx.fill();
+      // screw slot
+      ctx.strokeStyle = "#555a60";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(rx - 4, ry); ctx.lineTo(rx + 4, ry); ctx.stroke();
+      // highlight
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.beginPath(); ctx.arc(rx - 2, ry - 2, 2.5, 0, Math.PI * 2); ctx.fill();
     };
-    drawRivet(20, 18);
-    drawRivet(CW - 20, 18);
-    drawRivet(20, CH - 18);
-    drawRivet(CW - 20, CH - 18);
+    drawRivet(22, 22);
+    drawRivet(CW - 22, 22);
+    drawRivet(22, CH - 22);
+    drawRivet(CW - 22, CH - 22);
 
     return nc;
+
+    // helper: rounded rect path
+    function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+      const min = Math.min(w, h) / 2;
+      if (r > min) r = min;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
   };
 
   const PLINTH_H = 3.2;
@@ -39113,6 +39139,14 @@ ALL_STEPS.forEach((mod) => {
 });
     buildFlowArrows(this.scene);
     addPlinthNameplates(this.scene);
+
+    // Force nameplates for spindry and iface modules
+    ['spindry', 'iface_in', 'iface_out'].forEach((id) => {
+      const mod = ALL_STEPS.find(s => s.id === id);
+      const grp = this.modObjs[id];
+      if (mod && grp) addModuleLabel(grp, mod);
+    });
+
     addRowLabelBars(this.scene);
     
     // ── Physical nameplates — attached to every module group ──
@@ -40724,7 +40758,7 @@ private _animRobots(dt: number) {
   const TRANSFER_MIN_Y  = 0.8;
   const WAFER_HALF_T    = 0.0175;
   const PICK_CLEARANCE  = 0.003;
-  const SAFE_HEIGHT  = 9.5;
+  const SAFE_HEIGHT  = 6.0;
   const SAFE_TRAVEL_Y = WAFER_TRANSFER_Y + 1.2;
     const Z_LIFT_HIGH  = 0.8;
     const Z_LIFT_LOW   = 0.0;
