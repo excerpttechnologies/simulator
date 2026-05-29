@@ -205,10 +205,10 @@ export class NarrationManager {
     this.speak(text, 'normal');
   }
   
-  /** Announce process start */
+  /** Announce process start — uses the full Step 01 FOUP narration */
   public announceProcessStart() {
     this.speak(
-      'Process initiated. Loading wafer from FOUP cassette.',
+      'Process initiated. Wafers are loaded into the system from the Front Opening Unified Pod, or FOUP. The automated track handler is preparing to transfer the first wafer into the process chamber.',
       'high'
     );
   }

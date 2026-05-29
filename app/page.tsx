@@ -24171,7 +24171,7 @@ const ALL_STEPS: ProcessStep[] = [
   { id: "prcoat",    name: "PR Coat (COT)",           short: "COT",  temp: null, time: 8, color: 0xcc00ff, type: "coat",  x: 4,   z: TOP_Z },
   { id: "pab",       name: "Post-Apply Bake 118°C",   short: "PAB",  temp: 118,  time: 5, color: 0xff5500, type: "hot",   x: 9,   z: TOP_Z },
   { id: "chill2",    name: "Chill Plate #2  22°C",    short: "CP-2", temp: 22,   time: 3, color: 0x00aaee, type: "cold",  x: 14,  z: TOP_Z },
-  { id: "iface_out", name: "Interface → Scanner",     short: "IF→",  temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19,  z: -3    },
+  { id: "iface_out", name: "Interface → Scanner",     short: "IF→",  temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19,  z: -3   },
   { id: "scanner",   name: "Scanner 193nm Exposure",  short: "SCAN", temp: null, time: 9, color: 0xee00cc, type: "scan",  x: 36,  z: 0     },
   { id: "iface_in",  name: "Interface ← Scanner",     short: "IF←",  temp: null, time: 2, color: 0xffaa00, type: "iface", x: 19,  z: 3     },
   { id: "peb",       name: "Post-Exposure Bake 120°C",short: "PEB",  temp: 120,  time: 5, color: 0xff3300, type: "hot",   x: 14,  z: BOT_Z },
@@ -30316,50 +30316,169 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
   }
 
   // FOUP special handling
-  if (mod.type === "foup") {
+//   if (mod.type === "foup") {
+//     // Override position for FOUP
+//     grp.position.y = 3.0;
+//     grp.rotation.set(0, -Math.PI / 2, 0);
+//     grp.rotateY(Math.PI);
+//     grp.position.x += 0.12;
+
+// //    const foupPickupAnchor  = new THREE.Group();
+// //     foupPickupAnchor.name = "FoupPickupPoint";
+// //     foupPickupAnchor.position.set(0, 1.15, 1.25);
+// //     grp.add(foupPickupAnchor);
+// //     grp.userData.pickupAnchor = foupPickupAnchor;
+
+//        const foupPickupAnchor = new THREE.Group();
+//       foupPickupAnchor.name = "FoupPickupPoint";
+//       foupPickupAnchor.position.set(0, 1.15, 2.2);  // ← push further front (was 1.25)
+//       grp.add(foupPickupAnchor);
+//       grp.userData.pickupAnchor = foupPickupAnchor;
+
+//     const foupBody = new THREE.Mesh(new THREE.BoxGeometry(3.2, 5.5, 2.8),
+//       new THREE.MeshStandardMaterial({ color: 0x162230, metalness: 0.82, roughness: 0.22, emissive: 0x081822, emissiveIntensity: 0.16 }));
+//     foupBody.position.y = 1.7;
+//     foupBody.castShadow = true;
+//     grp.add(foupBody);
+    
+//     const door = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.8, 0.08),
+//       new THREE.MeshStandardMaterial({ color: 0x1c2938, metalness: 0.9, roughness: 0.12, emissive: 0x003566, emissiveIntensity: 0.2 }));
+//     door.position.set(0, 1.7, 1.35);
+//     grp.add(door);
+    
+//     const slotAnchors: THREE.Object3D[] = [];
+//     for (let s = 0; s < 6; s++) {
+//       const slotY = 0.55 + s * 0.42;
+
+//       // Visible slot disc (where wafer rests) — laid flat
+//       const slot = new THREE.Mesh(
+//         new THREE.CylinderGeometry(0.8, 0.8, 0.03, 64),
+//         new THREE.MeshStandardMaterial({ color: 0x91a8c2, metalness: 0.9, roughness: 0.08 })
+//       );
+//       slot.rotation.x = Math.PI / 2;   // lay disc flat (FOUP is rotated)
+//       slot.position.set(0, slotY, 1.05);
+//       grp.add(slot);
+
+//       // Anchor sits AT the slot disc (wafer goes here, not z=2.0)
+//       const anchor = new THREE.Group();
+//       anchor.name = `FoupSlot_${s + 1}`;
+//       anchor.position.set(0, slotY, 1.05);
+//       grp.add(anchor);
+//       slotAnchors.push(anchor);
+//     }
+//     grp.userData.slotAnchors = slotAnchors;
+//     grp.userData.slotCount = slotAnchors.length;
+    
+//     const foupPL = new THREE.PointLight(0x0066ff, 0, 4);
+//     foupPL.position.set(0, 2.5, 1.2);
+//     grp.add(foupPL);
+//     grp.userData.processLight = foupPL;
+//   }
+
+
+if (mod.type === "foup") {
     // Override position for FOUP
     grp.position.y = 3.0;
     grp.rotation.set(0, -Math.PI / 2, 0);
     grp.rotateY(Math.PI);
     grp.position.x += 0.12;
 
-//    const foupPickupAnchor  = new THREE.Group();
-//     foupPickupAnchor.name = "FoupPickupPoint";
-//     foupPickupAnchor.position.set(0, 1.15, 1.25);
-//     grp.add(foupPickupAnchor);
-//     grp.userData.pickupAnchor = foupPickupAnchor;
+    const foupPickupAnchor = new THREE.Group();
+    foupPickupAnchor.name = "FoupPickupPoint";
+    foupPickupAnchor.position.set(0, 1.15, 2.2);
+    grp.add(foupPickupAnchor);
+    grp.userData.pickupAnchor = foupPickupAnchor;
 
-       const foupPickupAnchor = new THREE.Group();
-      foupPickupAnchor.name = "FoupPickupPoint";
-      foupPickupAnchor.position.set(0, 1.15, 2.2);  // ← push further front (was 1.25)
-      grp.add(foupPickupAnchor);
-      grp.userData.pickupAnchor = foupPickupAnchor;
-
-    const foupBody = new THREE.Mesh(new THREE.BoxGeometry(3.2, 5.5, 2.8),
-      new THREE.MeshStandardMaterial({ color: 0x162230, metalness: 0.82, roughness: 0.22, emissive: 0x081822, emissiveIntensity: 0.16 }));
+    // ── FOUP BODY (black plastic like real FOUP) ──
+    const foupBody = new THREE.Mesh(
+      new THREE.BoxGeometry(3.2, 5.5, 2.8),
+      new THREE.MeshStandardMaterial({
+        color: 0x0a0a0c, metalness: 0.25, roughness: 0.55,
+      })
+    );
     foupBody.position.y = 1.7;
     foupBody.castShadow = true;
     grp.add(foupBody);
-    
-    const door = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.8, 0.08),
-      new THREE.MeshStandardMaterial({ color: 0x1c2938, metalness: 0.9, roughness: 0.12, emissive: 0x003566, emissiveIntensity: 0.2 }));
+
+    // ── DOOR ──
+    const door = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 2.8, 0.08),
+      new THREE.MeshStandardMaterial({
+        color: 0x141418, metalness: 0.35, roughness: 0.45,
+      })
+    );
     door.position.set(0, 1.7, 1.35);
     grp.add(door);
-    
+
+    // ══════════════════════════════════════════════════════════════
+    // ── VISIBLE WAFER STACK (DESIGN ONLY — 20 plates for realism) ──
+    // ══════════════════════════════════════════════════════════════
+    const VISIBLE_WAFERS = 20;        // ← change this to add/remove visible plates
+    const VIS_START_Y    = 0.55;
+    const VIS_END_Y      = 4.10;
+    const VIS_SPACING    = (VIS_END_Y - VIS_START_Y) / (VISIBLE_WAFERS - 1);
+    const WAFER_RADIUS   = 1.15;
+    const WAFER_THICK    = 0.022;
+
+    for (let v = 0; v < VISIBLE_WAFERS; v++) {
+      const wY = VIS_START_Y + v * VIS_SPACING;
+
+      // Silicon wafer disc (dark grey, polished)
+      const waferDisc = new THREE.Mesh(
+        new THREE.CylinderGeometry(WAFER_RADIUS, WAFER_RADIUS, WAFER_THICK, 96),
+        new THREE.MeshPhysicalMaterial({
+          color:     0xc8ccd0,
+          metalness: 0.88,
+          roughness: 0.22,
+          clearcoat: 0.5,
+          clearcoatRoughness: 0.15,
+          emissive:  0x0a0a0c,
+          emissiveIntensity: 0.05,
+        })
+      );
+      waferDisc.position.set(0, wY, 1.05);
+      grp.add(waferDisc);
+
+      // Polished silver edge ring
+      const edgeRing = new THREE.Mesh(
+        new THREE.TorusGeometry(WAFER_RADIUS, 0.011, 8, 64),
+        new THREE.MeshStandardMaterial({
+          color: 0x888888,
+          metalness: 0.98,
+          roughness: 0.1,
+        })
+      );
+      edgeRing.rotation.x = Math.PI / 2;
+      edgeRing.position.set(0, wY, 1.05);
+      grp.add(edgeRing);
+
+      // Amber photoresist coating arc on right side (like real FOUP photo)
+      const amberCoat = new THREE.Mesh(
+        new THREE.CylinderGeometry(WAFER_RADIUS * 0.97, WAFER_RADIUS * 0.97, 0.004, 96, 1, false, -Math.PI / 3, (2 * Math.PI) / 3),
+        new THREE.MeshPhysicalMaterial({
+          color:     0xb8bcc0,
+          metalness: 0.35,
+          roughness: 0.30,
+          clearcoat: 0.85,
+          clearcoatRoughness: 0.08,
+          emissive:  0x000000,
+          emissiveIntensity: 0,
+          transparent: true,
+          opacity: 0.94,
+        })
+      );
+      amberCoat.position.set(0, wY + WAFER_THICK / 2 + 0.002, 1.05);
+      grp.add(amberCoat);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── OPERATIONAL SLOTS (just 6 for robot pick/place logic) ──
+    // ══════════════════════════════════════════════════════════════
     const slotAnchors: THREE.Object3D[] = [];
     for (let s = 0; s < 6; s++) {
       const slotY = 0.55 + s * 0.42;
 
-      // Visible slot disc (where wafer rests) — laid flat
-      const slot = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.8, 0.8, 0.03, 64),
-        new THREE.MeshStandardMaterial({ color: 0x91a8c2, metalness: 0.9, roughness: 0.08 })
-      );
-      slot.rotation.x = Math.PI / 2;   // lay disc flat (FOUP is rotated)
-      slot.position.set(0, slotY, 1.05);
-      grp.add(slot);
-
-      // Anchor sits AT the slot disc (wafer goes here, not z=2.0)
+      // Anchor only — invisible, used by robot to know where to pick
       const anchor = new THREE.Group();
       anchor.name = `FoupSlot_${s + 1}`;
       anchor.position.set(0, slotY, 1.05);
@@ -30367,17 +30486,22 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
       slotAnchors.push(anchor);
     }
     grp.userData.slotAnchors = slotAnchors;
-    grp.userData.slotCount = slotAnchors.length;
-    
-    const foupPL = new THREE.PointLight(0x0066ff, 0, 4);
+    grp.userData.slotCount   = slotAnchors.length;
+
+    // ── INTERIOR LIGHT ──
+    const foupPL = new THREE.PointLight(0xffaa55, 0.4, 4);
     foupPL.position.set(0, 2.5, 1.2);
     grp.add(foupPL);
     grp.userData.processLight = foupPL;
   }
+   
 
-  // Module name label
- // Module name label
-  // ── SKIP floating label for virtual modules (no physical body present) ──
+
+
+
+
+  
+  
   const SKIP_FLOATING_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out']);
   if (SKIP_FLOATING_LABEL_IDS.has(mod.id)) {
     console.log(`[buildModule] Skipping floating sprite for: ${mod.id}`);
@@ -32219,24 +32343,19 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
   // ══════════════════════════════════════════════════════════════════════
   let requiredLift = 0.0;
   if (isScanner) {
-    requiredLift = 0.8;          // high enough to reach scanner chuck
+    requiredLift = 0.88;        // ← 4× higher for scanner (was 0.22)
   } else if (isHMDS) {
     requiredLift = 0.28;
   } else if (isDIRinse) {
     requiredLift = 0.22;
   }
   if (isTravel) {
-    requiredLift = Math.max(requiredLift, isScanner ? 2.5 : 0.30);
+    requiredLift = Math.max(requiredLift, isScanner ? 0.88 : 0.30);
   }
 
-  // ── Aggressive smoothing for scanner — rise FAST ──
-  const liftSmoothing = isScanner ? 0.5 : 0.18;
+  // ── Faster column rise for scanner (smaller smoothing factor = quicker) ──
+  const liftSmoothing = isScanner ? 0.25 : 0.18;
   setLiftHeight(requiredLift, liftSmoothing);
-
-  // ── For scanner: IK uses TARGET lift (not smoothed current) so arm aims correctly
-  // even while column is still rising. Without this, IK sees "column still low"
-  // and thinks target is unreachable, causing arm to stay down.
-  const liftForIK = isScanner ? requiredLift : currentLiftHeight;
 
   // ══════════════════════════════════════════════════════════════════════
   // 2. TURRET YAW — with safe shortest-path resolution
@@ -32300,27 +32419,8 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
   // ══════════════════════════════════════════════════════════════════════
   // 3. ARM IK — 2-link in shoulder-local plane with crash protection
   // ══════════════════════════════════════════════════════════════════════
-  const shoulderBaseY = baseWP.y + SHOULDER_Y + liftForIK * 0.9;
+  const shoulderBaseY = baseWP.y + SHOULDER_Y + currentLiftHeight * 0.9;
   let finalTargetY = tgt.y + placeHeightOffset;
-
-  // ── Debug log for scanner (throttled — once per 2s) ──
-  if (isScanner) {
-    const now2 = (typeof performance !== 'undefined') ? performance.now() : Date.now();
-    const lastLog = (root.userData._ikScannerLogT as number) ?? 0;
-    if (now2 - lastLog > 2000) {
-      root.userData._ikScannerLogT = now2;
-      console.log('[IK SCANNER DEBUG]', {
-        target:       [tgt.x.toFixed(2), tgt.y.toFixed(2), tgt.z.toFixed(2)],
-        baseY:        baseWP.y.toFixed(2),
-        requiredLift: requiredLift.toFixed(2),
-        currentLift:  currentLiftHeight.toFixed(2),
-        liftForIK:    liftForIK.toFixed(2),
-        shoulderBaseY: shoulderBaseY.toFixed(2),
-        armReach:     (L1 + L2 + L3).toFixed(2),
-        verticalOff:  (tgt.y - shoulderBaseY).toFixed(2),
-      });
-    }
-  }
 
   // ── HMDS gets extra approach height to clear walls ──
   if (isHMDS) {
@@ -33107,7 +33207,7 @@ function buildScannerGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      root.position.y = -2.5 - box.min.y;
+     root.position.y = 0 - box.min.y - 2.5; // lower it (closer to floor / partially below)
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -33118,7 +33218,12 @@ function buildScannerGLB(
         }
       });
 
-      console.log('Scanner GLB nodes:', Object.keys(namedParts).slice(0, 30));
+      console.log('ALL Scanner GLB nodes:', Object.keys(namedParts));
+
+// ── HIDE BACKSIDE PLATES ──
+['Vent_Panel', 'Base_Louvre_0', 'Base_Louvre_1', 'Base_Louvre_2', 'Base_Louvre_3', 'Base_Louvre_4'].forEach((name) => {
+  if (namedParts[name]) namedParts[name].visible = false;
+});
 
       // Try to find UV lens / beam emitter
       const lens =
@@ -33283,22 +33388,25 @@ function buildScannerGLB(
         root.add(sensor);
       });
 
-        // Add GLB root and mark loaded
-        placeholder.add(root);
-        placeholder.userData.glbRoot = root;
-        placeholder.userData.loaded = true;
-        placeholder.userData._bbox = new THREE.Box3().setFromObject(placeholder).expandByScalar(0.15);
+      // ── WAFER PICKUP ANCHOR inside the slot — Y matches arm-reachable height ──
+      const scannerSlotAnchor = new THREE.Group();
+      scannerSlotAnchor.name = "ScannerSlotAnchor";
+      // Y=0.80 matches SCANNER_ARM_Y in _animRobots (arm max reach ≈ 0.85)
+      scannerSlotAnchor.position.set(0, 0.80, -3.3);
+      root.add(scannerSlotAnchor);
+      placeholder.userData.pickupAnchor = scannerSlotAnchor;
 
-        // FIXED: wafer anchor at front face of scanner, at robot-reachable height
-        const scanAnchor = new THREE.Group();
-        scanAnchor.name = "ModuleWaferAnchor";
-        // Front face = negative Z side (-3.5), height = WAFER_TRANSFER_Y
-        scanAnchor.position.set(0, WAFER_TRANSFER_Y, -3.5);
-        placeholder.add(scanAnchor);
-        placeholder.userData.waferAnchor = scanAnchor;
-        placeholder.userData.pickupAnchor = scanAnchor;
+      placeholder.add(root);
+      placeholder.userData.glbRoot = root;
+      placeholder.userData.loaded = true;
+      // Update keep-out box once the GLB is present (prevents TCP entering scanner).
+      placeholder.userData._bbox = new THREE.Box3().setFromObject(placeholder).expandByScalar(0.15);
 
-        addWaferChuck(placeholder, 'spin');
+      // ── Scanner has no nameplate ──
+      // addModuleLabel(placeholder, mod);
+      addWaferChuck(placeholder, 'spin');
+
+  positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -33309,165 +33417,6 @@ function buildScannerGLB(
   return placeholder;
 }
 
-// function buildScannerGLB(
-//   scene: THREE.Scene,
-//   mod: ProcessStep,
-//   onReady?: (group: THREE.Group) => void
-// ): THREE.Group {
-//   const placeholder = new THREE.Group();
-//   placeholder.position.set(mod.x, 0, mod.z);
-//   placeholder.userData.id = mod.id;
-//   scene.add(placeholder);
-
-//   const loader = new GLTFLoader();
-//   loader.load(
-//     '/scaner.glb',
-//     (gltf: any) => {
-//       const root = gltf.scene as THREE.Group;
-
-//       const tempBox = new THREE.Box3().setFromObject(root);
-//       const size = new THREE.Vector3();
-//       tempBox.getSize(size);
-
-//       const targetW = 8;
-//       const currentMax = Math.max(size.x, size.z);
-//       const scale = targetW / currentMax;
-//       root.scale.setScalar(scale);
-
-//       const box = new THREE.Box3().setFromObject(root);
-//       root.position.y = -0.5 - box.min.y;
-
-//       const namedParts: Record<string, THREE.Object3D> = {};
-//       root.traverse((obj) => {
-//         namedParts[obj.name] = obj;
-//         if ((obj as THREE.Mesh).isMesh) {
-//           obj.castShadow = true;
-//           obj.receiveShadow = true;
-//         }
-//       });
-
-//       console.log('Scanner GLB nodes:', Object.keys(namedParts).slice(0, 30));
-
-//       // ── LIGHT YELLOW SCHEME for scanner ──
-//       const scheme = { 
-//         base: 0xfff4b8,      // light yellow body
-//         emissive: 0xffee66,  // bright yellow glow
-//         light: 0xffdd44,     // amber accent
-//         pl: 0xffee88,        // pale yellow point light
-//       };
-
-//       // ── Recolor the ENTIRE scanner body to light yellow ──
-//       root.traverse((obj) => {
-//         if ((obj as THREE.Mesh).isMesh) {
-//           const mesh = obj as THREE.Mesh;
-//           const oldMat = mesh.material as THREE.MeshStandardMaterial;
-//           if (!oldMat) return;
-          
-//           // Preserve emissive lights (small LEDs) but recolor large body parts
-//           const isLight = oldMat.name && (
-//             oldMat.name.toLowerCase().includes('light') ||
-//             oldMat.name.toLowerCase().includes('led') ||
-//             oldMat.name.toLowerCase().includes('emit')
-//           );
-          
-//           if (!isLight) {
-//             // Clone material so we don't affect other instances
-//             const newMat = new THREE.MeshStandardMaterial({
-//               color: scheme.base,
-//               roughness: 0.45,
-//               metalness: 0.35,
-//               emissive: scheme.emissive,
-//               emissiveIntensity: 0.15,
-//             });
-//             mesh.material = newMat;
-//           }
-//         }
-//       });
-
-//       // Try to find lens/beam emitter
-//       const lens =
-//         namedParts['Lens'] || namedParts['UVLens'] || namedParts['Beam'] ||
-//         namedParts['Emitter'] || namedParts['Top'];
-
-//       const lightGreen =
-//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
-//       const lightRed =
-//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
-
-//       if (lens && (lens as THREE.Mesh).isMesh) {
-//         const lensMat = new THREE.MeshStandardMaterial({
-//           color: 0xfff8c8,
-//           emissive: scheme.emissive,
-//           emissiveIntensity: 2.5,
-//           roughness: 0.08,
-//           metalness: 0.7,
-//         });
-//         (lens as THREE.Mesh).material = lensMat;
-//         placeholder.userData.lensMaterial = lensMat;
-//         placeholder.userData.colorScheme = scheme;
-//       }
-
-//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
-//         const greenMat = new THREE.MeshStandardMaterial({
-//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
-//         });
-//         (lightGreen as THREE.Mesh).material = greenMat;
-//         placeholder.userData.greenLight = greenMat;
-//       }
-
-//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
-//         const redMat = new THREE.MeshStandardMaterial({
-//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
-//         });
-//         (lightRed as THREE.Mesh).material = redMat;
-//         placeholder.userData.redLight = redMat;
-//       }
-
-//       // UV beam — light yellow tinted instead of magenta
-//       const beam = new THREE.Mesh(
-//         new THREE.CylinderGeometry(0.06, 0.32, 2.2, 20, 1, true),
-//         new THREE.MeshStandardMaterial({
-//           color: 0xffee66, emissive: 0xffdd44, emissiveIntensity: 2.2,
-//           transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false,
-//         })
-//       );
-//       beam.position.set(0, 1.1, 0);
-//       root.add(beam);
-//       placeholder.userData.uvBeam = beam;
-
-//       // Scanner pickup point
-//       const scannerPickupAnchor = new THREE.Group();
-//       scannerPickupAnchor.name = "ScannerPickupPoint";
-//       scannerPickupAnchor.position.set(0, WAFER_TRANSFER_Y, -0.35);
-//       root.add(scannerPickupAnchor);
-//       placeholder.userData.pickupAnchor = scannerPickupAnchor;
-
-//       // Wafer anchor
-//       const waferAnchor = new THREE.Group();
-//       waferAnchor.name = "ModuleWaferAnchor";
-//       waferAnchor.position.set(0, WAFER_TRANSFER_Y - placeholder.position.y, 0);
-//       placeholder.add(waferAnchor);
-//       placeholder.userData.waferAnchor = waferAnchor;
-
-//       const pl = new THREE.PointLight(scheme.pl, 0, 10);
-//       pl.position.set(0, 2.0, 0);
-//       root.add(pl);
-//       placeholder.userData.processLight = pl;
-
-//       placeholder.add(root);
-//       placeholder.userData.glbRoot = root;
-//       placeholder.userData.loaded = true;
-//       placeholder.userData._bbox = new THREE.Box3().setFromObject(placeholder).expandByScalar(0.15);
-
-//       addModuleLabel(placeholder, mod);
-//       if (onReady) onReady(placeholder);
-//     },
-//     undefined,
-//     (err: any) => console.error('Scanner GLB failed:', err)
-//   );
-
-//   return placeholder;
-// }
 
 
 
@@ -34675,216 +34624,214 @@ function buildPlatform(
   });
 }
 
-function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
-  const SKIP = new Set(['scanner', 'iface_in', 'iface_out']);
-  if (SKIP.has(mod.id)) return;
+// function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
+//   // ── SKIP labels for virtual / non-physical modules ──
+//   const SKIP_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out', 'scanner']);
+//   if (SKIP_LABEL_IDS.has(mod.id)) {
+//     console.log(`[LABEL] Skipping virtual module: ${mod.id}`);
+//     return;
+//   }
 
-  const CW = 512, CH = 140;
-  const makeCanvas = () => {
-    const nc = document.createElement("canvas");
-    nc.width = CW; nc.height = CH;
-    const ctx = nc.getContext("2d")!;
+//   const CW = 512, CH = 160;
 
-    // Outer metal frame gradient
-    const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
-    metalGrad.addColorStop(0, "#e2e6ea");
-    metalGrad.addColorStop(0.15, "#f5f7f9");
-    metalGrad.addColorStop(0.5, "#d0d5da");
-    metalGrad.addColorStop(0.85, "#eaedf0");
-    metalGrad.addColorStop(1, "#b8bec4");
-    ctx.fillStyle = metalGrad;
-    ctx.fillRect(0, 0, CW, CH);
+//   // ── BUILD LABEL CANVAS (reusable for all faces) ──
+//   const buildLabelCanvas = (): HTMLCanvasElement => {
+//     const nc = document.createElement("canvas");
+//     nc.width = CW;
+//     nc.height = CH;
+//     const ctx = nc.getContext("2d")!;
+//     ctx.clearRect(0, 0, CW, CH);
 
-    // Thick bevel edges (5px) — light top/left, dark bottom/right
-    ctx.fillStyle = "rgba(255,255,255,0.6)";
-    ctx.fillRect(0, 0, CW, 5);
-    ctx.fillRect(0, 0, 5, CH);
-    ctx.fillStyle = "rgba(0,0,0,0.12)";
-    ctx.fillRect(0, CH - 5, CW, 5);
-    ctx.fillRect(CW - 5, 0, 5, CH);
+//     // Dark background pill
+//     ctx.fillStyle = "rgba(10, 18, 32, 0.92)";
+//     ctx.beginPath();
+//     const pillX = 8, pillY = 8, pillW = CW - 16, pillH = CH - 16, pillR = 12;
+//     ctx.moveTo(pillX + pillR, pillY);
+//     ctx.lineTo(pillX + pillW - pillR, pillY);
+//     ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + pillR);
+//     ctx.lineTo(pillX + pillW, pillY + pillH - pillR);
+//     ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - pillR, pillY + pillH);
+//     ctx.lineTo(pillX + pillR, pillY + pillH);
+//     ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - pillR);
+//     ctx.lineTo(pillX, pillY + pillR);
+//     ctx.quadraticCurveTo(pillX, pillY, pillX + pillR, pillY);
+//     ctx.closePath();
+//     ctx.fill();
 
-    // Inner recessed panel
-    const inset = 8;
-    const panelGrad = ctx.createLinearGradient(0, inset, 0, CH - inset);
-    panelGrad.addColorStop(0, "rgba(0,0,0,0.04)");
-    panelGrad.addColorStop(1, "rgba(0,0,0,0.08)");
-    ctx.fillStyle = panelGrad;
-    roundRect(ctx, inset, inset, CW - inset * 2, CH - inset * 2, 6);
-    ctx.fill();
+//     ctx.strokeStyle = hex2css(mod.color);
+//     ctx.lineWidth = 3;
+//     ctx.stroke();
 
-    // Subtle brushed horizontal lines on panel
-    ctx.globalAlpha = 0.05;
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 1;
-    for (let y = inset + 2; y < CH - inset; y += 2) {
-      ctx.beginPath();
-      ctx.moveTo(inset + 2, y + (Math.random() * 0.6 - 0.3));
-      ctx.lineTo(CW - inset - 2, y + (Math.random() * 0.6 - 0.3));
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1.0;
+//     ctx.fillStyle = hex2css(mod.color);
+//     ctx.font = "bold 52px 'Courier New', monospace";
+//     ctx.textAlign = "center";
+//     ctx.textBaseline = "middle";
+//     ctx.shadowColor = hex2css(mod.color);
+//     ctx.shadowBlur = 14;
+//     ctx.fillText(mod.short, CW / 2, CH * 0.40);
 
-    // Color accent bar with 3D inset look
-    const r = (mod.color >> 16) & 255;
-    const g = (mod.color >> 8) & 255;
-    const b = mod.color & 255;
-    const css = `rgb(${r},${g},${b})`;
-    ctx.fillStyle = `rgba(${r},${g},${b},0.25)`;
-    roundRect(ctx, 8, 8, 16, CH - 16, 4);
-    ctx.fill();
-    ctx.fillStyle = css;
-    roundRect(ctx, 8, 8, 10, CH - 16, 3);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255,255,255,0.4)";
-    roundRect(ctx, 8, 8, 4, CH - 16, 2);
-    ctx.fill();
+//     ctx.shadowBlur = 4;
+//     ctx.fillStyle = "#e8f0ff";
+//     ctx.font = "bold 20px 'Inter', 'Arial', sans-serif";
+//     ctx.fillText(mod.name, CW / 2, CH * 0.72);
 
-    // Engraved short code text (deep shadow + highlight + main)
-    ctx.font = "bold 62px 'Arial Black', Arial, sans-serif";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-    // Deep shadow (engraved)
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillText(mod.short, 35, 88);
-    // Top highlight
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.fillText(mod.short, 33, 86);
-    // Main face
-    ctx.fillStyle = "#1e2328";
-    ctx.fillText(mod.short, 34, 87);
+//     if (mod.temp !== null) {
+//       ctx.shadowBlur = 0;
+//       ctx.fillStyle = mod.temp > 50 ? "#ff6633" : "#33aaff";
+//       ctx.font = "bold 16px 'Courier New', monospace";
+//       ctx.fillText(`${mod.temp}°C`, CW / 2, CH * 0.90);
+//     }
+//     return nc;
+//   };
 
-    // Temp pill — recessed look
-    if (mod.temp !== null) {
-      const px = CW - 118, py = 16, pw = 104, ph = 40, pr = 8;
-      // background
-      ctx.fillStyle = mod.temp > 50 ? "rgba(160,40,10,0.18)" : "rgba(0,50,120,0.15)";
-      roundRect(ctx, px, py, pw, ph, pr);
-      ctx.fill();
-      // inset stroke (dark)
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = "rgba(0,0,0,0.25)";
-      roundRect(ctx, px + 0.5, py + 0.5, pw - 1, ph - 1, pr - 1);
-      ctx.stroke();
-      // inner highlight stroke
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(255,255,255,0.5)";
-      roundRect(ctx, px + 1, py + 1, pw - 2, ph - 2, pr - 1);
-      ctx.stroke();
-      // temp text
-      ctx.fillStyle = mod.temp > 50 ? "#991100" : "#003d80";
-      ctx.font = "bold 28px 'Courier New', monospace";
-      ctx.textAlign = "right";
-      ctx.fillText(`${mod.temp}°C`, CW - 18, py + ph / 2 + 10);
-      ctx.textAlign = "left";
-    }
+//   // ── LABEL DIMENSIONS ──
+//   const LABEL_W = 3.0;
+//   const LABEL_H = 1.0;
+//   const SIDE_LABEL_W = LABEL_W * 0.75;
+//   const SIDE_LABEL_H = LABEL_H * 0.75;
 
-    // Module name — engraved small
-    ctx.font = "500 20px Arial, sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    const name = mod.name.length > 26 ? mod.name.slice(0, 26) + "…" : mod.name;
-    ctx.fillText(name, 36, 126);
-    ctx.fillStyle = "#2e3540";
-    ctx.fillText(name, 35, 125);
+//   const boxH = 2.7;
+//   const boxD = 2.9;
+//   const boxW = 4.0;
+//   const MODULE_BASE_Y = 0.5;
+//   const labelY = MODULE_BASE_Y + boxH * 0.5;
 
-    // Corner rivets with radial gradient + screw slot
-    const drawRivet = (rx: number, ry: number) => {
-      // outer shadow
-      ctx.fillStyle = "rgba(0,0,0,0.35)";
-      ctx.beginPath(); ctx.arc(rx + 1, ry + 1, 7, 0, Math.PI * 2); ctx.fill();
-      // base radial gradient
-      const rg = ctx.createRadialGradient(rx - 2, ry - 2, 0, rx, ry, 7);
-      rg.addColorStop(0, "#e8ecf0");
-      rg.addColorStop(0.4, "#a8adb2");
-      rg.addColorStop(1, "#787e84");
-      ctx.fillStyle = rg;
-      ctx.beginPath(); ctx.arc(rx, ry, 7, 0, Math.PI * 2); ctx.fill();
-      // screw slot
-      ctx.strokeStyle = "#555a60";
-      ctx.lineWidth = 1.8;
-      ctx.beginPath(); ctx.moveTo(rx - 4, ry); ctx.lineTo(rx + 4, ry); ctx.stroke();
-      // highlight
-      ctx.fillStyle = "rgba(255,255,255,0.65)";
-      ctx.beginPath(); ctx.arc(rx - 2, ry - 2, 2.5, 0, Math.PI * 2); ctx.fill();
-    };
-    drawRivet(22, 22);
-    drawRivet(CW - 22, 22);
-    drawRivet(22, CH - 22);
-    drawRivet(CW - 22, CH - 22);
+//   // ── ROW DETECTION ──
+//   const isTopRow    = mod.z < -0.5;
+//   const isBotRow    = mod.z >  0.5;
+//   const isCenterRow = !isTopRow && !isBotRow;
+//   const isFoup      = mod.type === 'foup';
+//   const isScanner   = mod.id   === 'scanner';
 
-    return nc;
+//   console.log(`[LABEL] ${mod.id} z=${mod.z.toFixed(2)} isTopRow=${isTopRow} isBotRow=${isBotRow}`);
 
-    // helper: rounded rect path
-    function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-      const min = Math.min(w, h) / 2;
-      if (r > min) r = min;
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + w, y, x + w, y + h, r);
-      ctx.arcTo(x + w, y + h, x, y + h, r);
-      ctx.arcTo(x, y + h, x, y, r);
-      ctx.arcTo(x, y, x + w, y, r);
-      ctx.closePath();
-    }
-  };
+//   // ══════════════════════════════════════════════════════════════════════
+//   // CAMERA-FACING LABEL (the one user actually sees)
+//   //
+//   // Camera looks from positive Z toward negative Z direction.
+//   // So the side of the module that faces the camera is the +Z side for
+//   // EVERY row.
+//   //
+//   // - TOP ROW (z < 0): camera-facing side is +Z (i.e. toward z=0)
+//   // - BOT ROW (z > 0): camera-facing side is -Z (i.e. toward z=0)
+//   //
+//   // Wait — let me reconsider. The camera orbits, but in the default 
+//   // OVERVIEW preset, camera looks DOWN at an angle from +Z + +Y.
+//   //
+//   // For TOP row at z = -6, the camera (at z ≈ +20) is way on the +Z side.
+//   // So the face of TOP row module facing camera is its +Z face.
+//   // 
+//   // For BOT row at z = +6, the camera is on the SAME +Z side, BUT looking
+//   // back toward -Z. The face of BOT row facing camera is also its +Z face.
+//   //
+//   // BOTH ROWS should have labels on +Z face for the camera-facing label!
+//   // ══════════════════════════════════════════════════════════════════════
+  
+//   // ──────────────────────────────────────────────────────────────────────
+//   // LABEL 1: CAMERA-FACING (always +Z side for both rows)
+//   // ──────────────────────────────────────────────────────────────────────
+//   const tex1 = new THREE.CanvasTexture(buildLabelCanvas());
+//   tex1.minFilter = THREE.LinearFilter;
+//   tex1.magFilter = THREE.LinearFilter;
 
-  const PLINTH_H = 3.2;
-  const PLINTH_Y0 = -0.5;
-  const PLATE_Y = PLINTH_Y0 + PLINTH_H * 0.42;
-  const FACE_Z = 2.55;
-  const SIDE_X = 2.65;
+//   const cameraFacingPlane = new THREE.Mesh(
+//     new THREE.PlaneGeometry(LABEL_W, LABEL_H),
+//     new THREE.MeshBasicMaterial({
+//       map: tex1,
+//       transparent: true,
+//       opacity: 0.97,
+//       depthWrite: false,
+//       depthTest: true,
+//       side: THREE.DoubleSide,
+//     })
+//   );
 
-  const makeMesh = (w: number, h: number) => {
-    const tex = new THREE.CanvasTexture(makeCanvas());
-    tex.minFilter = THREE.LinearFilter;
-    tex.magFilter = THREE.LinearFilter;
-    tex.anisotropy = 8;
-    return new THREE.Mesh(
-      new THREE.PlaneGeometry(w, h),
-      new THREE.MeshBasicMaterial({
-        map: tex,
-        transparent: false,
-        depthTest: true,
-        depthWrite: true,
-        side: THREE.DoubleSide,
-      })
-    );
-  };
+//   // Place on +Z face for ALL modules — this is the camera-facing side
+//   cameraFacingPlane.position.set(0, labelY, boxD / 2 + 0.05);
+//   cameraFacingPlane.rotation.y = 0;          // faces +Z (toward camera)
+//   cameraFacingPlane.renderOrder = 100;
+//   grp.add(cameraFacingPlane);
+//   grp.userData.nameLabel = cameraFacingPlane;
 
-  const scene = grp.parent ?? grp;
-  const isBot = mod.z > 0.5;
+//   // ──────────────────────────────────────────────────────────────────────
+//   // LABEL 2: BACK SIDE (-Z face) — visible from behind/opposite angle
+//   // ──────────────────────────────────────────────────────────────────────
+//   if (!isFoup && !isScanner) {
+//     const tex2 = new THREE.CanvasTexture(buildLabelCanvas());
+//     tex2.minFilter = THREE.LinearFilter;
+//     tex2.magFilter = THREE.LinearFilter;
 
-  // Front face only (camera-facing side)
-  const front = makeMesh(4.2, 1.35);
-  front.position.set(mod.x, PLATE_Y, mod.z + (isBot ? -FACE_Z : FACE_Z));
-  front.rotation.y = isBot ? Math.PI : 0;
-  front.renderOrder = 20;
-  scene.add(front);
+//     const backPlane = new THREE.Mesh(
+//       new THREE.PlaneGeometry(LABEL_W, LABEL_H),
+//       new THREE.MeshBasicMaterial({
+//         map: tex2,
+//         transparent: true,
+//         opacity: 0.92,
+//         depthWrite: false,
+//         depthTest: true,
+//         side: THREE.DoubleSide,
+//       })
+//     );
+//     // Place on -Z face
+//     backPlane.position.set(0, labelY, -(boxD / 2 + 0.05));
+//     backPlane.rotation.y = Math.PI;             // faces -Z
+//     backPlane.renderOrder = 100;
+//     grp.add(backPlane);
+//     grp.userData.outerSideLabel = backPlane;
+//   }
 
-  // Back face
-  const back = makeMesh(4.2, 1.35);
-  back.position.set(mod.x, PLATE_Y, mod.z + (isBot ? FACE_Z : -FACE_Z));
-  back.rotation.y = isBot ? 0 : Math.PI;
-  back.renderOrder = 20;
-  scene.add(back);
+//   // ──────────────────────────────────────────────────────────────────────
+//   // LABEL 3: +X SIDE LABEL (small, side-on view)
+//   // ──────────────────────────────────────────────────────────────────────
+//   if (!isScanner && !isFoup) {
+//     const tex3 = new THREE.CanvasTexture(buildLabelCanvas());
+//     tex3.minFilter = THREE.LinearFilter;
+//     tex3.magFilter = THREE.LinearFilter;
 
-  // Left side only — NO top/roof plate
-  const left = makeMesh(2.8, 1.1);
-  left.position.set(mod.x - SIDE_X, PLATE_Y, mod.z);
-  left.rotation.y = Math.PI / 2;
-  left.renderOrder = 20;
-  scene.add(left);
+//     const sidePlaneX = new THREE.Mesh(
+//       new THREE.PlaneGeometry(SIDE_LABEL_W, SIDE_LABEL_H),
+//       new THREE.MeshBasicMaterial({
+//         map: tex3,
+//         transparent: true,
+//         opacity: 0.80,
+//         depthWrite: false,
+//         depthTest: true,
+//         side: THREE.DoubleSide,
+//       })
+//     );
+//     sidePlaneX.position.set(boxW / 2 + 0.05, labelY, 0);
+//     sidePlaneX.rotation.y = -Math.PI / 2;
+//     sidePlaneX.renderOrder = 100;
+//     grp.add(sidePlaneX);
+//     grp.userData.sideLabelX = sidePlaneX;
+//   }
 
-  // Right side only — NO top/roof plate
-  const right = makeMesh(2.8, 1.1);
-  right.position.set(mod.x + SIDE_X, PLATE_Y, mod.z);
-  right.rotation.y = -Math.PI / 2;
-  right.renderOrder = 20;
-  scene.add(right);
+//   // ──────────────────────────────────────────────────────────────────────
+//   // LABEL 4: TOP-DOWN ROOF LABEL
+//   // ──────────────────────────────────────────────────────────────────────
+//   if (!isScanner) {
+//     const tex4 = new THREE.CanvasTexture(buildLabelCanvas());
+//     tex4.minFilter = THREE.LinearFilter;
+//     tex4.magFilter = THREE.LinearFilter;
 
-  // Store ref for toggle
-  grp.userData.nameLabel = front;
-}
+//     const roofPlane = new THREE.Mesh(
+//       new THREE.PlaneGeometry(LABEL_W * 0.85, LABEL_H * 0.85),
+//       new THREE.MeshBasicMaterial({
+//         map: tex4,
+//         transparent: true,
+//         opacity: 0.75,
+//         depthWrite: false,
+//         depthTest: true,
+//         side: THREE.DoubleSide,
+//       })
+//     );
+//     roofPlane.position.set(0, MODULE_BASE_Y + boxH + 0.05, 0);
+//     roofPlane.rotation.x = -Math.PI / 2;
+//     roofPlane.renderOrder = 100;
+//     grp.add(roofPlane);
+//     grp.userData.roofLabel = roofPlane;
+//   }
+// }
 
 
 
@@ -35057,147 +35004,929 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
 //   });
 // }
 
+function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
+  const SKIP_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out', 'scanner']);
+  if (SKIP_LABEL_IDS.has(mod.id)) {
+    console.log(`[LABEL] Skipping virtual module: ${mod.id}`);
+    return;
+  }
+
+  const CW = 512, CH = 140;
+
+  // ── METAL NAMEPLATE CANVAS (replaces dark pill style) ──
+  const buildLabelCanvas = (overrideName?: string): HTMLCanvasElement => {
+    const nc = document.createElement("canvas");
+    nc.width = CW; nc.height = CH;
+    const ctx = nc.getContext("2d")!;
+
+    // Base metal gradient
+    const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+    metalGrad.addColorStop(0,    "#e2e6ea");
+    metalGrad.addColorStop(0.15, "#f5f7f9");
+    metalGrad.addColorStop(0.5,  "#d0d5da");
+    metalGrad.addColorStop(0.85, "#eaedf0");
+    metalGrad.addColorStop(1,    "#b8bec4");
+    ctx.fillStyle = metalGrad;
+    ctx.fillRect(0, 0, CW, CH);
+
+    // Brush lines
+    ctx.globalAlpha = 0.055;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
+    for (let y = 2; y < CH; y += 3) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // Outer bevel
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, CW, 5);
+    ctx.fillRect(0, 0, 5, CH);
+    ctx.fillStyle = "#6a7078";
+    ctx.fillRect(0, CH - 5, CW, 5);
+    ctx.fillRect(CW - 5, 0, 5, CH);
+
+    // Inner bevel
+    ctx.fillStyle = "#c8cdd2";
+    ctx.fillRect(5, 5, CW - 10, 3);
+    ctx.fillRect(5, 5, 3, CH - 10);
+    ctx.fillStyle = "#90969c";
+    ctx.fillRect(5, CH - 8, CW - 10, 3);
+    ctx.fillRect(CW - 8, 5, 3, CH - 10);
+
+    // Inner panel gradient
+    const innerGrad = ctx.createLinearGradient(0, 10, 0, CH - 10);
+    innerGrad.addColorStop(0,   "#b8bec4");
+    innerGrad.addColorStop(0.3, "#d8dde2");
+    innerGrad.addColorStop(0.7, "#cdd2d7");
+    innerGrad.addColorStop(1,   "#a8adb2");
+    ctx.fillStyle = innerGrad;
+    ctx.fillRect(8, 8, CW - 16, CH - 16);
+
+    // Color accent stripe (from mod.color)
+    const r = (mod.color >> 16) & 255;
+    const g = (mod.color >> 8)  & 255;
+    const b =  mod.color        & 255;
+    ctx.fillStyle = `rgba(${r},${g},${b},0.25)`;
+    ctx.fillRect(8, 8, 16, CH - 16);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(8, 8, 10, CH - 16);
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.fillRect(8, 8, 4, CH - 16);
+
+    // Short code — embossed 3-layer trick
+    ctx.font = "bold 56px 'Arial Black', Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillText(mod.short, CW / 2 + 1, CH * 0.52 + 1);
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.fillText(mod.short, CW / 2 - 1, CH * 0.52 - 1);
+    ctx.fillStyle = "#1e2328";
+    ctx.fillText(mod.short, CW / 2, CH * 0.52);
+
+    // Full name — bold, centered
+    const displayName = overrideName ?? (mod.name.length > 24 ? mod.name.slice(0, 24) + "…" : mod.name);
+    ctx.font = "bold 22px Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillText(displayName, CW / 2 + 1, CH * 0.82 + 1);
+    ctx.fillStyle = "#1a2030";
+    ctx.fillText(displayName, CW / 2, CH * 0.82);
+
+    // Temperature (from original buildLabelCanvas — kept)
+    if (mod.temp !== null) {
+      ctx.font = "bold 16px 'Courier New', monospace";
+      ctx.fillStyle = mod.temp > 50 ? "#cc3300" : "#0055aa";
+      ctx.fillText(`${mod.temp}°C`, CW / 2, CH * 0.96);
+    }
+
+    // Corner rivets
+    const drawRivet = (rx: number, ry: number) => {
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      ctx.beginPath(); ctx.arc(rx + 1, ry + 1, 7, 0, Math.PI * 2); ctx.fill();
+      const rg = ctx.createRadialGradient(rx - 2, ry - 2, 0, rx, ry, 7);
+      rg.addColorStop(0, "#e8ecf0");
+      rg.addColorStop(0.4, "#a8adb2");
+      rg.addColorStop(1, "#787e84");
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(rx, ry, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#555a60";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(rx - 4, ry); ctx.lineTo(rx + 4, ry); ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.beginPath(); ctx.arc(rx - 2, ry - 2, 2.5, 0, Math.PI * 2); ctx.fill();
+    };
+    drawRivet(22, 22);
+    drawRivet(CW - 22, 22);
+    drawRivet(22, CH - 22);
+    drawRivet(CW - 22, CH - 22);
+
+    return nc;
+  };
+
+  // ── LABEL DIMENSIONS ──
+  const LABEL_W = 3.0;
+  const LABEL_H = 0.85;           // slightly shorter — metal plate is 140px tall not 160px
+  const SIDE_LABEL_W = LABEL_W * 0.75;
+  const SIDE_LABEL_H = LABEL_H * 0.75;
+
+  const boxH = 2.7;
+  const boxD = 2.9;
+  const boxW = 4.0;
+  const MODULE_BASE_Y = 0.5;
+  const labelY = MODULE_BASE_Y + boxH * 0.5;
+
+  const isFoup    = mod.type === 'foup';
+  const isScanner = mod.id   === 'scanner';
+
+  console.log(`[LABEL] ${mod.id} z=${mod.z.toFixed(2)}`);
+
+  // Helper — makes a texture from the metal canvas
+  const makeTex = () => {
+    const t = new THREE.CanvasTexture(buildLabelCanvas());
+    t.minFilter = THREE.LinearFilter;
+    t.magFilter = THREE.LinearFilter;
+    return t;
+  };
+
+  // Helper — makes a label plane mesh
+  const makePlane = (w: number, h: number, opacity: number) =>
+    new THREE.Mesh(
+      new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({
+        map: makeTex(),
+        transparent: true,
+        opacity,
+        depthWrite: false,
+        depthTest: true,
+        side: THREE.DoubleSide,
+      })
+    );
+
+  // ── LABEL 1: CAMERA-FACING (+Z face) ──
+  const front = makePlane(LABEL_W, LABEL_H, 0.97);
+  front.position.set(0, labelY, boxD / 2 + 0.05);
+  front.rotation.y = 0;
+  front.renderOrder = 100;
+  grp.add(front);
+  grp.userData.nameLabel = front;
+
+  // ── LABEL 2: BACK FACE (-Z) ──
+  if (!isFoup && !isScanner) {
+    const back = makePlane(LABEL_W, LABEL_H, 0.92);
+    back.position.set(0, labelY, -(boxD / 2 + 0.05));
+    back.rotation.y = Math.PI;
+    back.renderOrder = 100;
+    grp.add(back);
+    grp.userData.outerSideLabel = back;
+  }
+
+  // ── LABEL 3: +X SIDE FACE ──
+  if (!isScanner && !isFoup) {
+    const side = makePlane(SIDE_LABEL_W, SIDE_LABEL_H, 0.80);
+    side.position.set(boxW / 2 + 0.05, labelY, 0);
+    side.rotation.y = -Math.PI / 2;
+    side.renderOrder = 100;
+    grp.add(side);
+    grp.userData.sideLabelX = side;
+  }
+
+  // ── LABEL 4: ROOF (top-down) ──
+  if (!isScanner) {
+    const roof = makePlane(LABEL_W * 0.85, LABEL_H * 0.85, 0.75);
+    roof.position.set(0, MODULE_BASE_Y + boxH + 0.05, 0);
+    roof.rotation.x = -Math.PI / 2;
+    roof.renderOrder = 100;
+    grp.add(roof);
+    grp.userData.roofLabel = roof;
+  }
+}
+
+// function addPlinthNameplates(scene: THREE.Scene): void {
+//   ALL_STEPS.forEach((mod) => {
+//     const SKIP_PLINTH_IDS = new Set([
+//       'foup',
+//       'scanner',
+//       'iface_in',
+//       'iface_out',
+//       'spindry',
+//     ]);
+//     if (SKIP_PLINTH_IDS.has(mod.id)) return;
+
+//     // ── Front/back nameplate (name + short + temp) ──
+//     const makeNameplateMesh = (): THREE.Mesh => {
+//       const CW = 1024, CH = 256;
+//       const canvas = document.createElement('canvas');
+//       canvas.width = CW;
+//       canvas.height = CH;
+//       const ctx = canvas.getContext('2d')!;
+
+//       const r = (mod.color >> 16) & 255;
+//       const g = (mod.color >> 8) & 255;
+//       const b = mod.color & 255;
+//       const css = `rgb(${r},${g},${b})`;
+
+//       // Gradient background
+//       const grad = ctx.createLinearGradient(0, 0, 0, CH);
+//       grad.addColorStop(0, '#0d1726');
+//       grad.addColorStop(1, '#060c16');
+//       ctx.fillStyle = grad;
+//       ctx.fillRect(0, 0, CW, CH);
+
+//       // Outer accent border
+//       ctx.strokeStyle = css;
+//       ctx.lineWidth = 10;
+//       ctx.strokeRect(8, 8, CW - 16, CH - 16);
+
+//       // Top accent bar
+//       ctx.fillStyle = css;
+//       ctx.fillRect(8, 8, CW - 16, 18);
+//       // Bottom accent bar
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+//       ctx.fillRect(8, CH - 22, CW - 16, 14);
+
+//       // LINE 1: SHORT CODE — big, bold, glowing
+//       ctx.font = '900 110px "Arial Black", "Segoe UI", sans-serif';
+//       ctx.fillStyle = css;
+//       ctx.shadowColor = css;
+//       ctx.shadowBlur = 24;
+//       ctx.textAlign = 'left';
+//       ctx.textBaseline = 'alphabetic';
+//       ctx.fillText(mod.short, 36, 130);
+
+//       // LINE 2: FULL NAME — white, bold
+//       ctx.shadowBlur = 6;
+//       ctx.shadowColor = 'rgba(0,0,0,0.8)';
+//       ctx.fillStyle = '#ffffff';
+//       ctx.font = 'bold 48px "Segoe UI", Arial, sans-serif';
+//       ctx.textAlign = 'left';
+//       const displayName = mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name;
+//       ctx.fillText(displayName, 36, 200);
+
+//       // Temperature badge (right side)
+//       if (mod.temp !== null) {
+//         const tempCss = mod.temp > 50 ? '#ff5522' : '#22aaff';
+//         ctx.shadowBlur = 16;
+//         ctx.shadowColor = tempCss;
+//         ctx.fillStyle = tempCss;
+//         ctx.font = '900 64px "Courier New", monospace';
+//         ctx.textAlign = 'right';
+//         ctx.fillText(`${mod.temp}°C`, CW - 40, 120);
+//       }
+
+//       ctx.shadowBlur = 0;
+
+//       const tex = new THREE.CanvasTexture(canvas);
+//       tex.minFilter = THREE.LinearFilter;
+//       tex.magFilter = THREE.LinearFilter;
+//       tex.anisotropy = 8;
+
+//       const plate = new THREE.Mesh(
+//         new THREE.PlaneGeometry(4, 1.5),
+//         new THREE.MeshBasicMaterial({
+//           map: tex,
+//           transparent: false,
+//           depthTest: true,
+//           depthWrite: true,
+//           side: THREE.DoubleSide,
+//         })
+//       );
+//       plate.renderOrder = 10;
+//       return plate;
+//     };
+
+//     // ── Side nameplate (short code + temp, centered) ──
+//     const makeSideNameplateMesh = (): THREE.Mesh => {
+//       const CW = 768, CH = 256;
+//       const canvas = document.createElement('canvas');
+//       canvas.width = CW;
+//       canvas.height = CH;
+//       const ctx = canvas.getContext('2d')!;
+
+//       const r = (mod.color >> 16) & 255;
+//       const g = (mod.color >> 8) & 255;
+//       const b = mod.color & 255;
+//       const css = `rgb(${r},${g},${b})`;
+
+//       const grad = ctx.createLinearGradient(0, 0, 0, CH);
+//       grad.addColorStop(0, '#0d1726');
+//       grad.addColorStop(1, '#060c16');
+//       ctx.fillStyle = grad;
+//       ctx.fillRect(0, 0, CW, CH);
+
+//       ctx.strokeStyle = css;
+//       ctx.lineWidth = 10;
+//       ctx.strokeRect(8, 8, CW - 16, CH - 16);
+
+//       ctx.fillStyle = css;
+//       ctx.fillRect(8, 8, CW - 16, 16);
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+//       ctx.fillRect(8, CH - 20, CW - 16, 12);
+
+//       // Big centered short code
+//       ctx.font = '900 120px "Arial Black", "Segoe UI", sans-serif';
+//       ctx.fillStyle = css;
+//       ctx.shadowColor = css;
+//       ctx.shadowBlur = 26;
+//       ctx.textAlign = 'center';
+//       ctx.textBaseline = 'middle';
+//       ctx.fillText(mod.short, CW / 2, CH / 2 - 10);
+
+//       // Temp below code
+//       if (mod.temp !== null) {
+//         const tempCss = mod.temp > 50 ? '#ff5522' : '#22aaff';
+//         ctx.shadowBlur = 10;
+//         ctx.shadowColor = tempCss;
+//         ctx.fillStyle = tempCss;
+//         ctx.font = 'bold 44px "Courier New", monospace';
+//         ctx.fillText(`${mod.temp}°C`, CW / 2, CH - 50);
+//       }
+
+//       ctx.shadowBlur = 0;
+
+//       const tex = new THREE.CanvasTexture(canvas);
+//       tex.minFilter = THREE.LinearFilter;
+//       tex.magFilter = THREE.LinearFilter;
+//       tex.anisotropy = 8;
+
+//       const plate = new THREE.Mesh(
+//         new THREE.PlaneGeometry(3.8, 1.3),
+//         new THREE.MeshBasicMaterial({
+//           map: tex,
+//           transparent: false,
+//           depthTest: true,
+//           depthWrite: true,
+//           side: THREE.DoubleSide,
+//         })
+//       );
+//       plate.renderOrder = 10;
+//       return plate;
+//     };
+
+//     // ── Same positions as before (unchanged) ──
+//     const PLINTH_H    = 3.2;
+//     const PLINTH_Y0   = -0.5;
+//     const PLATE_Y     = PLINTH_Y0 + PLINTH_H * 0.40;
+//     const FACE_OFFSET = 2.5;
+//     const SIDE_OFFSET = 2.6;
+
+//     const isTopRow = mod.z < 0;
+//     const isBotRow = mod.z > 0;
+
+//     if (isTopRow) {
+//       const front = makeNameplateMesh();
+//       front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+//       scene.add(front);
+
+//       const back = makeNameplateMesh();
+//       back.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+//       back.rotation.y = Math.PI;
+//       scene.add(back);
+
+//       const sideLeft = makeSideNameplateMesh();
+//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideLeft.rotation.y = -Math.PI / 2;
+//       scene.add(sideLeft);
+
+//       const sideRight = makeSideNameplateMesh();
+//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideRight.rotation.y = Math.PI / 2;
+//       scene.add(sideRight);
+
+//     } else if (isBotRow) {
+//       const front = makeNameplateMesh();
+//       front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+//       front.rotation.y = Math.PI;
+//       scene.add(front);
+
+//       const back = makeNameplateMesh();
+//       back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+//       scene.add(back);
+
+//       const sideLeft = makeSideNameplateMesh();
+//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideLeft.rotation.y = -Math.PI / 2;
+//       scene.add(sideLeft);
+
+//       const sideRight = makeSideNameplateMesh();
+//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideRight.rotation.y = Math.PI / 2;
+//       scene.add(sideRight);
+//     }
+//   });
+// }
+
+// function addPlinthNameplates(scene: THREE.Scene): void {
+//   ALL_STEPS.forEach((mod) => {
+//     const SKIP_PLINTH_IDS = new Set([
+//       'foup', 'scanner', 'iface_in', 'iface_out', 'spindry',
+//     ]);
+//     if (SKIP_PLINTH_IDS.has(mod.id)) return;
+
+//     const makeNameplateMesh = (): THREE.Mesh => {
+//       const CW = 1024, CH = 300;
+//       const canvas = document.createElement('canvas');
+//       canvas.width = CW;
+//       canvas.height = CH;
+//       const ctx = canvas.getContext('2d')!;
+
+//       // ── BASE METAL GRADIENT ──
+//       const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+//       metalGrad.addColorStop(0,    '#dde2e8');
+//       metalGrad.addColorStop(0.12, '#f0f4f7');
+//       metalGrad.addColorStop(0.45, '#c8ced4');
+//       metalGrad.addColorStop(0.88, '#e4e8ec');
+//       metalGrad.addColorStop(1,    '#adb4bc');
+//       ctx.fillStyle = metalGrad;
+//       ctx.fillRect(0, 0, CW, CH);
+
+//       // ── BRUSHED LINES ──
+//       ctx.globalAlpha = 0.045;
+//       ctx.strokeStyle = '#ffffff';
+//       ctx.lineWidth = 1;
+//       for (let y = 2; y < CH; y += 3) {
+//         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+//       }
+//       ctx.globalAlpha = 1;
+
+//       // ── OUTER BEVEL (3D raised effect) ──
+//       ctx.fillStyle = '#ffffff';
+//       ctx.fillRect(0, 0, CW, 7);       // top highlight
+//       ctx.fillRect(0, 0, 7, CH);       // left highlight
+//       ctx.fillStyle = '#555c64';
+//       ctx.fillRect(0, CH - 7, CW, 7);  // bottom shadow
+//       ctx.fillRect(CW - 7, 0, 7, CH);  // right shadow
+
+//       // ── INNER BEVEL ──
+//       ctx.fillStyle = '#bcc2c8';
+//       ctx.fillRect(7, 7, CW - 14, 4);
+//       ctx.fillRect(7, 7, 4, CH - 14);
+//       ctx.fillStyle = '#888e94';
+//       ctx.fillRect(7, CH - 11, CW - 14, 4);
+//       ctx.fillRect(CW - 11, 7, 4, CH - 14);
+
+//       // ── INNER PANEL ──
+//       const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
+//       innerGrad.addColorStop(0,   '#b0b8c0');
+//       innerGrad.addColorStop(0.25,'#d0d8de');
+//       innerGrad.addColorStop(0.75,'#c8d0d6');
+//       innerGrad.addColorStop(1,   '#a0a8b0');
+//       ctx.fillStyle = innerGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+//       // ── 3D DEPTH SHADOW (top-left inner shadow) ──
+//       const shadowGrad = ctx.createLinearGradient(11, 11, 60, 60);
+//       shadowGrad.addColorStop(0, 'rgba(0,0,0,0.18)');
+//       shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+//       ctx.fillStyle = shadowGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+//       // ── COLOR ACCENT STRIPE (left edge) ──
+//       const r = (mod.color >> 16) & 255;
+//       const g = (mod.color >> 8)  & 255;
+//       const b =  mod.color        & 255;
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
+//       ctx.fillRect(11, 11, 24, CH - 22);
+//       ctx.fillStyle = `rgb(${r},${g},${b})`;
+//       ctx.fillRect(11, 11, 14, CH - 22);
+//       ctx.fillStyle = 'rgba(255,255,255,0.5)';
+//       ctx.fillRect(11, 11, 5, CH - 22);
+
+//       // ── SPECULAR HIGHLIGHT (top sheen) ──
+//       const sheenGrad = ctx.createLinearGradient(0, 11, 0, 11 + CH * 0.35);
+//       sheenGrad.addColorStop(0, 'rgba(255,255,255,0.28)');
+//       sheenGrad.addColorStop(1, 'rgba(255,255,255,0)');
+//       ctx.fillStyle = sheenGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH * 0.35);
+
+//       // ── SHORT CODE — embossed 3-layer ──
+//       ctx.font = "bold 120px 'Arial Black', Arial, sans-serif";
+//       ctx.textAlign = 'left';
+//       ctx.textBaseline = 'alphabetic';
+//       // shadow
+//       ctx.fillStyle = 'rgba(0,0,0,0.45)';
+//       ctx.fillText(mod.short, 48, 168);
+//       // highlight
+//       ctx.fillStyle = 'rgba(255,255,255,0.65)';
+//       ctx.fillText(mod.short, 46, 166);
+//       // main
+//       ctx.fillStyle = '#1a2028';
+//       ctx.fillText(mod.short, 47, 167);
+
+//       // ── FULL NAME ──
+//       const displayName = mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name;
+//       ctx.font = "bold 44px 'Arial', sans-serif";
+//       ctx.textAlign = 'left';
+//       ctx.fillStyle = 'rgba(0,0,0,0.4)';
+//       ctx.fillText(displayName, 48, 234);
+//       ctx.fillStyle = '#1a2030';
+//       ctx.fillText(displayName, 47, 233);
+
+//       // ── TEMPERATURE BADGE (right side, embossed) ──
+//       if (mod.temp !== null) {
+//         const isHot = mod.temp > 50;
+//         const tempColor = isHot ? '#cc3300' : '#0055bb';
+//         const tempBg    = isHot ? 'rgba(180,40,0,0.13)' : 'rgba(0,60,180,0.13)';
+//         // Badge background
+//         ctx.fillStyle = tempBg;
+//         ctx.beginPath();
+//         ctx.roundRect(CW - 240, 30, 210, 100, 10);
+//         ctx.fill();
+//         ctx.strokeStyle = tempColor;
+//         ctx.lineWidth = 3;
+//         ctx.stroke();
+//         // Temp text embossed
+//         ctx.font = "bold 72px 'Courier New', monospace";
+//         ctx.textAlign = 'center';
+//         ctx.fillStyle = 'rgba(0,0,0,0.35)';
+//         ctx.fillText(`${mod.temp}°C`, CW - 135 + 2, 108);
+//         ctx.fillStyle = 'rgba(255,255,255,0.5)';
+//         ctx.fillText(`${mod.temp}°C`, CW - 135 - 1, 106);
+//         ctx.fillStyle = tempColor;
+//         ctx.fillText(`${mod.temp}°C`, CW - 135, 107);
+//       }
+
+//       // ── CORNER RIVETS ──
+//       const drawRivet = (rx: number, ry: number) => {
+//         ctx.fillStyle = 'rgba(0,0,0,0.3)';
+//         ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
+//         const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
+//         rg.addColorStop(0,   '#eef2f6');
+//         rg.addColorStop(0.4, '#a8b0b8');
+//         rg.addColorStop(1,   '#707880');
+//         ctx.fillStyle = rg;
+//         ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
+//         ctx.strokeStyle = '#505860';
+//         ctx.lineWidth = 2;
+//         ctx.beginPath(); ctx.moveTo(rx - 5, ry); ctx.lineTo(rx + 5, ry); ctx.stroke();
+//         ctx.fillStyle = 'rgba(255,255,255,0.7)';
+//         ctx.beginPath(); ctx.arc(rx - 3, ry - 3, 3.5, 0, Math.PI * 2); ctx.fill();
+//       };
+//       drawRivet(28, 28);
+//       drawRivet(CW - 28, 28);
+//       drawRivet(28, CH - 28);
+//       drawRivet(CW - 28, CH - 28);
+
+//       // ── BOTTOM LABEL STRIP ──
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.18)`;
+//       ctx.fillRect(11, CH - 38, CW - 22, 27);
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+//       ctx.font = "bold 16px 'Courier New', monospace";
+//       ctx.textAlign = 'center';
+//       ctx.fillText('SMaRT SIMULATOR — PROCESS MODULE', CW / 2, CH - 18);
+
+//       const tex = new THREE.CanvasTexture(canvas);
+//       tex.minFilter = THREE.LinearFilter;
+//       tex.magFilter = THREE.LinearFilter;
+//       tex.anisotropy = 8;
+
+//       const plate = new THREE.Mesh(
+//         new THREE.PlaneGeometry(4.2, 1.4),
+//         new THREE.MeshBasicMaterial({
+//           map: tex,
+//           transparent: false,
+//           depthTest: true,
+//           depthWrite: true,
+//           side: THREE.DoubleSide,
+//         })
+//       );
+//       plate.renderOrder = 10;
+//       return plate;
+//     };
+
+//     const makeSideNameplateMesh = (): THREE.Mesh => {
+//       const CW = 768, CH = 300;
+//       const canvas = document.createElement('canvas');
+//       canvas.width = CW;
+//       canvas.height = CH;
+//       const ctx = canvas.getContext('2d')!;
+
+//       const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+//       metalGrad.addColorStop(0,    '#dde2e8');
+//       metalGrad.addColorStop(0.12, '#f0f4f7');
+//       metalGrad.addColorStop(0.45, '#c8ced4');
+//       metalGrad.addColorStop(0.88, '#e4e8ec');
+//       metalGrad.addColorStop(1,    '#adb4bc');
+//       ctx.fillStyle = metalGrad;
+//       ctx.fillRect(0, 0, CW, CH);
+
+//       ctx.globalAlpha = 0.045;
+//       ctx.strokeStyle = '#ffffff';
+//       ctx.lineWidth = 1;
+//       for (let y = 2; y < CH; y += 3) {
+//         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+//       }
+//       ctx.globalAlpha = 1;
+
+//       // Outer bevel
+//       ctx.fillStyle = '#ffffff';
+//       ctx.fillRect(0, 0, CW, 7);
+//       ctx.fillRect(0, 0, 7, CH);
+//       ctx.fillStyle = '#555c64';
+//       ctx.fillRect(0, CH - 7, CW, 7);
+//       ctx.fillRect(CW - 7, 0, 7, CH);
+
+//       // Inner bevel
+//       ctx.fillStyle = '#bcc2c8';
+//       ctx.fillRect(7, 7, CW - 14, 4);
+//       ctx.fillRect(7, 7, 4, CH - 14);
+//       ctx.fillStyle = '#888e94';
+//       ctx.fillRect(7, CH - 11, CW - 14, 4);
+//       ctx.fillRect(CW - 11, 7, 4, CH - 14);
+
+//       // Inner panel
+//       const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
+//       innerGrad.addColorStop(0,   '#b0b8c0');
+//       innerGrad.addColorStop(0.25,'#d0d8de');
+//       innerGrad.addColorStop(0.75,'#c8d0d6');
+//       innerGrad.addColorStop(1,   '#a0a8b0');
+//       ctx.fillStyle = innerGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+//       // 3D depth shadow
+//       const shadowGrad = ctx.createLinearGradient(11, 11, 55, 55);
+//       shadowGrad.addColorStop(0, 'rgba(0,0,0,0.16)');
+//       shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+//       ctx.fillStyle = shadowGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+//       // Specular sheen
+//       const sheenGrad = ctx.createLinearGradient(0, 11, 0, 11 + CH * 0.35);
+//       sheenGrad.addColorStop(0, 'rgba(255,255,255,0.26)');
+//       sheenGrad.addColorStop(1, 'rgba(255,255,255,0)');
+//       ctx.fillStyle = sheenGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH * 0.35);
+
+//       // Color accent stripe
+//       const r = (mod.color >> 16) & 255;
+//       const g = (mod.color >> 8)  & 255;
+//       const b =  mod.color        & 255;
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
+//       ctx.fillRect(11, 11, 20, CH - 22);
+//       ctx.fillStyle = `rgb(${r},${g},${b})`;
+//       ctx.fillRect(11, 11, 12, CH - 22);
+//       ctx.fillStyle = 'rgba(255,255,255,0.5)';
+//       ctx.fillRect(11, 11, 4, CH - 22);
+
+//       // Short code centered — embossed
+//       ctx.font = "bold 130px 'Arial Black', Arial, sans-serif";
+//       ctx.textAlign = 'center';
+//       ctx.textBaseline = 'alphabetic';
+//       ctx.fillStyle = 'rgba(0,0,0,0.45)';
+//       ctx.fillText(mod.short, CW / 2 + 2, 182);
+//       ctx.fillStyle = 'rgba(255,255,255,0.65)';
+//       ctx.fillText(mod.short, CW / 2 - 1, 180);
+//       ctx.fillStyle = '#1a2028';
+//       ctx.fillText(mod.short, CW / 2, 181);
+
+//       // Temp below
+//       if (mod.temp !== null) {
+//         const isHot = mod.temp > 50;
+//         const tempColor = isHot ? '#cc3300' : '#0055bb';
+//         ctx.font = "bold 48px 'Courier New', monospace";
+//         ctx.fillStyle = 'rgba(0,0,0,0.35)';
+//         ctx.fillText(`${mod.temp}°C`, CW / 2 + 2, 252);
+//         ctx.fillStyle = tempColor;
+//         ctx.fillText(`${mod.temp}°C`, CW / 2, 250);
+//       }
+
+//       // Corner rivets
+//       const drawRivet = (rx: number, ry: number) => {
+//         ctx.fillStyle = 'rgba(0,0,0,0.3)';
+//         ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 9, 0, Math.PI * 2); ctx.fill();
+//         const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 9);
+//         rg.addColorStop(0,   '#eef2f6');
+//         rg.addColorStop(0.4, '#a8b0b8');
+//         rg.addColorStop(1,   '#707880');
+//         ctx.fillStyle = rg;
+//         ctx.beginPath(); ctx.arc(rx, ry, 9, 0, Math.PI * 2); ctx.fill();
+//         ctx.strokeStyle = '#505860';
+//         ctx.lineWidth = 2;
+//         ctx.beginPath(); ctx.moveTo(rx - 5, ry); ctx.lineTo(rx + 5, ry); ctx.stroke();
+//         ctx.fillStyle = 'rgba(255,255,255,0.7)';
+//         ctx.beginPath(); ctx.arc(rx - 3, ry - 3, 3, 0, Math.PI * 2); ctx.fill();
+//       };
+//       drawRivet(26, 26);
+//       drawRivet(CW - 26, 26);
+//       drawRivet(26, CH - 26);
+//       drawRivet(CW - 26, CH - 26);
+
+//       const tex = new THREE.CanvasTexture(canvas);
+//       tex.minFilter = THREE.LinearFilter;
+//       tex.magFilter = THREE.LinearFilter;
+//       tex.anisotropy = 8;
+
+//       const plate = new THREE.Mesh(
+//         new THREE.PlaneGeometry(3.8, 1.4),
+//         new THREE.MeshBasicMaterial({
+//           map: tex,
+//           transparent: false,
+//           depthTest: true,
+//           depthWrite: true,
+//           side: THREE.DoubleSide,
+//         })
+//       );
+//       plate.renderOrder = 10;
+//       return plate;
+//     };
+
+//     // ── POSITIONS — raised higher from floor ──
+//     const PLINTH_H    = 3.2;
+//     const PLINTH_Y0   = -0.5;
+//     const PLATE_Y     = PLINTH_Y0 + PLINTH_H * 0.62; // ← was 0.40, now 0.62 = higher up
+//     const FACE_OFFSET = 2.5;
+//     const SIDE_OFFSET = 2.6;
+
+//     const isTopRow = mod.z < 0;
+//     const isBotRow = mod.z > 0;
+
+//     if (isTopRow) {
+//       const front = makeNameplateMesh();
+//       front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+//       scene.add(front);
+
+//       const back = makeNameplateMesh();
+//       back.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+//       back.rotation.y = Math.PI;
+//       scene.add(back);
+
+//       const sideLeft = makeSideNameplateMesh();
+//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideLeft.rotation.y = -Math.PI / 2;
+//       scene.add(sideLeft);
+
+//       const sideRight = makeSideNameplateMesh();
+//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideRight.rotation.y = Math.PI / 2;
+//       scene.add(sideRight);
+
+//     } else if (isBotRow) {
+//       const front = makeNameplateMesh();
+//       front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+//       front.rotation.y = Math.PI;
+//       scene.add(front);
+
+//       const back = makeNameplateMesh();
+//       back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+//       scene.add(back);
+
+//       const sideLeft = makeSideNameplateMesh();
+//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideLeft.rotation.y = -Math.PI / 2;
+//       scene.add(sideLeft);
+
+//       const sideRight = makeSideNameplateMesh();
+//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+//       sideRight.rotation.y = Math.PI / 2;
+//       scene.add(sideRight);
+//     }
+//   });
+// }
+
+
+
+
 function addPlinthNameplates(scene: THREE.Scene): void {
   ALL_STEPS.forEach((mod) => {
     const SKIP_PLINTH_IDS = new Set([
-      'foup',
-      'scanner',
-      'iface_in',
-      'iface_out',
-      'spindry',
+      'foup', 'scanner',
     ]);
     if (SKIP_PLINTH_IDS.has(mod.id)) return;
 
-    // ── Front/back nameplate (name + short + temp) ──
     const makeNameplateMesh = (): THREE.Mesh => {
-      const CW = 1024, CH = 256;
+      const CW = 1024, CH = 300;
       const canvas = document.createElement('canvas');
       canvas.width = CW;
       canvas.height = CH;
       const ctx = canvas.getContext('2d')!;
 
-      const r = (mod.color >> 16) & 255;
-      const g = (mod.color >> 8) & 255;
-      const b = mod.color & 255;
-      const css = `rgb(${r},${g},${b})`;
-
-      // Gradient background
-      const grad = ctx.createLinearGradient(0, 0, 0, CH);
-      grad.addColorStop(0, '#0d1726');
-      grad.addColorStop(1, '#060c16');
-      ctx.fillStyle = grad;
+      const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+      metalGrad.addColorStop(0,    '#dde2e8');
+      metalGrad.addColorStop(0.12, '#f0f4f7');
+      metalGrad.addColorStop(0.45, '#c8ced4');
+      metalGrad.addColorStop(0.88, '#e4e8ec');
+      metalGrad.addColorStop(1,    '#adb4bc');
+      ctx.fillStyle = metalGrad;
       ctx.fillRect(0, 0, CW, CH);
 
-      // Outer accent border
-      ctx.strokeStyle = css;
-      ctx.lineWidth = 10;
-      ctx.strokeRect(8, 8, CW - 16, CH - 16);
+      ctx.globalAlpha = 0.045;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
+      for (let y = 2; y < CH; y += 3) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
 
-      // Top accent bar
-      ctx.fillStyle = css;
-      ctx.fillRect(8, 8, CW - 16, 18);
-      // Bottom accent bar
-      ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
-      ctx.fillRect(8, CH - 22, CW - 16, 14);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, CW, 7);
+      ctx.fillRect(0, 0, 7, CH);
+      ctx.fillStyle = '#555c64';
+      ctx.fillRect(0, CH - 7, CW, 7);
+      ctx.fillRect(CW - 7, 0, 7, CH);
 
-      // LINE 1: SHORT CODE — big, bold, glowing
-      ctx.font = '900 110px "Arial Black", "Segoe UI", sans-serif';
-      ctx.fillStyle = css;
-      ctx.shadowColor = css;
-      ctx.shadowBlur = 24;
+      ctx.fillStyle = '#bcc2c8';
+      ctx.fillRect(7, 7, CW - 14, 4);
+      ctx.fillRect(7, 7, 4, CH - 14);
+      ctx.fillStyle = '#888e94';
+      ctx.fillRect(7, CH - 11, CW - 14, 4);
+      ctx.fillRect(CW - 11, 7, 4, CH - 14);
+
+      const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
+      innerGrad.addColorStop(0,   '#b0b8c0');
+      innerGrad.addColorStop(0.25,'#d0d8de');
+      innerGrad.addColorStop(0.75,'#c8d0d6');
+      innerGrad.addColorStop(1,   '#a0a8b0');
+      ctx.fillStyle = innerGrad;
+      ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+      const shadowGrad = ctx.createLinearGradient(11, 11, 60, 60);
+      shadowGrad.addColorStop(0, 'rgba(0,0,0,0.18)');
+      shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = shadowGrad;
+      ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+      const r = (mod.color >> 16) & 255;
+      const g = (mod.color >> 8)  & 255;
+      const b =  mod.color        & 255;
+      ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
+      ctx.fillRect(11, 11, 24, CH - 22);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(11, 11, 14, CH - 22);
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.fillRect(11, 11, 5, CH - 22);
+
+      const sheenGrad = ctx.createLinearGradient(0, 11, 0, 11 + CH * 0.35);
+      sheenGrad.addColorStop(0, 'rgba(255,255,255,0.28)');
+      sheenGrad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = sheenGrad;
+      ctx.fillRect(11, 11, CW - 22, CH * 0.35);
+
+      ctx.font = "bold 120px 'Arial Black', Arial, sans-serif";
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
-      ctx.fillText(mod.short, 36, 130);
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillText(mod.short, 48, 168);
+      ctx.fillStyle = 'rgba(255,255,255,0.65)';
+      ctx.fillText(mod.short, 46, 166);
+      ctx.fillStyle = '#1a2028';
+      ctx.fillText(mod.short, 47, 167);
 
-      // LINE 2: FULL NAME — white, bold
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 48px "Segoe UI", Arial, sans-serif';
-      ctx.textAlign = 'left';
       const displayName = mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name;
-      ctx.fillText(displayName, 36, 200);
+      ctx.font = "bold 44px 'Arial', sans-serif";
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillText(displayName, 48, 234);
+      ctx.fillStyle = '#1a2030';
+      ctx.fillText(displayName, 47, 233);
 
-      // Temperature badge (right side)
       if (mod.temp !== null) {
-        const tempCss = mod.temp > 50 ? '#ff5522' : '#22aaff';
-        ctx.shadowBlur = 16;
-        ctx.shadowColor = tempCss;
-        ctx.fillStyle = tempCss;
-        ctx.font = '900 64px "Courier New", monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(`${mod.temp}°C`, CW - 40, 120);
+        const isHot = mod.temp > 50;
+        const tempColor = isHot ? '#cc3300' : '#0055bb';
+        const tempBg    = isHot ? 'rgba(180,40,0,0.13)' : 'rgba(0,60,180,0.13)';
+        ctx.fillStyle = tempBg;
+        ctx.beginPath();
+        ctx.roundRect(CW - 240, 30, 210, 100, 10);
+        ctx.fill();
+        ctx.strokeStyle = tempColor;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.font = "bold 72px 'Courier New', monospace";
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillText(`${mod.temp}°C`, CW - 135 + 2, 108);
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillText(`${mod.temp}°C`, CW - 135 - 1, 106);
+        ctx.fillStyle = tempColor;
+        ctx.fillText(`${mod.temp}°C`, CW - 135, 107);
       }
 
-      ctx.shadowBlur = 0;
+      const drawRivet = (rx: number, ry: number) => {
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
+        const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
+        rg.addColorStop(0,   '#eef2f6');
+        rg.addColorStop(0.4, '#a8b0b8');
+        rg.addColorStop(1,   '#707880');
+        ctx.fillStyle = rg;
+        ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#505860';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(rx - 5, ry); ctx.lineTo(rx + 5, ry); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.beginPath(); ctx.arc(rx - 3, ry - 3, 3.5, 0, Math.PI * 2); ctx.fill();
+      };
+      drawRivet(28, 28);
+      drawRivet(CW - 28, 28);
+      drawRivet(28, CH - 28);
+      drawRivet(CW - 28, CH - 28);
 
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.minFilter = THREE.LinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.anisotropy = 8;
-
-      const plate = new THREE.Mesh(
-        new THREE.PlaneGeometry(4, 1.5),
-        new THREE.MeshBasicMaterial({
-          map: tex,
-          transparent: false,
-          depthTest: true,
-          depthWrite: true,
-          side: THREE.DoubleSide,
-        })
-      );
-      plate.renderOrder = 10;
-      return plate;
-    };
-
-    // ── Side nameplate (short code + temp, centered) ──
-    const makeSideNameplateMesh = (): THREE.Mesh => {
-      const CW = 768, CH = 256;
-      const canvas = document.createElement('canvas');
-      canvas.width = CW;
-      canvas.height = CH;
-      const ctx = canvas.getContext('2d')!;
-
-      const r = (mod.color >> 16) & 255;
-      const g = (mod.color >> 8) & 255;
-      const b = mod.color & 255;
-      const css = `rgb(${r},${g},${b})`;
-
-      const grad = ctx.createLinearGradient(0, 0, 0, CH);
-      grad.addColorStop(0, '#0d1726');
-      grad.addColorStop(1, '#060c16');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, CW, CH);
-
-      ctx.strokeStyle = css;
-      ctx.lineWidth = 10;
-      ctx.strokeRect(8, 8, CW - 16, CH - 16);
-
-      ctx.fillStyle = css;
-      ctx.fillRect(8, 8, CW - 16, 16);
+      ctx.fillStyle = `rgba(${r},${g},${b},0.18)`;
+      ctx.fillRect(11, CH - 38, CW - 22, 27);
       ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
-      ctx.fillRect(8, CH - 20, CW - 16, 12);
-
-      // Big centered short code
-      ctx.font = '900 120px "Arial Black", "Segoe UI", sans-serif';
-      ctx.fillStyle = css;
-      ctx.shadowColor = css;
-      ctx.shadowBlur = 26;
+      ctx.font = "bold 16px 'Courier New', monospace";
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(mod.short, CW / 2, CH / 2 - 10);
-
-      // Temp below code
-      if (mod.temp !== null) {
-        const tempCss = mod.temp > 50 ? '#ff5522' : '#22aaff';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = tempCss;
-        ctx.fillStyle = tempCss;
-        ctx.font = 'bold 44px "Courier New", monospace';
-        ctx.fillText(`${mod.temp}°C`, CW / 2, CH - 50);
-      }
-
-      ctx.shadowBlur = 0;
+      ctx.fillText('SMaRT SIMULATOR — PROCESS MODULE', CW / 2, CH - 18);
 
       const tex = new THREE.CanvasTexture(canvas);
       tex.minFilter = THREE.LinearFilter;
@@ -35205,7 +35934,7 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       tex.anisotropy = 8;
 
       const plate = new THREE.Mesh(
-        new THREE.PlaneGeometry(3.8, 1.3),
+        new THREE.PlaneGeometry(4.2, 1.4),
         new THREE.MeshBasicMaterial({
           map: tex,
           transparent: false,
@@ -35218,60 +35947,62 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       return plate;
     };
 
-    // ── Same positions as before (unchanged) ──
-    const PLINTH_H    = 3.2;
-    const PLINTH_Y0   = -0.5;
-    const PLATE_Y     = PLINTH_Y0 + PLINTH_H * 0.40;
-    const FACE_OFFSET = 2.5;
-    const SIDE_OFFSET = 2.6;
+    // ── POSITIONS ──
+    // ── POSITIONS ──
+// ── POSITIONS ──
+// ── POSITIONS ──
+const PLINTH_H         = 3.2;
+const PLINTH_Y0        = -0.5;
+const PLATE_Y          = PLINTH_Y0 + PLINTH_H * 0.38;
+const FACE_OFFSET      = 2.5;
+const IFACE_FACE_OFFSET = 3.3;  // ← increased spacing for interface modules
 
-    const isTopRow = mod.z < 0;
-    const isBotRow = mod.z > 0;
+const isIface  = mod.id === 'iface_in' || mod.id === 'iface_out';
+const isTopRow = mod.z < 0;
+const isBotRow = mod.z > 0;
 
-    if (isTopRow) {
-      const front = makeNameplateMesh();
-      front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-      scene.add(front);
+if (isIface) {
+  // Face toward negative Z (front-facing, no rotation needed)
+  const front = makeNameplateMesh();
+  front.position.set(mod.x, PLATE_Y, mod.z - IFACE_FACE_OFFSET);
+  front.rotation.y = 0;          // faces +Z direction (readable from front)
+  scene.add(front);
 
-      const back = makeNameplateMesh();
-      back.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
-      back.rotation.y = Math.PI;
-      scene.add(back);
+  // Face toward positive Z (back-facing, rotate 180° so text isn't mirrored)
+const back = makeNameplateMesh(); 
+back.position.set(mod.x, PLATE_Y, mod.z + IFACE_FACE_OFFSET);
+back.rotation.y = Math.PI;
+back.scale.x = -1;  // ← add this
+scene.add(back);
 
-      const sideLeft = makeSideNameplateMesh();
-      sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
-      sideLeft.rotation.y = -Math.PI / 2;
-      scene.add(sideLeft);
+} else if (isTopRow) {
+  const front = makeNameplateMesh();
+  front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+  front.rotation.y = Math.PI;
+  front.scale.x = -1;  // ← add this
+  scene.add(front);
 
-      const sideRight = makeSideNameplateMesh();
-      sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
-      sideRight.rotation.y = Math.PI / 2;
-      scene.add(sideRight);
+  const back = makeNameplateMesh();
+  back.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+  back.rotation.y = 0;
+  scene.add(back);
 
-    } else if (isBotRow) {
-      const front = makeNameplateMesh();
-      front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
-      front.rotation.y = Math.PI;
-      scene.add(front);
+} else if (isBotRow) {
+  const front = makeNameplateMesh();
+  front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+  front.rotation.y = 0;
+  front.scale.x = -1;  // ← add this
+  scene.add(front);
 
-      const back = makeNameplateMesh();
-      back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-      scene.add(back);
-
-      const sideLeft = makeSideNameplateMesh();
-      sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
-      sideLeft.rotation.y = -Math.PI / 2;
-      scene.add(sideLeft);
-
-      const sideRight = makeSideNameplateMesh();
-      sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
-      sideRight.rotation.y = Math.PI / 2;
-      scene.add(sideRight);
-    }
-  });
+  const back = makeNameplateMesh();
+  back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+  back.rotation.y = Math.PI;
+  back.scale.x = -1;
+  scene.add(back);
 }
+  });}
 
-
+// 
 
 function addRowLabelBars(scene: THREE.Scene): void {
   const rowLabels = [
@@ -39139,14 +39870,6 @@ ALL_STEPS.forEach((mod) => {
 });
     buildFlowArrows(this.scene);
     addPlinthNameplates(this.scene);
-
-    // Force nameplates for spindry and iface modules
-    ['spindry', 'iface_in', 'iface_out'].forEach((id) => {
-      const mod = ALL_STEPS.find(s => s.id === id);
-      const grp = this.modObjs[id];
-      if (mod && grp) addModuleLabel(grp, mod);
-    });
-
     addRowLabelBars(this.scene);
     
     // ── Physical nameplates — attached to every module group ──
@@ -40758,7 +41481,7 @@ private _animRobots(dt: number) {
   const TRANSFER_MIN_Y  = 0.8;
   const WAFER_HALF_T    = 0.0175;
   const PICK_CLEARANCE  = 0.003;
-  const SAFE_HEIGHT  = 6.0;
+  const SAFE_HEIGHT  = 9.5;
   const SAFE_TRAVEL_Y = WAFER_TRANSFER_Y + 1.2;
     const Z_LIFT_HIGH  = 0.8;
     const Z_LIFT_LOW   = 0.0;
@@ -40821,12 +41544,16 @@ private _animRobots(dt: number) {
     pickWorld.y = WAFER_TRANSFER_Y;
     // Scanner wafer is at the front slot, not the body center
     if (prevStep.id === 'scanner') {
+      // ── Pick from TOP chuck (same anchor as drop)
       const scannerGrp = this.modObjs['scanner'];
       const wa = scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
       if (wa) {
         wa.getWorldPosition(pickWorld);
+        // Ensure pickup height is at transfer height
+        pickWorld.y = WAFER_TRANSFER_Y;
       } else {
-        pickWorld.set(prevStep.x, WAFER_TRANSFER_Y, prevStep.z - 3.5);
+        pickWorld.x = prevStep.x;
+        pickWorld.z = prevStep.z - 3.3;
       }
     }
 
@@ -40881,12 +41608,12 @@ private _animRobots(dt: number) {
     // For scanner: rail needs to position robot at scanner.x so arm can reach the slot
     let targetX = isPicked ? dropStep.x : pickWorld.x;
     
-    // Special handling: scanner is far out — robot should stand closer for top-down access
+    // Special handling: scanner is far out, but robot reaches with extended arm
     if (isPicked && dropStep.id === 'scanner') {
-      targetX = dropStep.x - 2.0;   // stand closer (was -4)
+      targetX = dropStep.x - 4;  // stand 4 units back from scanner center
     }
     if (!isPicked && prevStep.id === 'scanner') {
-      targetX = prevStep.x - 2.0;
+      targetX = prevStep.x - 4;  // same when picking from scanner
     }
     
     railTargetX = clamp(targetX, TRACK_MIN, TRACK_MAX);
@@ -41186,11 +41913,24 @@ if (!isPicked) {
         dropWorld.z
       );
     } else if (isScannerDrop) {
-      // Scanner slot is at front face, robot approaches from -Z side
-      const slotY = WAFER_TRANSFER_Y;
-      approachDrop = new THREE.Vector3(dropWorld.x, slotY + 0.5, dropWorld.z - 3.0);
-      insertDrop   = new THREE.Vector3(dropWorld.x, slotY,       dropWorld.z - 0.5);
-      placePos     = new THREE.Vector3(dropWorld.x, slotY,       dropWorld.z);
+      // ── SCANNER: drop into TOP chuck — vertical approach/drop sequence
+      const chuckY = dropWorld.y;     // actual chuck top height (from waferAnchor)
+
+      approachDrop = new THREE.Vector3(
+        dropWorld.x,                  // directly above chuck (X)
+        chuckY + 1.8,                 // ← rise WELL ABOVE the chuck
+        dropWorld.z                   // directly above chuck (Z)
+      );
+      insertDrop = new THREE.Vector3(
+        dropWorld.x,
+        chuckY + 0.5,                 // ← hovering just above chuck
+        dropWorld.z
+      );
+      placePos = new THREE.Vector3(
+        dropWorld.x,
+        chuckY + 0.02,                // ← on chuck (tiny gap for seating)
+        dropWorld.z
+      );
     } else {
       // STANDARD MODULE PLACE
       approachDrop = new THREE.Vector3(
@@ -41282,23 +42022,42 @@ if (!isPicked) {
       }
 
       case 'scanner_insert': {
-        const p = sCurve(Math.min(phaseT / 0.6, 1));
-        // Slide horizontally INTO the slot at slot height
+        // Phase 1: move horizontally over the slot (X/Z align) while staying high
+        const p = sCurve(Math.min(phaseT / 0.55, 1));
         const tgt = new THREE.Vector3(
-          dropWorld.x,
-          WAFER_TRANSFER_Y,
-          lerp(approachDrop.z, placePos.z, p)
+          lerp(approachDrop.x, insertDrop.x, p),
+          approachDrop.y,                          // stay at rise height during align
+          lerp(approachDrop.z, insertDrop.z, p)
         );
-        r.runIK(targetForGripper(tgt), { isScanner: true, safetyMargin: 0.04 });
+        r.runIK(targetForGripper(tgt), {
+          isScanner: true,
+          safetyMargin: 0.06
+        });
         this._setGripperState(r, 1, dt);
-        if (p >= 1) { ud.armPhase = 'place_contact'; ud.phaseT = 0; }
+        if (p >= 1) {
+          ud.armPhase = 'scanner_lower';
+          ud.phaseT = 0;
+        }
         break;
       }
 
       case 'scanner_lower': {
-        // Not needed for slot - skip to place_contact
-        ud.armPhase = 'place_contact';
-        ud.phaseT = 0;
+        // Phase 2: lower straight down into the slot from above
+        const p = sCurve(Math.min(phaseT / 0.55, 1));
+        const tgt = new THREE.Vector3(
+          insertDrop.x,
+          lerp(insertDrop.y, placePos.y, p),       // descend into slot
+          insertDrop.z
+        );
+        r.runIK(targetForGripper(tgt), {
+          isScanner: true,
+          safetyMargin: 0.04
+        });
+        this._setGripperState(r, 1, dt);
+        if (p >= 1) {
+          ud.armPhase = 'place_contact';
+          ud.phaseT = 0;
+        }
         break;
       }
 
@@ -41371,17 +42130,17 @@ if (!isPicked) {
       }
 
       case 'scanner_retract': {
-        const p = sCurve(Math.min(phaseT / 0.7, 1));
-        // Rise STRAIGHT UP out of the top chuck
-        const retractedPos = new THREE.Vector3(
+        // Lift straight back up out of slot, then move away
+        const p = sCurve(Math.min(phaseT / 0.65, 1));
+        const liftedOut = new THREE.Vector3(
           placePos.x,
-          placePos.y + 1.8,            // ← rise STRAIGHT UP out of chuck
+          approachDrop.y,            // rise back to the height we came from
           placePos.z
         );
-        const tgt = new THREE.Vector3().lerpVectors(placePos, retractedPos, p);
-        r.runIK(targetForGripper(tgt), { 
+        const tgt = new THREE.Vector3().lerpVectors(placePos, liftedOut, p);
+        r.runIK(targetForGripper(tgt), {
           isScanner: true,
-          safetyMargin: 0.06 
+          safetyMargin: 0.06
         });
         this._setGripperState(r, 0, dt);
         if (p >= 1) {
