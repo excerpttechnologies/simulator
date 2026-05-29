@@ -254,6 +254,36 @@ export class WaferManager {
       return false;
     }
 
+    // ── SCANNER: place wafer precisely on the internal chuck ──
+    if (stationID === 'scanner') {
+      let scannerGroup: THREE.Group | null = null;
+      this.scene.traverse((obj) => {
+        if (scannerGroup) return;
+        if (obj instanceof THREE.Group && obj.userData?.id === 'scanner') {
+          scannerGroup = obj;
+        }
+      });
+
+      const chuck = scannerGroup?.userData?.scannerChuckTop as THREE.Object3D | undefined;
+      if (chuck) {
+        const chuckWorldPos = new THREE.Vector3();
+        chuck.getWorldPosition(chuckWorldPos);
+        const WAFER_HALF_THICKNESS = 0.035;
+        const SEATING_GAP = 0.002;
+        const seatY = chuckWorldPos.y + 0.03 + WAFER_HALF_THICKNESS + SEATING_GAP;
+        const placePos = new THREE.Vector3(chuckWorldPos.x, seatY, chuckWorldPos.z);
+
+        wafer.detachFromRobot(this.scene, placePos);
+        wafer.wafer.rotation.set(0, 0, 0);
+        wafer.wafer.quaternion.identity();
+        wafer.wafer.updateMatrixWorld(true);
+
+        this.stationOccupancy.set(stationID, waferID);
+        wafer.currentStation = stationID;
+        return true;
+      }
+    }
+
     // Perform detachment
     wafer.detachFromRobot(this.scene, position);
 

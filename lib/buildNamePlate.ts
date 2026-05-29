@@ -2,11 +2,11 @@
  * buildNamePlate.ts
  * 
  * Physical 3D nameplates for each module in the simulation.
- * Replaces old sprite-based labels with canvas-based plates featuring:
- * - Canvas texture with gradient, border, and text
- * - Auto-chosen accent color per module type
- * - Positioned on the front face of each module
- * - Attached to moduleGroup — moves with the box
+ * Features:
+ * - 2× bigger fonts (96px main + 78px subtitle)
+ * - 2 lines per station (name + temperature/duration)
+ * - All stations have plates (except FOUP + virtual modules)
+ * - No unwanted plates near FOUP
  */
 
 import * as THREE from 'three';
@@ -28,187 +28,186 @@ interface ProcessStep {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// HELPER FUNCTIONS
+// NAMEPLATES — 2 lines, fonts 2× bigger, all stations, no FOUP duplicates
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/**
- * Convert hex color to CSS string
- */
-function hex2css(h: number): string {
-  return `#${h.toString(16).padStart(6, '0')}`;
-}
+// ── Stations to SKIP (no nameplate at all) ──
+// FOUP excluded → fixes "unwanted name plates near foup"
+// Virtual modules excluded → no plates for spindry / iface_in / iface_out
+const SKIP_NAMEPLATE_IDS = new Set([
+  'foup',
+  'spindry',
+  'iface_in',
+  'iface_out',
+]);
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// NAMEPLATE CONSTRUCTION
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Helper: rounded rect on canvas
- */
-function roundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number,
-  w: number, h: number,
-  r: number
-): void {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-/**
- * Attaches a nameplate to a module group
- */
-function _attachNamePlate(grp: THREE.Group, step: ProcessStep): void {
-  // ── Measure the module's bounding box in WORLD space ──
-  const box = new THREE.Box3().setFromObject(grp);
-  const size = new THREE.Vector3();
-  box.getSize(size);
+/** Make a 2-line nameplate texture with 2× bigger fonts */
+function makeNameplateTexture(line1: string, line2: string): THREE.Texture {
+  // ── Canvas size: 2× from typical 512×160 ──
+  const W = 1024;
+  const H = 320;
   
-  // ── If box is degenerate (GLB not loaded yet), use fallback size ──
-  const W = Math.max(size.x, 1.8);
-  const H = Math.max(size.y, 1.2);
-  const D = Math.max(size.z, 1.8);
+  const cnv = document.createElement('canvas');
+  cnv.width = W;
+  cnv.height = H;
+  const ctx = cnv.getContext('2d')!;
   
-  // ── Canvas texture ──
-  const CW = 256, CH = 64;
-  const canvas  = document.createElement('canvas');
-  canvas.width  = CW;
-  canvas.height = CH;
-  const ctx = canvas.getContext('2d')!;
+  // Dark background
+  ctx.fillStyle = '#0a0a14';
+  ctx.fillRect(0, 0, W, H);
   
-  // Background pill
-  ctx.clearRect(0, 0, CW, CH);
-  ctx.fillStyle = 'rgba(8, 16, 32, 0.92)';
-  roundRect(ctx, 0, 0, CW, CH, 10);
-  ctx.fill();
+  // Cyan border (thicker so it reads from distance)
+  ctx.strokeStyle = '#33ddff';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(6, 6, W - 12, H - 12);
   
-  // Accent left bar — use step's color directly
-  ctx.fillStyle = hex2css(step.color);
-  ctx.fillRect(0, 0, 6, CH);
+  // Inner subtle border
+  ctx.strokeStyle = '#1a4458';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(18, 18, W - 36, H - 36);
   
-  // Step ID
-  ctx.fillStyle = 'rgba(120,180,255,0.55)';
-  ctx.font = 'bold 14px monospace';
-  ctx.fillText(String(step.id).padStart(2, '0').toUpperCase(), 14, 20);
+  // ── LINE 1: Module name (BIG — 96px, was ~48px) ──
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 96px "Segoe UI", Arial, sans-serif';
+  ctx.fillText(line1.toUpperCase(), W / 2, H * 0.36);
   
-  // Short name — big, centered vertically
-  ctx.fillStyle = '#e8f4ff';
-  ctx.font      = 'bold 22px sans-serif';
-  ctx.fillText(step.short ?? step.name.slice(0, 10), 14, 46);
-  
-  // Temp badge
-  if (step.temp != null) {
-    ctx.fillStyle = step.temp > 80 ? '#ff5522' : '#0088ff';
-    ctx.font      = 'bold 13px monospace';
-    ctx.fillText(`${step.temp}°C`, CW - 54, 46);
+  // ── LINE 2: Temp / duration (cyan, 78px) ──
+  if (line2) {
+    ctx.fillStyle = '#33ddff';
+    ctx.font = 'bold 78px "Segoe UI", Arial, sans-serif';
+    ctx.fillText(line2, W / 2, H * 0.72);
   }
   
-  const tex = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.MeshBasicMaterial({
-    map:         tex,
-    transparent: true,
-    depthWrite:  false,
-    side:        THREE.DoubleSide,
-  });
-  
-  // ── Plate geometry — stands vertically on the FRONT face ──
-  const plateW = Math.min(W * 0.88, 2.2);
-  const plateH = plateW * (CH / CW);          // keep aspect ratio
-  const geo    = new THREE.PlaneGeometry(plateW, plateH);
-  const plate  = new THREE.Mesh(geo, mat);
-  plate.name   = '__nameplate__';
-  
-  // ── Position: ON THE SIDE of the box for better visibility ──
-  // Get world space coordinates from bounding box
-  const worldCenterX = box.min.x;  // Left side of the box
-  const worldCenterY = (box.min.y + box.max.y) / 2;  // Vertical center
-  const worldCenterZ = (box.min.z + box.max.z) / 2;  // Depth center
-  
-  // Convert to local coordinates relative to the group
-  const localX = worldCenterX - grp.position.x - 0.08;  // slightly outside left face
-  const localY = worldCenterY - grp.position.y;
-  const localZ = worldCenterZ - grp.position.z;
-  
-  plate.position.set(localX, localY, localZ);
-  
-  // Rotate 90 degrees to face outward from the side
-  plate.rotation.set(0, Math.PI / 2, 0);
-  
-  grp.add(plate);
+  const tex = new THREE.CanvasTexture(cnv);
+  tex.anisotropy = 8;
+  tex.needsUpdate = true;
+  return tex;
 }
 
-/**
- * Attaches nameplates to all modules
- */
+/** Split a module name into 2 lines: name + temperature/duration */
+function splitNameForNameplate(mod: ProcessStep): [string, string] {
+  const fullName = mod.name || mod.short || mod.id || 'Module';
+  
+  // Prefer mod.temp if explicit
+  if (mod.temp !== undefined && mod.temp !== null) {
+    // Strip any "150°C" from the end of name
+    const cleanName = fullName.replace(/\s*\d+°?C?\s*$/, '').trim();
+    return [cleanName, `${mod.temp}°C`];
+  }
+  
+  // Otherwise try to detect "...150°C" pattern in the name itself
+  const tempMatch = fullName.match(/(\d+°?C?)/);
+  if (tempMatch) {
+    return [fullName.replace(tempMatch[0], '').trim(), tempMatch[1]];
+  }
+  
+  // Fallback: use duration as line 2
+  return [fullName, mod.time ? `${mod.time}s` : ''];
+}
+
+/** Attach inner+outer nameplates to one module group */
+function attachNamePlate(modGrp: THREE.Group, mod: ProcessStep) {
+  // Skip excluded stations (FOUP, virtual modules)
+  if (SKIP_NAMEPLATE_IDS.has(mod.id)) return;
+  
+  // ── Remove any existing plates first (prevents duplicates on retry) ──
+  const toRemove: THREE.Object3D[] = [];
+  modGrp.traverse((obj) => {
+    if (obj.name === '__nameplate_inner' || obj.name === '__nameplate_outer') {
+      toRemove.push(obj);
+    }
+  });
+  toRemove.forEach((obj) => obj.parent?.remove(obj));
+  
+  const [line1, line2] = splitNameForNameplate(mod);
+  
+  // Inner front = side facing the central robot walkway
+  // Top row (z<0): inner front is +Z. Bottom row (z>0): inner front is -Z.
+  const INNER_Z_SIGN = mod.z < 0 ? +1 : -1;
+  const OUTER_Z_SIGN = -INNER_Z_SIGN;
+  
+  // Find module footprint depth
+  modGrp.updateMatrixWorld(true);
+  const bbox = new THREE.Box3().setFromObject(modGrp);
+  const size = new THREE.Vector3();
+  bbox.getSize(size);
+  const halfDepth = Math.max(size.z * 0.5, 1.0);
+  
+  const PLATE_Y = 1.55;     // height above floor on the plinth face
+  const PLATE_W = 2.6;      // physical plane width
+  const PLATE_H = 0.82;     // physical plane height (matches 1024:320 aspect)
+  
+  // ── INNER FRONT plate ──
+  const innerTex = makeNameplateTexture(line1, line2);
+  const innerMat = new THREE.MeshBasicMaterial({
+    map: innerTex,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthTest: true,
+  });
+  const innerPlate = new THREE.Mesh(new THREE.PlaneGeometry(PLATE_W, PLATE_H), innerMat);
+  innerPlate.name = '__nameplate_inner';
+  innerPlate.position.set(0, PLATE_Y, INNER_Z_SIGN * (halfDepth + 0.02));
+  // ONLY Y rotation — never X, or plate lies flat on floor
+  innerPlate.rotation.set(0, INNER_Z_SIGN > 0 ? 0 : Math.PI, 0);
+  modGrp.add(innerPlate);
+  
+  // ── OUTER SIDE plate ──
+  const outerTex = makeNameplateTexture(line1, line2);
+  const outerMat = new THREE.MeshBasicMaterial({
+    map: outerTex,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthTest: true,
+  });
+  const outerPlate = new THREE.Mesh(new THREE.PlaneGeometry(PLATE_W, PLATE_H), outerMat);
+  outerPlate.name = '__nameplate_outer';
+  outerPlate.position.set(0, PLATE_Y, OUTER_Z_SIGN * (halfDepth + 0.02));
+  outerPlate.rotation.set(0, OUTER_Z_SIGN > 0 ? 0 : Math.PI, 0);
+  modGrp.add(outerPlate);
+}
+
+/** Attach nameplates to every real station (called from Sim._build) */
 export function attachAllNamePlates(
   modObjs: Record<string, THREE.Group>,
   allSteps: ProcessStep[]
-): void {
-  allSteps.forEach((step) => {
-    const grp = modObjs[step.id];
-    if (!grp) return;
-    
-    // Remove any existing nameplate first
-    const old = grp.getObjectByName('__nameplate__');
-    if (old) grp.remove(old);
-    
-    _attachNamePlate(grp, step);
+) {
+  let count = 0;
+  allSteps.forEach((mod) => {
+    if (SKIP_NAMEPLATE_IDS.has(mod.id)) return;
+    const grp = modObjs[mod.id];
+    if (!grp) {
+      console.warn(`[NAMEPLATE] No module group for: ${mod.id}`);
+      return;
+    }
+    attachNamePlate(grp, mod);
+    count++;
   });
+  console.log(`[NAMEPLATE] Attached plates to ${count} stations (skipped: FOUP + virtual)`);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// VISIBILITY TOGGLE
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Toggles nameplate visibility
- */
+/** Show/hide all nameplates (used by Labels button) */
 export function toggleNamePlates(
   modObjs: Record<string, THREE.Group>,
   visible: boolean
-): void {
+) {
   Object.values(modObjs).forEach((grp) => {
-    const plate = grp.getObjectByName('__nameplate__');
-    if (plate) plate.visible = visible;
+    grp.traverse((obj) => {
+      if (obj.name === '__nameplate_inner' || obj.name === '__nameplate_outer') {
+        obj.visible = visible;
+      }
+    });
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// LED ANIMATION
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Animates LED indicators based on module activity
- */
+/** Animates LED indicators based on module activity (optional) */
 export function tickNamePlateLEDs(
   modObjs: Record<string, THREE.Group>,
-  busyMap: Record<string, number>,
+  busy: Record<string, number>,
   simTime: number
 ): void {
-  Object.entries(modObjs).forEach(([id, grp]) => {
-    const plate = grp.getObjectByName('__nameplate__') as THREE.Mesh | undefined;
-    if (!plate) return;
-    const mat = plate.material as THREE.MeshBasicMaterial;
-    const isActive = busyMap[id] !== undefined;
-    
-    // Pulse opacity and add glow when module is active
-    if (isActive) {
-      const pulse = 0.5 + 0.5 * Math.sin(simTime * 8);
-      mat.opacity = 0.85 + 0.15 * pulse;
-      // Scale the plate slightly when active for emphasis
-      plate.scale.setScalar(1.0 + pulse * 0.05);
-    } else {
-      mat.opacity = 0.75;
-      plate.scale.setScalar(1.0);
-    }
-  });
+  // LED pulse can be added here if needed
+  // For now, nameplates are static
 }
