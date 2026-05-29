@@ -364,3 +364,15 @@
   text-align: center;
   line-height: 14px;
 }
+
+/* Component Info panel slide-in from right */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

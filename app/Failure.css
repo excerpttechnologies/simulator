@@ -140,7 +140,7 @@
 ============================================= */
 .row-key-info { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; width: auto; padding: 12px 12px; max-width: 70%; }
 .key-info-label { font-family: 'Share Tech Mono', monospace; font-size: 16px; color: black; letter-spacing: 2px; margin-bottom: 6px; }
-.key-info-content { font-size: 12px; color: var(--text); line-height: 1.6; }
+.key-info-content { font-size: 14px; color: var(--text); line-height: 1.2; }
 .key-info-content strong { color: black; }
 
 
@@ -1305,7 +1305,7 @@
 
 .nm-chart-title {
   font-family: 'Orbitron', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.2px;
   color: var(--text3);
@@ -1319,7 +1319,7 @@
 
 .nm-meta-item {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -1338,7 +1338,7 @@
 
 .nm-sensor-badge {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 9px;
+  font-size: 10px;
   color: var(--text3);
   background: var(--panel2);
   border: 1px solid var(--border2);
@@ -1471,25 +1471,35 @@
   width: 100%;
 }
 
-/* LEFT SIDE */
-.nm-spc-metrics .left-heading {
-  margin-right: auto;
-  text-align: left;
+.nm-spc-metrics {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
+/* LEFT SIDE */
+.nm-spc-metrics .left-heading {
+  text-align: left;
+  flex: 1;
+}
+
+/* RIGHT SIDE */
 .nm-spc-metrics .right-heading {
-  margin-left: auto;
-  margin-right: 512px; /* adjust value */
   text-align: right;
+   padding-right: 20px;
 }
 .nm-spc-metric-chip {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 9px;
-  padding: 3px 9px;
+  font-size: 12px;
+  padding: 3px 5px;
   border-radius: 4px;
   background: var(--panel2);
   color: var(--text2);
   border: 1px solid var(--border2);
+
+  width: fit-content;   /* prevents extra stretching */
+  max-width: max-content;
 }
 
 /* SPC + Offline defect — side by side, equal halves */
@@ -1531,25 +1541,12 @@
   object-fit: fill;
 }
 
-/* Offline defect title */
-.nm-offline-title {
-  font-family: 'Orbitron', monospace;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  color: var(--yellow);
-  padding: 6px 10px;
-  background: var(--panel2);
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  text-align: center;
-  flex-shrink: 0;
-}
+
 
 /* Offline defect image card */
 .nm-offline-image-wrapper {
   width: 100%;
-   height: 240px;
+   height: 260px;
   border-radius: 10px;
   overflow: hidden;
   background: var(--panel2);
@@ -1565,13 +1562,14 @@
   height: 100% !important;
   display: block;
   object-fit: fill;
+  margin-top: -6 px;
 }
 
 /* SPC rules section */
 .nm-spc-rules {
   border-top: 1px solid var(--border2);
   padding-top: 10px;
-  margin-top: 6px;
+  margin-top: 6 px;
 }
 
 .nm-rules-label {
@@ -2554,7 +2552,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    margin-top: 4px;
+    margin-top: -10px;
 }
 
 .exf-rc-img-wrap {
@@ -3027,9 +3025,14 @@
 
 /* Release row — label + button side by side */
 .dev-release-row {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.dev-release-btn {
+  margin-top: 8px;
 }
 
 .dev-release-label {
@@ -3658,15 +3661,33 @@
         flex-direction: column;
     }
 }
-.lot-recipe-column{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
+.lot-recipe-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 
-  margin-top:-53px;
+  /* responsive instead of fixed -53px */
+  margin-top: clamp(-53px, -3.2vw, -38px);
 
-  position:relative;
-  left:15px;   /* move right */
+  position: relative;
+
+  /* responsive instead of fixed 15px */
+  left: clamp(8px, 1vw, 15px);
+}
+
+.lot-recipe-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: -53px;
+  position: relative;
+  transform: translateX(clamp(8px, 1vw, 15px));
+  left: 0;
+}
+
+.new-module-lot-recipe {
+  margin-top: clamp(-53px, -3.2vw, -38px);
+  left: clamp(8px, 1vw, 15px);
 }
 
 
@@ -3755,12 +3776,12 @@
 /* LOT ID + RECIPE only for FM-002 / FM-003 / FM-004 / FM-005 */
 .new-module-lot-recipe {
   position: absolute;
-  left: 810px;
+  left: 50%;
   top: 390px;   /* little top align */
-  width: 240px;
+  width: 350px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
 }
 
 .new-module-lot-recipe .static-info-btn {
@@ -4056,3 +4077,270 @@
   border: 2px solid #1f4f99;
   box-shadow: 0 0 0 2px rgba(31, 79, 153, 0.15);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ebr-entire-spc-card-small {
+  width: 100% !important;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ebr-wafer-map-small {
+  width: 45% !important;
+  height: 280px !important;
+  margin-top: -18px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ebr-wafer-info-box {
+  width: 50%;
+  height: 280px;
+  margin-top: -18px;
+
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: var(--panel2);
+  padding: 10px 12px;
+
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text2);
+  overflow: hidden;
+}
+
+.ebr-info-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  letter-spacing: 1.4px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.ebr-info-main {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.ebr-info-row {
+  margin-bottom: 5px;
+}
+
+.ebr-info-row strong {
+  color: var(--text);
+}
+
+.nm-spc-right {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: flex-start;
+  margin-top: 15px !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.dev-conc-extra-box {
+  width: 48% !important;
+  max-height: 360px;
+  overflow: hidden;
+  margin-left: auto;
+  margin-top: -360px; /* moves beside SPC card */
+}
+
+.dev-conc-extra-image {
+  width: 55%;
+  float: left;
+  margin-right: 12px;
+}
+
+.dev-conc-extra-info {
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--text2);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.dev-conc-spc-row {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.dev-conc-side-card {
+  width: 50%;
+  height: 360px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  overflow: hidden;
+}
+
+.dev-conc-side-img-box {
+  width: 55%;
+  height: 260px;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+ 
+  overflow: hidden;
+}
+
+.dev-conc-side-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block;
+}
+
+.dev-conc-side-info-box {
+  width: 50%;
+  height: 280px;
+  margin-bottom: -26px;
+
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: var(--panel2);
+  padding: 10px 12px;
+
+  font-size: 17px;
+  line-height: 1.35;
+  color: var(--text2);
+  overflow: hidden;
+}
+
+.dev-conc-info-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  color: var(--accent);  /* same as dev-info-title */
+  margin-bottom: 4px;
+}
+
+

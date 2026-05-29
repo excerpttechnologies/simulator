@@ -8,6 +8,9 @@ import {
   toggleNamePlates,
   tickNamePlateLEDs,
 } from '../lib/buildNamePlate';
+import ComponentInfoPanel from '../components/ComponentInfoPanel';
+import ComponentInfoToggle from '../components/ComponentInfoToggle';
+import NarrationControls from '../components/NarrationControls';
 
 // // ═══════════════════════════════════════════════════════════════════════════════
 // // TYPES & DATA
@@ -24219,39 +24222,40 @@ function buildWafer(color: number): THREE.Group {
   disk.castShadow = true;
   g.add(disk);
 
-  // Holographic PR layer
+  // Holographic PR layer — starts grey/invisible, turns colored at PR coat
   const pr = new THREE.Mesh(
     new THREE.CylinderGeometry(PR_R, PR_R, PR_H, 80),
     new THREE.MeshPhysicalMaterial({
-      color,
+      color: 0xc0c8d0,          // grey silicon (resist not applied yet)
       roughness: 0.12,
       metalness: 0.05,
       clearcoat: 0.6,
       clearcoatRoughness: 0.1,
-      emissive: color,
-      emissiveIntensity: 0.9,
+      emissive: 0x222428,       // faint grey
+      emissiveIntensity: 0.15,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.0,             // invisible until PR coat
       envMapIntensity: 0.7,
     })
   );
   pr.position.y = H / 2 + PR_H / 2 - 0.002;
   g.add(pr);
   g.userData.prLayer = pr;
+  g.userData.resistColor = color; // store intended resist color for later
 
   // Smaller die array (scaled to new wafer)
   for (let dx = -2; dx <= 2; dx++) {
     for (let dz = -2; dz <= 2; dz++) {
       if (dx * dx + dz * dz > 5) continue;
-      const dieColor = new THREE.Color(color).multiplyScalar(1.3);
+      const dieColor = new THREE.Color(0xc0c8d0).multiplyScalar(1.1); // grey dies
       const die = new THREE.Mesh(
         new THREE.BoxGeometry(0.11, 0.003, 0.11),
         new THREE.MeshStandardMaterial({
           color: dieColor,
           roughness: 0.06,
           metalness: 0.9,
-          emissive: color,
-          emissiveIntensity: 0.3,
+          emissive: 0x445566,
+          emissiveIntensity: 0.2,
         })
       );
       die.position.set(dx * 0.13, H / 2 + 0.003, dz * 0.13);
@@ -24266,8 +24270,8 @@ function buildWafer(color: number): THREE.Group {
       color: 0xaabbee,
       roughness: 0.02,
       metalness: 0.99,
-      emissive: color,
-      emissiveIntensity: 0.5,
+      emissive: 0x445566,       // grey edge
+      emissiveIntensity: 0.3,
     })
   );
   edge.rotation.x = Math.PI / 2;
@@ -24292,12 +24296,12 @@ function buildWafer(color: number): THREE.Group {
   // Glow ring (smaller)
   const glowGeo = new THREE.TorusGeometry(R + 0.02, 0.008, 12, 36);
   const glowMat = new THREE.MeshStandardMaterial({
-    color: color,
-    emissive: color,
-    emissiveIntensity: 1.5,
+    color: 0x8899aa,            // grey glow
+    emissive: 0x445566,
+    emissiveIntensity: 0.6,
     roughness: 0.3,
     transparent: true,
-    opacity: 0.6,
+    opacity: 0.4,
     depthWrite: false,
   });
   const glow = new THREE.Mesh(glowGeo, glowMat);
@@ -30344,13 +30348,21 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
     
     const slotAnchors: THREE.Object3D[] = [];
     for (let s = 0; s < 6; s++) {
-      const slot = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.03, 64),
-        new THREE.MeshStandardMaterial({ color: 0x91a8c2, metalness: 0.9, roughness: 0.08 }));
-      slot.position.set(0, 0.55 + s * 0.42, 1.05);
+      const slotY = 0.55 + s * 0.42;
+
+      // Visible slot disc (where wafer rests) — laid flat
+      const slot = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.8, 0.8, 0.03, 64),
+        new THREE.MeshStandardMaterial({ color: 0x91a8c2, metalness: 0.9, roughness: 0.08 })
+      );
+      slot.rotation.x = Math.PI / 2;   // lay disc flat (FOUP is rotated)
+      slot.position.set(0, slotY, 1.05);
       grp.add(slot);
+
+      // Anchor sits AT the slot disc (wafer goes here, not z=2.0)
       const anchor = new THREE.Group();
       anchor.name = `FoupSlot_${s + 1}`;
-      anchor.position.set(0, 0.55 + s * 0.42, 2.0);
+      anchor.position.set(0, slotY, 1.05);
       grp.add(anchor);
       slotAnchors.push(anchor);
     }
@@ -32203,18 +32215,28 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
   }
 
   // ══════════════════════════════════════════════════════════════════════
-  // 1. LIFT HEIGHT — extra clearance for HMDS to clear chamber walls
+  // 1. LIFT HEIGHT — column rises higher for tall modules (scanner especially)
   // ══════════════════════════════════════════════════════════════════════
   let requiredLift = 0.0;
-  if (isHMDS) {
-    requiredLift = 0.28;        // ← HMDS needs MORE lift than before (was 0.22)
-  } else if (isScanner || isDIRinse) {
+  if (isScanner) {
+    requiredLift = 2.5;          // high enough to reach scanner chuck
+  } else if (isHMDS) {
+    requiredLift = 0.28;
+  } else if (isDIRinse) {
     requiredLift = 0.22;
   }
   if (isTravel) {
-    requiredLift = Math.max(requiredLift, 0.30);
+    requiredLift = Math.max(requiredLift, isScanner ? 2.5 : 0.30);
   }
-  setLiftHeight(requiredLift, 0.18);
+
+  // ── Aggressive smoothing for scanner — rise FAST ──
+  const liftSmoothing = isScanner ? 0.5 : 0.18;
+  setLiftHeight(requiredLift, liftSmoothing);
+
+  // ── For scanner: IK uses TARGET lift (not smoothed current) so arm aims correctly
+  // even while column is still rising. Without this, IK sees "column still low"
+  // and thinks target is unreachable, causing arm to stay down.
+  const liftForIK = isScanner ? requiredLift : currentLiftHeight;
 
   // ══════════════════════════════════════════════════════════════════════
   // 2. TURRET YAW — with safe shortest-path resolution
@@ -32278,8 +32300,27 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
   // ══════════════════════════════════════════════════════════════════════
   // 3. ARM IK — 2-link in shoulder-local plane with crash protection
   // ══════════════════════════════════════════════════════════════════════
-  const shoulderBaseY = baseWP.y + SHOULDER_Y + currentLiftHeight * 0.9;
+  const shoulderBaseY = baseWP.y + SHOULDER_Y + liftForIK * 0.9;
   let finalTargetY = tgt.y + placeHeightOffset;
+
+  // ── Debug log for scanner (throttled — once per 2s) ──
+  if (isScanner) {
+    const now2 = (typeof performance !== 'undefined') ? performance.now() : Date.now();
+    const lastLog = (root.userData._ikScannerLogT as number) ?? 0;
+    if (now2 - lastLog > 2000) {
+      root.userData._ikScannerLogT = now2;
+      console.log('[IK SCANNER DEBUG]', {
+        target:       [tgt.x.toFixed(2), tgt.y.toFixed(2), tgt.z.toFixed(2)],
+        baseY:        baseWP.y.toFixed(2),
+        requiredLift: requiredLift.toFixed(2),
+        currentLift:  currentLiftHeight.toFixed(2),
+        liftForIK:    liftForIK.toFixed(2),
+        shoulderBaseY: shoulderBaseY.toFixed(2),
+        armReach:     (L1 + L2 + L3).toFixed(2),
+        verticalOff:  (tgt.y - shoulderBaseY).toFixed(2),
+      });
+    }
+  }
 
   // ── HMDS gets extra approach height to clear walls ──
   if (isHMDS) {
@@ -32337,6 +32378,10 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
   if (isHMDS) {
     shoulderAngle = clamp(shoulderAngle, -0.50, Math.PI * 0.60);   // tighter shoulder range
     elbowAngle    = clamp(elbowAngle,    -Math.PI * 0.80, -0.15);  // tighter elbow range
+  } else if (isScanner) {
+    // Scanner needs wide upward shoulder range to reach raised slot
+    shoulderAngle = clamp(shoulderAngle, -0.30, Math.PI * 0.85);   // ← higher upper limit
+    elbowAngle    = clamp(elbowAngle,    -Math.PI * 0.90, 0.05);   // ← allows straighter arm
   } else {
     shoulderAngle = clamp(shoulderAngle, isTravel ? 0.10 : -0.65, Math.PI * 0.70);
     elbowAngle    = clamp(elbowAngle,    -Math.PI * 0.85, -0.10);
@@ -33134,7 +33179,7 @@ function buildScannerGLB(
       // Explicit scanner port pickup point (front opening / interface).
       const scannerPickupAnchor = new THREE.Group();
       scannerPickupAnchor.name = "ScannerPickupPoint";
-      scannerPickupAnchor.position.set(0, WAFER_TRANSFER_Y, -0.35);
+      scannerPickupAnchor.position.set(0, WAFER_TRANSFER_Y, + 0.35);
       root.add(scannerPickupAnchor);
       placeholder.userData.pickupAnchor = scannerPickupAnchor;
 
@@ -33238,23 +33283,22 @@ function buildScannerGLB(
         root.add(sensor);
       });
 
-      // ── WAFER PICKUP ANCHOR inside the slot ──
-      const scannerSlotAnchor = new THREE.Group();
-      scannerSlotAnchor.name = "ScannerSlotAnchor";
-      scannerSlotAnchor.position.set(0, WAFER_TRANSFER_Y - placeholder.position.y, -3.3);
-      root.add(scannerSlotAnchor);
-      placeholder.userData.pickupAnchor = scannerSlotAnchor;
+        // Add GLB root and mark loaded
+        placeholder.add(root);
+        placeholder.userData.glbRoot = root;
+        placeholder.userData.loaded = true;
+        placeholder.userData._bbox = new THREE.Box3().setFromObject(placeholder).expandByScalar(0.15);
 
-      placeholder.add(root);
-      placeholder.userData.glbRoot = root;
-      placeholder.userData.loaded = true;
-      // Update keep-out box once the GLB is present (prevents TCP entering scanner).
-      placeholder.userData._bbox = new THREE.Box3().setFromObject(placeholder).expandByScalar(0.15);
+        // FIXED: wafer anchor at front face of scanner, at robot-reachable height
+        const scanAnchor = new THREE.Group();
+        scanAnchor.name = "ModuleWaferAnchor";
+        // Front face = negative Z side (-3.5), height = WAFER_TRANSFER_Y
+        scanAnchor.position.set(0, WAFER_TRANSFER_Y, -3.5);
+        placeholder.add(scanAnchor);
+        placeholder.userData.waferAnchor = scanAnchor;
+        placeholder.userData.pickupAnchor = scanAnchor;
 
-      addModuleLabel(placeholder, mod);
-      addWaferChuck(placeholder, 'spin');
-
-  positionWaferAnchorAboveChuck(placeholder, root);
+        addWaferChuck(placeholder, 'spin');
 
       if (onReady) onReady(placeholder);
     },
@@ -34632,212 +34676,188 @@ function buildPlatform(
 }
 
 function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
-  // ── SKIP labels for virtual / non-physical modules ──
-  const SKIP_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out']);
-  if (SKIP_LABEL_IDS.has(mod.id)) {
-    console.log(`[LABEL] Skipping virtual module: ${mod.id}`);
-    return;
-  }
+  const SKIP = new Set(['spindry', 'iface_in', 'iface_out', 'scanner']);
+  if (SKIP.has(mod.id)) return;
 
-  const CW = 512, CH = 160;
-
-  // ── BUILD LABEL CANVAS (reusable for all faces) ──
-  const buildLabelCanvas = (): HTMLCanvasElement => {
+  const CW = 512, CH = 140;
+  const makeCanvas = () => {
     const nc = document.createElement("canvas");
-    nc.width = CW;
-    nc.height = CH;
+    nc.width = CW; nc.height = CH;
     const ctx = nc.getContext("2d")!;
-    ctx.clearRect(0, 0, CW, CH);
 
-    // Dark background pill
-    ctx.fillStyle = "rgba(10, 18, 32, 0.92)";
-    ctx.beginPath();
-    const pillX = 8, pillY = 8, pillW = CW - 16, pillH = CH - 16, pillR = 12;
-    ctx.moveTo(pillX + pillR, pillY);
-    ctx.lineTo(pillX + pillW - pillR, pillY);
-    ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + pillR);
-    ctx.lineTo(pillX + pillW, pillY + pillH - pillR);
-    ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - pillR, pillY + pillH);
-    ctx.lineTo(pillX + pillR, pillY + pillH);
-    ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - pillR);
-    ctx.lineTo(pillX, pillY + pillR);
-    ctx.quadraticCurveTo(pillX, pillY, pillX + pillR, pillY);
-    ctx.closePath();
-    ctx.fill();
+    // Brushed aluminium base gradient
+    const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+    metalGrad.addColorStop(0, '#eef2f4');
+    metalGrad.addColorStop(0.18, '#f7f9fa');
+    metalGrad.addColorStop(0.5, '#dfe6ea');
+    metalGrad.addColorStop(0.82, '#f1f4f6');
+    metalGrad.addColorStop(1, '#d0d6db');
+    ctx.fillStyle = metalGrad;
+    ctx.fillRect(0, 0, CW, CH);
 
-    ctx.strokeStyle = hex2css(mod.color);
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    ctx.fillStyle = hex2css(mod.color);
-    ctx.font = "bold 52px 'Courier New', monospace";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.shadowColor = hex2css(mod.color);
-    ctx.shadowBlur = 14;
-    ctx.fillText(mod.short, CW / 2, CH * 0.40);
-
-    ctx.shadowBlur = 4;
-    ctx.fillStyle = "#e8f0ff";
-    ctx.font = "bold 20px 'Inter', 'Arial', sans-serif";
-    ctx.fillText(mod.name, CW / 2, CH * 0.72);
-
-    if (mod.temp !== null) {
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = mod.temp > 50 ? "#ff6633" : "#33aaff";
-      ctx.font = "bold 16px 'Courier New', monospace";
-      ctx.fillText(`${mod.temp}°C`, CW / 2, CH * 0.90);
+    // Subtle brushed noise (horizontal strokes)
+    ctx.globalAlpha = 0.06;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    for (let y = 2; y < CH; y += 2) {
+      ctx.beginPath();
+      ctx.moveTo(0, y + (Math.random() * 0.8 - 0.4));
+      ctx.lineTo(CW, y + (Math.random() * 0.8 - 0.4));
+      ctx.stroke();
     }
+    ctx.globalAlpha = 1.0;
+
+    // Raised bevel: light top-left, dark bottom-right
+    const bevel = ctx.createLinearGradient(0, 0, 0, CH);
+    bevel.addColorStop(0, 'rgba(255,255,255,0.55)');
+    bevel.addColorStop(0.02, 'rgba(255,255,255,0.28)');
+    bevel.addColorStop(0.98, 'rgba(0,0,0,0.08)');
+    bevel.addColorStop(1, 'rgba(0,0,0,0.22)');
+    ctx.fillStyle = bevel;
+    ctx.fillRect(0, 0, CW, 6);
+    ctx.fillRect(0, CH - 6, CW, 6);
+
+    // Inner inset border for depth
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.strokeRect(6, 6, CW - 12, CH - 12);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.strokeRect(7, 7, CW - 14, CH - 14);
+
+    // Left color accent strip
+    const col = hex2css(mod.color);
+    ctx.fillStyle = col;
+    ctx.fillRect(0, 0, 14, CH);
+    // Inner highlight on strip
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.fillRect(0, 0, 5, CH);
+
+    // Engraved text effect (shadow, highlight, main)
+    ctx.font = "bold 62px 'Arial Black', Arial, sans-serif";
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    const tx = 26, ty = 92;
+    // Shadow (down-right)
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fillText(mod.short, tx + 2, ty + 2);
+    // Highlight (up-left)
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.fillText(mod.short, tx - 2, ty - 2);
+    // Main engraved text
+    ctx.fillStyle = '#22272d';
+    ctx.fillText(mod.short, tx, ty);
+
+    // Temperature recessed pill (right side)
+    if (mod.temp !== null) {
+      const pillW = 96, pillH = 38;
+      const px = CW - 18 - pillW;
+      const py = 18;
+      const radius = 8;
+      const tempBg = mod.temp > 50 ? 'rgba(180,60,20,0.15)' : 'rgba(0,60,140,0.12)';
+      const pillBorder = mod.temp > 50 ? 'rgba(180,60,20,0.4)' : 'rgba(0,80,160,0.35)';
+      // pill background
+      ctx.fillStyle = tempBg;
+      ctx.beginPath();
+      ctx.moveTo(px + radius, py);
+      ctx.arcTo(px + pillW, py, px + pillW, py + radius, radius);
+      ctx.arcTo(px + pillW, py + pillH, px + pillW - radius, py + pillH, radius);
+      ctx.arcTo(px, py + pillH, px, py + pillH - radius, radius);
+      ctx.arcTo(px, py, px + radius, py, radius);
+      ctx.closePath();
+      ctx.fill();
+      // pill border
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = pillBorder;
+      ctx.stroke();
+      // temp text
+      ctx.fillStyle = mod.temp > 50 ? '#cc3300' : '#005599';
+      ctx.font = "bold 30px 'Courier New', monospace";
+      ctx.textAlign = 'right';
+      ctx.fillText(`${mod.temp}°C`, CW - 22, py + pillH / 2 + 10);
+      ctx.textAlign = 'left';
+    }
+
+    // Full name — smaller engraved line
+    ctx.font = "500 20px Arial, sans-serif";
+    ctx.fillStyle = 'rgba(0,0,0,0.36)';
+    const name = mod.name.length > 32 ? mod.name.slice(0, 32) + '…' : mod.name;
+    ctx.fillText(name, 26, CH - 12);
+    ctx.fillStyle = '#3a4048';
+    ctx.fillText(name, 25, CH - 13);
+
+    // Rivet dots — four corners
+    const drawRivet = (rx: number, ry: number) => {
+      ctx.fillStyle = '#8a9098';
+      ctx.beginPath(); ctx.arc(rx, ry, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.beginPath(); ctx.arc(rx - 1.5, ry - 1.5, 2.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.28)';
+      ctx.beginPath(); ctx.arc(rx + 1.2, ry + 1.2, 2.2, 0, Math.PI * 2); ctx.fill();
+    };
+    drawRivet(20, 18);
+    drawRivet(CW - 20, 18);
+    drawRivet(20, CH - 18);
+    drawRivet(CW - 20, CH - 18);
+
     return nc;
   };
 
-  // ── LABEL DIMENSIONS ──
-  const LABEL_W = 3.0;
-  const LABEL_H = 1.0;
-  const SIDE_LABEL_W = LABEL_W * 0.75;
-  const SIDE_LABEL_H = LABEL_H * 0.75;
+  const PLINTH_H = 3.2;
+  const PLINTH_Y0 = -0.5;
+  const PLATE_Y = PLINTH_Y0 + PLINTH_H * 0.42;
+  const FACE_Z = 2.55;
+  const SIDE_X = 2.65;
 
-  const boxH = 2.7;
-  const boxD = 2.9;
-  const boxW = 4.0;
-  const MODULE_BASE_Y = 0.5;
-  const labelY = MODULE_BASE_Y + boxH * 0.5;
-
-  // ── ROW DETECTION ──
-  const isTopRow    = mod.z < -0.5;
-  const isBotRow    = mod.z >  0.5;
-  const isCenterRow = !isTopRow && !isBotRow;
-  const isFoup      = mod.type === 'foup';
-  const isScanner   = mod.id   === 'scanner';
-
-  console.log(`[LABEL] ${mod.id} z=${mod.z.toFixed(2)} isTopRow=${isTopRow} isBotRow=${isBotRow}`);
-
-  // ══════════════════════════════════════════════════════════════════════
-  // CAMERA-FACING LABEL (the one user actually sees)
-  //
-  // Camera looks from positive Z toward negative Z direction.
-  // So the side of the module that faces the camera is the +Z side for
-  // EVERY row.
-  //
-  // - TOP ROW (z < 0): camera-facing side is +Z (i.e. toward z=0)
-  // - BOT ROW (z > 0): camera-facing side is -Z (i.e. toward z=0)
-  //
-  // Wait — let me reconsider. The camera orbits, but in the default 
-  // OVERVIEW preset, camera looks DOWN at an angle from +Z + +Y.
-  //
-  // For TOP row at z = -6, the camera (at z ≈ +20) is way on the +Z side.
-  // So the face of TOP row module facing camera is its +Z face.
-  // 
-  // For BOT row at z = +6, the camera is on the SAME +Z side, BUT looking
-  // back toward -Z. The face of BOT row facing camera is also its +Z face.
-  //
-  // BOTH ROWS should have labels on +Z face for the camera-facing label!
-  // ══════════════════════════════════════════════════════════════════════
-  
-  // ──────────────────────────────────────────────────────────────────────
-  // LABEL 1: CAMERA-FACING (always +Z side for both rows)
-  // ──────────────────────────────────────────────────────────────────────
-  const tex1 = new THREE.CanvasTexture(buildLabelCanvas());
-  tex1.minFilter = THREE.LinearFilter;
-  tex1.magFilter = THREE.LinearFilter;
-
-  const cameraFacingPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(LABEL_W, LABEL_H),
-    new THREE.MeshBasicMaterial({
-      map: tex1,
-      transparent: true,
-      opacity: 0.97,
-      depthWrite: false,
-      depthTest: true,
-      side: THREE.DoubleSide,
-    })
-  );
-
-  // Place on +Z face for ALL modules — this is the camera-facing side
-  cameraFacingPlane.position.set(0, labelY, boxD / 2 + 0.05);
-  cameraFacingPlane.rotation.y = 0;          // faces +Z (toward camera)
-  cameraFacingPlane.renderOrder = 100;
-  grp.add(cameraFacingPlane);
-  grp.userData.nameLabel = cameraFacingPlane;
-
-  // ──────────────────────────────────────────────────────────────────────
-  // LABEL 2: BACK SIDE (-Z face) — visible from behind/opposite angle
-  // ──────────────────────────────────────────────────────────────────────
-  if (!isFoup && !isScanner) {
-    const tex2 = new THREE.CanvasTexture(buildLabelCanvas());
-    tex2.minFilter = THREE.LinearFilter;
-    tex2.magFilter = THREE.LinearFilter;
-
-    const backPlane = new THREE.Mesh(
-      new THREE.PlaneGeometry(LABEL_W, LABEL_H),
+  const makeMesh = (w: number, h: number) => {
+    const tex = new THREE.CanvasTexture(makeCanvas());
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.anisotropy = 8;
+    return new THREE.Mesh(
+      new THREE.PlaneGeometry(w, h),
       new THREE.MeshBasicMaterial({
-        map: tex2,
-        transparent: true,
-        opacity: 0.92,
-        depthWrite: false,
+        map: tex,
+        transparent: false,
         depthTest: true,
+        depthWrite: true,
         side: THREE.DoubleSide,
       })
     );
-    // Place on -Z face
-    backPlane.position.set(0, labelY, -(boxD / 2 + 0.05));
-    backPlane.rotation.y = Math.PI;             // faces -Z
-    backPlane.renderOrder = 100;
-    grp.add(backPlane);
-    grp.userData.outerSideLabel = backPlane;
-  }
+  };
 
-  // ──────────────────────────────────────────────────────────────────────
-  // LABEL 3: +X SIDE LABEL (small, side-on view)
-  // ──────────────────────────────────────────────────────────────────────
-  if (!isScanner && !isFoup) {
-    const tex3 = new THREE.CanvasTexture(buildLabelCanvas());
-    tex3.minFilter = THREE.LinearFilter;
-    tex3.magFilter = THREE.LinearFilter;
+  const scene = grp.parent ?? grp;
+  const isBot = mod.z > 0.5;
 
-    const sidePlaneX = new THREE.Mesh(
-      new THREE.PlaneGeometry(SIDE_LABEL_W, SIDE_LABEL_H),
-      new THREE.MeshBasicMaterial({
-        map: tex3,
-        transparent: true,
-        opacity: 0.80,
-        depthWrite: false,
-        depthTest: true,
-        side: THREE.DoubleSide,
-      })
-    );
-    sidePlaneX.position.set(boxW / 2 + 0.05, labelY, 0);
-    sidePlaneX.rotation.y = -Math.PI / 2;
-    sidePlaneX.renderOrder = 100;
-    grp.add(sidePlaneX);
-    grp.userData.sideLabelX = sidePlaneX;
-  }
+  // Front face only (camera-facing side)
+  const front = makeMesh(4.2, 1.35);
+  front.position.set(mod.x, PLATE_Y, mod.z + (isBot ? -FACE_Z : FACE_Z));
+  front.rotation.y = isBot ? Math.PI : 0;
+  front.renderOrder = 20;
+  scene.add(front);
 
-  // ──────────────────────────────────────────────────────────────────────
-  // LABEL 4: TOP-DOWN ROOF LABEL
-  // ──────────────────────────────────────────────────────────────────────
-  if (!isScanner) {
-    const tex4 = new THREE.CanvasTexture(buildLabelCanvas());
-    tex4.minFilter = THREE.LinearFilter;
-    tex4.magFilter = THREE.LinearFilter;
+  // Back face
+  const back = makeMesh(4.2, 1.35);
+  back.position.set(mod.x, PLATE_Y, mod.z + (isBot ? FACE_Z : -FACE_Z));
+  back.rotation.y = isBot ? 0 : Math.PI;
+  back.renderOrder = 20;
+  scene.add(back);
 
-    const roofPlane = new THREE.Mesh(
-      new THREE.PlaneGeometry(LABEL_W * 0.85, LABEL_H * 0.85),
-      new THREE.MeshBasicMaterial({
-        map: tex4,
-        transparent: true,
-        opacity: 0.75,
-        depthWrite: false,
-        depthTest: true,
-        side: THREE.DoubleSide,
-      })
-    );
-    roofPlane.position.set(0, MODULE_BASE_Y + boxH + 0.05, 0);
-    roofPlane.rotation.x = -Math.PI / 2;
-    roofPlane.renderOrder = 100;
-    grp.add(roofPlane);
-    grp.userData.roofLabel = roofPlane;
-  }
+  // Left side only — NO top/roof plate
+  const left = makeMesh(2.8, 1.1);
+  left.position.set(mod.x - SIDE_X, PLATE_Y, mod.z);
+  left.rotation.y = Math.PI / 2;
+  left.renderOrder = 20;
+  scene.add(left);
+
+  // Right side only — NO top/roof plate
+  const right = makeMesh(2.8, 1.1);
+  right.position.set(mod.x + SIDE_X, PLATE_Y, mod.z);
+  right.rotation.y = -Math.PI / 2;
+  right.renderOrder = 20;
+  scene.add(right);
+
+  // Store ref for toggle
+  grp.userData.nameLabel = front;
 }
 
 
@@ -35013,176 +35033,210 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
 
 function addPlinthNameplates(scene: THREE.Scene): void {
   ALL_STEPS.forEach((mod) => {
-    // ── SKIP virtual modules (no physical body, no floating label) ──
     const SKIP_PLINTH_IDS = new Set([
-      'foup', 
-      'scanner', 
-      'iface_in', 
+      'foup',
+      'scanner',
+      'iface_in',
       'iface_out',
-      'spindry',      // ← ADD: Spin Dry + N₂ Purge
+      'spindry',
     ]);
     if (SKIP_PLINTH_IDS.has(mod.id)) return;
 
+    // ── Front/back nameplate (name + short + temp) ──
     const makeNameplateMesh = (): THREE.Mesh => {
-      const CW = 512, CH = 80;
+      const CW = 1024, CH = 256;
       const canvas = document.createElement('canvas');
       canvas.width = CW;
       canvas.height = CH;
       const ctx = canvas.getContext('2d')!;
-
-      ctx.fillStyle = '#0a1020';
-      ctx.fillRect(0, 0, CW, CH);
 
       const r = (mod.color >> 16) & 255;
       const g = (mod.color >> 8) & 255;
       const b = mod.color & 255;
       const css = `rgb(${r},${g},${b})`;
 
-      ctx.fillStyle = css;
-      ctx.fillRect(0, 0, CW, 8);
-      ctx.fillStyle = `rgba(${r},${g},${b},0.8)`;
-      ctx.fillRect(0, CH - 6, CW, 6);
+      // Gradient background
+      const grad = ctx.createLinearGradient(0, 0, 0, CH);
+      grad.addColorStop(0, '#0d1726');
+      grad.addColorStop(1, '#060c16');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, CW, CH);
 
-      ctx.font = 'bold 42px "Courier New", monospace';
+      // Outer accent border
+      ctx.strokeStyle = css;
+      ctx.lineWidth = 10;
+      ctx.strokeRect(8, 8, CW - 16, CH - 16);
+
+      // Top accent bar
+      ctx.fillStyle = css;
+      ctx.fillRect(8, 8, CW - 16, 18);
+      // Bottom accent bar
+      ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+      ctx.fillRect(8, CH - 22, CW - 16, 14);
+
+      // LINE 1: SHORT CODE — big, bold, glowing
+      ctx.font = '900 110px "Arial Black", "Segoe UI", sans-serif';
       ctx.fillStyle = css;
       ctx.shadowColor = css;
-      ctx.shadowBlur = 14;
+      ctx.shadowBlur = 24;
       ctx.textAlign = 'left';
-      ctx.fillText(mod.short, 12, 56);
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(mod.short, 36, 130);
 
-      ctx.shadowBlur = 0;
-      ctx.font = 'bold 18px Arial, sans-serif';
+      // LINE 2: FULL NAME — white, bold
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
       ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'right';
-      ctx.fillText(
-        mod.name.length > 20 ? mod.name.slice(0, 20) + '…' : mod.name,
-        CW - 10, 36
-      );
+      ctx.font = 'bold 48px "Segoe UI", Arial, sans-serif';
+      ctx.textAlign = 'left';
+      const displayName = mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name;
+      ctx.fillText(displayName, 36, 200);
 
+      // Temperature badge (right side)
       if (mod.temp !== null) {
-        ctx.font = 'bold 16px "Courier New", monospace';
-        ctx.fillStyle = mod.temp > 50 ? '#ff5522' : '#22aaff';
+        const tempCss = mod.temp > 50 ? '#ff5522' : '#22aaff';
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = tempCss;
+        ctx.fillStyle = tempCss;
+        ctx.font = '900 64px "Courier New", monospace';
         ctx.textAlign = 'right';
-        ctx.fillText(`${mod.temp}°C`, CW - 10, 62);
+        ctx.fillText(`${mod.temp}°C`, CW - 40, 120);
       }
 
+      ctx.shadowBlur = 0;
+
       const tex = new THREE.CanvasTexture(canvas);
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
+      tex.anisotropy = 8;
 
       const plate = new THREE.Mesh(
-        new THREE.PlaneGeometry(4.2, 0.65),
+        new THREE.PlaneGeometry(4, 1.5),
         new THREE.MeshBasicMaterial({
           map: tex,
           transparent: false,
           depthTest: true,
           depthWrite: true,
-          side: THREE.DoubleSide,   // ← DoubleSide so both directions visible
+          side: THREE.DoubleSide,
         })
       );
       plate.renderOrder = 10;
       return plate;
     };
 
+    // ── Side nameplate (short code + temp, centered) ──
     const makeSideNameplateMesh = (): THREE.Mesh => {
-      const CW = 512, CH = 80;
+      const CW = 768, CH = 256;
       const canvas = document.createElement('canvas');
       canvas.width = CW;
       canvas.height = CH;
       const ctx = canvas.getContext('2d')!;
-
-      ctx.fillStyle = '#0a1020';
-      ctx.fillRect(0, 0, CW, CH);
 
       const r = (mod.color >> 16) & 255;
       const g = (mod.color >> 8) & 255;
       const b = mod.color & 255;
       const css = `rgb(${r},${g},${b})`;
 
-      ctx.fillStyle = css;
-      ctx.fillRect(0, 0, CW, 8);
-      ctx.fillStyle = `rgba(${r},${g},${b},0.8)`;
-      ctx.fillRect(0, CH - 6, CW, 6);
+      const grad = ctx.createLinearGradient(0, 0, 0, CH);
+      grad.addColorStop(0, '#0d1726');
+      grad.addColorStop(1, '#060c16');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, CW, CH);
 
-      ctx.font = 'bold 48px "Courier New", monospace';
+      ctx.strokeStyle = css;
+      ctx.lineWidth = 10;
+      ctx.strokeRect(8, 8, CW - 16, CH - 16);
+
+      ctx.fillStyle = css;
+      ctx.fillRect(8, 8, CW - 16, 16);
+      ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+      ctx.fillRect(8, CH - 20, CW - 16, 12);
+
+      // Big centered short code
+      ctx.font = '900 120px "Arial Black", "Segoe UI", sans-serif';
       ctx.fillStyle = css;
       ctx.shadowColor = css;
-      ctx.shadowBlur = 14;
+      ctx.shadowBlur = 26;
       ctx.textAlign = 'center';
-      ctx.fillText(mod.short, CW / 2, 58);
+      ctx.textBaseline = 'middle';
+      ctx.fillText(mod.short, CW / 2, CH / 2 - 10);
+
+      // Temp below code
+      if (mod.temp !== null) {
+        const tempCss = mod.temp > 50 ? '#ff5522' : '#22aaff';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = tempCss;
+        ctx.fillStyle = tempCss;
+        ctx.font = 'bold 44px "Courier New", monospace';
+        ctx.fillText(`${mod.temp}°C`, CW / 2, CH - 50);
+      }
+
+      ctx.shadowBlur = 0;
 
       const tex = new THREE.CanvasTexture(canvas);
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
+      tex.anisotropy = 8;
 
       const plate = new THREE.Mesh(
-        new THREE.PlaneGeometry(2.8, 0.65),
+        new THREE.PlaneGeometry(3.8, 1.3),
         new THREE.MeshBasicMaterial({
           map: tex,
           transparent: false,
           depthTest: true,
           depthWrite: true,
-          side: THREE.DoubleSide,   // ← DoubleSide fixes missing side plates
+          side: THREE.DoubleSide,
         })
       );
       plate.renderOrder = 10;
       return plate;
     };
 
+    // ── Same positions as before (unchanged) ──
     const PLINTH_H    = 3.2;
     const PLINTH_Y0   = -0.5;
     const PLATE_Y     = PLINTH_Y0 + PLINTH_H * 0.40;
-    const FACE_OFFSET = 2.5;    // Z distance — front/back
-    const SIDE_OFFSET = 2.6;    // X distance — left/right sides
+    const FACE_OFFSET = 2.5;
+    const SIDE_OFFSET = 2.6;
 
     const isTopRow = mod.z < 0;
     const isBotRow = mod.z > 0;
 
     if (isTopRow) {
-      // ── FRONT face: top row camera side is +Z ──
       const front = makeNameplateMesh();
       front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-      // No rotation needed — plane default faces +Z
       scene.add(front);
 
-      // ── BACK face: opposite side ──
       const back = makeNameplateMesh();
       back.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
       back.rotation.y = Math.PI;
       scene.add(back);
 
-      // ── LEFT side (-X face) ──
-      const sideLeft = makeSideNameplateMesh();
-      sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
-      sideLeft.rotation.y = -Math.PI / 2;  // face toward -X
-      scene.add(sideLeft);
-
-      // ── RIGHT side (+X face) ──
-      const sideRight = makeSideNameplateMesh();
-      sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
-      sideRight.rotation.y = Math.PI / 2;  // face toward +X
-      scene.add(sideRight);
-
-    } else if (isBotRow) {
-      // ── FRONT face: bottom row camera side is -Z ──
-      const front = makeNameplateMesh();
-      front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
-      front.rotation.y = Math.PI;  // flip to face -Z
-      scene.add(front);
-
-      // ── BACK face ──
-      const back = makeNameplateMesh();
-      back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-      // No rotation — faces +Z
-      scene.add(back);
-
-      // ── LEFT side (-X face) ──
       const sideLeft = makeSideNameplateMesh();
       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
       sideLeft.rotation.y = -Math.PI / 2;
       scene.add(sideLeft);
 
-      // ── RIGHT side (+X face) ──
+      const sideRight = makeSideNameplateMesh();
+      sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+      sideRight.rotation.y = Math.PI / 2;
+      scene.add(sideRight);
+
+    } else if (isBotRow) {
+      const front = makeNameplateMesh();
+      front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
+      front.rotation.y = Math.PI;
+      scene.add(front);
+
+      const back = makeNameplateMesh();
+      back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
+      scene.add(back);
+
+      const sideLeft = makeSideNameplateMesh();
+      sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+      sideLeft.rotation.y = -Math.PI / 2;
+      scene.add(sideLeft);
+
       const sideRight = makeSideNameplateMesh();
       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
       sideRight.rotation.y = Math.PI / 2;
@@ -38989,12 +39043,32 @@ robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: Ro
   private _activeCoatWI = -1; private _activeDevWI = -1;
   private _raycaster = new THREE.Raycaster();
   private _lastRaycastT = 0;
+  private navStepIndex = 0;
+  
+  // ── Narration system ──
+  narration: any;
+  private _narratedSteps = new Set<string>();
 
   constructor(renderer: THREE.WebGLRenderer, onUI: (ui: UIState) => void, onLog: (e: LogEntry) => void, onTooltip: (tt: TooltipState) => void) {
     this.renderer = renderer; this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(44, renderer.domElement.clientWidth / renderer.domElement.clientHeight, 0.08, 350);
     this.speed = 1; this.paused = false; this.simTime = 0; this.fps = 60;
     this.onUI = onUI; this.onLog = onLog; this.onTooltip = onTooltip;
+    
+    // ── Initialize narration ──
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      import('../lib/NarrationManager').then(({ NarrationManager }) => {
+        this.narration = new NarrationManager({
+          rate: 0.95,
+          pitch: 1.0,
+          volume: 0.85,
+        });
+        console.log('[SIM] Narration system initialized');
+      }).catch(err => {
+        console.warn('[SIM] Narration failed to load:', err);
+      });
+    }
+    
     this._build(); this._bindEvents();
   }
 
@@ -39163,6 +39237,25 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
       this._disableAllShadows();
       this._shadowFixApplied = true;
     }, 1000);
+
+    // ── Preload micro-videos so they play instantly on demand ──
+    this._preloadVideos();
+  }
+
+  private _preloadVideos() {
+    const videos = [
+      '/pr_coat_anim.mp4',
+      '/developeranimation.mp4',
+    ];
+    videos.forEach((src) => {
+      const v = document.createElement('video');
+      v.src = src;
+      v.preload = 'auto';
+      v.muted = true;
+      v.load();
+      (this as any)['_preloaded_' + src] = v;
+    });
+    console.log('[VIDEO] Preloaded', videos.length, 'micro-videos');
   }
 
   private _buildRailTrack(): void {
@@ -40694,8 +40787,13 @@ private _animRobots(dt: number) {
     pickWorld.y = WAFER_TRANSFER_Y;
     // Scanner wafer is at the front slot, not the body center
     if (prevStep.id === 'scanner') {
-      pickWorld.x = prevStep.x;
-      pickWorld.z = prevStep.z - 3.3;
+      const scannerGrp = this.modObjs['scanner'];
+      const wa = scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+      if (wa) {
+        wa.getWorldPosition(pickWorld);
+      } else {
+        pickWorld.set(prevStep.x, WAFER_TRANSFER_Y, prevStep.z - 3.5);
+      }
     }
 
     // ── DROP WORLD: get target module's wafer anchor ──
@@ -40714,8 +40812,16 @@ private _animRobots(dt: number) {
         dropWorld.set(ALL_STEPS[0].x + 4.0, 2.0, ALL_STEPS[0].z);
       }
     } else if (dropStep.id === 'scanner') {
-      // SCANNER: place at slot opening on FRONT face (negative Z side)
-      dropWorld.set(dropStep.x, WAFER_TRANSFER_Y, dropStep.z - 3.3);
+      // ── SCANNER: drop into the TOP chuck (set by addWaferChuck) ──
+      const scannerGrp = this.modObjs['scanner'];
+      const wa = scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+      if (wa) {
+        wa.getWorldPosition(dropWorld);
+        console.log('[SCANNER] dropping at chuck:', dropWorld.toArray());
+      } else {
+        // Fallback if anchor missing: place at a reasonable height above scanner
+        dropWorld.set(dropStep.x, WAFER_TRANSFER_Y + 1.5, dropStep.z);
+      }
     } else {
       const modGrp = this.modObjs[dropStep.id];
       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
@@ -40741,12 +40847,12 @@ private _animRobots(dt: number) {
     // For scanner: rail needs to position robot at scanner.x so arm can reach the slot
     let targetX = isPicked ? dropStep.x : pickWorld.x;
     
-    // Special handling: scanner is far out, but robot reaches with extended arm
+    // Special handling: scanner is far out — robot should stand closer for top-down access
     if (isPicked && dropStep.id === 'scanner') {
-      targetX = dropStep.x - 4;  // stand 4 units back from scanner center
+      targetX = dropStep.x - 2.0;   // stand closer (was -4)
     }
     if (!isPicked && prevStep.id === 'scanner') {
-      targetX = prevStep.x - 4;  // same when picking from scanner
+      targetX = prevStep.x - 2.0;
     }
     
     railTargetX = clamp(targetX, TRACK_MIN, TRACK_MAX);
@@ -41046,23 +41152,11 @@ if (!isPicked) {
         dropWorld.z
       );
     } else if (isScannerDrop) {
-      // SCANNER PLACE: approach from front (z < dropWorld.z), slide into slot horizontally
-      // Scanner slot is at (dropStep.x, WAFER_TRANSFER_Y, dropStep.z - 3.3)
-      approachDrop = new THREE.Vector3(
-        dropWorld.x,
-        WAFER_TRANSFER_Y + 0.3,
-        dropWorld.z - 2.5            // stand 2.5 units in front of slot
-      );
-      insertDrop = new THREE.Vector3(
-        dropWorld.x,
-        WAFER_TRANSFER_Y,
-        dropWorld.z - 0.8            // approach slot opening
-      );
-      placePos = new THREE.Vector3(
-        dropWorld.x,
-        WAFER_TRANSFER_Y,
-        dropWorld.z                  // inside slot at exact position
-      );
+      // Scanner slot is at front face, robot approaches from -Z side
+      const slotY = WAFER_TRANSFER_Y;
+      approachDrop = new THREE.Vector3(dropWorld.x, slotY + 0.5, dropWorld.z - 3.0);
+      insertDrop   = new THREE.Vector3(dropWorld.x, slotY,       dropWorld.z - 0.5);
+      placePos     = new THREE.Vector3(dropWorld.x, slotY,       dropWorld.z);
     } else {
       // STANDARD MODULE PLACE
       approachDrop = new THREE.Vector3(
@@ -41102,6 +41196,7 @@ if (!isPicked) {
         
         r.runIK(targetForGripper(tgt), {
           isTravel: true,
+          isScanner: isScannerDrop,
           safetyMargin: 0.12,
         });
         this._setGripperState(r, 1, dt);
@@ -41113,7 +41208,7 @@ if (!isPicked) {
       }
 
       case 'approach_drop': {
-        // Move to approach position above/in-front-of drop point
+        // Move to approach position — for scanner, rise high above body first
         const p = sCurve(Math.min(phaseT / 0.6, 1));
         const tgt = new THREE.Vector3().lerpVectors(
           new THREE.Vector3(approachDrop.x, SAFE_HEIGHT, approachDrop.z),
@@ -41153,22 +41248,23 @@ if (!isPicked) {
       }
 
       case 'scanner_insert': {
-        // Move forward into scanner slot at slot height
-        const p = sCurve(Math.min(phaseT / 0.7, 1));
+        const p = sCurve(Math.min(phaseT / 0.6, 1));
+        // Slide horizontally INTO the slot at slot height
         const tgt = new THREE.Vector3(
           dropWorld.x,
-          lerp(approachDrop.y, insertDrop.y, p),
-          lerp(approachDrop.z, insertDrop.z, p)
+          WAFER_TRANSFER_Y,
+          lerp(approachDrop.z, placePos.z, p)
         );
-        r.runIK(targetForGripper(tgt), { 
-          isScanner: true,
-          safetyMargin: 0.06 
-        });
+        r.runIK(targetForGripper(tgt), { isScanner: true, safetyMargin: 0.04 });
         this._setGripperState(r, 1, dt);
-        if (p >= 1) {
-          ud.armPhase = 'place_contact';
-          ud.phaseT = 0;
-        }
+        if (p >= 1) { ud.armPhase = 'place_contact'; ud.phaseT = 0; }
+        break;
+      }
+
+      case 'scanner_lower': {
+        // Not needed for slot - skip to place_contact
+        ud.armPhase = 'place_contact';
+        ud.phaseT = 0;
         break;
       }
 
@@ -41241,12 +41337,12 @@ if (!isPicked) {
       }
 
       case 'scanner_retract': {
-        // Pull straight back out of scanner slot
         const p = sCurve(Math.min(phaseT / 0.7, 1));
+        // Rise STRAIGHT UP out of the top chuck
         const retractedPos = new THREE.Vector3(
           placePos.x,
-          placePos.y,
-          placePos.z - 2.0       // pull back along -Z
+          placePos.y + 1.8,            // ← rise STRAIGHT UP out of chuck
+          placePos.z
         );
         const tgt = new THREE.Vector3().lerpVectors(placePos, retractedPos, p);
         r.runIK(targetForGripper(tgt), { 
@@ -41295,7 +41391,7 @@ if (!isPicked) {
         const p = sCurve(Math.min(phaseT / 0.5, 1));
         const startPos = isFoupDrop
           ? new THREE.Vector3(FOUP_FRONT_X + 3.5, Math.min(placePos.y, FOUP_MAX_Y), placePos.z)
-          : (isScannerDrop ? new THREE.Vector3(placePos.x, placePos.y, placePos.z - 2.0) : placePos);
+          : (isScannerDrop ? new THREE.Vector3(placePos.x, approachDrop.y, placePos.z) : placePos);
         const tgt = new THREE.Vector3().lerpVectors(startPos, liftedPos, p);
         r.runIK(targetForGripper(tgt), { 
           safetyMargin: 0.10 
@@ -41565,6 +41661,31 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
         } else {
           // Robot picks up — advance to next step normally
           sm.stepIdx++; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
+          
+          // ── Narration: announce step transition ──
+          if (sm.wi === 0 && this.narration) {
+            const stepKey = `${sm.stepIdx}-arrive`;
+            if (!this._narratedSteps.has(stepKey)) {
+              this._narratedSteps.add(stepKey);
+              const step = ALL_STEPS[sm.stepIdx];
+              const prevStep = sm.stepIdx > 0 ? ALL_STEPS[sm.stepIdx - 1] : null;
+              
+              if (step) {
+                import('../lib/narrationScripts').then(({ getStepNarration }) => {
+                  if (prevStep) {
+                    const currScript = getStepNarration(step.id);
+                    this.narration.speak(`${prevStep.name} is completed. ${currScript.starting}`, 'normal');
+                  } else {
+                    const script = getStepNarration(step.id);
+                    this.narration.speak(script.starting, 'normal');
+                  }
+                });
+              } else {
+                // Last step completed — all done
+                this.narration.speak('All process steps completed. Wafer returning to FOUP for unload.', 'high');
+              }
+            }
+          }
         }
       }
       break;
@@ -41584,6 +41705,31 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
         sm.state = "idle";
         sm.timer = 0;
         sm.processTimer = 0;
+        
+        // ── Narration: announce step transition ──
+        if (sm.wi === 0 && this.narration) {
+          const stepKey = `${sm.stepIdx}-arrive`;
+          if (!this._narratedSteps.has(stepKey)) {
+            this._narratedSteps.add(stepKey);
+            const step = ALL_STEPS[sm.stepIdx];
+            const prevStep = sm.stepIdx > 0 ? ALL_STEPS[sm.stepIdx - 1] : null;
+            
+            if (step) {
+              import('../lib/narrationScripts').then(({ getStepNarration }) => {
+                if (prevStep) {
+                  const currScript = getStepNarration(step.id);
+                  this.narration.speak(`${prevStep.name} is completed. ${currScript.starting}`, 'normal');
+                } else {
+                  const script = getStepNarration(step.id);
+                  this.narration.speak(script.starting, 'normal');
+                }
+              });
+            } else {
+              // Last step completed — all done
+              this.narration.speak('All process steps completed. Wafer returning to FOUP for unload.', 'high');
+            }
+          }
+        }
       }
       break;
     }
@@ -41688,35 +41834,170 @@ case "track_place": {
   }
 
   private _openProcessPage(htmlFile: string, title: string): void {
-    const windowName = htmlFile.replace(/[^a-z0-9]/gi, '_');
-    if ((window as any)[`_${windowName}_opened`]) {
-      console.log(`[POPUP] ${htmlFile} already open`);
-      return;
+    // Map old html names to MP4 files in /public/
+    const videoMap: Record<string, string> = {
+      'pr_coat_process.html':     'pr_coat_anim.mp4',
+      'developer_process.html':   'developeranimation.mp4',
+      'pr_coat_animation.html':   'pr_coat_anim.mp4',
+      'developer_animation.html': 'developeranimation.mp4',
+    };
+    const videoFile = videoMap[htmlFile] || htmlFile.replace('.html', '.mp4');
+    this.openAnimVideo(`/${videoFile}`, title);
+  }
+
+  /** Inline video popup — preloads, instant play, minimal controls */
+  public openAnimVideo(videoSrc: string, title: string): void {
+    // Pause simulator while video plays
+    this.setVideoOpen(true);
+    this.paused = true;
+
+    // Remove any existing popup
+    const existing = document.getElementById('__animVideoPopup');
+    if (existing) existing.remove();
+
+    // Add CSS animations once
+    if (!document.getElementById('__animVideoStyle')) {
+      const style = document.createElement('style');
+      style.id = '__animVideoStyle';
+      style.textContent = `
+        @keyframes __fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes __slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      `;
+      document.head.appendChild(style);
     }
 
-    const popupWindow = window.open(
-      `/${htmlFile}`,
-      windowName,
-      "width=1000,height=700,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no"
-    );
+    // ── Backdrop ──
+    const backdrop = document.createElement('div');
+    backdrop.id = '__animVideoPopup';
+    Object.assign(backdrop.style, {
+      position: 'fixed', top: '0', left: '0',
+      width: '100vw', height: '100vh',
+      background: 'rgba(0, 5, 12, 0.92)',
+      backdropFilter: 'blur(4px)',
+      zIndex: '9999',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      animation: '__fadeIn 0.18s ease-out',
+    });
 
-    if (popupWindow) {
-      popupWindow.document.title = title;
-      (window as any)[`_${windowName}_opened`] = true;
+    // ── Container ──
+    const container = document.createElement('div');
+    Object.assign(container.style, {
+      width: 'min(70%, 800px)', maxHeight: '85vh',
+      background: 'linear-gradient(135deg, #0a1525 0%, #1a2a3a 100%)',
+      border: '2px solid #33ddff', borderRadius: '12px',
+      boxShadow: '0 10px 50px rgba(51, 221, 255, 0.4)',
+      overflow: 'hidden', display: 'flex', flexDirection: 'column',
+      animation: '__slideUp 0.25s ease-out',
+    });
 
-      const checkClosed = setInterval(() => {
-        if (popupWindow.closed) {
-          (window as any)[`_${windowName}_opened`] = false;
-          clearInterval(checkClosed);
-          console.log(`[POPUP] ${htmlFile} closed`);
-        }
-      }, 1000);
+    // ── Header ──
+    const header = document.createElement('div');
+    Object.assign(header.style, {
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '12px 18px',
+      background: 'rgba(0, 0, 0, 0.4)',
+      borderBottom: '1px solid #33ddff',
+    });
 
-      this._addLog(`[POPUP] Opened ${title}`, "");
-    } else {
-      console.warn(`[POPUP] Failed to open ${htmlFile} - popup blocked?`);
-      this._addLog(`[POPUP] BLOCKED: Allow popups for ${title}`, "");
-    }
+    const titleEl = document.createElement('div');
+    titleEl.textContent = title.toUpperCase();
+    Object.assign(titleEl.style, {
+      color: '#33ddff', fontSize: '14px', fontWeight: 'bold',
+      letterSpacing: '2px', fontFamily: '"Segoe UI", sans-serif',
+    });
+
+    const controls = document.createElement('div');
+    Object.assign(controls.style, { display: 'flex', gap: '8px', alignItems: 'center' });
+
+    const playBtn = document.createElement('button');
+    playBtn.textContent = '❚❚ Pause';
+    Object.assign(playBtn.style, {
+      padding: '6px 14px', background: '#1a4458', color: '#fff',
+      border: '1px solid #33ddff', borderRadius: '4px',
+      cursor: 'pointer', fontSize: '12px', fontWeight: 'bold',
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ CLOSE';
+    Object.assign(closeBtn.style, {
+      padding: '6px 14px',
+      background: 'linear-gradient(135deg, #cc2244 0%, #882233 100%)',
+      color: '#fff', border: '1px solid #ff5577', borderRadius: '4px',
+      cursor: 'pointer', fontSize: '12px', fontWeight: 'bold',
+    });
+
+    controls.appendChild(playBtn);
+    controls.appendChild(closeBtn);
+    header.appendChild(titleEl);
+    header.appendChild(controls);
+
+    // ── Video element ──
+    const video = document.createElement('video');
+    video.src = videoSrc;
+    video.autoplay = true;
+    video.muted = false;
+    video.controls = false;
+    video.preload = 'auto';
+    video.playsInline = true;
+    Object.assign(video.style, {
+      width: '100%', maxHeight: '70vh', display: 'block', background: '#000',
+    });
+
+    // ── Loading indicator ──
+    const loader = document.createElement('div');
+    Object.assign(loader.style, {
+      position: 'absolute', color: '#33ddff',
+      fontSize: '14px', letterSpacing: '2px', fontWeight: 'bold',
+    });
+    loader.textContent = 'LOADING...';
+
+    // ── Events ──
+    video.addEventListener('loadeddata', () => {
+      loader.remove();
+      video.play().catch(e => console.warn('[VIDEO] Autoplay blocked:', e));
+    });
+    video.addEventListener('play',  () => { playBtn.textContent = '❚❚ Pause'; });
+    video.addEventListener('pause', () => { playBtn.textContent = '▶ Play'; });
+
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (video.paused) video.play(); else video.pause();
+    });
+
+    const closeVideo = () => {
+      video.pause();
+      video.src = '';
+      backdrop.style.animation = '__fadeIn 0.15s ease-out reverse';
+      setTimeout(() => {
+        backdrop.remove();
+        this.setVideoOpen(false);
+        this.paused = false;
+      }, 150);
+    };
+
+    closeBtn.addEventListener('click', closeVideo);
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeVideo(); });
+
+    const escHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { closeVideo(); document.removeEventListener('keydown', escHandler); }
+    };
+    document.addEventListener('keydown', escHandler);
+
+    // ── Assemble ──
+    const videoWrap = document.createElement('div');
+    Object.assign(videoWrap.style, {
+      position: 'relative', display: 'flex',
+      alignItems: 'center', justifyContent: 'center', background: '#000',
+    });
+    videoWrap.appendChild(video);
+    videoWrap.appendChild(loader);
+
+    container.appendChild(header);
+    container.appendChild(videoWrap);
+    backdrop.appendChild(container);
+    document.body.appendChild(backdrop);
+
+    this._addLog(`[VIDEO] Playing ${title}`, '');
   }
 
 	// Scanner stage animation: slide in, step-and-scan, slide out
@@ -41850,30 +42131,46 @@ case "track_place": {
   sm.mesh.visible = true;
   sm.mesh.scale.setScalar(1);
 
-  // ── Place wafer at FOUP position (visible, pickable) ──
-  const foupStep = ALL_STEPS[0]; // FOUP
+  // ── Reset wafer to GREY silicon at launch ──
+  const prLayer = sm.mesh.userData.prLayer as THREE.Mesh | undefined;
+  if (prLayer) {
+    const mat = prLayer.material as THREE.MeshPhysicalMaterial;
+    mat.color.setHex(0xc0c8d0);
+    mat.emissive.setHex(0x222428);
+    mat.emissiveIntensity = 0.15;
+    mat.opacity = 0.0;          // resist not applied yet
+    mat.needsUpdate = true;
+  }
+
+  // ── Place wafer EXACTLY at FOUP slot anchor (world position) ──
+  const foupStep = ALL_STEPS[0];
   const foupGrp = this.modObjs["foup"];
-  
-  // Try slot anchors first (procedural FOUP)
+
+  // Force-update the FOUP world matrix so anchor world position is correct
+  if (foupGrp) foupGrp.updateWorldMatrix(true, true);
+
   const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
   const slotIx = Math.min(wi, Math.max(0, (anchors?.length ?? 1) - 1));
-  
+
   if (anchors?.[slotIx]) {
     const p = new THREE.Vector3();
     anchors[slotIx].getWorldPosition(p);
     sm.mesh.position.copy(p);
+    console.log(`[LAUNCH] ${WAFER_NAMES[wi]} → FOUP slot ${slotIx}`, p.toArray());
   } else {
-    // GLB FOUP fallback — place wafer in front of FOUP at known height
-    // Wafer sits ABOVE the FOUP base so robot can see/pick it
-    sm.mesh.position.set(foupStep.x + 5.0, 3.0, foupStep.z);
+    // Fallback only if anchors missing
+    sm.mesh.position.set(foupStep.x, WAFER_TRANSFER_Y, foupStep.z);
+    console.warn(`[LAUNCH] No FOUP anchors — fallback position`);
   }
 
+  // Wafer must lie FLAT (FOUP is rotated, but wafer stays horizontal)
   sm.mesh.rotation.set(0, 0, 0);
+  sm.mesh.quaternion.identity();
+
   sm.state = "idle";
   sm.stepIdx = 1;  // First destination is DEHY (step 1)
   sm.owner = "none";
-  
-  console.log(`[LAUNCH] ${WAFER_NAMES[wi]} at`, sm.mesh.position.toArray());
+
   this._addLog(`[${WAFER_NAMES[wi]}] LAUNCHED from FOUP`, "pick");
 }
 
@@ -41974,32 +42271,176 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
                   sm.state === 'processing'
         );
 
-       const heatMat = grp.userData.heatMaterial as THREE.MeshStandardMaterial;
+        const t = this.simTime;
+        const mod = ALL_STEPS[idx];
+        const tempC = mod?.temp ?? 150;
+
+        // ── Initialize enhanced heat effects (once) ──
+        if (!grp.userData._heatFXInit) {
+          grp.userData._heatFXInit = true;
+
+          // 1. Heat shimmer plane
+          const shimmerGeo = new THREE.PlaneGeometry(2.0, 1.2, 16, 8);
+          const shimmerMat = new THREE.MeshBasicMaterial({
+            color: 0xffaa66, transparent: true, opacity: 0,
+            side: THREE.DoubleSide, depthWrite: false,
+            blending: THREE.AdditiveBlending,
+          });
+          const shimmer = new THREE.Mesh(shimmerGeo, shimmerMat);
+          shimmer.rotation.x = -Math.PI / 2;
+          shimmer.position.set(0, 1.2, 0);
+          grp.add(shimmer);
+          grp.userData._heatShimmer = shimmer;
+          grp.userData._shimmerVerts = (shimmerGeo.attributes.position.array as Float32Array).slice();
+
+          // 2. Glowing inner ring
+          const glowRing = new THREE.Mesh(
+            new THREE.RingGeometry(0.85, 1.0, 48),
+            new THREE.MeshStandardMaterial({
+              color: 0x000000, emissive: 0xff4400, emissiveIntensity: 0,
+              transparent: true, opacity: 0.9, side: THREE.DoubleSide,
+            })
+          );
+          glowRing.rotation.x = -Math.PI / 2;
+          glowRing.position.set(0, 0.92, 0);
+          grp.add(glowRing);
+          grp.userData._glowRing = glowRing;
+
+          // 3. Heat waves (4 expanding rings)
+          const heatWaves: THREE.Mesh[] = [];
+          const waveGeo = new THREE.RingGeometry(0.4, 0.42, 32);
+          for (let i = 0; i < 4; i++) {
+            const wave = new THREE.Mesh(waveGeo, new THREE.MeshBasicMaterial({
+              color: 0xff8844, transparent: true, opacity: 0,
+              side: THREE.DoubleSide, depthWrite: false,
+              blending: THREE.AdditiveBlending,
+            }));
+            wave.rotation.x = -Math.PI / 2;
+            wave.position.set(0, 0.93, 0);
+            wave.userData.phase = i / 4;
+            grp.add(wave);
+            heatWaves.push(wave);
+          }
+          grp.userData._heatWaves = heatWaves;
+
+          // 4. Rising heat particles (18 warm specks)
+          const particles: THREE.Mesh[] = [];
+          const partGeo = new THREE.SphereGeometry(0.015, 4, 4);
+          for (let i = 0; i < 18; i++) {
+            const p = new THREE.Mesh(partGeo, new THREE.MeshBasicMaterial({
+              color: 0xffcc66, transparent: true, opacity: 0,
+              blending: THREE.AdditiveBlending,
+            }));
+            p.userData.angle = Math.random() * Math.PI * 2;
+            p.userData.radius = 0.2 + Math.random() * 0.7;
+            p.userData.lifeOffset = Math.random();
+            grp.add(p);
+            particles.push(p);
+          }
+          grp.userData._heatParticles = particles;
+        }
+
+        const shimmer = grp.userData._heatShimmer as THREE.Mesh;
+        const shimmerMat = shimmer.material as THREE.MeshBasicMaterial;
+        const shimmerVerts = grp.userData._shimmerVerts as Float32Array;
+        const glowRing = grp.userData._glowRing as THREE.Mesh;
+        const glowMat = glowRing.material as THREE.MeshStandardMaterial;
+        const heatWaves = grp.userData._heatWaves as THREE.Mesh[];
+        const heatParticles = grp.userData._heatParticles as THREE.Mesh[];
+
+        // Temperature-based color (hotter = more red)
+        const heatRatio = Math.min(tempC / 200, 1);
+        const heatColor = new THREE.Color().lerpColors(
+          new THREE.Color(0xffaa66),
+          new THREE.Color(0xff3300),
+          heatRatio
+        );
+
+        if (isActive) {
+          // Shimmer: animate vertices for heat distortion
+          const positions = shimmer.geometry.attributes.position;
+          for (let i = 0; i < positions.count; i++) {
+            const i3 = i * 3;
+            const ox = shimmerVerts[i3];
+            const oy = shimmerVerts[i3 + 1];
+            positions.setZ(i, Math.sin(t * 6 + ox * 3 + oy * 4) * 0.04
+                              + Math.cos(t * 4 + ox * 5) * 0.03);
+          }
+          positions.needsUpdate = true;
+          shimmerMat.opacity = lerp(shimmerMat.opacity, 0.35, 0.05);
+          shimmerMat.color.copy(heatColor);
+
+          // Glow ring: pulsing red-hot
+          glowMat.emissive.copy(heatColor);
+          glowMat.emissiveIntensity = lerp(
+            glowMat.emissiveIntensity,
+            2.5 + 1.5 * Math.abs(Math.sin(t * 3 * freqMult)),
+            0.1
+          );
+
+          // Heat waves: expand outward
+          heatWaves.forEach((wave) => {
+            const phase = ((t * 0.6 + wave.userData.phase) % 1);
+            const scale = 0.4 + phase * 2.0;
+            wave.scale.set(scale, scale, 1);
+            const wmat = wave.material as THREE.MeshBasicMaterial;
+            wmat.opacity = (1 - phase) * 0.5;
+            wmat.color.copy(heatColor);
+          });
+
+          // Rising heat particles
+          heatParticles.forEach((p) => {
+            const lifeT = ((t * 0.7 + p.userData.lifeOffset) % 1);
+            const angle = p.userData.angle + lifeT * 0.3;
+            const r = p.userData.radius;
+            p.position.set(Math.cos(angle) * r, 0.95 + lifeT * 1.5, Math.sin(angle) * r);
+            const pmat = p.material as THREE.MeshBasicMaterial;
+            pmat.opacity = Math.sin(lifeT * Math.PI) * 0.7;
+            pmat.color.copy(heatColor);
+          });
+
+        } else {
+          // Fade out all heat effects
+          shimmerMat.opacity = lerp(shimmerMat.opacity, 0, 0.08);
+          glowMat.emissiveIntensity = lerp(glowMat.emissiveIntensity, 0.2, 0.06);
+          heatWaves.forEach((wave) => {
+            const wmat = wave.material as THREE.MeshBasicMaterial;
+            wmat.opacity = lerp(wmat.opacity, 0, 0.1);
+          });
+          heatParticles.forEach((p) => {
+            const pmat = p.material as THREE.MeshBasicMaterial;
+            pmat.opacity = lerp(pmat.opacity, 0, 0.1);
+          });
+        }
+
+        // ── Original material/light animations ──
+        const heatMat = grp.userData.heatMaterial as THREE.MeshStandardMaterial;
         if (heatMat) {
-          // Stronger red glow for PAB (since it's a hotter bake)
           const isPAB = grp.userData.isPAB === true;
           const activeMin = isPAB ? 4.5 : 3.5;
           const activeAmp = isPAB ? 2.2 : 1.8;
           heatMat.emissiveIntensity = isActive
-            ? activeMin + activeAmp * Math.sin(this.simTime * 3.5 * freqMult)
-            : (isPAB ? 0.9 : 0.6) + 0.2 * Math.sin(this.simTime * 1.2);
+            ? activeMin + activeAmp * Math.sin(t * 3.5 * freqMult)
+            : (isPAB ? 0.9 : 0.6) + 0.2 * Math.sin(t * 1.2);
+          if (isActive) heatMat.emissive.copy(heatColor);
         }
 
         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial;
         const redMat = grp.userData.redLight as THREE.MeshStandardMaterial;
         if (greenMat && redMat) {
           if (isActive) {
-            greenMat.emissiveIntensity = 3.5 + 1.0 * Math.sin(this.simTime * 4);
+            greenMat.emissiveIntensity = 3.5 + 1.0 * Math.sin(t * 4);
             redMat.emissiveIntensity = 0.3;
           } else {
             greenMat.emissiveIntensity = 0.3;
-            redMat.emissiveIntensity = 2.0 + 0.8 * Math.sin(this.simTime * 2);
+            redMat.emissiveIntensity = 2.0 + 0.8 * Math.sin(t * 2);
           }
         }
 
         const pl = grp.userData.processLight as THREE.PointLight;
         if (pl) {
-          pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(this.simTime * 4) : 0.4;
+          pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(t * 4) : 0.4;
+          if (isActive) pl.color.copy(heatColor);
         }
       };
 
@@ -42119,26 +42560,150 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
         const isActive = this.wSMs.some(
           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
         );
+        const t = this.simTime;
+
+        // ── Initialize enhanced rinse effects (once) ──
+        if (!grp.userData._rinseFXInit) {
+          grp.userData._rinseFXInit = true;
+
+          // 1. Water column (falling stream from nozzle)
+          const waterColumn = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.05, 0.10, 1.2, 12, 1, true),
+            new THREE.MeshPhysicalMaterial({
+              color: 0x88ccff, transparent: true, opacity: 0,
+              transmission: 0.7, roughness: 0.05, metalness: 0,
+              ior: 1.33, side: THREE.DoubleSide, depthWrite: false,
+            })
+          );
+          waterColumn.position.set(0, 1.5, 0);
+          waterColumn.name = '__rinseWaterColumn';
+          grp.add(waterColumn);
+          grp.userData._waterColumn = waterColumn;
+
+          // 2. Water ripples on wafer (3 expanding rings)
+          const ripples: THREE.Mesh[] = [];
+          for (let i = 0; i < 3; i++) {
+            const ripple = new THREE.Mesh(
+              new THREE.RingGeometry(0.3, 0.32, 32),
+              new THREE.MeshBasicMaterial({
+                color: 0xaaddff, transparent: true, opacity: 0,
+                side: THREE.DoubleSide, depthWrite: false,
+              })
+            );
+            ripple.rotation.x = -Math.PI / 2;
+            ripple.position.set(0, 0.95, 0);
+            ripple.userData.phase = i / 3;
+            grp.add(ripple);
+            ripples.push(ripple);
+          }
+          grp.userData._ripples = ripples;
+
+          // 3. Splash droplets (24 small spheres flying outward)
+          const droplets: THREE.Mesh[] = [];
+          const dropGeo = new THREE.SphereGeometry(0.022, 6, 6);
+          for (let i = 0; i < 24; i++) {
+            const drop = new THREE.Mesh(dropGeo, new THREE.MeshPhysicalMaterial({
+              color: 0xaaeeff, transparent: true, opacity: 0,
+              transmission: 0.6, roughness: 0.1, ior: 1.33,
+              emissive: 0x224466, emissiveIntensity: 0.4,
+            }));
+            drop.userData.angle = (i / 24) * Math.PI * 2;
+            drop.userData.radius = 0.3 + Math.random() * 0.4;
+            drop.userData.lifeOffset = Math.random();
+            grp.add(drop);
+            droplets.push(drop);
+          }
+          grp.userData._droplets = droplets;
+
+          // 4. Water pool on wafer (thin disc)
+          const pool = new THREE.Mesh(
+            new THREE.CircleGeometry(0.92, 48),
+            new THREE.MeshPhysicalMaterial({
+              color: 0x88ccff, transparent: true, opacity: 0,
+              transmission: 0.85, roughness: 0.0, metalness: 0,
+              ior: 1.33, depthWrite: false,
+            })
+          );
+          pool.rotation.x = -Math.PI / 2;
+          pool.position.set(0, 0.96, 0);
+          grp.add(pool);
+          grp.userData._pool = pool;
+        }
+
+        const waterColumn = grp.userData._waterColumn as THREE.Mesh;
+        const ripples = grp.userData._ripples as THREE.Mesh[];
+        const droplets = grp.userData._droplets as THREE.Mesh[];
+        const pool = grp.userData._pool as THREE.Mesh;
+
+        if (isActive) {
+          // Water column: fade in + slight flow animation
+          const waterMat = waterColumn.material as THREE.MeshPhysicalMaterial;
+          waterMat.opacity = lerp(waterMat.opacity, 0.55, 0.08);
+          waterColumn.scale.x = 1 + Math.sin(t * 18) * 0.08;
+          waterColumn.scale.z = waterColumn.scale.x;
+
+          // Pool: fade in
+          const poolMat = pool.material as THREE.MeshPhysicalMaterial;
+          poolMat.opacity = lerp(poolMat.opacity, 0.45, 0.05);
+
+          // Ripples: animate expansion from center
+          ripples.forEach((ripple) => {
+            const phase = ((t * 0.8 + ripple.userData.phase) % 1);
+            const scale = 0.3 + phase * 2.5;
+            ripple.scale.set(scale, scale, 1);
+            const rmat = ripple.material as THREE.MeshBasicMaterial;
+            rmat.opacity = (1 - phase) * 0.6;
+          });
+
+          // Droplets: orbital + spray motion
+          droplets.forEach((drop) => {
+            const lifeT = ((t * 1.5 + drop.userData.lifeOffset) % 1);
+            const angle = drop.userData.angle + lifeT * 0.5;
+            const r = drop.userData.radius * (0.5 + lifeT * 1.5);
+            drop.position.set(
+              Math.cos(angle) * r,
+              0.96 + Math.sin(lifeT * Math.PI) * 0.25,
+              Math.sin(angle) * r
+            );
+            const dmat = drop.material as THREE.MeshPhysicalMaterial;
+            dmat.opacity = Math.sin(lifeT * Math.PI) * 0.9;
+          });
+
+        } else {
+          // Fade out
+          const waterMat = waterColumn.material as THREE.MeshPhysicalMaterial;
+          waterMat.opacity = lerp(waterMat.opacity, 0, 0.1);
+          const poolMat = pool.material as THREE.MeshPhysicalMaterial;
+          poolMat.opacity = lerp(poolMat.opacity, 0, 0.08);
+          ripples.forEach((ripple) => {
+            const rmat = ripple.material as THREE.MeshBasicMaterial;
+            rmat.opacity = lerp(rmat.opacity, 0, 0.1);
+          });
+          droplets.forEach((drop) => {
+            const dmat = drop.material as THREE.MeshPhysicalMaterial;
+            dmat.opacity = lerp(dmat.opacity, 0, 0.1);
+          });
+        }
+
+        // ── Original material/light animations ──
         const bowlMat = grp.userData.bowlMaterial as THREE.MeshStandardMaterial | undefined;
         if (bowlMat) {
           bowlMat.emissiveIntensity = isActive
-            ? 2.5 + 1.2 * Math.abs(Math.sin(this.simTime * 4))
-            : 0.3 + 0.1 * Math.sin(this.simTime * 0.8);
+            ? 2.5 + 1.2 * Math.abs(Math.sin(t * 4))
+            : 0.3 + 0.1 * Math.sin(t * 0.8);
         }
         const nozzleMat = grp.userData.nozzleMaterial as THREE.MeshStandardMaterial | undefined;
         if (nozzleMat) {
-          nozzleMat.emissiveIntensity = isActive
-            ? 1.5 + 0.8 * Math.sin(this.simTime * 5)
-            : 0.2;
+          nozzleMat.emissiveIntensity = isActive ? 1.5 + 0.8 * Math.sin(t * 5) : 0.2;
         }
         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
         if (greenMat && redMat) {
-          greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-          redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+          greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(t * 4) : 0.3;
+          redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(t * 2);
         }
         const pl = grp.userData.processLight as THREE.PointLight | undefined;
-        if (pl) pl.intensity = isActive ? 3.0 + 1.2 * Math.abs(Math.sin(this.simTime * 4)) : 0.3;
+        if (pl) pl.intensity = isActive ? 3.0 + 1.2 * Math.abs(Math.sin(t * 4)) : 0.3;
       };
       if (anyActive) animateDIWaterRinse();
     
@@ -42293,7 +42858,198 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
     this.renderer.render(this.scene, this.camera);
   };
 
-  start() { this._lastT = performance.now(); this._loop(); }
+  start() {
+    this._lastT = performance.now();
+    this._loop();
+    
+    // ── Narration: announce process start ──
+    if (this.narration) {
+      this.narration.announceProcessStart();
+      this._narratedSteps.clear(); // Reset tracking for new run
+    }
+  }
+
+  // ── Step navigation (rewind / forward / jump) ───────────────────────────────
+  getCurrentStep(): number { return this.navStepIndex; }
+  getTotalSteps(): number { return ALL_STEPS.length; }
+  getCurrentStepInfo(): ProcessStep | null { return ALL_STEPS[this.navStepIndex] ?? null; }
+
+  rewindStep(): void {
+    if (this.navStepIndex > 0) this.jumpToStep(this.navStepIndex - 1);
+  }
+
+  forwardStep(): void {
+    if (this.navStepIndex < ALL_STEPS.length - 1) this.jumpToStep(this.navStepIndex + 1);
+  }
+
+  jumpToStart(): void { this.jumpToStep(0); }
+  jumpToEnd(): void { this.jumpToStep(ALL_STEPS.length - 1); }
+
+  jumpToStepId(stepId: string): void {
+    const idx = ALL_STEPS.findIndex((s) => s.id === stepId);
+    if (idx >= 0) this.jumpToStep(idx);
+  }
+
+  jumpToStep(stepIndex: number): void {
+    if (stepIndex < 0 || stepIndex >= ALL_STEPS.length) return;
+
+    this.navStepIndex = stepIndex;
+    const step = ALL_STEPS[stepIndex];
+    this.paused = true;
+    this._pauseAllAnimators();
+    this._cancelActiveTransfers();
+    
+    // ── Narration: announce jump to step ──
+    if (this.narration) {
+      this._narratedSteps.clear(); // Clear tracking so it'll narrate next arrival
+      import('../lib/narrationScripts').then(({ getStepNarration }) => {
+        const script = getStepNarration(step.id);
+        this.narration.speak(`Jumping to ${step.name}. ${script.starting}`, 'high');
+      });
+    }
+
+    this.wSMs.forEach((sm, wi) => {
+      sm.launched = true;
+      sm.done = false;
+      sm.stepIdx = stepIndex;
+      sm.state = "processing";
+      sm.processTimer = step.time * 0.5;
+      sm.timer = 0;
+      sm.spinning = false;
+      sm.mesh.visible = true;
+      sm.mesh.userData.scannerOrigPos = undefined;
+      sm.mesh.userData.scannerStartTime = undefined;
+
+      const pos = this._getStepWaferWorldPos(step, wi);
+      this.scene.attach(sm.mesh);
+      sm.mesh.position.copy(pos);
+      sm.mesh.rotation.set(0, 0, 0);
+      sm.mesh.quaternion.identity();
+      sm.mesh.updateMatrixWorld(true);
+    });
+
+    Object.keys(this.busy).forEach((k) => delete this.busy[k]);
+    if (this.wSMs.length > 0) this.busy[step.id] = this.wSMs[0].wi;
+
+    this._updateWaferVisualForStep(stepIndex);
+    this._parkRobotNearStep(stepIndex);
+    this._notifyStepChange(stepIndex);
+    this._addLog(`[NAV] Jump → ${step.short} · ${step.name}`, "move");
+  }
+
+  private _getStepWaferWorldPos(step: ProcessStep, wi: number): THREE.Vector3 {
+    const out = new THREE.Vector3();
+    if (step.type === "foup" || step.id === "foup") {
+      const foupGrp = this.modObjs["foup"];
+      const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+      const slotIx = Math.min(wi, Math.max(0, (anchors?.length ?? 1) - 1));
+      if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(out);
+      else out.set(step.x + 5.0, 3.0, step.z);
+    } else if (step.id === "scanner") {
+      out.set(step.x, WAFER_TRANSFER_Y, step.z - 3.3);
+    } else {
+      const modGrp = this.modObjs[step.id];
+      const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+      if (wa) wa.getWorldPosition(out);
+      else out.set(step.x, WAFER_TRANSFER_Y + 0.02, step.z);
+    }
+    return out;
+  }
+
+  private _cancelActiveTransfers(): void {
+    this.wSMs.forEach((sm) => {
+      if (sm.carrierRobot) {
+        const pos = new THREE.Vector3();
+        sm.mesh.getWorldPosition(pos);
+        sm.detachAt(pos);
+      }
+      (sm as any)._picked = false;
+      (sm as any)._pickupX = undefined;
+      (sm as any)._pickupZ = undefined;
+      (sm as any)._returning = false;
+      (sm as any)._returnToFoup = false;
+      sm.carrierRobot = null;
+      sm.owner = "none";
+      sm.onConveyor = false;
+    });
+    const r = this.robotEFEM;
+    if (r?.group?.userData) {
+      r.group.userData.armPhase = "idle";
+      r.group.userData.phaseT = 0;
+      r.group.userData.bezierT = 0;
+    }
+    Object.keys(this.busy).forEach((k) => delete this.busy[k]);
+  }
+
+  private _pauseAllAnimators(): void {
+    this.spinCoat?.stopCoat();
+    this._activeCoatWI = -1;
+    this.devLiquid?.stopDev();
+    this._activeDevWI = -1;
+    this.prCoatOverlay?.stop();
+    this.devOverlay?.stop();
+    this.n2Particles.off();
+    this.waterParticles.off();
+    this.hmdsFog.off();
+    Object.values(this.heatVapors).forEach((v) => v.off());
+  }
+
+  private _parkRobotNearStep(stepIndex: number): void {
+    const r = this.robotEFEM;
+    if (!r?.runIK) return;
+    const step = ALL_STEPS[stepIndex];
+    const TRACK_MIN = -14;
+    const TRACK_MAX = 22;
+    let targetX = step.x;
+    if (step.id === "scanner") targetX = step.x - 4;
+    const railX = clamp(targetX, TRACK_MIN, TRACK_MAX);
+    if (r.group.userData) {
+      r.group.userData.railX = railX;
+      r.group.userData.armPhase = "idle";
+      r.group.userData.phaseT = 0;
+    }
+    r.group.position.set(railX, 0, 0);
+    const idleTgt = new THREE.Vector3(railX + 1.5, 2.5, step.z);
+    r.runIK(idleTgt);
+    if (r.statusPL) {
+      r.statusPL.color.setHex(0x00d8ff);
+      r.statusPL.intensity = 1.2;
+    }
+  }
+
+  private _updateWaferVisualForStep(stepIndex: number): void {
+    const prcoatIdx = ALL_STEPS.findIndex((s) => s.id === "prcoat");
+    const developIdx = ALL_STEPS.findIndex((s) => s.id === "develop");
+    this.wSMs.forEach((sm) => {
+      const pr = sm.mesh.userData.prLayer as THREE.Mesh | undefined;
+      if (!pr) return;
+      const mat = pr.material as THREE.MeshPhysicalMaterial;
+      if (prcoatIdx >= 0 && stepIndex < prcoatIdx) {
+        mat.opacity = 0;
+        mat.emissiveIntensity = 0.15;
+      } else if (developIdx >= 0 && stepIndex < developIdx) {
+        mat.opacity = 0.98;
+        mat.color.setHex(0xcc1177);
+        mat.emissive.setHex(0xcc1177);
+        mat.emissiveIntensity = 1.0;
+      } else {
+        mat.opacity = 0.85;
+        mat.color.setHex(0x4477aa);
+        mat.emissive.setHex(0x224466);
+        mat.emissiveIntensity = 0.7;
+      }
+      mat.needsUpdate = true;
+    });
+  }
+
+  private _notifyStepChange(stepIndex: number): void {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(
+      new CustomEvent("sim:stepchange", {
+        detail: { index: stepIndex, step: ALL_STEPS[stepIndex], total: ALL_STEPS.length },
+      })
+    );
+  }
 
   reset() {
    this.spinCoat.stopCoat(); this._activeCoatWI = -1;
@@ -42317,7 +43073,17 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
       if (m.userData.processLight) (m.userData.processLight as THREE.PointLight).intensity = 0;
       if (m.userData.innerRing) ((m.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 2.5;
     });
-    this.simTime = 0; this.paused = false; this._addLog("--- SIMULATION RESET ---", "");
+    this.navStepIndex = 0;
+    this.simTime = 0; this.paused = false;
+    this._notifyStepChange(0);
+    this._addLog("--- SIMULATION RESET ---", "");
+    
+    // ── Narration: announce reset ──
+    if (this.narration) {
+      this.narration.announceReset();
+      this.narration.stop(); // Clear any queued announcements
+      this._narratedSteps.clear(); // Reset tracking
+    }
   }
 
   setBoundingBox(visible: boolean) {
@@ -42419,18 +43185,35 @@ function Panel({ title, children, style }: { title: string; children: React.Reac
   );
 }
 
-function Btn({ children, onClick, active = false, style }: { children: React.ReactNode; onClick: () => void; active?: boolean; style?: React.CSSProperties }) {
+function Btn({ children, onClick, active = false, disabled = false, style }: { children: React.ReactNode; onClick: () => void; active?: boolean; disabled?: boolean; style?: React.CSSProperties }) {
   return (
-    <button onClick={onClick} style={{
+    <button disabled={disabled} onClick={disabled ? undefined : onClick} style={{
       background: active ? "rgba(0,100,200,0.12)" : "rgba(0,80,180,0.06)",
       borderWidth: 1, borderStyle: 'solid',
       borderColor: active ? "rgba(0,100,200,0.40)" : "rgba(0,100,200,0.18)",
       color: active ? "#0055cc" : "#2a5599",
-      padding: "6px 12px", borderRadius: 5, cursor: "pointer",
+      padding: "6px 12px", borderRadius: 5, cursor: disabled ? "not-allowed" : "pointer",
       fontFamily: "'Inter', sans-serif", fontSize: 11, letterSpacing: 0.3,
       transition: "all .15s", whiteSpace: "nowrap" as const,
-      fontWeight: active ? 700 : 500, ...style,
+      fontWeight: active ? 700 : 500, opacity: disabled ? 0.38 : 1, ...style,
     }}>{children}</button>
+  );
+}
+
+function CtrlDivider() {
+  return <div style={{ width: 1, alignSelf: "stretch", minHeight: 28, background: T.border, flexShrink: 0, margin: "0 4px" }} />;
+}
+
+function CtrlGroup({ label, children }: { label?: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0, padding: "0 2px" }}>
+      {label && (
+        <span style={{ fontSize: 7, color: T.textDim, letterSpacing: 1.4, fontWeight: 700, marginRight: 2, whiteSpace: "nowrap" }}>
+          {label}
+        </span>
+      )}
+      {children}
+    </div>
   );
 }
 
@@ -42459,8 +43242,6 @@ export default function EFEMSimulator() {
   const [loadMsg, setLoadMsg]   = useState("INITIALIZING...");
   const [paused, setPaused]     = useState(false);
   const [speed, setSpeed]       = useState(1);
-  const [showBox, setShowBox]   = useState(false);
-  const [labels, setLabels]     = useState(true);
   const [iframeUrl, setIframeUrl] = useState<string | null>(null);
   const [iframeTitle, setIframeTitle] = useState<string>("");
   const [iframeLoaded, setIframeLoaded] = useState(false);
@@ -42471,6 +43252,9 @@ export default function EFEMSimulator() {
   const [tooltip, setTooltip]   = useState<TooltipState>({ visible: false, x: 0, y: 0, name: "", temp: "", meta: "", tempColor: "" });
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"flow"|"log"|"joints">("flow");
+  const [navStep, setNavStep] = useState(0);
+  const [navStepName, setNavStepName] = useState(ALL_STEPS[0]?.name ?? "");
+  const [showComponentInfo, setShowComponentInfo] = useState(false);
 
   const addLog = useCallback((entry: LogEntry) => { setLogs((prev) => [entry, ...prev].slice(0, 30)); }, []);
   const handleTooltip = useCallback((tt: TooltipState) => setTooltip(tt), []);
@@ -42565,11 +43349,82 @@ export default function EFEMSimulator() {
   }, [addLog, handleTooltip]);
 
   useEffect(() => { if (simRef.current) simRef.current.speed = speed; }, [speed]);
-  useEffect(() => { simRef.current?.setBoundingBox(showBox); }, [showBox]);
-  useEffect(() => { simRef.current?.toggleLabels(labels); }, [labels]);
 
-  const handlePause = () => { const np = !paused; setPaused(np); if (simRef.current) simRef.current.paused = np; };
+  useEffect(() => {
+    const onStepChange = (e: Event) => {
+      const { index, step } = (e as CustomEvent<{ index: number; step: ProcessStep }>).detail;
+      setNavStep(index);
+      setNavStepName(step?.name ?? "");
+    };
+    window.addEventListener("sim:stepchange", onStepChange);
+    return () => window.removeEventListener("sim:stepchange", onStepChange);
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    const poll = window.setInterval(() => {
+      if (!simRef.current) return;
+      setNavStep(simRef.current.getCurrentStep());
+      const info = simRef.current.getCurrentStepInfo();
+      if (info) setNavStepName(info.name);
+      window.clearInterval(poll);
+    }, 100);
+    return () => window.clearInterval(poll);
+  }, [loading]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+        e.preventDefault();
+        simRef.current?.rewindStep();
+        setPaused(true);
+      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+        e.preventDefault();
+        simRef.current?.forwardStep();
+        setPaused(true);
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        simRef.current?.jumpToStart();
+        setPaused(true);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        simRef.current?.jumpToEnd();
+        setPaused(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const handlePause = () => {
+    const np = !paused;
+    setPaused(np);
+    if (simRef.current) {
+      simRef.current.paused = np;
+      
+      // ── Narration: announce pause/resume ──
+      if (simRef.current.narration) {
+        if (np) {
+          simRef.current.narration.announcePause();
+          simRef.current.narration.pause();
+        } else {
+          simRef.current.narration.announceResume();
+          simRef.current.narration.resume();
+        }
+      }
+    }
+  };
   const handleReset = () => { simRef.current?.reset(); setPaused(false); };
+  const handleNavRewind = () => { simRef.current?.rewindStep(); setPaused(true); };
+  const handleNavForward = () => { simRef.current?.forwardStep(); setPaused(true); };
+  const handleNavStart = () => { simRef.current?.jumpToStart(); setPaused(true); };
+  const handleNavEnd = () => { simRef.current?.jumpToEnd(); setPaused(true); };
+  const handleJumpToStep = (idx: number) => { simRef.current?.jumpToStep(idx); setPaused(true); };
+
+  const navTotal = ALL_STEPS.length;
+  const navAtStart = navStep <= 0;
+  const navAtEnd = navStep >= navTotal - 1;
 
   const LEGEND = [
     { label: "EFEM Robot",            color: "#00d8ff", shape: "robot" },
@@ -42713,6 +43568,13 @@ export default function EFEMSimulator() {
             <span style={{ fontSize: 12, color: "#3a5588", letterSpacing: 1.5, maxWidth: 380 }}>300mm wafer Photoresist Coater Developer Track</span>
             <div style={{ flex: 1 }} />
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+  <NarrationControls simRef={simRef} />
+  
+  <ComponentInfoToggle
+    enabled={showComponentInfo}
+    onToggle={() => setShowComponentInfo(!showComponentInfo)}
+  />
+  
   <button
     onClick={() => window.location.href = "/Failure"}
     style={{
@@ -42826,8 +43688,10 @@ export default function EFEMSimulator() {
           </div>
 
 
-          {/* LEFT PANEL */}
-          <div style={{ position: "absolute", left: 10, top: 60, width: 238, display: "flex", flexDirection: "column", gap: 6, maxHeight: "calc(100vh - 120px)", overflowY: "auto", pointerEvents: "auto", animation: "fadeIn .4s ease" }}>
+          {/* LEFT PANEL — Process Flow only */}
+          <div style={{ position: "absolute", left: 10, top: 60, display: "flex", flexDirection: "column", gap: 6, maxHeight: "calc(100vh - 120px)", pointerEvents: "auto", animation: "fadeIn .4s ease" }}>
+            {/* Process Flow Sidebar */}
+            <div style={{ width: 238, display: "flex", flexDirection: "column", gap: 6, overflowY: "auto" }}>
             <div style={{ display: "flex", gap: 3, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: 4 }}>
               {(["flow", "log", "joints"] as const).map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: 1, padding: "5px 0", borderRadius: 5, border: "none", cursor: "pointer", fontSize: 9, letterSpacing: 1.5, fontWeight: 700, textTransform: "uppercase" as const, background: activeTab === tab ? "rgba(0,100,200,0.15)" : "transparent", color: activeTab === tab ? T.accent : T.textDim, transition: "all .15s" }}>{tab}</button>
@@ -42837,11 +43701,11 @@ export default function EFEMSimulator() {
             {activeTab === "flow" && (
               <Panel title="Process Flow  ↕ scroll">
                 {ALL_STEPS.map((step, i) => {
-                  const active = ui.wafers.some((w) => w.stepIdx === i && w.state !== "idle");
+                  const active = navStep === i || ui.wafers.some((w) => w.stepIdx === i && w.state !== "idle");
                   const done   = ui.wafers.some((w) => w.launched && w.stepIdx > i);
                   const isSelected = selectedComp === step.id;
                   return (
-                    <div key={`step-${step.id}`} onClick={() => setSelectedComp(isSelected ? null : step.id)}
+                    <div key={`step-${step.id}`} onClick={() => { handleJumpToStep(i); setSelectedComp(step.id); }}
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "3.5px 5px", borderRadius: 4, fontSize: 11, border: `1px solid ${isSelected ? "rgba(100,60,220,.55)" : active ? "rgba(0,180,80,.30)" : "transparent"}`, background: isSelected ? "rgba(80,30,180,.10)" : active ? "rgba(0,200,80,.06)" : "transparent", color: active ? "#006633" : done ? "rgba(0,100,180,.35)" : T.textDim, marginBottom: 1, transition: "all .2s", cursor: "pointer" }}>
                       <span style={{ fontSize: 9, color: "rgba(80,120,160,.7)", minWidth: 18, fontWeight: 700 }}>{String(i + 1).padStart(2, "0")}</span>
                       <span style={{ width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: isSelected ? "#8844ff" : active ? "#00aa55" : done ? "rgba(0,120,200,.25)" : "rgba(120,160,200,.18)", boxShadow: isSelected ? "0 0 5px #8844ff" : active ? "0 0 5px #00aa55" : "none", display: "inline-block" }} />
@@ -42878,48 +43742,95 @@ export default function EFEMSimulator() {
                 <JointPanel title="EFEM Robot" joints={ui.jointsEFEM} prefix="efem" />
               </>
             )}
+            </div>
+          </div>
 
+          {/* RIGHT PANEL — Component Info panels */}
+          <div style={{ position: "absolute", right: 70, top: 60, display: "flex", flexDirection: "column", gap: 12, maxHeight: "calc(100vh - 120px)", pointerEvents: "auto", zIndex: 50 }}>
+
+            {/* Component Info Panel - appears on right when a component is selected */}
             {selectedComp && COMPONENT_INFO[selectedComp] && (() => {
               const d = COMPONENT_INFO[selectedComp];
               const step = ALL_STEPS.find(s => s.id === selectedComp);
               return (
-                <Panel title="Component Info" style={{ borderColor: "rgba(100,60,220,.40)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#ccaaff", marginBottom: 2 }}>{step?.name}</div>
-                  <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#8866cc", marginBottom: 7, textTransform: "uppercase" as const }}>{d.section}</div>
-                  <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 2, textTransform: "uppercase" as const }}>Hardware</div>
-                  <div style={{ fontSize: 10, color: "#b8cfe4", lineHeight: 1.55, marginBottom: 7 }}>{d.hardware}</div>
-                  <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 2, textTransform: "uppercase" as const }}>Process</div>
-                  <div style={{ fontSize: 10, color: "#b8cfe4", lineHeight: 1.55, marginBottom: 7 }}>{d.process}</div>
-                  <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 4, textTransform: "uppercase" as const }}>Specs</div>
-                  {Object.entries(d.specs).map(([k, v]) => (
-                    <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", borderBottom: "1px solid rgba(0,100,180,.10)", fontSize: 10 }}>
-                      <span style={{ color: "#6699bb" }}>{k}</span>
-                      <span style={{ color: "#ddeeff", fontWeight: 600 }}>{v}</span>
-                    </div>
-                  ))}
-                  <div onClick={() => setSelectedComp(null)} style={{ marginTop: 8, fontSize: 9, color: "#8866cc", cursor: "pointer", textAlign: "center" as const, letterSpacing: 1 }}>✕ CLOSE</div>
-                </Panel>
+                <div style={{
+                  width: '300px',
+                  animation: "slideInFromRight 0.3s ease-out",
+                }}>
+                  <Panel title="Component Info" style={{ borderColor: "rgba(100,60,220,.40)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#ccaaff", marginBottom: 2 }}>{step?.name}</div>
+                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#8866cc", marginBottom: 7, textTransform: "uppercase" as const }}>{d.section}</div>
+                    <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 2, textTransform: "uppercase" as const }}>Hardware</div>
+                    <div style={{ fontSize: 10, color: "#b8cfe4", lineHeight: 1.55, marginBottom: 7 }}>{d.hardware}</div>
+                    <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 2, textTransform: "uppercase" as const }}>Process</div>
+                    <div style={{ fontSize: 10, color: "#b8cfe4", lineHeight: 1.55, marginBottom: 7 }}>{d.process}</div>
+                    <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 4, textTransform: "uppercase" as const }}>Specs</div>
+                    {Object.entries(d.specs).map(([k, v]) => (
+                      <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", borderBottom: "1px solid rgba(0,100,180,.10)", fontSize: 10 }}>
+                        <span style={{ color: "#6699bb" }}>{k}</span>
+                        <span style={{ color: "#ddeeff", fontWeight: 600 }}>{v}</span>
+                      </div>
+                    ))}
+                    <div onClick={() => setSelectedComp(null)} style={{ marginTop: 8, fontSize: 9, color: "#8866cc", cursor: "pointer", textAlign: "center" as const, letterSpacing: 1 }}>✕ CLOSE</div>
+                  </Panel>
+                </div>
               );
             })()}
+
+            {/* Live Component Info Panel - appears on right when toggle is ON */}
+            {showComponentInfo && (
+              <div style={{
+                animation: "slideInFromRight 0.3s ease-out",
+              }}>
+                <ComponentInfoPanel simRef={simRef} />
+              </div>
+            )}
           </div>
 
+          {/* BOTTOM CONTROLS — single row: Playback | Steps | Speed | View */}
+          <div style={{
+            position: "absolute", bottom: 46, left: "50%", transform: "translateX(-50%)",
+            display: "flex", alignItems: "center", flexWrap: "nowrap",
+            pointerEvents: "auto", background: "rgba(255,255,255,0.94)",
+            border: `1px solid ${T.border}`, borderRadius: 10,
+            padding: "8px 12px", backdropFilter: "blur(20px)",
+            boxShadow: "0 4px 20px rgba(0,80,180,0.10)",
+            maxWidth: "min(98vw, 960px)", overflowX: "auto",
+          }}>
+            <CtrlGroup label="PLAY">
+              <Btn active={paused} onClick={handlePause} style={{ minWidth: 88 }}>{paused ? "▶ RESUME" : "⏸ PAUSE"}</Btn>
+              <Btn onClick={handleReset} style={{ minWidth: 72 }}>↺ RESET</Btn>
+            </CtrlGroup>
 
+            <CtrlDivider />
 
-          {/* RIGHT PANEL */}
-					{/* Right panel intentionally left blank */}
+            <CtrlGroup label="STEP">
+              <Btn disabled={navAtStart} onClick={handleNavStart} style={{ padding: "6px 10px", minWidth: 36 }}>⏮</Btn>
+              <Btn disabled={navAtStart} onClick={handleNavRewind} style={{ padding: "6px 10px", minWidth: 36 }}>◀</Btn>
+              <div style={{
+                minWidth: 168, maxWidth: 220, textAlign: "center",
+                padding: "5px 12px", background: "rgba(0,100,200,0.07)",
+                borderRadius: 6, border: `1px solid ${T.border}`,
+              }}>
+                <div style={{ fontSize: 8, color: T.textDim, letterSpacing: 1.2, fontWeight: 700 }}>
+                  {String(navStep + 1).padStart(2, "0")} / {String(navTotal).padStart(2, "0")}
+                </div>
+                <div style={{
+                  fontSize: 10, color: "#0055cc", fontWeight: 700, marginTop: 1,
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}>{navStepName}</div>
+              </div>
+              <Btn disabled={navAtEnd} onClick={handleNavForward} style={{ padding: "6px 10px", minWidth: 36 }}>▶</Btn>
+              <Btn disabled={navAtEnd} onClick={handleNavEnd} style={{ padding: "6px 10px", minWidth: 36 }}>⏭</Btn>
+            </CtrlGroup>
 
-          {/* BOTTOM CONTROLS */}
-          <div style={{ position: "absolute", bottom: 46, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, pointerEvents: "auto", background: "rgba(255,255,255,0.92)", border: `1px solid ${T.border}`, borderRadius: 10, padding: "7px 14px", backdropFilter: "blur(20px)", boxShadow: "0 4px 20px rgba(0,80,180,0.10)" }}>
-            <Btn active={paused} onClick={handlePause}>{paused ? "▶ RESUME" : "⏸ PAUSE"}</Btn>
-            <Btn onClick={handleReset}>↺ RESET</Btn>
-            <div style={{ width: 1, height: 26, background: T.border }} />
-            <span style={{ fontSize: 8, color: T.textDim, letterSpacing: 2 }}>SPEED</span>
-            {[1, 2, 5, 10].map((s) => (
-              <Btn key={s} active={speed === s} style={{ padding: "6px 9px", fontSize: 11 }} onClick={() => setSpeed(s)}>{s}×</Btn>
-            ))}
-            <div style={{ width: 1, height: 26, background: T.border }} />
-            <Btn active={labels} onClick={() => setLabels(l => !l)}>LABELS</Btn>
-            <Btn active={showBox} onClick={() => setShowBox(b => !b)}>⬜ BOX</Btn>
+            <CtrlDivider />
+
+            <CtrlGroup label="SPEED">
+              {[1, 2, 5, 10].map((s) => (
+                <Btn key={s} active={speed === s} onClick={() => setSpeed(s)} style={{ padding: "6px 10px", minWidth: 40 }}>{s}×</Btn>
+              ))}
+            </CtrlGroup>
           </div>
 
           {/* BOTTOM LEGEND */}
