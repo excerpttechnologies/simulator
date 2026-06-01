@@ -20,6 +20,19 @@ const NarrationControls: React.FC<Props> = ({ simRef }) => {
     }, 100);
     return () => clearInterval(check);
   }, [simRef]);
+
+  // ── Allow external controls (speed changes) to update the button state ──
+  useEffect(() => {
+    const onNarrationEnabled = (event: Event) => {
+      const detail = (event as CustomEvent<{ enabled: boolean }>).detail;
+      if (typeof detail?.enabled === 'boolean') {
+        setEnabled(detail.enabled);
+      }
+    };
+
+    window.addEventListener('sim:narration-enabled', onNarrationEnabled as EventListener);
+    return () => window.removeEventListener('sim:narration-enabled', onNarrationEnabled as EventListener);
+  }, []);
   
   const handleToggle = () => {
     const newState = !enabled;

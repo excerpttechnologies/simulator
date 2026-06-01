@@ -36,13 +36,14 @@ interface ProcessStep {
 // Virtual modules excluded → no plates for spindry / iface_in / iface_out
 const SKIP_NAMEPLATE_IDS = new Set([
   'foup',
+  'scanner',
   'spindry',
   'iface_in',
   'iface_out',
 ]);
 
 /** Make a 2-line nameplate texture with 2× bigger fonts */
-function makeNameplateTexture(line1: string, line2: string): THREE.Texture {
+function makeNameplateTexture(line1: string, line2: string, flipHorizontal = false): THREE.Texture {
   // ── Canvas size: 2× from typical 512×160 ──
   const W = 1024;
   const H = 320;
@@ -51,6 +52,12 @@ function makeNameplateTexture(line1: string, line2: string): THREE.Texture {
   cnv.width = W;
   cnv.height = H;
   const ctx = cnv.getContext('2d')!;
+  
+  // If we need to flip horizontally, mirror the canvas context
+  if (flipHorizontal) {
+    ctx.translate(W, 0);
+    ctx.scale(-1, 1);
+  }
   
   // Dark background
   ctx.fillStyle = '#0a0a14';
@@ -140,7 +147,8 @@ function attachNamePlate(modGrp: THREE.Group, mod: ProcessStep) {
   const PLATE_H = 0.82;     // physical plane height (matches 1024:320 aspect)
   
   // ── INNER FRONT plate ──
-  const innerTex = makeNameplateTexture(line1, line2);
+  // Pre-flip texture for back-facing plates (bottom row where INNER_Z_SIGN < 0)
+  const innerTex = makeNameplateTexture(line1, line2, INNER_Z_SIGN < 0);
   const innerMat = new THREE.MeshBasicMaterial({
     map: innerTex,
     transparent: true,
@@ -150,12 +158,13 @@ function attachNamePlate(modGrp: THREE.Group, mod: ProcessStep) {
   const innerPlate = new THREE.Mesh(new THREE.PlaneGeometry(PLATE_W, PLATE_H), innerMat);
   innerPlate.name = '__nameplate_inner';
   innerPlate.position.set(0, PLATE_Y, INNER_Z_SIGN * (halfDepth + 0.02));
-  // ONLY Y rotation — never X, or plate lies flat on floor
+  // Rotate plate to face correct direction (180° for back-facing)
   innerPlate.rotation.set(0, INNER_Z_SIGN > 0 ? 0 : Math.PI, 0);
   modGrp.add(innerPlate);
   
   // ── OUTER SIDE plate ──
-  const outerTex = makeNameplateTexture(line1, line2);
+  // Pre-flip texture for back-facing plates (top row where OUTER_Z_SIGN < 0)
+  const outerTex = makeNameplateTexture(line1, line2, OUTER_Z_SIGN < 0);
   const outerMat = new THREE.MeshBasicMaterial({
     map: outerTex,
     transparent: true,
@@ -165,6 +174,7 @@ function attachNamePlate(modGrp: THREE.Group, mod: ProcessStep) {
   const outerPlate = new THREE.Mesh(new THREE.PlaneGeometry(PLATE_W, PLATE_H), outerMat);
   outerPlate.name = '__nameplate_outer';
   outerPlate.position.set(0, PLATE_Y, OUTER_Z_SIGN * (halfDepth + 0.02));
+  // Rotate plate to face correct direction (180° for back-facing)
   outerPlate.rotation.set(0, OUTER_Z_SIGN > 0 ? 0 : Math.PI, 0);
   modGrp.add(outerPlate);
 }

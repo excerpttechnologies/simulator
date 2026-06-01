@@ -137,7 +137,10 @@ export class NarrationManager {
     };
     
     utterance.onerror = (e) => {
-      console.warn('[NARRATION] Error:', e.error);
+      // 'not-allowed' = browser blocked speech before user interaction — silently ignore
+      if (e.error !== 'not-allowed') {
+        console.warn('[NARRATION] Error:', e.error);
+      }
       this.isSpeaking = false;
       this.currentUtterance = null;
       item.onComplete?.();
@@ -154,6 +157,12 @@ export class NarrationManager {
     this.synth.cancel();
     this.isSpeaking = false;
     this.currentUtterance = null;
+  }
+
+  /** Reset narration internal state without changing whether it is enabled */
+  public reset() {
+    this.stop();
+    this.lastStepIndex = -1;
   }
   
   /** Pause / resume */
@@ -207,10 +216,13 @@ export class NarrationManager {
   
   /** Announce process start — uses the full Step 01 FOUP narration */
   public announceProcessStart() {
-    this.speak(
-      'Process initiated. Wafers are loaded into the system from the Front Opening Unified Pod, or FOUP. The automated track handler is preparing to transfer the first wafer into the process chamber.',
-      'high'
-    );
+    // Delay slightly to ensure browser has registered user interaction
+    setTimeout(() => {
+      this.speak(
+        'Process initiated. Wafers are loaded into the system from the Front Opening Unified Pod, or FOUP. The automated track handler is preparing to transfer the first wafer into the process chamber.',
+        'high'
+      );
+    }, 500);
   }
   
   /** Announce process complete */

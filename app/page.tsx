@@ -24164,22 +24164,22 @@ const GRIPPER_OFFSET_EULER  = new THREE.Euler(0, 0, 0);  // no offset — bones 
 const EFEM_X = -15;
 const EFEM_Z = 0;
 const ALL_STEPS: ProcessStep[] = [
-  { id: "foup",      name: "FOUP Input",              short: "FOUP", temp: null, time: 3, color: 0x4488ff, type: "foup",  x: -20, z: 0     },
-  { id: "dehy",      name: "Dehydration Bake 150°C",  short: "DEHY", temp: 150,  time: 6, color: 0xff2200, type: "hot",   x: -11, z: TOP_Z },
-  { id: "hmds",      name: "HMDS Vapor Prime",        short: "HMDS", temp: 110,  time: 5, color: 0xff8800, type: "hot",   x: -6,  z: TOP_Z },
+  { id: "foup",      name: "FOUP Input",              short: "FOUP", temp: null, time: 1, color: 0x4488ff, type: "foup",  x: -20, z: 0     },
+  { id: "dehy",      name: "Dehydration Bake 150°C",  short: "DEHY", temp: 150,  time: 3, color: 0xff2200, type: "hot",   x: -11, z: TOP_Z },
+  { id: "hmds",      name: "HMDS Vapor Prime",        short: "HMDS", temp: 110,  time: 2, color: 0xff8800, type: "hot",   x: -6,  z: TOP_Z },
   { id: "chill1",    name: "Chill Plate #1  22°C",    short: "CP-1", temp: 22,   time: 3, color: 0x00ccff, type: "cold",  x: -1,  z: TOP_Z },
-  { id: "prcoat",    name: "PR Coat (COT)",           short: "COT",  temp: null, time: 8, color: 0xcc00ff, type: "coat",  x: 4,   z: TOP_Z },
-  { id: "pab",       name: "Post-Apply Bake 118°C",   short: "PAB",  temp: 118,  time: 5, color: 0xff5500, type: "hot",   x: 9,   z: TOP_Z },
-  { id: "chill2",    name: "Chill Plate #2  22°C",    short: "CP-2", temp: 22,   time: 3, color: 0x00aaee, type: "cold",  x: 14,  z: TOP_Z },
+  { id: "prcoat",    name: "PR Coat (COT)",           short: "COT",  temp: null, time: 5, color: 0xcc00ff, type: "coat",  x: 4,   z: TOP_Z },
+  { id: "pab",       name: "Post-Apply Bake 118°C",   short: "PAB",  temp: 118,  time: 3, color: 0xff5500, type: "hot",   x: 9,   z: TOP_Z },
+  { id: "chill2",    name: "Chill Plate #2  22°C",    short: "CP-2", temp: 22,   time: 2, color: 0x00aaee, type: "cold",  x: 14,  z: TOP_Z },
   { id: "iface_out", name: "Interface → Scanner",     short: "IF→",  temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19,  z: -3   },
-  { id: "scanner",   name: "Scanner 193nm Exposure",  short: "SCAN", temp: null, time: 9, color: 0xee00cc, type: "scan",  x: 36,  z: 0     },
+  { id: "scanner",   name: "Scanner 193nm Exposure",  short: "SCAN", temp: null, time: 5, color: 0xee00cc, type: "scan",  x: 38,  z: 0     },
   { id: "iface_in",  name: "Interface ← Scanner",     short: "IF←",  temp: null, time: 2, color: 0xffaa00, type: "iface", x: 19,  z: 3     },
-  { id: "peb",       name: "Post-Exposure Bake 120°C",short: "PEB",  temp: 120,  time: 5, color: 0xff3300, type: "hot",   x: 14,  z: BOT_Z },
-  { id: "develop",   name: "Developer Module (DEV)",  short: "DEV",  temp: null, time: 6, color: 0x00ff88, type: "wet",   x: 9,   z: BOT_Z },
-  { id: "rinse",     name: "DI Water Rinse",          short: "RINSE",temp: null, time: 4, color: 0x0088ff, type: "wet",   x: 4,   z: BOT_Z },
-  { id: "spindry",   name: "Spin Dry + N₂ Purge",     short: "DRY",  temp: null, time: 4, color: 0x00eeff, type: "dry",   x: -1,  z: BOT_Z },
-  { id: "chill3",    name: "Chill Plate #3  22°C",    short: "CP-3", temp: 22,   time: 3, color: 0x22ddbb, type: "cold",  x: -6,  z: BOT_Z },
-  { id: "hardbake",  name: "Hard Bake  130°C",        short: "HBAK", temp: 130,  time: 5, color: 0xff1100, type: "hot",   x: -11, z: BOT_Z },
+  { id: "peb",       name: "Post-Exposure Bake 120°C",short: "PEB",  temp: 120,  time: 3, color: 0xff3300, type: "hot",   x: 14,  z: BOT_Z },
+  { id: "develop",   name: "Developer Module (DEV)",  short: "DEV",  temp: null, time: 4, color: 0x00ff88, type: "wet",   x: 9,   z: BOT_Z },
+  { id: "rinse",     name: "DI Water Rinse",          short: "RINSE",temp: null, time: 3, color: 0x0088ff, type: "wet",   x: 4,   z: BOT_Z },
+  { id: "spindry",   name: "Spin Dry + N₂ Purge",     short: "DRY",  temp: null, time: 3, color: 0x00eeff, type: "dry",   x: -1,  z: BOT_Z },
+  { id: "chill3",    name: "Chill Plate #3  22°C",    short: "CP-3", temp: 22,   time: 2, color: 0x22ddbb, type: "cold",  x: -6,  z: BOT_Z },
+  { id: "hardbake",  name: "Hard Bake  130°C",        short: "HBAK", temp: 130,  time: 3, color: 0xff1100, type: "hot",   x: -11, z: BOT_Z },
 ];
  
 const WAFER_COLORS = [0xffaa00, 0x00eeff, 0xdd44ff, 0x44ffaa];
@@ -30213,19 +30213,6 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
     const tempBar = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 0.06), matEmissive(tempColor, 4.0));
     tempBar.position.set(0, MODULE_BASE_Y + H * 0.78, -(D / 2) + 0.05);
     grp.add(tempBar);
-
-    const tc = document.createElement("canvas");
-    tc.width = 200;
-    tc.height = 52;
-    const tctx = tc.getContext("2d")!;
-    tctx.fillStyle = mod.temp > 50 ? "#ff4400" : "#0099ff";
-    tctx.font = "bold 22px 'Courier New',monospace";
-    tctx.textAlign = "center";
-    tctx.fillText(`${mod.temp}°C`, 100, 36);
-    const tsp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(tc), transparent: true, opacity: 0.95 }));
-    tsp.scale.set(1.5, 0.4, 1);
-    tsp.position.set(0, MODULE_BASE_Y + H + 0.55, -(D / 2) - 0.1);
-    grp.add(tsp);
   }
 
   // Process light
@@ -30270,7 +30257,6 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
     beam.position.y = MODULE_BASE_Y + H * 1.75;
     grp.add(beam);
     grp.userData.uvBeam = beam;
-    addBigLabel(grp, "300mm\nSCANNER", 0xcc00ff, 0, MODULE_BASE_Y + H * 4.8, 0);
   }
 
   // Wafer anchor for non-FOUP modules
@@ -30502,7 +30488,7 @@ if (mod.type === "foup") {
 
   
   
-  const SKIP_FLOATING_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out']);
+  const SKIP_FLOATING_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out', 'scanner']);
   if (SKIP_FLOATING_LABEL_IDS.has(mod.id)) {
     console.log(`[buildModule] Skipping floating sprite for: ${mod.id}`);
     return grp;     // ← exit early, no floating sprite created
@@ -33207,7 +33193,13 @@ function buildScannerGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-     root.position.y = 0 - box.min.y - 2.5; // lower it (closer to floor / partially below)
+      root.position.y = 0 - box.min.y; // align scanner base with floor
+      root.updateWorldMatrix(true, true);
+      const rootWorldBox = new THREE.Box3().setFromObject(root);
+      const scannerFrontZ = rootWorldBox.min.z;
+      const scannerPickupZ = scannerFrontZ - 0.35;
+      const scannerSlotZ = scannerFrontZ + 0.16;
+      const scannerTunnelZ = scannerFrontZ - 0.14;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -33219,16 +33211,41 @@ function buildScannerGLB(
       });
 
       console.log('ALL Scanner GLB nodes:', Object.keys(namedParts));
+      console.log('[SCANNER] frontZ=', scannerFrontZ.toFixed(3), 'pickupZ=', scannerPickupZ.toFixed(3), 'slotZ=', scannerSlotZ.toFixed(3));
 
-// ── HIDE BACKSIDE PLATES ──
-['Vent_Panel', 'Base_Louvre_0', 'Base_Louvre_1', 'Base_Louvre_2', 'Base_Louvre_3', 'Base_Louvre_4'].forEach((name) => {
+// ── HIDE BACKSIDE PLATES + floating top panels ──
+[
+  'Vent_Panel', 'Base_Louvre_0', 'Base_Louvre_1', 'Base_Louvre_2', 'Base_Louvre_3', 'Base_Louvre_4',
+  'Top', 'Top_Panel', 'TopPanel', 'Top_Cover', 'TopCover', 'Lid', 'Cover',
+  'Top_Plate', 'TopPlate', 'Roof', 'Hood', 'Cap', 'Upper_Panel', 'UpperPanel',
+  'Top_Housing', 'TopHousing', 'Top_Shell', 'TopShell',
+  'Stage_Slab', 'Cassette_Body', 'Cube.001', 'Floor',
+].forEach((name) => {
   if (namedParts[name]) namedParts[name].visible = false;
 });
 
-      // Try to find UV lens / beam emitter
+// Also hide any mesh that is very flat (thin in Y) and positioned high — catches unnamed floating plates
+root.traverse((obj) => {
+  if (!(obj as THREE.Mesh).isMesh) return;
+  const mesh = obj as THREE.Mesh;
+  const geo = mesh.geometry;
+  if (!geo.boundingBox) geo.computeBoundingBox();
+  const bb = geo.boundingBox!;
+  const worldPos = new THREE.Vector3();
+  mesh.getWorldPosition(worldPos);
+  const sizeY = (bb.max.y - bb.min.y) * mesh.getWorldScale(new THREE.Vector3()).y;
+  const sizeX = (bb.max.x - bb.min.x) * mesh.getWorldScale(new THREE.Vector3()).x;
+  const sizeZ = (bb.max.z - bb.min.z) * mesh.getWorldScale(new THREE.Vector3()).z;
+  // A "floating plate": very thin in Y, wide in X and Z, positioned above y=3
+  if (sizeY < 0.5 && sizeX > 3 && sizeZ > 3 && worldPos.y > 3) {
+    mesh.visible = false;
+  }
+});
+
+      // Try to find UV lens / beam emitter (NOT 'Top' — that's the cover panel)
       const lens =
         namedParts['Lens'] || namedParts['UVLens'] || namedParts['Beam'] ||
-        namedParts['Emitter'] || namedParts['Top'];
+        namedParts['Emitter'];
 
       // Indicator lights
       const lightGreen =
@@ -33284,8 +33301,8 @@ function buildScannerGLB(
       // Explicit scanner port pickup point (front opening / interface).
       const scannerPickupAnchor = new THREE.Group();
       scannerPickupAnchor.name = "ScannerPickupPoint";
-      scannerPickupAnchor.position.set(0, WAFER_TRANSFER_Y, + 0.35);
-      root.add(scannerPickupAnchor);
+      scannerPickupAnchor.position.set(0, WAFER_TRANSFER_Y, scannerPickupZ);
+      placeholder.add(scannerPickupAnchor);
       placeholder.userData.pickupAnchor = scannerPickupAnchor;
 
       const pl = new THREE.PointLight(scheme.pl, 0, 10);
@@ -33301,7 +33318,7 @@ function buildScannerGLB(
     // ── RECTANGULAR WAFER SLOT on front face of scanner ──
       const SLOT_W = 1.8;   // ← width of slot opening
       const SLOT_H = 0.25;  // ← height of slot opening  
-      const SLOT_D = 0.8;   // ← depth of slot tunnel
+      const SLOT_D = 0;   // ← depth of slot tunnel
 
       // Slot tunnel (dark interior — gives depth illusion)
       const slotTunnel = new THREE.Mesh(
@@ -33314,8 +33331,8 @@ function buildScannerGLB(
           emissiveIntensity: 0.5,
         })
       );
-      slotTunnel.position.set(0, WAFER_TRANSFER_Y - placeholder.position.y, -3.5);
-      root.add(slotTunnel);
+      slotTunnel.position.set(0, WAFER_TRANSFER_Y, scannerTunnelZ);
+      placeholder.add(slotTunnel);
 
       // Slot frame — metallic border around opening
       const slotFrameMat = new THREE.MeshStandardMaterial({
@@ -33331,32 +33348,32 @@ function buildScannerGLB(
         new THREE.BoxGeometry(SLOT_W + 0.15, 0.06, 0.06),
         slotFrameMat
       );
-      slotTop.position.set(0, WAFER_TRANSFER_Y - placeholder.position.y + SLOT_H / 2 + 0.03, -3.2);
-      root.add(slotTop);
+      slotTop.position.set(0, WAFER_TRANSFER_Y + SLOT_H / 2 + 0.03, scannerSlotZ);
+      placeholder.add(slotTop);
 
       // Bottom border
       const slotBot = new THREE.Mesh(
         new THREE.BoxGeometry(SLOT_W + 0.15, 0.06, 0.06),
         slotFrameMat.clone()
       );
-      slotBot.position.set(0, WAFER_TRANSFER_Y - placeholder.position.y - SLOT_H / 2 - 0.03, -3.2);
-      root.add(slotBot);
+      slotBot.position.set(0, WAFER_TRANSFER_Y - SLOT_H / 2 - 0.03, scannerSlotZ);
+      placeholder.add(slotBot);
 
       // Left border
       const slotLeft = new THREE.Mesh(
         new THREE.BoxGeometry(0.06, SLOT_H + 0.12, 0.06),
         slotFrameMat.clone()
       );
-      slotLeft.position.set(-SLOT_W / 2 - 0.03, WAFER_TRANSFER_Y - placeholder.position.y, -3.2);
-      root.add(slotLeft);
+      slotLeft.position.set(-SLOT_W / 2 - 0.03, WAFER_TRANSFER_Y, scannerSlotZ);
+      placeholder.add(slotLeft);
 
       // Right border
       const slotRight = new THREE.Mesh(
         new THREE.BoxGeometry(0.06, SLOT_H + 0.12, 0.06),
         slotFrameMat.clone()
       );
-      slotRight.position.set(SLOT_W / 2 + 0.03, WAFER_TRANSFER_Y - placeholder.position.y, -3.2);
-      root.add(slotRight);
+      slotRight.position.set(SLOT_W / 2 + 0.03, WAFER_TRANSFER_Y, scannerSlotZ);
+      placeholder.add(slotRight);
 
       // Slot glow strip inside (yellow indicator light)
       const slotGlow = new THREE.Mesh(
@@ -33368,8 +33385,8 @@ function buildScannerGLB(
           roughness: 0.3,
         })
       );
-      slotGlow.position.set(0, WAFER_TRANSFER_Y - placeholder.position.y - SLOT_H / 2 + 0.02, -3.25);
-      root.add(slotGlow);
+      slotGlow.position.set(0, WAFER_TRANSFER_Y - SLOT_H / 2 + 0.02, scannerSlotZ);
+      placeholder.add(slotGlow);
       placeholder.userData.slotGlow = slotGlow;
 
       // Sensor dots on each side of slot
@@ -33384,17 +33401,16 @@ function buildScannerGLB(
           new THREE.SphereGeometry(0.04, 8, 8),
           sensorMat.clone()
         );
-        sensor.position.set(sx, WAFER_TRANSFER_Y - placeholder.position.y, -3.2);
-        root.add(sensor);
+        sensor.position.set(sx, WAFER_TRANSFER_Y, scannerSlotZ);
+        placeholder.add(sensor);
       });
 
-      // ── WAFER PICKUP ANCHOR inside the slot — Y matches arm-reachable height ──
+      // ── WAFER PICKUP ANCHOR inside the slot — Y matches global transfer height ──
       const scannerSlotAnchor = new THREE.Group();
       scannerSlotAnchor.name = "ScannerSlotAnchor";
-      // Y=0.80 matches SCANNER_ARM_Y in _animRobots (arm max reach ≈ 0.85)
-      scannerSlotAnchor.position.set(0, 0.80, -3.3);
-      root.add(scannerSlotAnchor);
-      placeholder.userData.pickupAnchor = scannerSlotAnchor;
+      scannerSlotAnchor.position.set(0, WAFER_TRANSFER_Y, scannerSlotZ);
+      placeholder.add(scannerSlotAnchor);
+      placeholder.userData.slotAnchor = scannerSlotAnchor;
 
       placeholder.add(root);
       placeholder.userData.glbRoot = root;
@@ -33402,11 +33418,13 @@ function buildScannerGLB(
       // Update keep-out box once the GLB is present (prevents TCP entering scanner).
       placeholder.userData._bbox = new THREE.Box3().setFromObject(placeholder).expandByScalar(0.15);
 
-      // ── Scanner has no nameplate ──
-      // addModuleLabel(placeholder, mod);
-      addWaferChuck(placeholder, 'spin');
-
-  positionWaferAnchorAboveChuck(placeholder, root);
+      // ── Scanner has no nameplate and no visible chuck ──
+      // Add the wafer anchor at the computed slot position.
+      const scannerWaferAnchor = new THREE.Group();
+      scannerWaferAnchor.name = "ModuleWaferAnchor";
+      scannerWaferAnchor.position.set(0, WAFER_TRANSFER_Y, scannerSlotZ);
+      placeholder.add(scannerWaferAnchor);
+      placeholder.userData.waferAnchor = scannerWaferAnchor;
 
       if (onReady) onReady(placeholder);
     },
@@ -35186,7 +35204,7 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
   if (!isScanner && !isFoup) {
     const side = makePlane(SIDE_LABEL_W, SIDE_LABEL_H, 0.80);
     side.position.set(boxW / 2 + 0.05, labelY, 0);
-    side.rotation.y = -Math.PI / 2;
+    side.rotation.y = Math.PI / 2;
     side.renderOrder = 100;
     grp.add(side);
     grp.userData.sideLabelX = side;
@@ -35934,13 +35952,13 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       tex.anisotropy = 8;
 
       const plate = new THREE.Mesh(
-        new THREE.PlaneGeometry(4.2, 1.4),
+        new THREE.PlaneGeometry(3.4, 1.4),
         new THREE.MeshBasicMaterial({
           map: tex,
           transparent: false,
           depthTest: true,
           depthWrite: true,
-          side: THREE.DoubleSide,
+          side: THREE.FrontSide,
         })
       );
       plate.renderOrder = 10;
@@ -35948,59 +35966,51 @@ function addPlinthNameplates(scene: THREE.Scene): void {
     };
 
     // ── POSITIONS ──
-    // ── POSITIONS ──
-// ── POSITIONS ──
-// ── POSITIONS ──
-const PLINTH_H         = 3.2;
-const PLINTH_Y0        = -0.5;
-const PLATE_Y          = PLINTH_Y0 + PLINTH_H * 0.38;
-const FACE_OFFSET      = 2.5;
-const IFACE_FACE_OFFSET = 3.3;  // ← increased spacing for interface modules
+    const PLINTH_H          = 3.2;
+    const PLINTH_Y0         = -0.5;
+    const PLATE_Y           = PLINTH_Y0 + PLINTH_H * 0.50;
+    const FACE_OFFSET       = 2.5;
 
-const isIface  = mod.id === 'iface_in' || mod.id === 'iface_out';
-const isTopRow = mod.z < 0;
-const isBotRow = mod.z > 0;
+    // Interface modules should use the actual module/plinth face offset,
+    // not the generic step spacing used by the row plates.
+    const IFACE_FACE_OFFSET = 1.2; // ~half plinth depth (1.7) + clearance
 
-if (isIface) {
-  // Face toward negative Z (front-facing, no rotation needed)
-  const front = makeNameplateMesh();
-  front.position.set(mod.x, PLATE_Y, mod.z - IFACE_FACE_OFFSET);
-  front.rotation.y = 0;          // faces +Z direction (readable from front)
-  scene.add(front);
+    const isIface = mod.id === 'iface_in' || mod.id === 'iface_out';
 
-  // Face toward positive Z (back-facing, rotate 180° so text isn't mirrored)
-const back = makeNameplateMesh(); 
-back.position.set(mod.x, PLATE_Y, mod.z + IFACE_FACE_OFFSET);
-back.rotation.y = Math.PI;
-back.scale.x = -1;  // ← add this
-scene.add(back);
+    // Two FrontSide plates, back-to-back, each facing outward.
+    const addBackToBack = (centerZ: number) => {
+      // Plate A: faces +Z direction (readable from +Z side)
+      const a = makeNameplateMesh();
+      a.position.set(mod.x, PLATE_Y, centerZ);
+      a.rotation.y = 0;
+      scene.add(a);
 
-} else if (isTopRow) {
-  const front = makeNameplateMesh();
-  front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-  front.rotation.y = Math.PI;
-  front.scale.x = -1;  // ← add this
-  scene.add(front);
+      // Plate B: faces -Z direction (readable from -Z side)
+      const b = makeNameplateMesh();
+      b.position.set(mod.x, PLATE_Y, centerZ);
+      b.rotation.y = Math.PI;
+      scene.add(b);
+    };
 
-  const back = makeNameplateMesh();
-  back.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
-  back.rotation.y = 0;
-  scene.add(back);
-
-} else if (isBotRow) {
-  const front = makeNameplateMesh();
-  front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
-  front.rotation.y = 0;
-  front.scale.x = -1;  // ← add this
-  scene.add(front);
-
-  const back = makeNameplateMesh();
-  back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-  back.rotation.y = Math.PI;
-  back.scale.x = -1;
-  scene.add(back);
-}
+    if (isIface) {
+      addBackToBack(mod.z - IFACE_FACE_OFFSET);
+      addBackToBack(mod.z + IFACE_FACE_OFFSET);
+    } else if (mod.z < 0) {
+      // top row
+      addBackToBack(mod.z + FACE_OFFSET);
+      addBackToBack(mod.z - FACE_OFFSET);
+    } else {
+      // bottom row + center
+      addBackToBack(mod.z - FACE_OFFSET);
+      addBackToBack(mod.z + FACE_OFFSET);
+    }
   });}
+
+
+
+
+
+
 
 // 
 
@@ -41529,6 +41539,8 @@ private _animRobots(dt: number) {
   let dropStep = ALL_STEPS[0];
   let prevStep = ALL_STEPS[0];
   let isPicked = false;
+  let isScannerDrop = false;
+  let isInterfaceDrop = false;
   const pickWorld = new THREE.Vector3();
   const dropWorld = new THREE.Vector3();
 
@@ -41537,6 +41549,8 @@ private _animRobots(dt: number) {
     const prevStepIdx = Math.max(target.stepIdx - 1, 0);
     prevStep = ALL_STEPS[prevStepIdx];
     isPicked = !!(target as any)._picked;
+    isScannerDrop = dropStep.id === 'scanner';
+    isInterfaceDrop = dropStep.type === 'iface';
 
     // ── PICK WORLD: get actual wafer mesh position (works for ANY module) ──
     target.mesh.getWorldPosition(pickWorld);
@@ -41544,16 +41558,17 @@ private _animRobots(dt: number) {
     pickWorld.y = WAFER_TRANSFER_Y;
     // Scanner wafer is at the front slot, not the body center
     if (prevStep.id === 'scanner') {
-      // ── Pick from TOP chuck (same anchor as drop)
+      // ── Pick from the scanner's outgoing transfer port, not the internal chuck.
       const scannerGrp = this.modObjs['scanner'];
-      const wa = scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-      if (wa) {
-        wa.getWorldPosition(pickWorld);
+      const pickAnchor = scannerGrp?.userData?.pickupAnchor as THREE.Object3D | undefined
+        ?? scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+      if (pickAnchor) {
+        pickAnchor.getWorldPosition(pickWorld);
         // Ensure pickup height is at transfer height
         pickWorld.y = WAFER_TRANSFER_Y;
       } else {
         pickWorld.x = prevStep.x;
-        pickWorld.z = prevStep.z - 3.3;
+        pickWorld.z = prevStep.z + 0.35;
       }
     }
 
@@ -41573,15 +41588,19 @@ private _animRobots(dt: number) {
         dropWorld.set(ALL_STEPS[0].x + 4.0, 2.0, ALL_STEPS[0].z);
       }
     } else if (dropStep.id === 'scanner') {
-      // ── SCANNER: drop into the TOP chuck (set by addWaferChuck) ──
+      // ── SCANNER: place wafer at the scanner slot anchor inside the front opening.
       const scannerGrp = this.modObjs['scanner'];
-      const wa = scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+      const slotAnchor = scannerGrp?.userData?.slotAnchor as THREE.Object3D | undefined;
+      const wa = slotAnchor ?? (scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined);
       if (wa) {
         wa.getWorldPosition(dropWorld);
-        console.log('[SCANNER] dropping at chuck:', dropWorld.toArray());
+        // Clamp Y to a safe visible range — never let it go behind the machine
+        dropWorld.y = Math.max(dropWorld.y, WAFER_TRANSFER_Y - 0.5);
+        dropWorld.y = Math.min(dropWorld.y, WAFER_TRANSFER_Y + 0.5);
+        console.log('[SCANNER] wafer drop at slot:', dropWorld.toArray());
       } else {
-        // Fallback if anchor missing: place at a reasonable height above scanner
-        dropWorld.set(dropStep.x, WAFER_TRANSFER_Y + 1.5, dropStep.z);
+        // Fallback: position the wafer near the scanner input slot on the negative Z side.
+        dropWorld.set(dropStep.x, WAFER_TRANSFER_Y, dropStep.z - 4.15);
       }
     } else {
       const modGrp = this.modObjs[dropStep.id];
@@ -41621,9 +41640,12 @@ private _animRobots(dt: number) {
 
   // ── Smooth rail movement ──
   const railSpeed = 8.0;
+  const isPathToScanner = isInterfaceDrop || isScannerDrop;
+  const actionSpeed = isPathToScanner ? Math.max(this.speed, 10) : this.speed;
+  const actionDt = dt * actionSpeed;
   const currentRailX = ud.railX as number;
   const dxRail = railTargetX - currentRailX;
-  const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * dt * this.speed);
+  const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * actionDt);
   ud.railX = currentRailX + railStep;
   r.group.position.x = ud.railX as number;
 
@@ -41677,7 +41699,7 @@ private _animRobots(dt: number) {
   const railDist = Math.abs(railX - clamp(targetRailX, TRACK_MIN, TRACK_MAX));
   const railArrived = railDist < 0.5;
 
-  ud.phaseT = (ud.phaseT as number) + dt * this.speed;
+  ud.phaseT = (ud.phaseT as number) + actionDt;
   const phaseT = ud.phaseT as number;
   const phase = ud.armPhase as string;
 
@@ -41788,7 +41810,7 @@ if (!isPicked) {
     }
 
     case 'vacuum_dwell': {
-      ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
+      ud.dwellTimer = (ud.dwellTimer as number) + actionDt;
       // Stay at contact — enforce FOUP ceiling
       const dwellPos = contactPos.clone();
       dwellPos.y = Math.min(dwellPos.y, isFoupPick ? FOUP_MAX_Y : 999);
@@ -41832,8 +41854,7 @@ if (!isPicked) {
 
     case 'lift': {
       const hold = (ud.postAttachHold as number) ?? 0;
-      ud.postAttachHold = hold + dt * this.speed;
-
+      ud.postAttachHold = hold + actionDt;
       if (hold < 0.15) {
         // Hold at contact briefly
         r.runIK(targetForGripper(contactPos), { 
@@ -41885,6 +41906,7 @@ if (!isPicked) {
     // ══════════════════════════════════════════════════════════════════════════
     const isScannerDrop = dropStep.id === 'scanner';
     const isFoupDrop = dropStep.type === 'foup' || (target as any)._returnToFoup;
+    const isInterfaceDrop = dropStep.type === 'iface';
     
     // FOUP-specific safe zone (same as pick)
     const FOUP_FRONT_X = (ALL_STEPS[0].x + 5.5);
@@ -41955,7 +41977,7 @@ if (!isPicked) {
       case 'transport':
       case 'carry':
       case 'rise': {
-        ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.5, 1);
+        ud.bezierT = Math.min((ud.bezierT as number) + actionDt * 0.5, 1);
         const tBz = sCurve(ud.bezierT as number);
         const tgt = new THREE.Vector3();
         evalBezier(tgt, tBz);
@@ -42091,8 +42113,12 @@ if (!isPicked) {
         this._setGripperState(r, 0, dt);
         
         if (phaseT > 0.4) {
-          // Detach wafer at drop world position
-          target.detachAt(dropWorld);
+          // Detach wafer at the final place position for scanner drops.
+          if (isScannerDrop) {
+            target.detachAt(placePos);
+          } else {
+            target.detachAt(dropWorld);
+          }
           (target as any)._picked = false;
           (target as any)._pickupX = undefined;
           (target as any)._pickupZ = undefined;
@@ -42123,21 +42149,38 @@ if (!isPicked) {
           }
           
           // Choose retract phase based on destination
-          ud.armPhase = isScannerDrop ? 'scanner_retract' : (isFoupDrop ? 'foup_retract' : 'retract');
+          if (isInterfaceDrop) {
+            ud.armPhase = 'place_hold';
+          } else {
+            ud.armPhase = isScannerDrop ? 'scanner_retract' : (isFoupDrop ? 'foup_retract' : 'retract');
+          }
+          ud.phaseT = 0;
+        }
+        break;
+      }
+
+      case 'place_hold': {
+        r.runIK(targetForGripper(placePos), {
+          isScanner: isScannerDrop,
+          safetyMargin: 0.04
+        });
+        this._setGripperState(r, 0, dt);
+        if (phaseT > 0.8) {
+          ud.armPhase = 'retract';
           ud.phaseT = 0;
         }
         break;
       }
 
       case 'scanner_retract': {
-        // Lift straight back up out of slot, then move away
+        // Move out of the scanner slot and then lift away.
         const p = sCurve(Math.min(phaseT / 0.65, 1));
-        const liftedOut = new THREE.Vector3(
+        const exitPos = new THREE.Vector3(
           placePos.x,
-          approachDrop.y,            // rise back to the height we came from
-          placePos.z
+          approachDrop.y,            // rise to the slot clearance height
+          placePos.z + 3.5           // step out in front of the scanner
         );
-        const tgt = new THREE.Vector3().lerpVectors(placePos, liftedOut, p);
+        const tgt = new THREE.Vector3().lerpVectors(placePos, exitPos, p);
         r.runIK(targetForGripper(tgt), {
           isScanner: true,
           safetyMargin: 0.06
@@ -42243,9 +42286,12 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
   }
   
   const w = sm.mesh;
-  if (sm.spinning && !this.paused) { sm.spin += dt * this.speed * 8; w.rotation.y = sm.spin; }
+  const currentStep = ALL_STEPS[sm.stepIdx];
+  const isScannerStage = currentStep?.id === 'scanner' || currentStep?.type === 'iface';
+  const waferSpeed = isScannerStage ? Math.max(this.speed, 10) : this.speed;
+  if (sm.spinning && !this.paused) { sm.spin += dt * waferSpeed * 8; w.rotation.y = sm.spin; }
 
-  const sDt = dt * this.speed;
+  const sDt = dt * waferSpeed;
 
   switch (sm.state) {
 
@@ -42432,6 +42478,7 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
       }
 
       if (sm.processTimer >= mod.time) {
+        if (mod.id === "scanner" && !sm.mesh.visible) sm.mesh.visible = true;
         this._onProcessEnd(sm, mod, mo);
         if (this.busy[mod.id] === sm.wi) delete this.busy[mod.id];
 
@@ -43873,9 +43920,9 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
     
     // ── Narration: announce reset ──
     if (this.narration) {
-      this.narration.announceReset();
-      this.narration.stop(); // Clear any queued announcements
+      this.narration.reset(); // Clear queued audio and reset step tracking
       this._narratedSteps.clear(); // Reset tracking
+      this.narration.announceReset();
     }
   }
 
@@ -44208,7 +44255,41 @@ export default function EFEMSimulator() {
       }
     }
   };
-  const handleReset = () => { simRef.current?.reset(); setPaused(false); };
+
+  const handleSetSpeed = (ns: number) => {
+    setSpeed(ns);
+    if (!simRef.current) return;
+
+    simRef.current.speed = ns;
+
+    if (ns !== 1) {
+      if (simRef.current.narration?.isEnabled?.()) {
+        simRef.current.narration.stop();
+        simRef.current.narration.setEnabled(false);
+        window.dispatchEvent(new CustomEvent('sim:narration-enabled', { detail: { enabled: false } }));
+      }
+    } else {
+      if (simRef.current.narration) {
+        simRef.current.narration.setEnabled(true);
+        window.dispatchEvent(new CustomEvent('sim:narration-enabled', { detail: { enabled: true } }));
+        const step = ALL_STEPS[simRef.current.getCurrentStep()];
+        import('../lib/narrationScripts').then(({ getStepNarration }) => {
+          const script = getStepNarration(step.id);
+          simRef.current?.narration?.speak(`Resuming narration at ${step.name}. ${script.starting}`, 'high');
+        });
+      }
+    }
+  };
+
+  const handleReset = () => {
+    const narrationEnabled = simRef.current?.narration?.isEnabled?.();
+    simRef.current?.reset();
+    setPaused(false);
+    if (typeof narrationEnabled === 'boolean') {
+      simRef.current?.narration?.setEnabled(narrationEnabled);
+      window.dispatchEvent(new CustomEvent('sim:narration-enabled', { detail: { enabled: narrationEnabled } }));
+    }
+  };
   const handleNavRewind = () => { simRef.current?.rewindStep(); setPaused(true); };
   const handleNavForward = () => { simRef.current?.forwardStep(); setPaused(true); };
   const handleNavStart = () => { simRef.current?.jumpToStart(); setPaused(true); };
@@ -44621,7 +44702,7 @@ export default function EFEMSimulator() {
 
             <CtrlGroup label="SPEED">
               {[1, 2, 5, 10].map((s) => (
-                <Btn key={s} active={speed === s} onClick={() => setSpeed(s)} style={{ padding: "6px 10px", minWidth: 40 }}>{s}×</Btn>
+                <Btn key={s} active={speed === s} onClick={() => handleSetSpeed(s)} style={{ padding: "6px 10px", minWidth: 40 }}>{s}×</Btn>
               ))}
             </CtrlGroup>
           </div>
@@ -44679,7 +44760,7 @@ export default function EFEMSimulator() {
           justifyContent: "center",
           pointerEvents: "auto",
         }}
-          onClick={() => setPopupModule(null)}
+          onClick={() => setIframeUrl(null)}
         >
           <div style={{
             width: "85%",
@@ -44714,7 +44795,7 @@ export default function EFEMSimulator() {
                 {iframeTitle}
               </div>
               <button
-                onClick={() => setPopupModule(null)}
+                onClick={() => setIframeUrl(null)}
                 style={{
                   width: 32,
                   height: 32,
