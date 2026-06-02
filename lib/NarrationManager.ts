@@ -246,7 +246,6 @@ export class NarrationManager {
   public announceReset() {
     this.speak('Simulation reset. Ready to start.', 'high');
   }
-  
   /** Custom announcement with template */
   public announceCustom(template: string, vars: Record<string, string | number>) {
     let text = template;

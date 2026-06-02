@@ -24149,6 +24149,10 @@ const CONVEYOR_WAFER_Y = CONVEYOR_SURFACE_Y + 0.02;
 /** Belt centreline Z — parallel to +X, slightly outside each process row. */
 const TOP_TRACK_BELT_Z = TOP_Z - 0.75;
 const BOT_TRACK_BELT_Z = BOT_Z + 0.75;
+const IFACE_LOCAL_Z: Record<string, number> = {
+  iface_out: 0,
+  iface_in:  -0.4,
+};
 const DEG = Math.PI / 180;
 const NUM_WAFERS = 1;
 const PLACE_DELAY = 0.3;
@@ -24171,9 +24175,9 @@ const ALL_STEPS: ProcessStep[] = [
   { id: "prcoat",    name: "PR Coat (COT)",           short: "COT",  temp: null, time: 5, color: 0xcc00ff, type: "coat",  x: 4,   z: TOP_Z },
   { id: "pab",       name: "Post-Apply Bake 118°C",   short: "PAB",  temp: 118,  time: 3, color: 0xff5500, type: "hot",   x: 9,   z: TOP_Z },
   { id: "chill2",    name: "Chill Plate #2  22°C",    short: "CP-2", temp: 22,   time: 2, color: 0x00aaee, type: "cold",  x: 14,  z: TOP_Z },
-  { id: "iface_out", name: "Interface → Scanner",     short: "IF→",  temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19,  z: -3   },
+  { id: "iface_out", name: "Interface → Scanner",     short: "IF→",  temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19,  z: -3 },
   { id: "scanner",   name: "Scanner 193nm Exposure",  short: "SCAN", temp: null, time: 5, color: 0xee00cc, type: "scan",  x: 38,  z: 0     },
-  { id: "iface_in",  name: "Interface ← Scanner",     short: "IF←",  temp: null, time: 2, color: 0xffaa00, type: "iface", x: 19,  z: 3     },
+  { id: "iface_in",  name: "Interface ← Scanner",     short: "IF←",  temp: null, time: 2, color: 0xffaa00, type: "iface", x: 19,  z: 3},
   { id: "peb",       name: "Post-Exposure Bake 120°C",short: "PEB",  temp: 120,  time: 3, color: 0xff3300, type: "hot",   x: 14,  z: BOT_Z },
   { id: "develop",   name: "Developer Module (DEV)",  short: "DEV",  temp: null, time: 4, color: 0x00ff88, type: "wet",   x: 9,   z: BOT_Z },
   { id: "rinse",     name: "DI Water Rinse",          short: "RINSE",temp: null, time: 3, color: 0x0088ff, type: "wet",   x: 4,   z: BOT_Z },
@@ -24935,182 +24939,7 @@ function addWaferChuck(
   return grp;
 }
 
-// ─── LIGHTING ─────────────────────────────────────────────────────────────────
 
-// function setupLighting(scene: THREE.Scene) {
-//   // Bright cleanroom background — light blue-white
-//   scene.background = new THREE.Color(0xc8d8e8);
-//   scene.fog = new THREE.FogExp2(0xc8d8e8, 0.0035);
- 
-//   scene.add(new THREE.AmbientLight(0xffffff, 2.2));
-//   scene.add(new THREE.HemisphereLight(0xffffff, 0xa8b8c8, 1.8));
- 
-//   const key = new THREE.DirectionalLight(0xffffff, 4.5);
-//   key.position.set(-4, 35, 12);
-//   key.castShadow = true;
-//   key.shadow.mapSize.set(4096, 4096);
-//   key.shadow.camera.near = 1;  key.shadow.camera.far = 160;
-//   key.shadow.camera.left = -65; key.shadow.camera.right = 65;
-//   key.shadow.camera.top = 35;  key.shadow.camera.bottom = -35;
-//   key.shadow.bias = -0.0002;   key.shadow.normalBias = 0.015;
-//   scene.add(key);
- 
-//   const fill1 = new THREE.DirectionalLight(0xeef4ff, 2.0); fill1.position.set(12, 20, -8);   scene.add(fill1);
-//   const fill2 = new THREE.DirectionalLight(0xddeeff, 1.4); fill2.position.set(32, 14, -18);  scene.add(fill2);
-//   const rim   = new THREE.DirectionalLight(0x88aacc, 0.6); rim.position.set(-12, 5, -30);    scene.add(rim);
- 
-//   // Soft floor accent lights along the belts
-//   const TOP_Z = -5.5, BOT_Z = 5.5;
-//   [TOP_Z, BOT_Z].forEach((z) => {
-//     for (let x = -18; x <= 22; x += 7) {
-//       const pl = new THREE.PointLight(z === TOP_Z ? 0x88bbff : 0x88ddaa, 0.5, 7);
-//       pl.position.set(x, 0.5, z);
-//       scene.add(pl);
-//     }
-//   });
-// }
-
-// function setupLighting(scene: THREE.Scene) {
-//   // ── YELLOW PHOTOLITHOGRAPHY CLEANROOM ──
-//   // Target color: RGB(255, 240, 120) = #fff078 — warm pale yellow
-//   // Yellow comes from the ROOM atmosphere; modules keep their true colors.
-  
-//   const YELLOW = 0xfff078;       // RGB(255, 240, 120) — main room tint
-//   const YELLOW_WARM = 0xffd966;  // slightly deeper yellow for fog/accents
-//   const YELLOW_PALE = 0xfff5a8;  // very pale yellow for ambient bias
-
-//   // ── YELLOW SKY / BACKGROUND ──
-//   scene.background = new THREE.Color(YELLOW);
-//   scene.fog = new THREE.FogExp2(YELLOW_WARM, 0.0038);
-
-//   // ── AMBIENT: low-intensity yellow tint ──
-//   // Just enough to suggest the room's color without flooding the modules
-//   scene.add(new THREE.AmbientLight(YELLOW, 0.7));
-  
-//   // ── HEMISPHERE: yellow top, soft warm floor bounce ──
-//   scene.add(new THREE.HemisphereLight(YELLOW, 0xccaa44, 0.55));
-
-//   // ── KEY LIGHT: NEUTRAL WHITE — keeps module colors true ──
-//   // This is the workhorse for accurate material rendering
-//   const key = new THREE.DirectionalLight(0xffffff, 4.2);
-//   key.position.set(-4, 35, 12);
-//   key.castShadow = true;
-//   key.shadow.mapSize.set(4096, 4096);
-//   key.shadow.camera.near = 1;
-//   key.shadow.camera.far = 160;
-//   key.shadow.camera.left = -65;
-//   key.shadow.camera.right = 65;
-//   key.shadow.camera.top = 35;
-//   key.shadow.camera.bottom = -35;
-//   key.shadow.bias = -0.0002;
-//   key.shadow.normalBias = 0.015;
-//   scene.add(key);
-
-//   // ── FILL LIGHTS: slightly warm neutral ──
-//   const fill1 = new THREE.DirectionalLight(0xfff8ee, 2.0);
-//   fill1.position.set(12, 20, -8);
-//   scene.add(fill1);
-
-//   const fill2 = new THREE.DirectionalLight(0xfff0dd, 1.4);
-//   fill2.position.set(32, 14, -18);
-//   scene.add(fill2);
-
-//   // ── RIM LIGHT: faint warm yellow edge ──
-//   const rim = new THREE.DirectionalLight(YELLOW_PALE, 0.6);
-//   rim.position.set(-12, 5, -30);
-//   scene.add(rim);
-
-//   // ── CEILING YELLOW PANELS (simulate fluorescent tubes from the reference photo) ──
-//   // High up so they wash walls/ceiling without flooding modules
-//   const ceilingY = 20;
-//   for (let x = -30; x <= 35; x += 12) {
-//     for (let z = -15; z <= 15; z += 14) {
-//       const panel = new THREE.PointLight(YELLOW, 0.45, 30);
-//       panel.position.set(x, ceilingY, z);
-//       scene.add(panel);
-//     }
-//   }
-
-//   // ── BELT ACCENT LIGHTS: neutral colors (preserve belt look) ──
-//   const TOP_Z = -5.5, BOT_Z = 5.5;
-//   [TOP_Z, BOT_Z].forEach((z) => {
-//     for (let x = -18; x <= 22; x += 7) {
-//       const pl = new THREE.PointLight(z === TOP_Z ? 0x88bbff : 0x88ddaa, 0.5, 7);
-//       pl.position.set(x, 0.5, z);
-//       scene.add(pl);
-//     }
-//   });
-// }
-
-// function setupLighting(scene: THREE.Scene) {
-//   // ── DARK YELLOW PHOTOLITHOGRAPHY CLEANROOM ──
-//   // Target color: RGB(230, 200, 0) = #e6c800 — rich amber-yellow
-//   // Darker and more saturated for that authentic fab atmosphere.
-  
-//   const YELLOW = 0xe6c800;       // RGB(23, 200, 0) — main room tint (dark amber-yellow)
-//   const YELLOW_DEEP = 0xccaa00;  // even deeper yellow for fog
-//   const YELLOW_GLOW = 0xffdd33;  // brighter glow for ceiling panels
-//   const YELLOW_RIM = 0xffcc44;   // warm rim accent
-
-//   // ── DARK YELLOW SKY / BACKGROUND ──
-//   scene.background = new THREE.Color(YELLOW);
-//   scene.fog = new THREE.FogExp2(YELLOW_DEEP, 0.0042);
-
-//   // ── AMBIENT: medium yellow tint (darker base) ──
-//   scene.add(new THREE.AmbientLight(YELLOW, 0.85));
-  
-//   // ── HEMISPHERE: yellow top, warm amber floor bounce ──
-//   scene.add(new THREE.HemisphereLight(YELLOW, 0x886600, 0.65));
-
-//   // ── KEY LIGHT: NEUTRAL WHITE — keeps module colors true ──
-//   const key = new THREE.DirectionalLight(0xffffff, 4.0);
-//   key.position.set(-4, 35, 12);
-//   key.castShadow = true;
-//   key.shadow.mapSize.set(4096, 4096);
-//   key.shadow.camera.near = 1;
-//   key.shadow.camera.far = 160;
-//   key.shadow.camera.left = -65;
-//   key.shadow.camera.right = 65;
-//   key.shadow.camera.top = 35;
-//   key.shadow.camera.bottom = -35;
-//   key.shadow.bias = -0.0002;
-//   key.shadow.normalBias = 0.015;
-//   scene.add(key);
-
-//   // ── FILL LIGHTS: slightly warm neutral ──
-//   const fill1 = new THREE.DirectionalLight(0xfff8ee, 1.9);
-//   fill1.position.set(12, 20, -8);
-//   scene.add(fill1);
-
-//   const fill2 = new THREE.DirectionalLight(0xfff0dd, 1.3);
-//   fill2.position.set(32, 14, -18);
-//   scene.add(fill2);
-
-//   // ── RIM LIGHT: warm amber edge accent ──
-//   const rim = new THREE.DirectionalLight(YELLOW_RIM, 0.7);
-//   rim.position.set(-12, 5, -30);
-//   scene.add(rim);
-
-//   // ── CEILING YELLOW PANELS (simulate fluorescent tubes) ──
-//   const ceilingY = 20;
-//   for (let x = -30; x <= 35; x += 12) {
-//     for (let z = -15; z <= 15; z += 14) {
-//       const panel = new THREE.PointLight(YELLOW_GLOW, 0.55, 32);
-//       panel.position.set(x, ceilingY, z);
-//       scene.add(panel);
-//     }
-//   }
-
-//   // ── BELT ACCENT LIGHTS: neutral colors (preserve belt look) ──
-//   const TOP_Z = -5.5, BOT_Z = 5.5;
-//   [TOP_Z, BOT_Z].forEach((z) => {
-//     for (let x = -18; x <= 22; x += 7) {
-//       const pl = new THREE.PointLight(z === TOP_Z ? 0x88bbff : 0x88ddaa, 0.5, 7);
-//       pl.position.set(x, 0.5, z);
-//       scene.add(pl);
-//     }
-//   });
-// }
 
 function setupLighting(scene: THREE.Scene) {
   // ── DARK AMBER PHOTOLITHOGRAPHY CLEANROOM ──
@@ -25157,104 +24986,7 @@ function setupLighting(scene: THREE.Scene) {
 }
 
  
- 
-// ─── 2. ENVIRONMENT — clean light floor with subtle grid (replaces buildEnv) ─
- 
-// function buildEnv(scene: THREE.Scene) {
-//   // WHITE INDUSTRIAL FLOOR
-//   const flMat = new THREE.MeshStandardMaterial({
-//     color: 0xf7fafc,
-//     roughness: 0.42,
-//     metalness: 0.12,
-//     envMapIntensity: 0.4,
-//   });
-//   const fl = new THREE.Mesh(new THREE.PlaneGeometry(180, 90), flMat);
-//   fl.rotation.x = -Math.PI / 2;
-//   fl.position.y = -0.52;
-//   fl.receiveShadow = true;
-//   scene.add(fl);
- 
-//   // SUBTLE LIGHT GRID — thin lines, low contrast, matches image
-//   const gridCanvas = document.createElement("canvas");
-//   gridCanvas.width = 1024;
-//   gridCanvas.height = 1024;
-//   const gCtx = gridCanvas.getContext("2d")!;
-//   gCtx.fillStyle = "rgba(0,0,0,0)";
-//   gCtx.fillRect(0, 0, 1024, 1024);
-//   gCtx.strokeStyle = "#7090b0";
-//   gCtx.lineWidth = 1.2;
-//   gCtx.globalAlpha = 0.35;
-//   const cell = 64;
-//   for (let x = 0; x <= 1024; x += cell) {
-//     gCtx.beginPath();
-//     gCtx.moveTo(x, 0);
-//     gCtx.lineTo(x, 1024);
-//     gCtx.stroke();
-//   }
-//   for (let y = 0; y <= 1024; y += cell) {
-//     gCtx.beginPath();
-//     gCtx.moveTo(0, y);
-//     gCtx.lineTo(1024, y);
-//     gCtx.stroke();
-//   }
- 
-//   const gridTex = new THREE.CanvasTexture(gridCanvas);
-//   gridTex.wrapS = THREE.RepeatWrapping;
-//   gridTex.wrapT = THREE.RepeatWrapping;
-//   gridTex.repeat.set(6, 3);
- 
-//   const grid = new THREE.Mesh(
-//     new THREE.PlaneGeometry(180, 90),
-//     new THREE.MeshBasicMaterial({
-//       map: gridTex,
-//       transparent: true,
-//       opacity: 0.28,
-//       depthWrite: false,
-//     })
-//   );
-//   grid.rotation.x = -Math.PI / 2;
-//   grid.position.y = -0.49;
-//   scene.add(grid);
- 
-//   // Subtle floor highlights (the bright spots in image)
-//   for (let i = 0; i < 8; i++) {
-//     const spot = new THREE.Mesh(
-//       new THREE.CircleGeometry(0.4 + Math.random() * 0.3, 24),
-//       new THREE.MeshBasicMaterial({
-//         color: 0xffffff,
-//         transparent: true,
-//         opacity: 0.35 + Math.random() * 0.25,
-//         depthWrite: false,
-//       })
-//     );
-//     spot.rotation.x = -Math.PI / 2;
-//     spot.position.set(
-//       -10 + Math.random() * 40,
-//       -0.49,
-//       -8 + Math.random() * 16
-//     );
-//     scene.add(spot);
-//   }
- 
-//   // Minimal industrial background — subtle white wall with soft gradient
-//   const wallMat = new THREE.MeshStandardMaterial({
-//     color: 0xf4f7fb,
-//     roughness: 0.55,
-//     metalness: 0.05,
-//   });
-//   const wall = new THREE.Mesh(new THREE.PlaneGeometry(180, 18), wallMat);
-//   wall.position.set(6, 8, -32);
-//   scene.add(wall);
 
-//   const wallAccent = new THREE.Mesh(
-//     new THREE.PlaneGeometry(180, 6),
-//     new THREE.MeshStandardMaterial({ color: 0xdfe7ec, roughness: 0.6, metalness: 0.02 })
-//   );
-//   wallAccent.position.set(6, 4, -32.01);
-//   scene.add(wallAccent);
- 
-//   // ── NO ceiling, NO hex panels — keeps the open clean look ──
-// }
  
 
 function buildEnv(scene: THREE.Scene) {
@@ -26172,1653 +25904,558 @@ function buildInfoBox(scene: THREE.Scene) {
   scene.add(grp);
 }
 
-// ─── SPIN COAT ANIMATOR (from code 1 — high-fidelity) ────────────────────────
 
-// class SpinCoatAnimator {
-//   group: THREE.Group;
-//   armPivot: THREE.Group;
-//   nozzleArm: THREE.Mesh;
-//   nozzleHead: THREE.Group;
-//   nozzleTip: THREE.Mesh;
-//   spinChuck: THREE.Group;
-//   spinDisc: THREE.Mesh;
-//   resistRings: THREE.Mesh[] = [];
-//   resistGroup: THREE.Group;
-//   bowl: THREE.Mesh;
-//   droplets: THREE.Mesh[] = [];
-//   dropletGroup: THREE.Group;
 
-//   phase: "idle"|"arm_descend"|"dispense"|"spinup"|"coating"|"arm_retract"|"spindown"|"done" = "idle";
-//   phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
-//   resistRadius = 0; coatColor = 0x9922ff; active = false;
-
-//   constructor(scene: THREE.Scene) {
-//     this.group = new THREE.Group(); scene.add(this.group); this.group.visible = false;
-
-//     const bowlMat = new THREE.MeshStandardMaterial({ color: 0xeef3f8, roughness: 0.28, metalness: 0.05 });
-//     this.bowl = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 0.55, 64, 1, true), bowlMat);
-//     this.bowl.position.y = 0.6; this.group.add(this.bowl);
-
-//     for (let i = 0; i < 5; i++) {
-//       const r = 1.1 + i * 0.08;
-//       const ridge = new THREE.Mesh(new THREE.TorusGeometry(r, 0.018, 8, 64),
-//         new THREE.MeshStandardMaterial({ color: 0xdde8f0, roughness: 0.3, metalness: 0.1 }));
-//       ridge.rotation.x = Math.PI / 2; ridge.position.y = 0.38 + i * 0.04; this.group.add(ridge);
-//     }
-
-//     const baseRing = new THREE.Mesh(new THREE.RingGeometry(0.95, 1.55, 64),
-//       new THREE.MeshStandardMaterial({ color: 0xe8eef5, roughness: 0.22, metalness: 0.08, side: THREE.DoubleSide }));
-//     baseRing.rotation.x = -Math.PI / 2; baseRing.position.y = 0.33; this.group.add(baseRing);
-
-//     this.spinChuck = new THREE.Group(); this.group.add(this.spinChuck);
-//     this.spinDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.06, 80),
-//       new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.12, metalness: 0.92 }));
-//     this.spinDisc.position.y = 0.37; this.spinChuck.add(this.spinDisc);
-
-//     for (let i = 0; i < 6; i++) {
-//       const a = (i / 6) * Math.PI * 2;
-//       const port = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.07, 12),
-//         new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3 }));
-//       port.position.set(Math.cos(a) * 0.55, 0.4, Math.sin(a) * 0.55);
-//       this.spinChuck.add(port);
-//     }
-
-//     this.resistGroup = new THREE.Group(); this.resistGroup.position.y = 0.41; this.spinChuck.add(this.resistGroup);
-//     const numRings = 18;
-//     for (let i = 0; i < numRings; i++) {
-//       const r0 = (i / numRings) * 0.88, r1 = ((i + 1) / numRings) * 0.88;
-//       const ring = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 64),
-//         new THREE.MeshStandardMaterial({ color: 0x9922ff, emissive: 0x5511aa, emissiveIntensity: 0.6, roughness: 0.15, metalness: 0.05, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));
-//       ring.rotation.x = -Math.PI / 2; ring.position.y = 0.001 * i;
-//       this.resistGroup.add(ring); this.resistRings.push(ring);
-//     }
-
-//     // Droplets emit from nozzle tip — positioned relative to nozzle head
-// this.dropletGroup = new THREE.Group();
-// this.dropletGroup.position.set(0, 0, 0);
-// this.group.add(this.dropletGroup);
-//    // ── Wall-mounted vertical column ──
-// const column = new THREE.Mesh(
-//   new THREE.CylinderGeometry(0.045, 0.065, 3.2, 12),
-//   new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.12, metalness: 0.95 })
-// );
-// column.position.set(0, 1.6, -1.55);
-// this.group.add(column);
-
-// // ── Wall bracket plate ──
-// const backPlate = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.55, 0.22, 0.18),
-//   new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.18, metalness: 0.92 })
-// );
-// backPlate.position.set(0, 3.18, -1.45);
-// this.group.add(backPlate);
-
-// // ── Horizontal rail arm from column ──
-// const railArm = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.06, 0.06, 1.35),
-//   new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 })
-// );
-// railArm.position.set(0, 3.18, -0.78);
-// this.group.add(railArm);
-
-// // ── Carriage block where arm pivots ──
-// const carriage = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.20, 0.20, 0.20),
-//   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.14, metalness: 0.93 })
-// );
-// carriage.position.set(0, 3.18, -0.10);
-// this.group.add(carriage);
-
-// // ── Overhead horizontal rail (wall to wall) ──
-// const railMat = new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 });
-// const overheadRail = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.07, 0.07), railMat);
-// overheadRail.position.set(0, 3.6, 0);
-// this.group.add(overheadRail);
-
-// // Left wall post
-// const postMat = new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 });
-// const leftPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.0, 0.07), postMat);
-// leftPost.position.set(-1.6, 2.6, 0);
-// this.group.add(leftPost);
-
-// // Right wall post  
-// const rightPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.0, 0.07), postMat);
-// rightPost.position.set(1.6, 2.6, 0);
-// this.group.add(rightPost);
-
-// // Rail carriage block (slides along rail)
-// const nozzleCarriageBlock = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.28, 0.22, 0.22),
-//   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.13, metalness: 0.94 })
-// );
-// nozzleCarriageBlock.position.set(0, 3.49, 0);
-// this.group.add(nozzleCarriageBlock);
-// this.group.userData.nozzleCarriage = nozzleCarriageBlock;
-
-// this.armPivot = new THREE.Group();
-// this.armPivot.position.set(-1.5, 3.49, 0);
-// this.armPivot.rotation.y = 0;
-// this.group.add(this.armPivot); // ← THIS WAS MISSING — nozzle was never in scene
-
-// // Vertical arm hanging down from carriage
-// this.nozzleArm = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.06, 1.55, 0.06),
-//   new THREE.MeshStandardMaterial({ color: 0xc8d8e8, roughness: 0.10, metalness: 0.96 })
-// );
-// this.nozzleArm.position.set(0, -0.77, 0);
-// this.armPivot.add(this.nozzleArm);
-
-// // Nozzle head — at bottom of vertical arm
-// this.nozzleHead = new THREE.Group();
-// this.nozzleHead.position.set(0, -1.6, 0);
-// this.armPivot.add(this.nozzleHead);
-
-// // Single nozzle body (like HTML canvas version)
-// const nozzleBody = new THREE.Mesh(
-//   new THREE.CylinderGeometry(0.10, 0.07, 0.28, 16),
-//   new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.18, metalness: 0.92, emissive: 0x002244, emissiveIntensity: 0.3 })
-// );
-// nozzleBody.position.set(0, 0, 0);
-// this.nozzleHead.add(nozzleBody);
-
-// // Single tip pointing DOWN
-// this.nozzleTip = new THREE.Mesh(
-//   new THREE.CylinderGeometry(0.022, 0.035, 0.10, 12),
-//   new THREE.MeshStandardMaterial({ color: 0x223344, roughness: 0.12, metalness: 0.95 })
-// );
-// this.nozzleTip.position.set(0, -0.19, 0);
-// this.nozzleHead.add(this.nozzleTip);
-
-// // Tip glow dot
-// const tipGlow = new THREE.Mesh(
-//   new THREE.SphereGeometry(0.028, 8, 8),
-//   new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xffaa00, emissiveIntensity: 2.0, roughness: 0.3 })
-// );
-// tipGlow.position.set(0, -0.25, 0);
-// this.nozzleHead.add(tipGlow);
-// this.group.userData.nozzleTipGlow = tipGlow;
-//   }
-
-//   startCoat(wx: number, wz: number, color: number) {
-//     this.coatColor = color; this.group.position.set(wx, WAFER_TRANSFER_Y - 0.25, wz);
-//     this.group.visible = true; this.active = true; this.phase = "arm_descend";
-//     this.phaseT = 0; this.phaseDur = 1.2; this.spinRPM = 0; this.spinAngle = 0; this.resistRadius = 0;
-//     this.resistRings.forEach((r) => {
-//       (r.material as THREE.MeshStandardMaterial).opacity = 0;
-//       (r.material as THREE.MeshStandardMaterial).color.setHex(color);
-//       (r.material as THREE.MeshStandardMaterial).emissive.setHex(color);
-//     });
-//     this.dropletGroup.children.slice().forEach((c) => this.dropletGroup.remove(c));
-//     this.droplets = [];
-//    this.armPivot.position.set(-1.5, 3.49, 0); // parked left on rail
-// this.armPivot.rotation.y = 0;// parked to side
-//   }
-
-//   stopCoat() { this.group.visible = false; this.active = false; this.phase = "idle"; }
-
-//   tick(dt: number, speed: number) {
-//     if (!this.active) return;
-//     const sDt = dt * speed; this.phaseT += sDt;
-//     const t = Math.min(this.phaseT / this.phaseDur, 1);
-
-//     switch (this.phase) {
-//   case "arm_descend": {
-//   const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
-//   // Slide along rail from parked (-1.5) to center (0)
-//   this.armPivot.position.x = lerp(-1.5, 0, ease);
-//   // Rail stays at constant height — arm hangs below
-//   this.armPivot.position.y = 3.49;
-//   this.armPivot.position.z = 0;
-//   if (t >= 1) { this.phase = "dispense"; this.phaseT = 0; this.phaseDur = 1.5; }
-//   break;
-// }
-//       case "dispense": {
-//         if (Math.random() < sDt * 18) {
-//          const drop = new THREE.Mesh(
-//   new THREE.SphereGeometry(0.025 + Math.random() * 0.015, 8, 8),
-//   new THREE.MeshStandardMaterial({ color: this.coatColor, emissive: this.coatColor, emissiveIntensity: 0.8, roughness: 0.1, transparent: true, opacity: 0.9 })
-// );
-// // Spawn at nozzle tip world position
-// const tipWorldPos = new THREE.Vector3();
-// this.nozzleTip.getWorldPosition(tipWorldPos);
-// drop.position.copy(tipWorldPos);
-// drop.position.x += (Math.random() - 0.5) * 0.03;
-// drop.position.z += (Math.random() - 0.5) * 0.03;
-// // Convert to group local space
-// this.group.worldToLocal(drop.position);
-// drop.userData.vy = -1.2 - Math.random() * 0.5;
-// drop.userData.life = 0;
-// this.dropletGroup.add(drop);
-// this.droplets.push(drop);
-//         }
-//         this.droplets.forEach((d) => {
-//           d.position.y += d.userData.vy * sDt; d.userData.life += sDt;
-//           if (d.userData.life > 0.35) {
-//             (d.material as THREE.MeshStandardMaterial).opacity -= sDt * 3;
-//             if ((d.material as THREE.MeshStandardMaterial).opacity <= 0) this.dropletGroup.remove(d);
-//           }
-//         });
-//         this.droplets = this.droplets.filter((d) => d.parent === this.dropletGroup);
-//         this.spinRPM = lerp(0, 120, t);
-//         if (t >= 1) { this.phase = "spinup"; this.phaseT = 0; this.phaseDur = 1.0; }
-//         break;
-//       }
-//       case "spinup": {
-//         this.spinRPM = lerp(120, 2400, t * t); this.resistRadius = lerp(0, 0.2, t); this._updateResist();
-//         if (t >= 1) { this.phase = "coating"; this.phaseT = 0; this.phaseDur = 2.8; }
-//         break;
-//       }
-//       case "coating": {
-//         this.spinRPM = 2400; this.resistRadius = lerp(0.2, 0.88, t); this._updateResist();
-//        const armEase = t < 0.3 ? 0 : (t - 0.3) / 0.7;
-// // Slide back out along rail to parked position
-// this.armPivot.position.x = lerp(0, -1.5, armEase);
-// this.armPivot.position.y = 3.49;
-// this.armPivot.position.z = 0;
-//         if (Math.random() < sDt * 12 && this.resistRadius > 0.5) {
-//           const angle = Math.random() * Math.PI * 2;
-//           const drop = new THREE.Mesh(new THREE.SphereGeometry(0.018 + Math.random() * 0.01, 6, 6),
-//             new THREE.MeshStandardMaterial({ color: this.coatColor, emissive: this.coatColor, emissiveIntensity: 0.6, transparent: true, opacity: 0.75 }));
-//           drop.position.set(Math.cos(angle) * 0.88 + this.group.position.x, 0.42, Math.sin(angle) * 0.88 + this.group.position.z);
-//           drop.userData.vx = Math.cos(angle) * (1.5 + Math.random());
-//           drop.userData.vz = Math.sin(angle) * (1.5 + Math.random());
-//           drop.userData.vy = 0.2 + Math.random() * 0.3; drop.userData.life = 0; drop.userData.isFlung = true;
-//           this.dropletGroup.add(drop); this.droplets.push(drop);
-//         }
-//         this.droplets.forEach((d) => {
-//           if (d.userData.isFlung) {
-//             d.position.x += d.userData.vx * sDt; d.position.z += d.userData.vz * sDt;
-//             d.position.y -= d.userData.vy * sDt; d.userData.life += sDt;
-//             if (d.userData.life > 0.3) {
-//               (d.material as THREE.MeshStandardMaterial).opacity -= sDt * 4;
-//               if ((d.material as THREE.MeshStandardMaterial).opacity <= 0) this.dropletGroup.remove(d);
-//             }
-//           }
-//         });
-//         this.droplets = this.droplets.filter((d) => d.parent === this.dropletGroup);
-//         if (t >= 1) { this.resistRadius = 0.88; this._updateResist(true); this.phase = "spindown"; this.phaseT = 0; this.phaseDur = 1.5; }
-//         break;
-//       }
-//       case "spindown": { this.spinRPM = lerp(2400, 0, t); if (t >= 1) { this.phase = "done"; this.phaseT = 0; } break; }
-//       case "done": { this.spinRPM = 0; break; }
-//     }
-//     this.spinAngle += (this.spinRPM / 60) * Math.PI * 2 * sDt;
-//     this.spinChuck.rotation.y = this.spinAngle;
-//   }
-
-//   private _updateResist(full = false) {
-//     const numRings = this.resistRings.length;
-//     const fillFraction = full ? 1 : this.resistRadius / 0.88;
-//     this.resistRings.forEach((ring, i) => {
-//       const ringFrac = (i + 1) / numRings;
-//       const mat = ring.material as THREE.MeshStandardMaterial;
-//       if (ringFrac <= fillFraction) mat.opacity = Math.min(mat.opacity + 0.06, 0.88 - i * 0.003);
-//     });
-//   }
-// }
-
-// class SpinCoatAnimator {
-//   group: THREE.Group;
-//   armPivot: THREE.Group;
-//   nozzleArm: THREE.Mesh;
-//   nozzleHead: THREE.Group;
-//   nozzleTip: THREE.Mesh;
-//   spinChuck: THREE.Group;
-//   spinDisc: THREE.Mesh;
-//   resistRings: THREE.Mesh[] = [];
-//   resistGroup: THREE.Group;
-//   bowl: THREE.Mesh;
+class DevLiquidAnimator {
+  group: THREE.Group;
+  liquidPool: THREE.Mesh;
   
-//   // ── CONTINUOUS STREAM (replaces droplets) ──
-//   liquidStream!: THREE.Mesh;
-//   streamMat!: THREE.MeshStandardMaterial;
+  // ── SWING ARM ASSEMBLY ──
+  pivotPost: THREE.Mesh;
+  swingBar: THREE.Group;
+  valveBody: THREE.Mesh;
+  nozzleTip: THREE.Mesh;
+  tipGlow: THREE.Mesh;
   
-//   // ── SPIRAL TRAIL PATTERN ──
-//   spiralCanvas!: HTMLCanvasElement;
-//   spiralCtx!: CanvasRenderingContext2D;
-//   spiralTex!: THREE.CanvasTexture;
-//   spiralMesh!: THREE.Mesh;
-//   spiralAngle = 0;
-//   spiralRadius = 0;
-
-//   phase: "idle"|"arm_descend"|"dispense"|"spinup"|"coating"|"arm_retract"|"spindown"|"done" = "idle";
-//   phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
-//   resistRadius = 0; coatColor = 0x9922ff; active = false;
-
-//   constructor(scene: THREE.Scene) {
-//     this.group = new THREE.Group(); 
-//     scene.add(this.group); 
-//     this.group.visible = false;
-
-//     // Bowl
-//     const bowlMat = new THREE.MeshStandardMaterial({ color: 0xeef3f8, roughness: 0.28, metalness: 0.05 });
-//     this.bowl = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 0.55, 64, 1, true), bowlMat);
-//     this.bowl.position.y = 0.6; 
-//     this.group.add(this.bowl);
-
-//     // Bowl ridges
-//     for (let i = 0; i < 5; i++) {
-//       const r = 1.1 + i * 0.08;
-//       const ridge = new THREE.Mesh(new THREE.TorusGeometry(r, 0.018, 8, 64),
-//         new THREE.MeshStandardMaterial({ color: 0xdde8f0, roughness: 0.3, metalness: 0.1 }));
-//       ridge.rotation.x = Math.PI / 2; 
-//       ridge.position.y = 0.38 + i * 0.04; 
-//       this.group.add(ridge);
-//     }
-
-//     const baseRing = new THREE.Mesh(new THREE.RingGeometry(0.95, 1.55, 64),
-//       new THREE.MeshStandardMaterial({ color: 0xe8eef5, roughness: 0.22, metalness: 0.08, side: THREE.DoubleSide }));
-//     baseRing.rotation.x = -Math.PI / 2; 
-//     baseRing.position.y = 0.33; 
-//     this.group.add(baseRing);
-
-//     // Spin chuck
-//     this.spinChuck = new THREE.Group(); 
-//     this.group.add(this.spinChuck);
-//     this.spinDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.06, 80),
-//       new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.12, metalness: 0.92 }));
-//     this.spinDisc.position.y = 0.37; 
-//     this.spinChuck.add(this.spinDisc);
-
-//     for (let i = 0; i < 6; i++) {
-//       const a = (i / 6) * Math.PI * 2;
-//       const port = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.07, 12),
-//         new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3 }));
-//       port.position.set(Math.cos(a) * 0.55, 0.4, Math.sin(a) * 0.55);
-//       this.spinChuck.add(port);
-//     }
-
-//     // Resist ring layers (built up during coating)
-//     this.resistGroup = new THREE.Group(); 
-//     this.resistGroup.position.y = 0.41; 
-//     this.spinChuck.add(this.resistGroup);
-//     const numRings = 18;
-//     for (let i = 0; i < numRings; i++) {
-//       const r0 = (i / numRings) * 0.88, r1 = ((i + 1) / numRings) * 0.88;
-//       const ring = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 64),
-//         new THREE.MeshStandardMaterial({ 
-//           color: 0x9922ff, emissive: 0x5511aa, emissiveIntensity: 0.6, 
-//           roughness: 0.15, metalness: 0.05, transparent: true, opacity: 0, 
-//           side: THREE.DoubleSide, depthWrite: false 
-//         }));
-//       ring.rotation.x = -Math.PI / 2; 
-//       ring.position.y = 0.001 * i;
-//       this.resistGroup.add(ring); 
-//       this.resistRings.push(ring);
-//     }
-
-//     // ── SPIRAL PATTERN CANVAS (rendered on top of wafer) ──
-//     this.spiralCanvas = document.createElement("canvas");
-//     this.spiralCanvas.width = 512;
-//     this.spiralCanvas.height = 512;
-//     this.spiralCtx = this.spiralCanvas.getContext("2d")!;
-//     this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
-    
-//     this.spiralMesh = new THREE.Mesh(
-//       new THREE.CircleGeometry(0.88, 80),
-//       new THREE.MeshBasicMaterial({
-//         map: this.spiralTex,
-//         transparent: true,
-//         opacity: 0,
-//         depthWrite: false,
-//         side: THREE.DoubleSide,
-//       })
-//     );
-//     this.spiralMesh.rotation.x = -Math.PI / 2;
-//     this.spiralMesh.position.y = 0.44;
-//     this.spiralMesh.renderOrder = 10;
-//     this.spinChuck.add(this.spiralMesh);
-
-//     // ── WALL-MOUNTED RAIL SYSTEM ──
-//     const railMat = new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 });
-//     const overheadRail = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.07, 0.07), railMat);
-//     overheadRail.position.set(0, 3.6, 0);
-//     this.group.add(overheadRail);
-
-//     const postMat = new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 });
-//     const leftPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.0, 0.07), postMat);
-//     leftPost.position.set(-1.6, 2.6, 0);
-//     this.group.add(leftPost);
-//     const rightPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.0, 0.07), postMat);
-//     rightPost.position.set(1.6, 2.6, 0);
-//     this.group.add(rightPost);
-
-//     const nozzleCarriageBlock = new THREE.Mesh(
-//       new THREE.BoxGeometry(0.28, 0.22, 0.22),
-//       new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.13, metalness: 0.94 })
-//     );
-//     nozzleCarriageBlock.position.set(0, 3.49, 0);
-//     this.group.add(nozzleCarriageBlock);
-//     this.group.userData.nozzleCarriage = nozzleCarriageBlock;
-
-//     this.armPivot = new THREE.Group();
-//     this.armPivot.position.set(-1.5, 3.49, 0);
-//     this.group.add(this.armPivot);
-
-//     // Vertical arm
-//     this.nozzleArm = new THREE.Mesh(
-//       new THREE.BoxGeometry(0.06, 1.55, 0.06),
-//       new THREE.MeshStandardMaterial({ color: 0xc8d8e8, roughness: 0.10, metalness: 0.96 })
-//     );
-//     this.nozzleArm.position.set(0, -0.77, 0);
-//     this.armPivot.add(this.nozzleArm);
-
-//     // Nozzle head
-//     this.nozzleHead = new THREE.Group();
-//     this.nozzleHead.position.set(0, -1.6, 0);
-//     this.armPivot.add(this.nozzleHead);
-
-//     const nozzleBody = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.10, 0.07, 0.28, 16),
-//       new THREE.MeshStandardMaterial({ 
-//         color: 0x556677, roughness: 0.18, metalness: 0.92, 
-//         emissive: 0x002244, emissiveIntensity: 0.3 
-//       })
-//     );
-//     nozzleBody.position.set(0, 0, 0);
-//     this.nozzleHead.add(nozzleBody);
-
-//     this.nozzleTip = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.022, 0.035, 0.10, 12),
-//       new THREE.MeshStandardMaterial({ color: 0x223344, roughness: 0.12, metalness: 0.95 })
-//     );
-//     this.nozzleTip.position.set(0, -0.19, 0);
-//     this.nozzleHead.add(this.nozzleTip);
-
-//     const tipGlow = new THREE.Mesh(
-//       new THREE.SphereGeometry(0.028, 8, 8),
-//       new THREE.MeshStandardMaterial({ 
-//         color: 0xffaa00, emissive: 0xffaa00, emissiveIntensity: 2.0, roughness: 0.3 
-//       })
-//     );
-//     tipGlow.position.set(0, -0.25, 0);
-//     this.nozzleHead.add(tipGlow);
-//     this.group.userData.nozzleTipGlow = tipGlow;
-
-//     // ── CONTINUOUS LIQUID STREAM (cylinder from nozzle to wafer) ──
-//     // Length 1.1 (from nozzle tip at y=-0.25 down to wafer at y=0.42)
-//     this.streamMat = new THREE.MeshStandardMaterial({
-//       color: 0x9922ff,
-//       emissive: 0x9922ff,
-//       emissiveIntensity: 1.2,
-//       roughness: 0.15,
-//       metalness: 0.1,
-//       transparent: true,
-//       opacity: 0,
-//       depthWrite: false,
-//     });
-//     this.liquidStream = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.025, 0.018, 1.1, 12, 1, true),
-//       this.streamMat
-//     );
-//     // Position so top of cylinder is at nozzle tip
-//     this.liquidStream.position.set(0, -0.80, 0);  // midpoint between tip (-0.25) and wafer (~+0.42... wait, in local of nozzleHead, wafer is below)
-//     this.nozzleHead.add(this.liquidStream);
-//   }
-
-//   startCoat(wx: number, wz: number, color: number) {
-//     this.coatColor = color; 
-//     this.group.position.set(wx, WAFER_TRANSFER_Y - 0.25, wz);
-//     this.group.visible = true;  // always visible on prcoat module
-//     this.active = true;
-//     this.phase = "arm_descend";
-//     this.phaseT = 0; 
-//     this.phaseDur = 1.2; 
-//     this.spinRPM = 0; 
-//     this.spinAngle = 0; 
-//     this.resistRadius = 0;
-//     this.spiralAngle = 0;
-//     this.spiralRadius = 0;
-    
-//     this.resistRings.forEach((r) => {
-//       (r.material as THREE.MeshStandardMaterial).opacity = 0;
-//       (r.material as THREE.MeshStandardMaterial).color.setHex(color);
-//       (r.material as THREE.MeshStandardMaterial).emissive.setHex(color);
-//     });
-    
-//     // Reset stream
-//     this.streamMat.color.setHex(color);
-//     this.streamMat.emissive.setHex(color);
-//     this.streamMat.opacity = 0;
-    
-//     // Reset spiral
-//     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
-//     this.spiralCtx.clearRect(0, 0, 512, 512);
-//     this.spiralTex.needsUpdate = true;
-    
-//     this.armPivot.position.set(-1.5, 3.49, 0);
-//     this.armPivot.rotation.y = 0;
-//   }
-
-// stopCoat() {
-//     this.active = false;
-//     this.phase = "idle";
-//     this.streamMat.opacity = 0;
-//     this.armPivot.position.set(-1.5, 3.49, 0);
-//     this.group.visible = false;  // stay visible — parked on module
-//   }
-
-//   // Draw spiral trail on canvas as wafer spins and liquid is dispensed
-//   private _drawSpiralTrail(centerSpiralRadius: number, spinSpeed: number, dt: number) {
-//     const ctx = this.spiralCtx;
-//     const C = 256;
-//     const maxR = 230;
-    
-//     // Fade existing pattern slightly to allow smooth buildup (not erase)
-//     ctx.globalCompositeOperation = "source-over";
-    
-//     // Number of trail segments per frame depends on spin speed
-//     const steps = Math.max(3, Math.floor(spinSpeed * dt * 60));
-    
-//     for (let s = 0; s < steps; s++) {
-//       // Spiral expands outward as time goes on
-//       this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (dt / steps);
-//       // Use a small radius increase per turn (Archimedean spiral)
-//       const r = centerSpiralRadius * maxR;
-      
-//       const px = C + Math.cos(this.spiralAngle) * r;
-//       const py = C + Math.sin(this.spiralAngle) * r;
-      
-//       // Draw glowing dot at this position
-//       const css = `#${this.coatColor.toString(16).padStart(6, "0")}`;
-      
-//       // Outer glow
-//       const grad = ctx.createRadialGradient(px, py, 0, px, py, 12);
-//       grad.addColorStop(0, css + "ff");
-//       grad.addColorStop(0.5, css + "88");
-//       grad.addColorStop(1, css + "00");
-//       ctx.fillStyle = grad;
-//       ctx.beginPath();
-//       ctx.arc(px, py, 12, 0, Math.PI * 2);
-//       ctx.fill();
-      
-//       // Bright core
-//       ctx.fillStyle = "#ffffff";
-//       ctx.globalAlpha = 0.6;
-//       ctx.beginPath();
-//       ctx.arc(px, py, 3, 0, Math.PI * 2);
-//       ctx.fill();
-//       ctx.globalAlpha = 1;
-//     }
-    
-//     this.spiralTex.needsUpdate = true;
-//   }
-
-//   tick(dt: number, speed: number) {
-//     if (!this.active) return;
-//     const sDt = dt * speed; 
-//     this.phaseT += sDt;
-//     const t = Math.min(this.phaseT / this.phaseDur, 1);
-
-//     switch (this.phase) {
-//       case "arm_descend": {
-//         const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
-//         this.armPivot.position.x = lerp(-1.5, 0, ease);
-//         this.armPivot.position.y = 3.49;
-//         this.armPivot.position.z = 0;
-//         if (t >= 1) { 
-//           this.phase = "dispense"; 
-//           this.phaseT = 0; 
-//           this.phaseDur = 1.5; 
-//         }
-//         break;
-//       }
-      
-//       case "dispense": {
-//         // ── CONTINUOUS STREAM (fade in opacity smoothly) ──
-//         this.streamMat.opacity = Math.min(t * 1.5, 0.95);
-//         // Slight pulsing for liquid feel
-//         this.streamMat.emissiveIntensity = 1.2 + 0.3 * Math.sin(this.phaseT * 18);
-        
-//         this.spinRPM = lerp(0, 120, t);
-//         if (t >= 1) { 
-//           this.phase = "spinup"; 
-//           this.phaseT = 0; 
-//           this.phaseDur = 1.0; 
-//         }
-//         break;
-//       }
-      
-//       case "spinup": {
-//         this.spinRPM = lerp(120, 2400, t * t); 
-//         this.resistRadius = lerp(0, 0.2, t); 
-//         this._updateResist();
-        
-//         // Stream stays on during spinup
-//         this.streamMat.opacity = 0.95;
-//         this.streamMat.emissiveIntensity = 1.2 + 0.3 * Math.sin(this.phaseT * 18);
-        
-//         // Begin spiral pattern
-//         const spiralR = lerp(0.05, 0.3, t);
-//         this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.7, t);
-        
-//         if (t >= 1) { 
-//           this.phase = "coating"; 
-//           this.phaseT = 0; 
-//           this.phaseDur = 2.8; 
-//         }
-//         break;
-//       }
-      
-//       case "coating": {
-//         this.spinRPM = 2400; 
-//         this.resistRadius = lerp(0.2, 0.88, t); 
-//         this._updateResist();
-        
-//         // Stream continues during coating (first 60%), then arm retracts and stream stops
-//         const armEase = t < 0.3 ? 0 : (t - 0.3) / 0.7;
-//         this.armPivot.position.x = lerp(0, -1.5, armEase);
-//         this.armPivot.position.y = 3.49;
-        
-//         // Stream fades as arm retracts
-//         if (t < 0.3) {
-//           this.streamMat.opacity = 0.95;
-//         } else {
-//           this.streamMat.opacity = Math.max(0, 0.95 * (1 - armEase));
-//         }
-//         this.streamMat.emissiveIntensity = 1.2 + 0.3 * Math.sin(this.phaseT * 18);
-        
-//         // Continue drawing spiral — radius expands outward
-//         const spiralR = lerp(0.3, 0.95, t);
-//         this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0.85;
-        
-//         if (t >= 1) { 
-//           this.resistRadius = 0.88; 
-//           this._updateResist(true); 
-//           this.phase = "spindown"; 
-//           this.phaseT = 0; 
-//           this.phaseDur = 1.5; 
-//           this.streamMat.opacity = 0;
-//         } 
-//         break;
-//       }
-      
-//       case "spindown": { 
-//         this.spinRPM = lerp(2400, 0, t); 
-//         // Spiral pattern fades to uniform coating
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0.85, 0.3, t);
-//         if (t >= 1) { 
-//           this.phase = "done"; 
-//           this.phaseT = 0; 
-//         } 
-//         break; 
-//       }
-      
-//       case "done": { 
-//         this.spinRPM = 0; 
-//         break; 
-//       }
-//     }
-    
-//     this.spinAngle += (this.spinRPM / 60) * Math.PI * 2 * sDt;
-//     this.spinChuck.rotation.y = this.spinAngle;
-//   }
-
-//   private _updateResist(full = false) {
-//     const numRings = this.resistRings.length;
-//     const fillFraction = full ? 1 : this.resistRadius / 0.88;
-//     this.resistRings.forEach((ring, i) => {
-//       const ringFrac = (i + 1) / numRings;
-//       const mat = ring.material as THREE.MeshStandardMaterial;
-//       if (ringFrac <= fillFraction) 
-//         mat.opacity = Math.min(mat.opacity + 0.06, 0.88 - i * 0.003);
-//     });
-//   }
-// }
-
-// class SpinCoatAnimator {
-//   group: THREE.Group;
-//   spinChuck: THREE.Group;
-//   spinDisc: THREE.Mesh;
-//   resistRings: THREE.Mesh[] = [];
-//   resistGroup: THREE.Group;
-//   bowl: THREE.Mesh;
+  // ── CONTINUOUS STREAMS ──
+  liquidStreams: THREE.Mesh[] = [];
+  streamMats: THREE.MeshStandardMaterial[] = [];
   
-//   // ── SPIRAL TRAIL PATTERN ──
-//   spiralCanvas!: HTMLCanvasElement;
-//   spiralCtx!: CanvasRenderingContext2D;
-//   spiralTex!: THREE.CanvasTexture;
-//   spiralMesh!: THREE.Mesh;
-//   spiralAngle = 0;
-//   spiralRadius = 0;
-
-//   phase: "idle"|"dispense"|"spinup"|"coating"|"spindown"|"done" = "idle";
-//   phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
-//   resistRadius = 0; coatColor = 0x9922ff; active = false;
-
-//   constructor(scene: THREE.Scene) {
-//     this.group = new THREE.Group(); 
-//     scene.add(this.group); 
-//     this.group.visible = false;
-
-//     // ── BOWL (the cup that catches resist) ──
-//     const bowlMat = new THREE.MeshStandardMaterial({ color: 0xeef3f8, roughness: 0.28, metalness: 0.05 });
-//     this.bowl = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 0.55, 64, 1, true), bowlMat);
-//     this.bowl.position.y = 0.6; 
-//     this.group.add(this.bowl);
-
-//     // ── BOWL RIDGES ──
-//     for (let i = 0; i < 5; i++) {
-//       const r = 1.1 + i * 0.08;
-//       const ridge = new THREE.Mesh(new THREE.TorusGeometry(r, 0.018, 8, 64),
-//         new THREE.MeshStandardMaterial({ color: 0xdde8f0, roughness: 0.3, metalness: 0.1 }));
-//       ridge.rotation.x = Math.PI / 2; 
-//       ridge.position.y = 0.38 + i * 0.04; 
-//       this.group.add(ridge);
-//     }
-
-//     const baseRing = new THREE.Mesh(new THREE.RingGeometry(0.95, 1.55, 64),
-//       new THREE.MeshStandardMaterial({ color: 0xe8eef5, roughness: 0.22, metalness: 0.08, side: THREE.DoubleSide }));
-//     baseRing.rotation.x = -Math.PI / 2; 
-//     baseRing.position.y = 0.33; 
-//     this.group.add(baseRing);
-
-//     // ── SPIN CHUCK ──
-//     this.spinChuck = new THREE.Group(); 
-//     this.group.add(this.spinChuck);
-//     this.spinDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.06, 80),
-//       new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.12, metalness: 0.92 }));
-//     this.spinDisc.position.y = 0.37; 
-//     this.spinChuck.add(this.spinDisc);
-
-//     for (let i = 0; i < 6; i++) {
-//       const a = (i / 6) * Math.PI * 2;
-//       const port = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.07, 12),
-//         new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3 }));
-//       port.position.set(Math.cos(a) * 0.55, 0.4, Math.sin(a) * 0.55);
-//       this.spinChuck.add(port);
-//     }
-
-//     // ── RESIST RING LAYERS ──
-//     this.resistGroup = new THREE.Group(); 
-//     this.resistGroup.position.y = 0.41; 
-//     this.spinChuck.add(this.resistGroup);
-//     const numRings = 18;
-//     for (let i = 0; i < numRings; i++) {
-//       const r0 = (i / numRings) * 0.88, r1 = ((i + 1) / numRings) * 0.88;
-//       const ring = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 64),
-//         new THREE.MeshStandardMaterial({ 
-//           color: 0x9922ff, emissive: 0x5511aa, emissiveIntensity: 0.6, 
-//           roughness: 0.15, metalness: 0.05, transparent: true, opacity: 0, 
-//           side: THREE.DoubleSide, depthWrite: false 
-//         }));
-//       ring.rotation.x = -Math.PI / 2; 
-//       ring.position.y = 0.001 * i;
-//       this.resistGroup.add(ring); 
-//       this.resistRings.push(ring);
-//     }
-
-//     // ── SPIRAL PATTERN CANVAS ──
-//     this.spiralCanvas = document.createElement("canvas");
-//     this.spiralCanvas.width = 512;
-//     this.spiralCanvas.height = 512;
-//     this.spiralCtx = this.spiralCanvas.getContext("2d")!;
-//     this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
-    
-//     this.spiralMesh = new THREE.Mesh(
-//       new THREE.CircleGeometry(0.88, 80),
-//       new THREE.MeshBasicMaterial({
-//         map: this.spiralTex,
-//         transparent: true,
-//         opacity: 0,
-//         depthWrite: false,
-//         side: THREE.DoubleSide,
-//       })
-//     );
-//     this.spiralMesh.rotation.x = -Math.PI / 2;
-//     this.spiralMesh.position.y = 0.44;
-//     this.spiralMesh.renderOrder = 10;
-//     this.spinChuck.add(this.spiralMesh);
-
-//     // ══════════════════════════════════════════════════════════════════════
-//     // NOZZLE COMPLETELY REMOVED — coating now happens invisibly from above.
-//     // Only the spinning chuck, ring buildup, and spiral pattern are visible.
-//     // ══════════════════════════════════════════════════════════════════════
-//   }
-
-//   startCoat(wx: number, wz: number, color: number) {
-//     this.coatColor = color; 
-//     this.group.position.set(wx, WAFER_TRANSFER_Y - 0.25, wz);
-//     this.group.visible = true; 
-//     this.active = true; 
-//     this.phase = "dispense";   // skip "arm_descend" — no arm anymore
-//     this.phaseT = 0; 
-//     this.phaseDur = 1.0; 
-//     this.spinRPM = 0; 
-//     this.spinAngle = 0; 
-//     this.resistRadius = 0;
-//     this.spiralAngle = 0;
-//     this.spiralRadius = 0;
-    
-//     this.resistRings.forEach((r) => {
-//       (r.material as THREE.MeshStandardMaterial).opacity = 0;
-//       (r.material as THREE.MeshStandardMaterial).color.setHex(color);
-//       (r.material as THREE.MeshStandardMaterial).emissive.setHex(color);
-//     });
-    
-//     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
-//     this.spiralCtx.clearRect(0, 0, 512, 512);
-//     this.spiralTex.needsUpdate = true;
-//   }
-
-//   stopCoat() { 
-//     this.group.visible = false; 
-//     this.active = false; 
-//     this.phase = "idle";
-//   }
-
-//   private _drawSpiralTrail(centerSpiralRadius: number, spinSpeed: number, dt: number) {
-//     const ctx = this.spiralCtx;
-//     const C = 256;
-//     const maxR = 230;
-    
-//     ctx.globalCompositeOperation = "source-over";
-//     const steps = Math.max(3, Math.floor(spinSpeed * dt * 60));
-    
-//     for (let s = 0; s < steps; s++) {
-//       this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (dt / steps);
-//       const r = centerSpiralRadius * maxR;
-//       const px = C + Math.cos(this.spiralAngle) * r;
-//       const py = C + Math.sin(this.spiralAngle) * r;
-//       const css = `#${this.coatColor.toString(16).padStart(6, "0")}`;
-      
-//       const grad = ctx.createRadialGradient(px, py, 0, px, py, 12);
-//       grad.addColorStop(0, css + "ff");
-//       grad.addColorStop(0.5, css + "88");
-//       grad.addColorStop(1, css + "00");
-//       ctx.fillStyle = grad;
-//       ctx.beginPath();
-//       ctx.arc(px, py, 12, 0, Math.PI * 2);
-//       ctx.fill();
-      
-//       ctx.fillStyle = "#ffffff";
-//       ctx.globalAlpha = 0.6;
-//       ctx.beginPath();
-//       ctx.arc(px, py, 3, 0, Math.PI * 2);
-//       ctx.fill();
-//       ctx.globalAlpha = 1;
-//     }
-    
-//     this.spiralTex.needsUpdate = true;
-//   }
-
-//   tick(dt: number, speed: number) {
-//     // SAFETY: stay invisible when inactive
-//     if (!this.active) {
-//       this.group.visible = false;
-//       return;
-//     }
-//     this.group.visible = true;
-
-//     const sDt = dt * speed; 
-//     this.phaseT += sDt;
-//     const t = Math.min(this.phaseT / this.phaseDur, 1);
-
-//     switch (this.phase) {
-//       case "dispense": {
-//         // Brief moment showing the resist starting to build up
-//         this.spinRPM = lerp(0, 120, t);
-//         // Begin showing color on wafer center as if dispensed
-//         if (this.resistRings.length > 0) {
-//           const centerRing = this.resistRings[0].material as THREE.MeshStandardMaterial;
-//           centerRing.opacity = Math.min(t * 0.85, 0.85);
-//         }
-//         if (t >= 1) { 
-//           this.phase = "spinup"; 
-//           this.phaseT = 0; 
-//           this.phaseDur = 1.0; 
-//         }
-//         break;
-//       }
-      
-//       case "spinup": {
-//         this.spinRPM = lerp(120, 2400, t * t); 
-//         this.resistRadius = lerp(0, 0.2, t); 
-//         this._updateResist();
-//         const spiralR = lerp(0.05, 0.3, t);
-//         this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.7, t);
-//         if (t >= 1) { 
-//           this.phase = "coating"; 
-//           this.phaseT = 0; 
-//           this.phaseDur = 2.8; 
-//         }
-//         break;
-//       }
-      
-//       case "coating": {
-//         this.spinRPM = 2400; 
-//         this.resistRadius = lerp(0.2, 0.88, t); 
-//         this._updateResist();
-//         const spiralR = lerp(0.3, 0.95, t);
-//         this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0.85;
-//         if (t >= 1) { 
-//           this.resistRadius = 0.88; 
-//           this._updateResist(true); 
-//           this.phase = "spindown"; 
-//           this.phaseT = 0; 
-//           this.phaseDur = 1.5; 
-//         } 
-//         break;
-//       }
-      
-//       case "spindown": { 
-//         this.spinRPM = lerp(2400, 0, t); 
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0.85, 0.3, t);
-//         if (t >= 1) { 
-//           this.phase = "done"; 
-//           this.phaseT = 0; 
-//         } 
-//         break; 
-//       }
-      
-//       case "done": { 
-//         this.spinRPM = 0; 
-//         break; 
-//       }
-//     }
-    
-//     this.spinAngle += (this.spinRPM / 60) * Math.PI * 2 * sDt;
-//     this.spinChuck.rotation.y = this.spinAngle;
-//   }
-
-//   private _updateResist(full = false) {
-//     const numRings = this.resistRings.length;
-//     const fillFraction = full ? 1 : this.resistRadius / 0.88;
-//     this.resistRings.forEach((ring, i) => {
-//       const ringFrac = (i + 1) / numRings;
-//       const mat = ring.material as THREE.MeshStandardMaterial;
-//       if (ringFrac <= fillFraction) 
-//         mat.opacity = Math.min(mat.opacity + 0.06, 0.88 - i * 0.003);
-//     });
-//   }
-// }
-
-
-// class SpinCoatAnimator {
-//   group: THREE.Group;
-//   spinChuck: THREE.Group;
-//   spinDisc: THREE.Mesh;
-//   resistRings: THREE.Mesh[] = [];
-//   resistGroup: THREE.Group;
-//   bowl: THREE.Mesh;
+  // ── SPIRAL PATTERN ──
+  spiralCanvas!: HTMLCanvasElement;
+  spiralCtx!: CanvasRenderingContext2D;
+  spiralTex!: THREE.CanvasTexture;
+  spiralMesh!: THREE.Mesh;
+  spiralAngle = 0;
   
-//   // ── SWING ARM ASSEMBLY ──
-//   pivotPost: THREE.Mesh;        // fixed vertical column
-//   swingBar: THREE.Group;        // rotates around pivot post (origin at post)
-//   valveBody: THREE.Mesh;
-//   nozzleTip: THREE.Mesh;
-//   tipGlow: THREE.Mesh;
+  private _drawAccum = 0;
+  private _matUpdateAccum = 0;
   
-//   // ── CONTINUOUS STREAM ──
-//   liquidStream: THREE.Mesh;
-//   streamMat: THREE.MeshStandardMaterial;
+  poolGroup!: THREE.Group;
+  poolSpin = 0;
+
+  readonly POST_X = 0.0;
+  readonly POST_Z = 1.2;
+  readonly BAR_LENGTH = 1.4;
+  readonly NOZZLE_DROP = 0.30;
+  readonly TIP_DROP = 0.10;
   
-//   // ── SPIRAL TRAIL PATTERN ──
-//   spiralCanvas!: HTMLCanvasElement;
-//   spiralCtx!: CanvasRenderingContext2D;
-//   spiralTex!: THREE.CanvasTexture;
-//   spiralMesh!: THREE.Mesh;
-//   spiralAngle = 0;
-
-//   phase: "idle"|"swing_in"|"dispense"|"spinup"|"coating"|"swing_out"|"spindown"|"done" = "idle";
-//   phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
-//   resistRadius = 0; coatColor = 0x9922ff; active = false;
+  active = false;
+  phase: "idle" | "swing_in" | "spray" | "puddle" | "rinse" | "swing_out" | "drain" | "done" = "idle";
+  phaseT = 0;
+  phaseDur = 1;
   
-// 	// ── SWING DIRECTION / TUNING ──
-// 	readonly SWING_PARKED = Math.PI;     // 180° — arm points away from chuck
-// 	readonly SWING_OVER   = 0;           // 0° — arm points +X toward chuck
-//   swingAngle = Math.PI;
+  readonly SWING_PARKED = -Math.PI / 2;
+  readonly SWING_OVER   = Math.PI / 2;
+  swingAngle = -Math.PI / 2;
 
-//   readonly CHUCK_Y = 0.35;
-//   readonly POST_HEIGHT = 2.0;
-//   readonly POST_X = -1.3;
-//   readonly POST_Z = 0.0;
-//   readonly BAR_LENGTH = 1.4;
-//   readonly NOZZLE_DROP = 0.5;
-//   readonly TIP_DROP = 0.8;
+  constructor(scene: THREE.Scene) {
+    this.group = new THREE.Group();
+    scene.add(this.group);
+    this.group.visible = false;
 
-//   constructor(scene: THREE.Scene) {
-//     this.group = new THREE.Group();
-//     scene.add(this.group);
-//     this.group.visible = false;
+    // ── LIQUID POOL ──
+    this.poolGroup = new THREE.Group();
+    this.poolGroup.position.y = 0.05;
+    this.group.add(this.poolGroup);
 
-//     // ── BOWL (small, low profile) ──
-//     const bowlMat = new THREE.MeshStandardMaterial({
-//       color: 0xeef3f8,
-//       roughness: 0.28,
-//       metalness: 0.05,
-//     });
-//     this.bowl = new THREE.Mesh(
-//       new THREE.CylinderGeometry(1.4, 1.4, 0.25, 64, 1, true),
-//       bowlMat
-//     );
-//     this.bowl.position.y = 0.6;
-//     this.group.add(this.bowl);
+    this.liquidPool = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.75, 0.75, 0.012, 64),
+      new THREE.MeshStandardMaterial({
+        color: 0x33cc88, roughness: 0.05, metalness: 0.05,
+        transparent: true, opacity: 0,
+        emissive: 0x22aa66, emissiveIntensity: 0.4,
+      })
+    );
+    this.poolGroup.add(this.liquidPool);
 
-//     // Bowl ridges
-//     for (let i = 0; i < 5; i++) {
-//       const r = 1.1 + i * 0.08;
-//       const ridge = new THREE.Mesh(
-//         new THREE.TorusGeometry(r, 0.018, 8, 64),
-//         new THREE.MeshStandardMaterial({ color: 0xdde8f0, roughness: 0.3, metalness: 0.1 })
-//       );
-//       ridge.rotation.x = Math.PI / 2;
-//       ridge.position.y = 0.38 + i * 0.04;
-//       this.group.add(ridge);
-//     }
+    // ── SPIRAL PATTERN ──
+    this.spiralCanvas = document.createElement("canvas");
+    this.spiralCanvas.width = 512;
+    this.spiralCanvas.height = 512;
+    this.spiralCtx = this.spiralCanvas.getContext("2d")!;
+    this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
 
-//     const baseRing = new THREE.Mesh(
-//       new THREE.RingGeometry(0.95, 1.4, 64),
-//       new THREE.MeshStandardMaterial({
-//         color: 0xe8eef5,
-//         roughness: 0.22,
-//         metalness: 0.08,
-//         side: THREE.DoubleSide,
-//       })
-//     );
-//     baseRing.rotation.x = -Math.PI / 2;
-//     baseRing.position.y = 0.01;
-//     this.group.add(baseRing);
+    this.spiralMesh = new THREE.Mesh(
+      new THREE.CircleGeometry(0.74, 80),
+      new THREE.MeshBasicMaterial({
+        map: this.spiralTex, transparent: true, opacity: 0,
+        depthWrite: false, side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    this.spiralMesh.rotation.x = -Math.PI / 2;
+    this.spiralMesh.position.y = 0.015;
+    this.spiralMesh.renderOrder = 10;
+    this.poolGroup.add(this.spiralMesh);
 
-//     // ── SPIN CHUCK ──
-//     this.spinChuck = new THREE.Group();
-//     this.spinChuck.position.y = this.CHUCK_Y;
-//     this.group.add(this.spinChuck);
+    // ═══════════════════════════════════════════════════════════════════
+    // BASE MOUNTING ASSEMBLY — VERTICAL STACK
+    // Plate → Box → Box Top → Post Flange → Post → Swing Arm
+    // Everything centered at (POST_X, POST_Z) so post rises FROM the box
+    // ═══════════════════════════════════════════════════════════════════
+    const POST_X = this.POST_X;
+    const POST_Z = this.POST_Z;
     
-//     this.spinDisc = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.92, 0.92, 0.08, 80),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x556677,
-//         roughness: 0.12,
-//         metalness: 0.92,
-//         emissive: 0x223355,
-//         emissiveIntensity: 0.4,
-//       })
-//     );
-//     this.spinDisc.position.y = 0;
-//     this.spinChuck.add(this.spinDisc);
+    // ── BASE PLATE (sits on module surface) ──
+    const basePlate = new THREE.Mesh(
+      new THREE.BoxGeometry(0.85, 0.10, 0.75),
+      new THREE.MeshStandardMaterial({
+        color: 0x1c2230,
+        roughness: 0.35,
+        metalness: 0.92,
+        emissive: 0x050810,
+        emissiveIntensity: 0.4,
+      })
+    );
+    basePlate.position.set(POST_X, 0.05, POST_Z);
+    basePlate.castShadow = true;
+    this.group.add(basePlate);
 
-//     for (let i = 0; i < 6; i++) {
-//       const a = (i / 6) * Math.PI * 2;
-//       const port = new THREE.Mesh(
-//         new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12),
-//         new THREE.MeshStandardMaterial({
-//           color: 0x111122,
-//           emissive: 0x004488,
-//           emissiveIntensity: 1.0,
-//         })
-//       );
-//       port.position.set(Math.cos(a) * 0.65, 0.06, Math.sin(a) * 0.65);
-//       this.spinChuck.add(port);
-//     }
+    // ── BASE BEVEL (chamfer on top of plate) ──
+    const baseBevel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.88, 0.025, 0.78),
+      new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.20, metalness: 0.95 })
+    );
+    baseBevel.position.set(POST_X, 0.108, POST_Z);
+    this.group.add(baseBevel);
 
-//     // ── RESIST RING LAYERS ──
-//     this.resistGroup = new THREE.Group();
-//     this.resistGroup.position.y = 0.05;
-//     this.spinChuck.add(this.resistGroup);
-//     const numRings = 18;
-//     for (let i = 0; i < numRings; i++) {
-//       const r0 = (i / numRings) * 0.88, r1 = ((i + 1) / numRings) * 0.88;
-//       const ring = new THREE.Mesh(
-//         new THREE.RingGeometry(r0, r1, 64),
-//         new THREE.MeshStandardMaterial({
-//           color: 0x9922ff, emissive: 0x5511aa, emissiveIntensity: 0.6,
-//           roughness: 0.15, metalness: 0.05, transparent: true, opacity: 0,
-//           side: THREE.DoubleSide, depthWrite: false,
-//         })
-//       );
-//       ring.rotation.x = -Math.PI / 2;
-//       ring.position.y = 0.001 * i;
-//       this.resistGroup.add(ring);
-//       this.resistRings.push(ring);
-//     }
+    // ── 4 CORNER BOLTS ──
+    [[-0.32, -0.27], [0.32, -0.27], [-0.32, 0.27], [0.32, 0.27]].forEach(([dx, dz]) => {
+      const boltBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.045, 0.045, 0.06, 6),
+        new THREE.MeshStandardMaterial({ color: 0x111118, metalness: 0.98, roughness: 0.2 })
+      );
+      boltBody.position.set(POST_X + (dx as number), 0.135, POST_Z + (dz as number));
+      this.group.add(boltBody);
 
-//     // ── SPIRAL PATTERN ──
-//     this.spiralCanvas = document.createElement("canvas");
-//     this.spiralCanvas.width = 512;
-//     this.spiralCanvas.height = 512;
-//     this.spiralCtx = this.spiralCanvas.getContext("2d")!;
-//     this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
+      const boltHead = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.05, 0.02, 6),
+        new THREE.MeshStandardMaterial({ color: 0x778899, metalness: 0.95, roughness: 0.15 })
+      );
+      boltHead.position.set(POST_X + (dx as number), 0.17, POST_Z + (dz as number));
+      this.group.add(boltHead);
+    });
+
+    // ── CONTROL BOX (sits centered on base plate, post will sit on top) ──
+    const controlBox = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.40, 0.50),
+      new THREE.MeshStandardMaterial({ color: 0x2a3340, roughness: 0.32, metalness: 0.88, emissive: 0x0a1525, emissiveIntensity: 0.5 })
+    );
+    controlBox.position.set(POST_X, 0.32, POST_Z);
+    controlBox.castShadow = true;
+    this.group.add(controlBox);
+
+    // ── FRONT PANEL (faces +Z direction) ──
+    const frontPanel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.50, 0.36, 0.015),
+      new THREE.MeshStandardMaterial({ color: 0x1a1f28, roughness: 0.4, metalness: 0.7 })
+    );
+    frontPanel.position.set(POST_X, 0.32, POST_Z + 0.26);
+    this.group.add(frontPanel);
+
+    // ── STATUS LED ──
+    const statusLED = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12),
+      new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00ddff, emissiveIntensity: 3.5, roughness: 0.2 })
+    );
+    statusLED.rotation.x = Math.PI / 2;
+    statusLED.position.set(POST_X - 0.18, 0.42, POST_Z + 0.27);
+    this.group.add(statusLED);
+
+    // ── POWER LED ──
+    const powerLED = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12),
+      new THREE.MeshStandardMaterial({ color: 0x00ff44, emissive: 0x00ff44, emissiveIntensity: 3.0, roughness: 0.2 })
+    );
+    powerLED.rotation.x = Math.PI / 2;
+    powerLED.position.set(POST_X - 0.08, 0.42, POST_Z + 0.27);
+    this.group.add(powerLED);
+
+    // ── TIP GLOW LED ──
+    this.tipGlow = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12),
+      new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xff8800, emissiveIntensity: 0.5, roughness: 0.2 })
+    );
+    this.tipGlow.rotation.x = Math.PI / 2;
+    this.tipGlow.position.set(POST_X + 0.02, 0.42, POST_Z + 0.27);
+    this.group.add(this.tipGlow);
+
+    // ── BOX TOP CAP (top surface of control box where post mounts) ──
+    const boxTopCap = new THREE.Mesh(
+      new THREE.BoxGeometry(0.58, 0.04, 0.53),
+      new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.22, metalness: 0.94 })
+    );
+    boxTopCap.position.set(POST_X, 0.54, POST_Z);
+    this.group.add(boxTopCap);
+
+    // ── POST FLANGE (where post bolts to box top) ──
+    const postFlange = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.16, 0.20, 0.08, 16),
+      new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.18, metalness: 0.96, emissive: 0x112233, emissiveIntensity: 0.3 })
+    );
+    postFlange.position.set(POST_X, 0.60, POST_Z);
+    this.group.add(postFlange);
+
+    // ── FLANGE BOLTS ──
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const bolt = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.018, 0.018, 0.025, 6),
+        new THREE.MeshStandardMaterial({ color: 0x222233, metalness: 0.95, roughness: 0.25 })
+      );
+      bolt.position.set(POST_X + Math.cos(angle) * 0.155, 0.64, POST_Z + Math.sin(angle) * 0.155);
+      this.group.add(bolt);
+    }
+
+    // ── PIVOT POST (rises from flange on box top) ──
+    const POST_HEIGHT = 1.8;
+    const POST_BASE_Y = 0.64;
+    this.pivotPost = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.075, 0.090, POST_HEIGHT, 16),
+      new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.12, metalness: 0.95 })
+    );
+    this.pivotPost.position.set(POST_X, POST_BASE_Y + POST_HEIGHT / 2, POST_Z);
+    this.group.add(this.pivotPost);
+
+    // ── POST REINFORCEMENT BANDS ──
+    [0.25, 0.55, 0.85].forEach((frac) => {
+      const band = new THREE.Mesh(
+        new THREE.TorusGeometry(0.082, 0.014, 6, 20),
+        new THREE.MeshStandardMaterial({ color: 0x778899, metalness: 0.96, roughness: 0.2 })
+      );
+      band.rotation.x = Math.PI / 2;
+      band.position.set(POST_X, POST_BASE_Y + POST_HEIGHT * frac, POST_Z);
+      this.group.add(band);
+    });
+
+    // ── CABLE CONDUIT (alongside post on opposite side from brace) ──
+    const conduit = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, POST_HEIGHT * 0.85, 8),
+      new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7, metalness: 0.2 })
+    );
+    conduit.position.set(POST_X - 0.11, POST_BASE_Y + POST_HEIGHT * 0.45, POST_Z);
+    this.group.add(conduit);
+
+    [0.2, 0.5, 0.8].forEach((frac) => {
+      const clamp = new THREE.Mesh(
+        new THREE.BoxGeometry(0.08, 0.03, 0.05),
+        new THREE.MeshStandardMaterial({ color: 0x556677, metalness: 0.94, roughness: 0.25 })
+      );
+      clamp.position.set(POST_X - 0.10, POST_BASE_Y + POST_HEIGHT * frac, POST_Z);
+      this.group.add(clamp);
+    });
+
+    // ── POST TOP HOUSING (rotation joint) ──
+    const postTopHousing = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.13, 0.13, 0.18, 16),
+      new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.18, metalness: 0.95, emissive: 0x002244, emissiveIntensity: 0.4 })
+    );
+    postTopHousing.position.set(POST_X, POST_BASE_Y + POST_HEIGHT + 0.05, POST_Z);
+    this.group.add(postTopHousing);
+
+    // ── POST TOP CAP ──
+    const postTopCap = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.10, 0.13, 0.04, 16),
+      new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.15, metalness: 0.96 })
+    );
+    postTopCap.position.set(POST_X, POST_BASE_Y + POST_HEIGHT + 0.16, POST_Z);
+    this.group.add(postTopCap);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SWING BAR
+    // ═══════════════════════════════════════════════════════════════════
+    this.swingBar = new THREE.Group();
+    this.swingBar.position.set(POST_X, POST_BASE_Y + POST_HEIGHT + 0.05, POST_Z);
+    this.group.add(this.swingBar);
+
+    const BAR_LENGTH = this.BAR_LENGTH;
+    const swingBarMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(BAR_LENGTH, 0.09, 0.13),
+      new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.18, metalness: 0.92 })
+    );
+    swingBarMesh.position.set(BAR_LENGTH / 2 + 0.06, 0, 0);
+    this.swingBar.add(swingBarMesh);
+
+    const barRibTop = new THREE.Mesh(
+      new THREE.BoxGeometry(BAR_LENGTH * 0.92, 0.04, 0.05),
+      new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.20, metalness: 0.94 })
+    );
+    barRibTop.position.set(BAR_LENGTH / 2 + 0.05, 0.045, 0);
+    this.swingBar.add(barRibTop);
+
+    const barRibBot = new THREE.Mesh(
+      new THREE.BoxGeometry(BAR_LENGTH * 0.92, 0.04, 0.05),
+      new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.20, metalness: 0.94 })
+    );
+    barRibBot.position.set(BAR_LENGTH / 2 + 0.05, -0.045, 0);
+    this.swingBar.add(barRibBot);
+
+    // ── VALVE BODY ──
+    this.valveBody = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.13, 0.10, 0.32, 16),
+      new THREE.MeshStandardMaterial({ color: 0x1a1f24, roughness: 0.40, metalness: 0.55, emissive: 0x002244, emissiveIntensity: 0.3 })
+    );
+    this.valveBody.position.set(BAR_LENGTH - 0.05, -this.NOZZLE_DROP, 0);
+    this.swingBar.add(this.valveBody);
+
+    [-0.10, 0.10].forEach((yOff) => {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(0.135, 0.018, 6, 20),
+        new THREE.MeshStandardMaterial({ color: 0x778899, metalness: 0.95, roughness: 0.18 })
+      );
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(BAR_LENGTH - 0.05, -this.NOZZLE_DROP + yOff, 0);
+      this.swingBar.add(ring);
+    });
+
+    // ── NOZZLE MANIFOLD ──
+    this.nozzleTip = new THREE.Mesh(
+      new THREE.BoxGeometry(0.22, 0.08, 0.16),
+      new THREE.MeshStandardMaterial({ color: 0xb8c4d0, roughness: 0.08, metalness: 0.98 })
+    );
+    this.nozzleTip.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP, 0);
+    this.swingBar.add(this.nozzleTip);
+
+    [-0.06, 0, 0.06].forEach((zOff) => {
+      const tipBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.018, 0.025, 0.06, 12),
+        new THREE.MeshStandardMaterial({ color: 0x778899, metalness: 0.96, roughness: 0.12 })
+      );
+      tipBody.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP - 0.03, zOff);
+      this.swingBar.add(tipBody);
+
+      const tipPoint = new THREE.Mesh(
+        new THREE.ConeGeometry(0.018, 0.04, 10),
+        new THREE.MeshStandardMaterial({ color: 0x445566, metalness: 0.98, roughness: 0.1 })
+      );
+      tipPoint.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP - 0.08, zOff);
+      tipPoint.rotation.x = Math.PI;
+      this.swingBar.add(tipPoint);
+    });
+
+    // ── LIQUID STREAMS ──
+    [-0.06, 0, 0.06].forEach((zOff) => {
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x33cc88, emissive: 0x22aa66, emissiveIntensity: 1.0,
+        roughness: 0.15, metalness: 0.1,
+        transparent: true, opacity: 0, depthWrite: false,
+      });
+      const streamLen = 1.0;
+      const stream = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.020, 0.014, streamLen, 12, 1, true),
+        mat
+      );
+      stream.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP - streamLen / 2 - 0.10, zOff);
+      this.swingBar.add(stream);
+      this.liquidStreams.push(stream);
+      this.streamMats.push(mat);
+    });
+
+    this.swingBar.rotation.y = this.SWING_PARKED;
+  }
+
+  startDev(wx: number, wz: number) {
+    this.group.visible = true;
+    this.active = true;
+    this.phase = "swing_in";
+    this.phaseT = 0;
+    this.phaseDur = 1.0;
+    this.poolSpin = 0;
+    this.spiralAngle = 0;
+    this.swingAngle = this.SWING_PARKED;
+    this.swingBar.rotation.y = this.SWING_PARKED;
     
-//     this.spiralMesh = new THREE.Mesh(
-//       new THREE.CircleGeometry(0.88, 80),
-//       new THREE.MeshBasicMaterial({
-//         map: this.spiralTex,
-//         transparent: true,
-//         opacity: 0,
-//         depthWrite: false,
-//         side: THREE.DoubleSide,
-//       })
-//     );
-//     this.spiralMesh.rotation.x = -Math.PI / 2;
-//     this.spiralMesh.position.y = 0.08;
-//     this.spiralMesh.renderOrder = 10;
-//     this.spinChuck.add(this.spiralMesh);
-
-//     // ══════════════════════════════════════════════════════════════════════
-//     // ── DISPENSE ARM ASSEMBLY — fully grounded on module surface ──
-//     // ══════════════════════════════════════════════════════════════════════
+    (this.liquidPool.material as THREE.MeshStandardMaterial).opacity = 0;
+    (this.liquidPool.material as THREE.MeshStandardMaterial).color.setHex(0x33cc88);
     
-//     // ── 1. LARGE BASE PEDESTAL ──
-//     const basePedestal = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.32, 0.38, 0.5, 24),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x2a3340,
-//         roughness: 0.30,
-//         metalness: 0.88,
-//         emissive: 0x0a1525,
-//         emissiveIntensity: 0.4,
-//       })
-//     );
-//     basePedestal.position.set(this.POST_X, 0.25, this.POST_Z);
-//     basePedestal.castShadow = true;
-//     this.group.add(basePedestal);
-
-//     // ── 2. PEDESTAL TOP CAP ──
-//     const pedestalCap = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.34, 0.32, 0.06, 24),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x556677,
-//         roughness: 0.18,
-//         metalness: 0.95,
-//         emissive: 0x112233,
-//         emissiveIntensity: 0.3,
-//       })
-//     );
-//     pedestalCap.position.set(this.POST_X, 0.53, this.POST_Z);
-//     this.group.add(pedestalCap);
-
-//     // ── 3. CIRCULAR MOUNTING BOLTS around pedestal cap ──
-//     for (let i = 0; i < 8; i++) {
-//       const angle = (i / 8) * Math.PI * 2;
-//       const bx = this.POST_X + Math.cos(angle) * 0.28;
-//       const bz = this.POST_Z + Math.sin(angle) * 0.28;
-      
-//       const bolt = new THREE.Mesh(
-//         new THREE.CylinderGeometry(0.025, 0.025, 0.03, 6),
-//         new THREE.MeshStandardMaterial({
-//           color: 0x222233,
-//           metalness: 0.98,
-//           roughness: 0.2,
-//         })
-//       );
-//       bolt.position.set(bx, 0.57, bz);
-//       this.group.add(bolt);
-//     }
-
-//     // ── 4. GLOWING STATUS RING around pedestal ──
-//     const statusRing = new THREE.Mesh(
-//       new THREE.TorusGeometry(0.36, 0.025, 8, 32),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x00ddff,
-//         emissive: 0x00aaff,
-//         emissiveIntensity: 2.0,
-//         roughness: 0.3,
-//       })
-//     );
-//     statusRing.rotation.x = Math.PI / 2;
-//     statusRing.position.set(this.POST_X, 0.10, this.POST_Z);
-//     this.group.add(statusRing);
-
-//     // ── 5. HORIZONTAL CABLE TRAY from pedestal toward module body ──
-//     const cableTray = new THREE.Mesh(
-//       new THREE.BoxGeometry(0.6, 0.08, 0.15),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x1c2530,
-//         roughness: 0.4,
-//         metalness: 0.7,
-//       })
-//     );
-//     cableTray.position.set(this.POST_X + 0.35, 0.06, this.POST_Z);
-//     this.group.add(cableTray);
-
-//     // Cable tray cover with vents
-//     const cableTrayCover = new THREE.Mesh(
-//       new THREE.BoxGeometry(0.58, 0.02, 0.12),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x445566,
-//         roughness: 0.25,
-//         metalness: 0.85,
-//       })
-//     );
-//     cableTrayCover.position.set(this.POST_X + 0.35, 0.11, this.POST_Z);
-//     this.group.add(cableTrayCover);
-
-//     // ── 6. FLEXIBLE CONDUIT (visible cables going up into post) ──
-//     for (let i = 0; i < 3; i++) {
-//       const cable = new THREE.Mesh(
-//         new THREE.CylinderGeometry(0.018, 0.018, 0.35, 6),
-//         new THREE.MeshStandardMaterial({
-//           color: i === 0 ? 0x1a1a1a : i === 1 ? 0x2a1a1a : 0x1a1a2a,
-//           roughness: 0.7,
-//           metalness: 0.15,
-//         })
-//       );
-//       cable.position.set(
-//         this.POST_X + 0.08 + i * 0.04, 
-//         0.35, 
-//         this.POST_Z - 0.05
-//       );
-//       cable.rotation.z = Math.PI / 40;
-//       this.group.add(cable);
-//     }
-
-//     // ── 7. THE PIVOT POST (clearly attached to pedestal cap) ──
-//     this.pivotPost = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.07, 0.09, this.POST_HEIGHT, 16),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x37404a,
-//         roughness: 0.12,
-//         metalness: 0.95,
-//       })
-//     );
-//     this.pivotPost.position.set(
-//       this.POST_X, 
-//       0.56 + this.POST_HEIGHT / 2, 
-//       this.POST_Z
-//     );
-//     this.group.add(this.pivotPost);
-
-//     // ── 8. POST REINFORCEMENT BANDS (3 rings around post for industrial look) ──
-//     [0.3, 0.6, 0.9].forEach((frac) => {
-//       const band = new THREE.Mesh(
-//         new THREE.TorusGeometry(0.075, 0.012, 6, 16),
-//         new THREE.MeshStandardMaterial({
-//           color: 0x556677,
-//           metalness: 0.95,
-//           roughness: 0.2,
-//         })
-//       );
-//       band.rotation.x = Math.PI / 2;
-//       band.position.set(
-//         this.POST_X, 
-//         0.56 + this.POST_HEIGHT * frac, 
-//         this.POST_Z
-//       );
-//       this.group.add(band);
-//     });
-
-//     // ── 9. SUPPORT BRACE (diagonal brace from post to module floor) ──
-//     const braceLength = 1.2;
-//     const brace = new THREE.Mesh(
-//       new THREE.BoxGeometry(0.05, braceLength, 0.05),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x445566,
-//         roughness: 0.25,
-//         metalness: 0.92,
-//       })
-//     );
-//     brace.position.set(
-//       this.POST_X + 0.35, 
-//       0.55, 
-//       this.POST_Z
-//     );
-//     brace.rotation.z = -Math.PI / 4;
-//     this.group.add(brace);
-
-//     // Brace mounting bracket at bottom
-//     const braceFoot = new THREE.Mesh(
-//       new THREE.BoxGeometry(0.12, 0.06, 0.10),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x2a3340,
-//         roughness: 0.35,
-//         metalness: 0.88,
-//       })
-//     );
-//     braceFoot.position.set(
-//       this.POST_X + 0.78, 
-//       0.05, 
-//       this.POST_Z
-//     );
-//     this.group.add(braceFoot);
-
-//     // ── 10. TOP CAP on post (where swing bar pivots) ──
-//     const postTopCap = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.10, 0.10, 0.08, 16),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x556677,
-//         roughness: 0.15,
-//         metalness: 0.94,
-//         emissive: 0x002244,
-//         emissiveIntensity: 0.4,
-//       })
-//     );
-//     postTopCap.position.set(
-//       this.POST_X, 
-//       0.56 + this.POST_HEIGHT, 
-//       this.POST_Z
-//     );
-//     this.group.add(postTopCap);
-
-//     // ══════════════════════════════════════════════════════════════════════
-//     // ── SWING BAR (rotates around pivot post) ──
-//     // Origin set so it rotates around the pivot — NOT around the bar's center
-//     // NOTE: swingBar is created but NOT added to scene (invisible reference only)
-//     // ══════════════════════════════════════════════════════════════════════
-//     this.swingBar = new THREE.Group();
-//     this.swingBar.position.set(this.POST_X, this.POST_HEIGHT - 0.05, 0);
-//     // this.group.add(this.swingBar);  // ← COMMENTED OUT: keeps arm invisible
-
-//     // The actual swing bar mesh is OFFSET from the swingBar group's origin
-//     // This is equivalent to "set origin to pivot point" in Blender
-//     const barLength = this.BAR_LENGTH;
-//     const swingBarMesh = new THREE.Mesh(
-//       new THREE.BoxGeometry(barLength, 0.10, 0.12),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x37404a,
-//         roughness: 0.18,
-//         metalness: 0.92,
-//       })
-//     );
-//     swingBarMesh.position.set(barLength / 2 + 0.05, 0, 0);
-//     this.swingBar.add(swingBarMesh);
-
-//     // Reinforcement rib on top
-//     const barRib = new THREE.Mesh(
-//       new THREE.BoxGeometry(barLength * 0.85, 0.06, 0.06),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x6677aa,
-//         roughness: 0.2,
-//         metalness: 0.94,
-//         emissive: 0x223366,
-//         emissiveIntensity: 0.4,
-//       })
-//     );
-//     barRib.position.set(barLength / 2 + 0.05, 0.07, 0);
-//     this.swingBar.add(barRib);
-
-//     // ── VALVE BODY (parented to swing bar, hangs at end of bar) ──
-//     this.valveBody = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.10, 0.08, 0.32, 16),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x1a1f24,
-//         roughness: 0.55,
-//         metalness: 0.4,
-//         emissive: 0x002244,
-//         emissiveIntensity: 0.25,
-//       })
-//     );
-//     this.valveBody.position.set(barLength - 0.05, -this.NOZZLE_DROP, 0);
-//     this.swingBar.add(this.valveBody);
-
-//     // ── NOZZLE TIP (cone pointing down) ──
-//     this.nozzleTip = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.018, 0.04, 0.14, 16),
-//       new THREE.MeshStandardMaterial({
-//         color: 0xb8c4d0,
-//         roughness: 0.08,
-//         metalness: 0.98,
-//       })
-//     );
-//     this.nozzleTip.position.set(barLength - 0.05, -this.TIP_DROP, 0);
-//     this.swingBar.add(this.nozzleTip);
-
-//     const nozzleConnector = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.04, 0.04, 0.18, 16),
-//       new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.18, metalness: 0.92 })
-//     );
-//     nozzleConnector.rotation.z = Math.PI / 2;
-//     nozzleConnector.position.set(barLength - 0.05, -this.NOZZLE_DROP + 0.02, 0);
-//     this.swingBar.add(nozzleConnector);
-
-//     const nozzleJoint = new THREE.Mesh(
-//       new THREE.SphereGeometry(0.08, 14, 10),
-//       new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.12, metalness: 0.96 })
-//     );
-//     nozzleJoint.position.set(barLength - 0.05, -this.NOZZLE_DROP + 0.04, 0);
-//     this.swingBar.add(nozzleJoint);
-
-//     // ── TIP GLOW (orange droplet preview at nozzle exit) ──
-//     this.tipGlow = new THREE.Mesh(
-//       new THREE.SphereGeometry(0.025, 12, 12),
-//       new THREE.MeshStandardMaterial({
-//         color: 0xffaa00,
-//         emissive: 0xffaa00,
-//         emissiveIntensity: 2.5,
-//         roughness: 0.3,
-//       })
-//     );
-//     this.tipGlow.position.set(barLength - 0.05, -this.TIP_DROP - 0.12, 0);
-//     this.tipGlow.visible = false;  // only visible during dispense
-//     this.swingBar.add(this.tipGlow);
-
-//     // ── CONTINUOUS LIQUID STREAM (cylinder hanging from nozzle to wafer) ──
-//     this.streamMat = new THREE.MeshStandardMaterial({
-//       color: 0xcc1177,
-//       emissive: 0xcc1177,
-//       emissiveIntensity: 2.5,
-//       roughness: 0.1,
-//       metalness: 0.0,
-//       transparent: true,
-//       opacity: 0,
-//       depthWrite: false,
-//       side: THREE.DoubleSide,
-//     });
-//     this.liquidStream = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.035, 0.025, 2.0, 12, 1, true),
-//       this.streamMat
-//     );
-//     // Position so stream top connects to nozzle tip, bottom touches wafer
-//     this.liquidStream.position.set(barLength - 0.05, -this.TIP_DROP - 1.0, 0);
-//     this.swingBar.add(this.liquidStream);
-
-//     // Set initial swing angle (parked)
-//     this.swingBar.rotation.y = this.SWING_PARKED;
-//   }
-
-//   startCoat(wx: number, wz: number, color: number) {
-//     this.coatColor = color;
-//     // Position is fixed permanently in _build() — never reposition here
-//     this.group.visible = true;
-//     this.active = true;
-//     this.phase = "swing_in";
-//     this.phaseT = 0;
-//     this.phaseDur = 1.0;
-//     this.spinRPM = 0;
-//     this.spinAngle = 0;
-//     this.resistRadius = 0;
-//     this.spiralAngle = 0;
-//     this.swingAngle = this.SWING_PARKED;
-//     this.swingBar.rotation.y = this.SWING_PARKED;
-
-//     this.resistRings.forEach((r) => {
-//       (r.material as THREE.MeshStandardMaterial).opacity = 0;
-//       (r.material as THREE.MeshStandardMaterial).color.setHex(color);
-//       (r.material as THREE.MeshStandardMaterial).emissive.setHex(color);
-//     });
-
-//     // Stream takes wafer's color
-//     this.streamMat.color.setHex(color);
-//     this.streamMat.emissive.setHex(color);
-//     this.streamMat.opacity = 0;
+    this.streamMats.forEach((m) => {
+      m.opacity = 0;
+      m.color.setHex(0x33cc88);
+      m.emissive.setHex(0x22aa66);
+      m.needsUpdate = true;
+    });
     
-//     // Tip glow takes the color too
-//     const tipGlowMat = this.tipGlow.material as THREE.MeshStandardMaterial;
-//     tipGlowMat.color.setHex(color);
-//     tipGlowMat.emissive.setHex(color);
-//     this.tipGlow.visible = false;
+    this.spiralCtx.clearRect(0, 0, 512, 512);
+    this.spiralTex.needsUpdate = true;
+    (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
+    this.tipGlow.visible = false;
+    console.log('[DEV] startDev at', wx, wz, 'visible:', this.group.visible);
+  }
 
-//     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
-//     this.spiralCtx.clearRect(0, 0, 512, 512);
-//     this.spiralTex.needsUpdate = true;
-//   }
+  stopDev() {
+    this.active = false;
+    this.phase = "idle";
+    this.streamMats.forEach((m) => { m.opacity = 0; });
+    this.tipGlow.visible = false;
+  }
 
-//   stopCoat() {
-//     this.active = false;
-//     this.phase = "idle";
-//     this.streamMat.opacity = 0;
-//     this.tipGlow.visible = false;
-//   }
+  private _drawSpiralTrail(spiralR: number, spinSpeed: number, dt: number, isRinse: boolean) {
+    const ctx = this.spiralCtx;
+    const C = 256;
+    const maxR = 230;
+    const steps = Math.max(3, Math.floor(spinSpeed * dt * 30));
+    const color = isRinse ? "#66bbff" : "#33ccaa";
 
-//   private _drawSpiralTrail(centerSpiralRadius: number, spinSpeed: number, dt: number) {
-//     const ctx = this.spiralCtx;
-//     const C = 256;
-//     const maxR = 230;
+    for (let s = 0; s < steps; s++) {
+      this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (dt / steps);
+      const r = spiralR * maxR;
+      const px = C + Math.cos(this.spiralAngle) * r;
+      const py = C + Math.sin(this.spiralAngle) * r;
 
-//     ctx.globalCompositeOperation = "source-over";
-//     const steps = Math.max(3, Math.floor(spinSpeed * dt * 60));
+      const grad = ctx.createRadialGradient(px, py, 0, px, py, 10);
+      grad.addColorStop(0, color + "ff");
+      grad.addColorStop(0.5, color + "88");
+      grad.addColorStop(1, color + "00");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(px, py, 10, 0, Math.PI * 2);
+      ctx.fill();
 
-//     for (let s = 0; s < steps; s++) {
-//       this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (dt / steps);
-//       const r = centerSpiralRadius * maxR;
-//       const px = C + Math.cos(this.spiralAngle) * r;
-//       const py = C + Math.sin(this.spiralAngle) * r;
-//       const css = `#${this.coatColor.toString(16).padStart(6, "0")}`;
+      ctx.fillStyle = "#ffffff";
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    this.spiralTex.needsUpdate = true;
+  }
 
-//       const grad = ctx.createRadialGradient(px, py, 0, px, py, 12);
-//       grad.addColorStop(0, css + "ff");
-//       grad.addColorStop(0.5, css + "88");
-//       grad.addColorStop(1, css + "00");
-//       ctx.fillStyle = grad;
-//       ctx.beginPath();
-//       ctx.arc(px, py, 12, 0, Math.PI * 2);
-//       ctx.fill();
+  tick(dt: number, speed: number) {
+    if (!this.active) return;
 
-//       ctx.fillStyle = "#ffffff";
-//       ctx.globalAlpha = 0.6;
-//       ctx.beginPath();
-//       ctx.arc(px, py, 3, 0, Math.PI * 2);
-//       ctx.fill();
-//       ctx.globalAlpha = 1;
-//     }
+    const sDt = dt * speed;
+    this.phaseT += sDt;
+    const t = Math.min(this.phaseT / this.phaseDur, 1);
+    const poolMat = this.liquidPool.material as THREE.MeshStandardMaterial;
+    const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
 
-//     this.spiralTex.needsUpdate = true;
-//   }
+    switch (this.phase) {
+      case "swing_in": {
+        this.swingAngle = lerp(this.SWING_PARKED, this.SWING_OVER, ease);
+        this.swingBar.rotation.y = this.swingAngle;
+        if (t >= 1) {
+          this.phase = "spray";
+          this.phaseT = 0;
+          this.phaseDur = 2.2;
+          this.tipGlow.visible = true;
+          this.streamMats.forEach((m) => {
+            m.color.setHex(0x33ccee);
+            m.emissive.setHex(0x0099dd);
+          });
+          (this.tipGlow.material as THREE.MeshStandardMaterial).color.setHex(0x00aaff);
+          (this.tipGlow.material as THREE.MeshStandardMaterial).emissive.setHex(0x0088ff);
+        }
+        break;
+      }
 
-//   tick(dt: number, speed: number) {
-//     if (!this.active) {
-//       return;  // arm stays visible on module, just idle
-//     }
+      case "spray": {
+        this.streamMats.forEach((m, i) => {
+          m.opacity = Math.min(t * 2, 0.92);
+          m.emissiveIntensity = 1.0 + 0.4 * Math.sin(this.phaseT * 12 + i * 0.7);
+        });
+        (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
+          3.0 + 0.8 * Math.sin(this.phaseT * 18);
+        
+        poolMat.opacity = Math.min(t * 0.85, 0.85);
+        this.poolSpin += sDt * lerp(0.5, 3.0, t);
+        this.poolGroup.rotation.y = this.poolSpin;
+        
+        const spiralR = lerp(0.05, 0.85, t);
+        this._drawSpiralTrail(spiralR, lerp(60, 300, t), sDt, false);
+        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.75, t);
 
-//     const sDt = dt * speed;
-//     this.phaseT += sDt;
-//     const t = Math.min(this.phaseT / this.phaseDur, 1);
+        if (t >= 1) {
+          this.phase = "puddle";
+          this.phaseT = 0;
+          this.phaseDur = 1.8;
+          this.streamMats.forEach((m) => { m.opacity = 0; });
+        }
+        break;
+      }
 
-//     // Smoothstep easing for swing motion
-//     const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+      case "puddle": {
+        poolMat.color.lerp(new THREE.Color(0x22aa66), sDt * 0.6);
+        this.poolSpin += sDt * 1.2;
+        this.poolGroup.rotation.y = this.poolSpin;
+        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0.75, 0.3, t);
+        
+        if (t >= 1) {
+          this.phase = "rinse";
+          this.phaseT = 0;
+          this.phaseDur = 1.5;
+          this.streamMats.forEach((m) => {
+            m.color.setHex(0x66bbff);
+            m.emissive.setHex(0x3399ff);
+          });
+          this.spiralCtx.clearRect(0, 0, 512, 512);
+          this.spiralTex.needsUpdate = true;
+          this.spiralAngle = 0;
+        }
+        break;
+      }
 
-//     switch (this.phase) {
-//       case "swing_in": {
-//         // Rotate from parked (105°) to over wafer (0°)
-//         this.swingAngle = lerp(this.SWING_PARKED, this.SWING_OVER, ease);
-//         this.swingBar.rotation.y = this.swingAngle;
-//         if (t >= 1) {
-//           this.phase = "dispense";
-//           this.phaseT = 0;
-//           this.phaseDur = 1.2;
-//           this.tipGlow.visible = true;
-//         }
-//         break;
-//       }
+      case "rinse": {
+        this.streamMats.forEach((m, i) => {
+          m.opacity = Math.min(t * 2, 0.92);
+          m.emissiveIntensity = 1.2 + 0.4 * Math.sin(this.phaseT * 14 + i * 0.7);
+        });
+        poolMat.color.lerp(new THREE.Color(0x66bbff), sDt * 1.2);
+        poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 0.3);
+        this.poolSpin += sDt * 5.0;
+        this.poolGroup.rotation.y = this.poolSpin;
+        
+        const spiralR = lerp(0.1, 0.9, t);
+        this._drawSpiralTrail(spiralR, 400, sDt, true);
+        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity =
+          lerp(0, 0.7, t < 0.7 ? t : (1 - t) * 3);
 
-//       case "dispense": {
-//         // Stream fades in, glow pulses
-//         this.streamMat.opacity = Math.min(t * 2.5, 0.98);
-//         this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
-//         (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
-//           2.5 + 0.8 * Math.sin(this.phaseT * 22);
-//         // Begin slow rotation
-//         this.spinRPM = lerp(0, 120, t);
-//         if (t >= 1) {
-//           this.phase = "spinup";
-//           this.phaseT = 0;
-//           this.phaseDur = 1.0;
-//         }
-//         break;
-//       }
+        if (t >= 1) {
+          this.phase = "swing_out";
+          this.phaseT = 0;
+          this.phaseDur = 1.0;
+          this.streamMats.forEach((m) => { m.opacity = 0; });
+          this.tipGlow.visible = false;
+        }
+        break;
+      }
 
-//       case "spinup": {
-//         this.spinRPM = lerp(120, 2400, t * t);
-//         this.resistRadius = lerp(0, 0.2, t);
-//         this._updateResist();
-//         this.streamMat.opacity = 0.95;
-//         this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
-//         const spiralR = lerp(0.05, 0.3, t);
-//         this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.7, t);
-//         if (t >= 1) {
-//           this.phase = "coating";
-//           this.phaseT = 0;
-//           this.phaseDur = 2.5;
-//         }
-//         break;
-//       }
+      case "swing_out": {
+        this.swingAngle = lerp(this.SWING_OVER, this.SWING_PARKED, ease);
+        this.swingBar.rotation.y = this.swingAngle;
+        this.poolSpin += sDt * 3.0;
+        this.poolGroup.rotation.y = this.poolSpin;
+        if (t >= 1) {
+          this.phase = "drain";
+          this.phaseT = 0;
+          this.phaseDur = 0.8;
+        }
+        break;
+      }
 
-//       case "coating": {
-//         this.spinRPM = 2400;
-//         this.resistRadius = lerp(0.2, 0.88, t);
-//         this._updateResist();
-//         // Stream stays on for first 30%, then fades as we prepare to swing out
-//         if (t < 0.3) {
-//           this.streamMat.opacity = 0.95;
-//         } else {
-//           this.streamMat.opacity = Math.max(0, 0.95 * (1 - (t - 0.3) / 0.4));
-//         }
-//         this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
-//         const spiralR = lerp(0.3, 0.95, t);
-//         this._drawSpiralTrail(spiralR, this.spinRPM, sDt);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0.85;
-//         if (t >= 1) {
-//           this.resistRadius = 0.88;
-//           this._updateResist(true);
-//           this.streamMat.opacity = 0;
-//           this.tipGlow.visible = false;
-//           this.phase = "swing_out";
-//           this.phaseT = 0;
-//           this.phaseDur = 1.0;
-//         }
-//         break;
-//       }
+      case "drain": {
+        poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 1.2);
+        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = Math.max(
+          0, (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity - sDt * 1.5
+        );
+        if (t >= 1) {
+          this.phase = "done";
+          this.phaseT = 0;
+        }
+        break;
+      }
 
-//       case "swing_out": {
-//         // Rotate from over wafer (0°) back to parked (105°)
-//         this.swingAngle = lerp(this.SWING_OVER, this.SWING_PARKED, ease);
-//         this.swingBar.rotation.y = this.swingAngle;
-//         // Continue spinning during retract
-//         this.spinRPM = 2400;
-//         if (t >= 1) {
-//           this.phase = "spindown";
-//           this.phaseT = 0;
-//           this.phaseDur = 1.5;
-//         }
-//         break;
-//       }
+      case "done": break;
+    }
+  }
+}
+  
 
-//       case "spindown": {
-//         this.spinRPM = lerp(2400, 0, t);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0.85, 0.3, t);
-//         if (t >= 1) {
-//           this.phase = "done";
-//           this.phaseT = 0;
-//         }
-//         break;
-//       }
 
-//       case "done": {
-//         this.spinRPM = 0;
-//         break;
-//       }
-//     }
 
-//     this.spinAngle += (this.spinRPM / 60) * Math.PI * 2 * sDt;
-//     this.spinChuck.rotation.y = this.spinAngle;
-//   }
 
-//   private _updateResist(full = false) {
-//     const numRings = this.resistRings.length;
-//     const fillFraction = full ? 1 : this.resistRadius / 0.88;
-//     this.resistRings.forEach((ring, i) => {
-//       const ringFrac = (i + 1) / numRings;
-//       const mat = ring.material as THREE.MeshStandardMaterial;
-//       if (ringFrac <= fillFraction)
-//         mat.opacity = Math.min(mat.opacity + 0.06, 0.88 - i * 0.003);
-//     });
-//   }
-// }
+
 class SpinCoatAnimator {
   group: THREE.Group;
   spinChuck: THREE.Group;
@@ -27827,18 +26464,15 @@ class SpinCoatAnimator {
   resistGroup: THREE.Group;
   bowl: THREE.Mesh;
   
-  // ── SWING ARM ASSEMBLY (Developer-style) ──
   pivotPost: THREE.Mesh;
   swingBar: THREE.Group;
   valveBody: THREE.Mesh;
   nozzleTip: THREE.Mesh;
   tipGlow: THREE.Mesh;
   
-  // ── CONTINUOUS STREAM ──
   liquidStream: THREE.Mesh;
   streamMat: THREE.MeshStandardMaterial;
   
-  // ── SPIRAL TRAIL PATTERN ──
   spiralCanvas!: HTMLCanvasElement;
   spiralCtx!: CanvasRenderingContext2D;
   spiralTex!: THREE.CanvasTexture;
@@ -27849,33 +26483,28 @@ class SpinCoatAnimator {
   phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
   resistRadius = 0; coatColor = 0x9922ff; active = false;
   
-  // ── PERF: throttling state ──
   private _drawAccum = 0;
   private _cachedCss = '';
   private _lastColor = 0;
   private _matUpdateAccum = 0;
   
-  // ── DEVELOPER-STYLE SWING DIRECTION ──
-  // ── PR COAT SWING DIRECTION (opposite of Developer — post at back) ──
-  readonly SWING_PARKED = Math.PI / 2;    // +90° parked pointing away (-X direction)
-  readonly SWING_OVER   = -Math.PI / 2;   // -90° swung over chuck (+Z direction toward front)
+  readonly SWING_PARKED = Math.PI / 2;
+  readonly SWING_OVER   = -Math.PI / 2;
   swingAngle = Math.PI / 2;
 
   readonly CHUCK_Y = 0.35;
-  
-  // PR Coat positioning (post at BACK, arm extends FORWARD over chuck — OPPOSITE of Developer)
   readonly POST_X = 0.0;
-  readonly POST_Z = -1.2;        // ← NEGATIVE Z (back side, opposite of Developer)
+  readonly POST_Z = -1.2;
   readonly BAR_LENGTH = 1.4;
-  readonly NOZZLE_DROP = 0.40;
-  readonly TIP_DROP = 0.70;
+  readonly NOZZLE_DROP = 0.10;
+  readonly TIP_DROP = 0.30;
 
   constructor(scene: THREE.Scene) {
     this.group = new THREE.Group();
     scene.add(this.group);
     this.group.visible = false;
 
-    // ── BOWL (small, low profile) ──
+    // ── BOWL ──
     const bowlMat = new THREE.MeshStandardMaterial({
       color: 0xeef3f8,
       roughness: 0.28,
@@ -27888,7 +26517,6 @@ class SpinCoatAnimator {
     this.bowl.position.y = 0.6;
     this.group.add(this.bowl);
 
-    // Bowl ridges
     for (let i = 0; i < 5; i++) {
       const r = 1.1 + i * 0.08;
       const ridge = new THREE.Mesh(
@@ -27968,8 +26596,8 @@ class SpinCoatAnimator {
 
     // ── SPIRAL PATTERN ──
     this.spiralCanvas = document.createElement("canvas");
-    this.spiralCanvas.width = 256;   // ← 4× faster (was 512)
-    this.spiralCanvas.height = 256;  // ← 4× faster (was 512)
+    this.spiralCanvas.width = 256;
+    this.spiralCanvas.height = 256;
     this.spiralCtx = this.spiralCanvas.getContext("2d")!;
     this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
     
@@ -27988,9 +26616,11 @@ class SpinCoatAnimator {
     this.spiralMesh.renderOrder = 10;
     this.spinChuck.add(this.spiralMesh);
 
-    // ══════════════════════════════════════════════════════════════════════
-    // DEVELOPER-STYLE NOZZLE ASSEMBLY (copied from DevLiquidAnimator)
-    // ══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════
+    // BASE MOUNTING ASSEMBLY — VERTICAL STACK (MIRRORED for back-side)
+    // Plate → Box → Box Top → Post Flange → Post → Swing Arm
+    // Everything centered at (POST_X, POST_Z) so post rises FROM the box
+    // ═══════════════════════════════════════════════════════════════════
     const POST_X = this.POST_X;
     const POST_Z = this.POST_Z;
     
@@ -28043,39 +26673,39 @@ class SpinCoatAnimator {
     controlBox.castShadow = true;
     this.group.add(controlBox);
 
-    // ── FRONT PANEL (faces -Z direction so LEDs visible from FRONT of module) ──
+    // ── FRONT PANEL (faces -Z direction — toward front of module) ──
     const frontPanel = new THREE.Mesh(
       new THREE.BoxGeometry(0.50, 0.36, 0.015),
       new THREE.MeshStandardMaterial({ color: 0x1a1f28, roughness: 0.4, metalness: 0.7 })
     );
-    frontPanel.position.set(POST_X, 0.32, POST_Z - 0.26);   // ← FLIPPED: -0.26 instead of +0.26
+    frontPanel.position.set(POST_X, 0.32, POST_Z - 0.26);
     this.group.add(frontPanel);
 
-    // ── STATUS LED (cyan) ──
+    // ── STATUS LED ──
     const statusLED = new THREE.Mesh(
       new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12),
       new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00ddff, emissiveIntensity: 3.5, roughness: 0.2 })
     );
     statusLED.rotation.x = Math.PI / 2;
-    statusLED.position.set(POST_X - 0.18, 0.42, POST_Z - 0.27);   // ← FLIPPED
+    statusLED.position.set(POST_X - 0.18, 0.42, POST_Z - 0.27);
     this.group.add(statusLED);
 
-    // ── POWER LED (green) ──
+    // ── POWER LED ──
     const powerLED = new THREE.Mesh(
       new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12),
       new THREE.MeshStandardMaterial({ color: 0x00ff44, emissive: 0x00ff44, emissiveIntensity: 3.0, roughness: 0.2 })
     );
     powerLED.rotation.x = Math.PI / 2;
-    powerLED.position.set(POST_X - 0.08, 0.42, POST_Z - 0.27);    // ← FLIPPED
+    powerLED.position.set(POST_X - 0.08, 0.42, POST_Z - 0.27);
     this.group.add(powerLED);
 
-    // ── TIP GLOW (front panel indicator — turns ON during dispense) ──
+    // ── TIP GLOW LED ──
     this.tipGlow = new THREE.Mesh(
       new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12),
       new THREE.MeshStandardMaterial({ color: 0xff44cc, emissive: 0xff44cc, emissiveIntensity: 0.5, roughness: 0.2 })
     );
     this.tipGlow.rotation.x = Math.PI / 2;
-    this.tipGlow.position.set(POST_X + 0.02, 0.42, POST_Z - 0.27);   // ← FLIPPED
+    this.tipGlow.position.set(POST_X + 0.02, 0.42, POST_Z - 0.27);
     this.group.add(this.tipGlow);
 
     // ── BOX TOP CAP ──
@@ -28086,7 +26716,7 @@ class SpinCoatAnimator {
     boxTopCap.position.set(POST_X, 0.54, POST_Z);
     this.group.add(boxTopCap);
 
-    // ── POST FLANGE (where post meets box) ──
+    // ── POST FLANGE (post mounts on top of box) ──
     const postFlange = new THREE.Mesh(
       new THREE.CylinderGeometry(0.16, 0.20, 0.08, 16),
       new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.18, metalness: 0.96, emissive: 0x112233, emissiveIntensity: 0.3 })
@@ -28094,7 +26724,7 @@ class SpinCoatAnimator {
     postFlange.position.set(POST_X, 0.60, POST_Z);
     this.group.add(postFlange);
 
-    // ── FLANGE BOLTS (6 around perimeter) ──
+    // ── FLANGE BOLTS ──
     for (let i = 0; i < 6; i++) {
       const angle = (i / 6) * Math.PI * 2;
       const bolt = new THREE.Mesh(
@@ -28126,42 +26756,24 @@ class SpinCoatAnimator {
       this.group.add(band);
     });
 
-    // ── DIAGONAL SUPPORT BRACE (mirrored — brace goes in opposite direction) ──
-    const brace = new THREE.Mesh(
-      new THREE.BoxGeometry(0.04, 0.85, 0.04),
-      new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.22, metalness: 0.93 })
-    );
-    brace.position.set(POST_X - 0.20, 0.95, POST_Z);    // ← FLIPPED: -0.20 instead of +0.20
-    brace.rotation.z = Math.PI / 5;                       // ← FLIPPED: positive rotation
-    this.group.add(brace);
-
-    // ── BRACE BRACKET (mirrored to match) ──
-    const braceBracket = new THREE.Mesh(
-      new THREE.BoxGeometry(0.10, 0.06, 0.10),
-      new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.25, metalness: 0.92 })
-    );
-    braceBracket.position.set(POST_X - 0.30, 0.55, POST_Z);   // ← FLIPPED: -0.30 instead of +0.30
-    this.group.add(braceBracket);
-
-    // ── CABLE CONDUIT (alongside post) ──
+    // ── CABLE CONDUIT (alongside post, opposite of brace side = +X here) ──
     const conduit = new THREE.Mesh(
       new THREE.CylinderGeometry(0.025, 0.025, POST_HEIGHT * 0.85, 8),
       new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7, metalness: 0.2 })
     );
-    conduit.position.set(POST_X - 0.11, POST_BASE_Y + POST_HEIGHT * 0.45, POST_Z);
+    conduit.position.set(POST_X + 0.11, POST_BASE_Y + POST_HEIGHT * 0.45, POST_Z);
     this.group.add(conduit);
 
-    // ── CONDUIT CLAMPS ──
     [0.2, 0.5, 0.8].forEach((frac) => {
       const clamp = new THREE.Mesh(
         new THREE.BoxGeometry(0.08, 0.03, 0.05),
         new THREE.MeshStandardMaterial({ color: 0x556677, metalness: 0.94, roughness: 0.25 })
       );
-      clamp.position.set(POST_X - 0.10, POST_BASE_Y + POST_HEIGHT * frac, POST_Z);
+      clamp.position.set(POST_X + 0.10, POST_BASE_Y + POST_HEIGHT * frac, POST_Z);
       this.group.add(clamp);
     });
 
-    // ── POST TOP HOUSING (rotation joint) ──
+    // ── POST TOP HOUSING ──
     const postTopHousing = new THREE.Mesh(
       new THREE.CylinderGeometry(0.13, 0.13, 0.18, 16),
       new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.18, metalness: 0.95, emissive: 0x002244, emissiveIntensity: 0.4 })
@@ -28177,16 +26789,14 @@ class SpinCoatAnimator {
     postTopCap.position.set(POST_X, POST_BASE_Y + POST_HEIGHT + 0.16, POST_Z);
     this.group.add(postTopCap);
 
-    // ══════════════════════════════════════════════════════════════════════
-    // SWING BAR (rotates around post top)
-    // ══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════
+    // SWING BAR
+    // ═══════════════════════════════════════════════════════════════════
     this.swingBar = new THREE.Group();
     this.swingBar.position.set(POST_X, POST_BASE_Y + POST_HEIGHT + 0.05, POST_Z);
     this.group.add(this.swingBar);
 
     const BAR_LENGTH = this.BAR_LENGTH;
-
-    // ── MAIN SWING ARM ──
     const swingBarMesh = new THREE.Mesh(
       new THREE.BoxGeometry(BAR_LENGTH, 0.09, 0.13),
       new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.18, metalness: 0.92 })
@@ -28194,7 +26804,6 @@ class SpinCoatAnimator {
     swingBarMesh.position.set(BAR_LENGTH / 2 + 0.06, 0, 0);
     this.swingBar.add(swingBarMesh);
 
-    // ── TOP RIB (industrial detail) ──
     const barRibTop = new THREE.Mesh(
       new THREE.BoxGeometry(BAR_LENGTH * 0.92, 0.04, 0.05),
       new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.20, metalness: 0.94 })
@@ -28202,7 +26811,6 @@ class SpinCoatAnimator {
     barRibTop.position.set(BAR_LENGTH / 2 + 0.05, 0.045, 0);
     this.swingBar.add(barRibTop);
 
-    // ── BOTTOM RIB ──
     const barRibBot = new THREE.Mesh(
       new THREE.BoxGeometry(BAR_LENGTH * 0.92, 0.04, 0.05),
       new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.20, metalness: 0.94 })
@@ -28210,10 +26818,6 @@ class SpinCoatAnimator {
     barRibBot.position.set(BAR_LENGTH / 2 + 0.05, -0.045, 0);
     this.swingBar.add(barRibBot);
 
-    // ══════════════════════════════════════════════════════════════════════
-    // VALVE & NOZZLE MANIFOLD (3-tip dispense like Developer)
-    // ══════════════════════════════════════════════════════════════════════
-    
     // ── VALVE BODY ──
     this.valveBody = new THREE.Mesh(
       new THREE.CylinderGeometry(0.13, 0.10, 0.32, 16),
@@ -28222,7 +26826,6 @@ class SpinCoatAnimator {
     this.valveBody.position.set(BAR_LENGTH - 0.05, -this.NOZZLE_DROP, 0);
     this.swingBar.add(this.valveBody);
 
-    // ── VALVE INDICATOR RINGS (top + bottom) ──
     [-0.10, 0.10].forEach((yOff) => {
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(0.135, 0.018, 6, 20),
@@ -28233,7 +26836,7 @@ class SpinCoatAnimator {
       this.swingBar.add(ring);
     });
 
-    // ── NOZZLE MANIFOLD BLOCK ──
+    // ── NOZZLE MANIFOLD ──
     this.nozzleTip = new THREE.Mesh(
       new THREE.BoxGeometry(0.22, 0.08, 0.16),
       new THREE.MeshStandardMaterial({ color: 0xb8c4d0, roughness: 0.08, metalness: 0.98 })
@@ -28241,7 +26844,6 @@ class SpinCoatAnimator {
     this.nozzleTip.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP, 0);
     this.swingBar.add(this.nozzleTip);
 
-    // ── 3 NOZZLE TIPS (parallel dispense) ──
     [-0.06, 0, 0.06].forEach((zOff) => {
       const tipBody = new THREE.Mesh(
         new THREE.CylinderGeometry(0.018, 0.025, 0.06, 12),
@@ -28259,9 +26861,7 @@ class SpinCoatAnimator {
       this.swingBar.add(tipPoint);
     });
 
-    // ══════════════════════════════════════════════════════════════════════
-    // LIQUID STREAM (single combined stream — kept for backward compat)
-    // ══════════════════════════════════════════════════════════════════════
+    // ── LIQUID STREAM ──
     this.streamMat = new THREE.MeshStandardMaterial({
       color: 0xcc1177,
       emissive: 0xcc1177,
@@ -28280,7 +26880,6 @@ class SpinCoatAnimator {
     this.liquidStream.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP - 0.5 - 0.10, 0);
     this.swingBar.add(this.liquidStream);
 
-    // Set initial swing angle (parked, pointing away from chuck)
     this.swingBar.rotation.y = this.SWING_PARKED;
   }
 
@@ -28314,7 +26913,7 @@ class SpinCoatAnimator {
     tipGlowMat.emissiveIntensity = 0.5;
 
     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
-    this.spiralCtx.clearRect(0, 0, 256, 256);  // ← was 512, 512
+    this.spiralCtx.clearRect(0, 0, 256, 256);
     this.spiralTex.needsUpdate = true;
     
     console.log('[COAT] startCoat at', wx, wz, 'color:', color.toString(16));
@@ -28328,17 +26927,15 @@ class SpinCoatAnimator {
   }
 
   private _drawSpiralTrail(centerSpiralRadius: number, spinSpeed: number, dt: number) {
-    // ── PERF: throttle canvas updates to every 50ms (20 fps for canvas) ──
     this._drawAccum += dt;
     if (this._drawAccum < 0.05) return;
     const drawDt = this._drawAccum;
     this._drawAccum = 0;
     
     const ctx = this.spiralCtx;
-    const C = 128;        // ← was 256 (canvas center for 256×256)
-    const maxR = 115;     // ← was 230 (max radius for 256×256)
+    const C = 128;
+    const maxR = 115;
 
-    // ── PERF: cache color string (avoid toString every step) ──
     if (this.coatColor !== this._lastColor) {
       this._cachedCss = `#${this.coatColor.toString(16).padStart(6, "0")}`;
       this._lastColor = this.coatColor;
@@ -28347,10 +26944,8 @@ class SpinCoatAnimator {
 
     ctx.globalCompositeOperation = "source-over";
     
-    // ── PERF: CAP max steps per frame (huge speedup at high RPM) ──
     const steps = Math.min(8, Math.max(2, Math.floor(spinSpeed * drawDt * 20)));
     
-    // ── PERF: pre-compute strings outside loop ──
     const cssFull = css + "ff";
     const cssMid = css + "88";
     const cssZero = css + "00";
@@ -28383,12 +26978,11 @@ class SpinCoatAnimator {
 
   tick(dt: number, speed: number) {
     if (!this.active) return;
-    if (!this.group.visible) return;  // ← PERF: skip if hidden
+    if (!this.group.visible) return;
 
     const sDt = dt * speed;
     this.phaseT += sDt;
     
-    // ── PERF: throttle material flicker updates to 15fps ──
     this._matUpdateAccum += sDt;
     const updateMaterials = this._matUpdateAccum >= 0.066;
     if (updateMaterials) this._matUpdateAccum = 0;
@@ -28411,7 +27005,7 @@ class SpinCoatAnimator {
 
       case "dispense": {
         this.streamMat.opacity = Math.min(t * 2.5, 0.98);
-        if (updateMaterials) {  // ← only update flicker ~15fps
+        if (updateMaterials) {
           this.streamMat.emissiveIntensity = 1.5 + 0.3 * Math.sin(this.phaseT * 18);
           (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
             2.5 + 0.8 * Math.sin(this.phaseT * 22);
@@ -28495,7 +27089,6 @@ class SpinCoatAnimator {
       }
     }
 
-    // ── PERF: modulo to prevent floating-point precision issues ──
     this.spinAngle = (this.spinAngle + (this.spinRPM / 60) * Math.PI * 2 * sDt) % (Math.PI * 2);
     this.spinChuck.rotation.y = this.spinAngle;
   }
@@ -28512,1316 +27105,6 @@ class SpinCoatAnimator {
   }
 }
 
-
-// ─── DEV LIQUID ANIMATOR (from code 1 — multi-phase with rinse) ──────────────
-
-// class DevLiquidAnimator {
-//   group: THREE.Group;
-//   nozzle: THREE.Group;
-//   liquidPool: THREE.Mesh;
-//   spraySources: THREE.Group;       // where spray cones live
-//   sprayCones: THREE.Mesh[] = [];   // 3 spray fan cones
-//   droplets: THREE.Mesh[] = [];     // flying droplets
-//   splashes: THREE.Mesh[] = [];     // ground splashes
-//   active = false;
-//   phase: "idle" | "descend" | "spray" | "puddle" | "rinse" | "retract" | "done" = "idle";
-//   phaseT = 0;
-//   phaseDur = 1;
- 
-//   constructor(scene: THREE.Scene) {
-//     this.group = new THREE.Group();
-//     scene.add(this.group);
-//     this.group.visible = false;
- 
-//     // ── ARM + NOZZLE HEAD ──
-//     // ── Overhead cross rail (left wall to right wall) ──
-// const crossRail = new THREE.Mesh(
-//   new THREE.BoxGeometry(3.2, 0.08, 0.08),
-//   new THREE.MeshStandardMaterial({ color: 0xc8d8e8, roughness: 0.10, metalness: 0.96 })
-// );
-// crossRail.position.set(0, 3.55, 0);
-// this.group.add(crossRail);
-
-// // ── Left wall upright ──
-// const leftPost = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.07, 1.8, 0.07),
-//   new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 })
-// );
-// leftPost.position.set(-1.55, 2.65, 0);
-// this.group.add(leftPost);
-
-// // ── Right wall upright ──
-// const rightPost = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.07, 1.8, 0.07),
-//   new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 })
-// );
-// rightPost.position.set(1.55, 2.65, 0);
-// this.group.add(rightPost);
-
-// // ── Rail carriage that slides along crossRail ──
-// const railCarriage = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.30, 0.22, 0.30),
-//   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.13, metalness: 0.94 })
-// );
-// railCarriage.position.set(0, 3.44, 0);
-// this.group.add(railCarriage);
-// this.group.userData.railCarriage = railCarriage;
-
-// // ── Nozzle arm hangs from carriage ──
-// // ── Overhead cross rail ──
-// const devRailMat = new THREE.MeshStandardMaterial({ color: 0xc8d8e8, roughness: 0.10, metalness: 0.96 });
-// const devRail = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.07, 0.07), devRailMat);
-// devRail.position.set(0, 3.55, 0);
-// this.group.add(devRail);
-
-// // Left post
-// const devPostMat = new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 });
-// const devLeftPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.9, 0.07), devPostMat);
-// devLeftPost.position.set(-1.55, 2.6, 0);
-// this.group.add(devLeftPost);
-
-// // Right post
-// const devRightPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.9, 0.07), devPostMat);
-// devRightPost.position.set(1.55, 2.6, 0);
-// this.group.add(devRightPost);
-
-// // Rail carriage
-// const devCarriage = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.28, 0.20, 0.22),
-//   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.13, metalness: 0.94 })
-// );
-// devCarriage.position.set(1.4, 3.44, 0); // starts parked right
-// this.group.add(devCarriage);
-// this.group.userData.devCarriage = devCarriage;
-
-// // Nozzle arm hangs from carriage
-// this.nozzle = new THREE.Group();
-// this.nozzle.position.set(1.4, 3.44, 0); // parked right
-// this.group.add(this.nozzle);
-
-// // Vertical arm
-// const arm = new THREE.Mesh(
-//   new THREE.BoxGeometry(0.06, 1.6, 0.06),
-//   new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.1, metalness: 0.95 })
-// );
-// arm.position.y = -0.8;
-// this.nozzle.add(arm);
-
-// // Single nozzle head
-// const head = new THREE.Mesh(
-//   new THREE.CylinderGeometry(0.12, 0.08, 0.26, 16),
-//   new THREE.MeshStandardMaterial({
-//     color: 0x556677, roughness: 0.18, metalness: 0.92,
-//     emissive: 0x003366, emissiveIntensity: 0.4,
-//   })
-// );
-// head.position.y = -1.68;
-// this.nozzle.add(head);
-
-// // Single spray tip pointing down
-// const devTip = new THREE.Mesh(
-//   new THREE.CylinderGeometry(0.020, 0.032, 0.09, 12),
-//   new THREE.MeshStandardMaterial({ color: 0x223344, metalness: 0.95, roughness: 0.12 })
-// );
-// devTip.position.set(0, -1.83, 0);
-// this.nozzle.add(devTip);
-// this.group.userData.devNozzleTip = devTip;
-
-// // Blue glow at tip
-// const devTipGlow = new THREE.Mesh(
-//   new THREE.SphereGeometry(0.025, 8, 8),
-//   new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x0088ff, emissiveIntensity: 3.0, roughness: 0.2 })
-// );
-// devTipGlow.position.set(0, -1.90, 0);
-// this.nozzle.add(devTipGlow);
-// this.group.userData.devTipGlow = devTipGlow;
- 
-//     // ── SPRAY CONES (visible fan-shaped sprays) ──
-//  this.spraySources = new THREE.Group();
-// this.spraySources.position.set(0, -1.92, 0); // at tip height relative to nozzle
-// this.nozzle.add(this.spraySources); // moves with nozzle arm // child of nozzle so it moves with arm
- 
-//     [-0.10, 0, 0.10].forEach((ox) => {
-//       // Cone geometry pointing down — wide at bottom, narrow at top
-//       const coneGeo = new THREE.ConeGeometry(0.28, 1.4, 18, 1, true);
-//       const coneMat = new THREE.MeshStandardMaterial({
-//         color: 0x44ccff,
-//         emissive: 0x0088dd,
-//         emissiveIntensity: 0.7,
-//         transparent: true,
-//         opacity: 0,                  // fade in during spray phase
-//         side: THREE.DoubleSide,
-//         depthWrite: false,
-//       });
-//       const cone = new THREE.Mesh(coneGeo, coneMat);
-//       cone.rotation.x = Math.PI;     // point downward
-//     // Cones hang below nozzle head — position relative to nozzle group
-// cone.position.set(0, -0.5, 0); // hangs below tip, single cone; // below arm bottom
-// this.spraySources.add(cone);
-//       this.sprayCones.push(cone);
-//     });
- 
-//     // ── LIQUID POOL ON WAFER ──
-//     this.liquidPool = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.86, 0.86, 0.012, 64),
-//       new THREE.MeshStandardMaterial({
-//         color: 0x33cc88,
-//         roughness: 0.05,
-//         metalness: 0.05,
-//         transparent: true,
-//         opacity: 0,
-//         emissive: 0x22aa66,
-//         emissiveIntensity: 0.4,
-//       })
-//     );
-//     this.liquidPool.position.y = 0.41;
-//     this.group.add(this.liquidPool);
-//   }
- 
-//   startDev(wx: number, wz: number) {
-//  this.group.position.set(wx, WAFER_TRANSFER_Y - 0.5, wz);
-// this.group.visible = true;
-// this.active = true;
-// this.phase = "descend";
-// this.phaseT = 0;
-// this.phaseDur = 0.8;
-// // Reset nozzle to parked position (right side of rail)
-// this.nozzle.position.set(1.4, 3.44, 0);
-// const dc = this.group.userData.devCarriage as THREE.Mesh;
-// if (dc) dc.position.set(1.4, 3.44, 0);
-// (this.liquidPool.material as THREE.MeshStandardMaterial).opacity = 0;
-//     (this.liquidPool.material as THREE.MeshStandardMaterial).color.setHex(0x33cc88);
-//     this.sprayCones.forEach((c) => {
-//       (c.material as THREE.MeshStandardMaterial).opacity = 0;
-//     });
-//   }
- 
-//   stopDev() {
-//     this.group.visible = false;
-//     this.active = false;
-//     this.phase = "idle";
-//     // clear droplets
-//     this.droplets.forEach((d) => this.group.remove(d));
-//     this.droplets = [];
-//     this.splashes.forEach((s) => this.group.remove(s));
-//     this.splashes = [];
-//   }
- 
-//   tick(dt: number, speed: number) {
-//     if (!this.active) return;
-//     const sDt = dt * speed;
-//     this.phaseT += sDt;
-//     const t = Math.min(this.phaseT / this.phaseDur, 1);
-//     const poolMat = this.liquidPool.material as THREE.MeshStandardMaterial;
- 
-//     switch (this.phase) {
- 
-//   case "descend": {
-//   // Phase A (0→0.5): slide along rail from right to center
-//   // Phase B (0.5→1): lower arm down to spray height
-//   if (t < 0.5) {
-//     const slideT = t / 0.5;
-//     const slideE = slideT < 0.5 ? 2*slideT*slideT : 1-2*(1-slideT)*(1-slideT);
-//     this.nozzle.position.x = lerp(1.4, 0, slideE);
-//     this.nozzle.position.y = 3.44;
-//     const dc = this.group.userData.devCarriage as THREE.Mesh;
-//     if (dc) dc.position.x = lerp(1.4, 0, slideE);
-//   } else {
-//     const dropT = (t - 0.5) / 0.5;
-//     const dropE = dropT < 0.5 ? 2*dropT*dropT : 1-2*(1-dropT)*(1-dropT);
-//     this.nozzle.position.x = 0;
-//     this.nozzle.position.y = lerp(3.44, 1.85, dropE);
-//     const dc = this.group.userData.devCarriage as THREE.Mesh;
-//     if (dc) dc.position.x = 0;
-//   }
-//   if (t >= 1) {
-//     this.phase = "spray";
-//           this.phaseT = 0;
-//           this.phaseDur = 2.5;
-//           // Set spray color BLUE (developer)
-//           this.sprayCones.forEach((c) => {
-//             (c.material as THREE.MeshStandardMaterial).color.setHex(0x33ccee);
-//             (c.material as THREE.MeshStandardMaterial).emissive.setHex(0x0099dd);
-//           });
-//           poolMat.color.setHex(0x33cc88);
-//         }
-//         break;
-//       }
- 
-//       case "spray": {
-//         // Animate spray cone opacity (pulsing)
-//         const pulse = 0.4 + 0.5 * Math.abs(Math.sin(this.phaseT * 14));
-//         this.sprayCones.forEach((c, i) => {
-//           const m = c.material as THREE.MeshStandardMaterial;
-//           m.opacity = 0.35 + pulse * 0.4;
-//           // Slight scale wobble for "spray fan" look
-//           c.scale.set(
-//             0.85 + 0.2 * Math.sin(this.phaseT * 9 + i),
-//             1,
-//             0.85 + 0.2 * Math.cos(this.phaseT * 9 + i)
-//           );
-//         });
- 
-//         // Build up liquid pool on wafer
-//         poolMat.opacity = Math.min(t * 0.85, 0.85);
- 
-//         // Spawn flying droplets
-//         if (Math.random() < sDt * 60) {
-//           const sourceIdx = Math.floor(Math.random() * 3);
-//           const ox = [-0.10, 0, 0.10][sourceIdx];
-//           const drop = new THREE.Mesh(
-//             new THREE.SphereGeometry(0.018 + Math.random() * 0.015, 6, 6),
-//             new THREE.MeshStandardMaterial({
-//               color: 0x55ddff,
-//               emissive: 0x33aadd,
-//               emissiveIntensity: 0.6,
-//               transparent: true,
-//               opacity: 0.9,
-//             })
-//           );
-//           drop.position.set(
-//             ox + (Math.random() - 0.5) * 0.05,
-//             1.55,
-//             (Math.random() - 0.5) * 0.05
-//           );
-//           drop.userData.vy = -3.2 - Math.random() * 0.8;
-//           drop.userData.vx = (Math.random() - 0.5) * 0.4;
-//           drop.userData.vz = (Math.random() - 0.5) * 0.4;
-//           drop.userData.life = 0;
-//           this.group.add(drop);
-//           this.droplets.push(drop);
-//         }
- 
-//         // Update droplets
-//         this.droplets.forEach((d) => {
-//           d.position.x += d.userData.vx * sDt;
-//           d.position.z += d.userData.vz * sDt;
-//           d.position.y += d.userData.vy * sDt;
-//           d.userData.life += sDt;
-//           // Splash when reaching wafer level
-//           if (d.position.y <= 0.42) {
-//             const splash = new THREE.Mesh(
-//               new THREE.RingGeometry(0.02, 0.08, 16),
-//               new THREE.MeshStandardMaterial({
-//                 color: 0x55ddff,
-//                 emissive: 0x33aadd,
-//                 emissiveIntensity: 0.8,
-//                 transparent: true,
-//                 opacity: 0.7,
-//                 side: THREE.DoubleSide,
-//               })
-//             );
-//             splash.rotation.x = -Math.PI / 2;
-//             splash.position.set(d.position.x, 0.43, d.position.z);
-//             splash.userData.life = 0;
-//             this.group.add(splash);
-//             this.splashes.push(splash);
-//             this.group.remove(d);
-//           }
-//         });
-//         this.droplets = this.droplets.filter((d) => d.parent === this.group);
- 
-//         // Update splashes (expand and fade)
-//         this.splashes.forEach((s) => {
-//           s.userData.life += sDt;
-//           const lt = s.userData.life;
-//           s.scale.setScalar(1 + lt * 4);
-//           (s.material as THREE.MeshStandardMaterial).opacity = Math.max(0, 0.7 - lt * 2.5);
-//           if (lt > 0.35) this.group.remove(s);
-//         });
-//         this.splashes = this.splashes.filter((s) => s.parent === this.group);
- 
-//         if (t >= 1) {
-//           this.phase = "puddle";
-//           this.phaseT = 0;
-//           this.phaseDur = 1.8;
-//           this.sprayCones.forEach((c) => {
-//             (c.material as THREE.MeshStandardMaterial).opacity = 0;
-//           });
-//         }
-//         break;
-//       }
- 
-//       case "puddle": {
-//         // Sit and develop — pool changes color (green → darker)
-//         poolMat.color.lerp(new THREE.Color(0x22aa66), sDt * 0.6);
-//         if (t >= 1) {
-//           this.phase = "rinse";
-//           this.phaseT = 0;
-//           this.phaseDur = 1.5;
-//         }
-//         break;
-//       }
- 
-//       case "rinse": {
-//         // Switch to blue rinse spray
-//         const pulse = 0.5 + 0.5 * Math.abs(Math.sin(this.phaseT * 14));
-//         this.sprayCones.forEach((c) => {
-//           const m = c.material as THREE.MeshStandardMaterial;
-//           m.color.setHex(0x66bbff);
-//           m.emissive.setHex(0x3399ff);
-//           m.opacity = 0.3 + pulse * 0.4;
-//         });
- 
-//         // Pool drains
-//         poolMat.color.lerp(new THREE.Color(0x66bbff), sDt * 1.2);
-//         poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 0.6);
- 
-//         if (t >= 1) {
-//           this.phase = "retract";
-//           this.phaseT = 0;
-//           this.phaseDur = 0.6;
-//         }
-//         break;
-//       }
- 
-//   case "retract": {
-//   // Phase A (0→0.5): lift back to rail
-//   // Phase B (0.5→1): slide back right to park
-//   if (t < 0.5) {
-//     const liftT = t / 0.5;
-//     this.nozzle.position.y = lerp(1.85, 3.44, liftT);
-//     this.nozzle.position.x = 0;
-//   } else {
-//     const slideT = (t - 0.5) / 0.5;
-//     this.nozzle.position.y = 3.44;
-//     this.nozzle.position.x = lerp(0, 1.4, slideT);
-//     const dc = this.group.userData.devCarriage as THREE.Mesh;
-//     if (dc) dc.position.x = lerp(0, 1.4, slideT);
-//   }
-//         this.sprayCones.forEach((c) => {
-//           (c.material as THREE.MeshStandardMaterial).opacity = Math.max(
-//             0,
-//             (c.material as THREE.MeshStandardMaterial).opacity - sDt * 3
-//           );
-//         });
-//         if (t >= 1) {
-//           this.phase = "done";
-//           this.phaseT = 0;
-//         }
-//         break;
-//       }
- 
-//       case "done": break;
-//     }
-//   }
-// }
- 
-// class DevLiquidAnimator {
-//   group: THREE.Group;
-//   nozzle: THREE.Group;
-//   liquidPool: THREE.Mesh;
-  
-//   // ── CONTINUOUS STREAMS (replace spray cones) ──
-//   liquidStreams: THREE.Mesh[] = [];
-//   streamMats: THREE.MeshStandardMaterial[] = [];
-  
-//   // ── SPIRAL PATTERN ──
-//   spiralCanvas!: HTMLCanvasElement;
-//   spiralCtx!: CanvasRenderingContext2D;
-//   spiralTex!: THREE.CanvasTexture;
-//   spiralMesh!: THREE.Mesh;
-//   spiralAngle = 0;
-  
-//   // Spinning chuck for puddle visualization
-//   poolGroup!: THREE.Group;
-//   poolSpin = 0;
-  
-//   active = false;
-//   phase: "idle" | "descend" | "spray" | "puddle" | "rinse" | "retract" | "done" = "idle";
-//   phaseT = 0;
-//   phaseDur = 1;
-
-// //   constructor(scene: THREE.Scene) {
-// //     this.group = new THREE.Group();
-// //     scene.add(this.group);
-// //     this.group.visible = false;
-
-// //     // // ── Overhead cross rail ──
-// //     // const devRailMat = new THREE.MeshStandardMaterial({ color: 0xc8d8e8, roughness: 0.10, metalness: 0.96 });
-// //     // const devRail = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.07, 0.07), devRailMat);
-// //     // devRail.position.set(0, 3.55, 0);
-// //     // this.group.add(devRail);
-
-// //     // const devPostMat = new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.14, metalness: 0.94 });
-// //     // const devLeftPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.9, 0.07), devPostMat);
-// //     // devLeftPost.position.set(-1.55, 2.6, 0);
-// //     // this.group.add(devLeftPost);
-
-// //     // const devRightPost = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.9, 0.07), devPostMat);
-// //     // devRightPost.position.set(1.55, 2.6, 0);
-// //     // this.group.add(devRightPost);
-
-// //     // const devCarriage = new THREE.Mesh(
-// //     //   new THREE.BoxGeometry(0.28, 0.20, 0.22),
-// //     //   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.13, metalness: 0.94 })
-// //     // );
-// //     // devCarriage.position.set(1.4, 3.44, 0);
-// //     // this.group.add(devCarriage);
-// //     // this.group.userData.devCarriage = devCarriage;
-
-// //     // Nozzle arm
-// //     this.nozzle = new THREE.Group();
-// //     this.nozzle.position.set(1.4, 3.44, 0);
-// //     this.group.add(this.nozzle);
-
-// //     const arm = new THREE.Mesh(
-// //       new THREE.BoxGeometry(0.06, 1.6, 0.06),
-// //       new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.1, metalness: 0.95 })
-// //     );
-// //     arm.position.y = -0.8;
-// //     this.nozzle.add(arm);
-
-// //     const head = new THREE.Mesh(
-// //       new THREE.CylinderGeometry(0.12, 0.08, 0.26, 16),
-// //       new THREE.MeshStandardMaterial({
-// //         color: 0x556677, roughness: 0.18, metalness: 0.92,
-// //         emissive: 0x003366, emissiveIntensity: 0.4,
-// //       })
-// //     );
-// //     head.position.y = -1.68;
-// //     this.nozzle.add(head);
-
-// //     const devTip = new THREE.Mesh(
-// //       new THREE.CylinderGeometry(0.020, 0.032, 0.09, 12),
-// //       new THREE.MeshStandardMaterial({ color: 0x223344, metalness: 0.95, roughness: 0.12 })
-// //     );
-// //     devTip.position.set(0, -1.83, 0);
-// //     this.nozzle.add(devTip);
-// //     this.group.userData.devNozzleTip = devTip;
-
-// //     const devTipGlow = new THREE.Mesh(
-// //       new THREE.SphereGeometry(0.025, 8, 8),
-// //       new THREE.MeshStandardMaterial({ 
-// //         color: 0x00aaff, emissive: 0x0088ff, emissiveIntensity: 3.0, roughness: 0.2 
-// //       })
-// //     );
-// //     devTipGlow.position.set(0, -1.90, 0);
-// //     this.nozzle.add(devTipGlow);
-// //     this.group.userData.devTipGlow = devTipGlow;
-
-// //     // ── CONTINUOUS LIQUID STREAMS (3 streams from 3 nozzle positions) ──
-// //     // Each is a thin cylinder hanging from the tip down to the wafer
-// //     [-0.10, 0, 0.10].forEach((ox) => {
-// //       const mat = new THREE.MeshStandardMaterial({
-// //         color: 0x33cc88,
-// //         emissive: 0x22aa66,
-// //         emissiveIntensity: 1.0,
-// //         roughness: 0.15,
-// //         metalness: 0.1,
-// //         transparent: true,
-// //         opacity: 0,
-// //         depthWrite: false,
-// //       });
-// //       const stream = new THREE.Mesh(
-// //         new THREE.CylinderGeometry(0.022, 0.016, 1.4, 12, 1, true),
-// //         mat
-// //       );
-// //       // Position so the top of cylinder is at the tip, hanging down toward wafer
-// //       stream.position.set(ox, -2.6, 0);  // midpoint below the nozzle head
-// //       this.nozzle.add(stream);
-// //       this.liquidStreams.push(stream);
-// //       this.streamMats.push(mat);
-// //     });
-
-// //     // ── LIQUID POOL ON WAFER (puddle that spins with wafer) ──
-// //     this.poolGroup = new THREE.Group();
-// //     this.poolGroup.position.y = 0.41;
-// //     this.group.add(this.poolGroup);
-    
-// //     this.liquidPool = new THREE.Mesh(
-// //       new THREE.CylinderGeometry(0.86, 0.86, 0.012, 64),
-// //       new THREE.MeshStandardMaterial({
-// //         color: 0x33cc88,
-// //         roughness: 0.05,
-// //         metalness: 0.05,
-// //         transparent: true,
-// //         opacity: 0,
-// //         emissive: 0x22aa66,
-// //         emissiveIntensity: 0.4,
-// //       })
-// //     );
-// //     this.poolGroup.add(this.liquidPool);
-
-// //     // ── SPIRAL PATTERN ON TOP OF POOL ──
-// //     this.spiralCanvas = document.createElement("canvas");
-// //     this.spiralCanvas.width = 512;
-// //     this.spiralCanvas.height = 512;
-// //     this.spiralCtx = this.spiralCanvas.getContext("2d")!;
-// //     this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
-    
-// //     this.spiralMesh = new THREE.Mesh(
-// //       new THREE.CircleGeometry(0.85, 80),
-// //       new THREE.MeshBasicMaterial({
-// //         map: this.spiralTex,
-// //         transparent: true,
-// //         opacity: 0,
-// //         depthWrite: false,
-// //         side: THREE.DoubleSide,
-// //         blending: THREE.AdditiveBlending,
-// //       })
-// //     );
-// //     this.spiralMesh.rotation.x = -Math.PI / 2;
-// //     this.spiralMesh.position.y = 0.015;
-// //     this.spiralMesh.renderOrder = 10;
-// //     this.poolGroup.add(this.spiralMesh);
-// //   }
-
-//  constructor(scene: THREE.Scene) {
-//   this.group = new THREE.Group();
-//   scene.add(this.group);
-//   this.group.visible = false;   // ← stays hidden until startDev()
-
-//   // ══════════════════════════════════════════════════════════════════════
-//   // NO external rails, NO crosspaths, NO wall posts, NO carriages.
-//   // Only the dispense nozzle (visible during developing/rinsing).
-//   // ══════════════════════════════════════════════════════════════════════
-
-//   // ── NOZZLE ARM (descends from above) ──
-//   this.nozzle = new THREE.Group();
-//   this.nozzle.position.set(1.4, 3.44, 0);
-//   this.group.add(this.nozzle);
-
-//   // Vertical arm
-//   const arm = new THREE.Mesh(
-//     new THREE.BoxGeometry(0.06, 1.6, 0.06),
-//     new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.1, metalness: 0.95 })
-//   );
-//   arm.position.y = -0.8;
-//   this.nozzle.add(arm);
-
-//   // Nozzle head
-//   const head = new THREE.Mesh(
-//     new THREE.CylinderGeometry(0.12, 0.08, 0.26, 16),
-//     new THREE.MeshStandardMaterial({
-//       color: 0x556677, roughness: 0.18, metalness: 0.92,
-//       emissive: 0x003366, emissiveIntensity: 0.4,
-//     })
-//   );
-//   head.position.y = -1.68;
-//   this.nozzle.add(head);
-
-//   const devTip = new THREE.Mesh(
-//     new THREE.CylinderGeometry(0.020, 0.032, 0.09, 12),
-//     new THREE.MeshStandardMaterial({ color: 0x223344, metalness: 0.95, roughness: 0.12 })
-//   );
-//   devTip.position.set(0, -1.83, 0);
-//   this.nozzle.add(devTip);
-//   this.group.userData.devNozzleTip = devTip;
-
-//   const devTipGlow = new THREE.Mesh(
-//     new THREE.SphereGeometry(0.025, 8, 8),
-//     new THREE.MeshStandardMaterial({ 
-//       color: 0x00aaff, emissive: 0x0088ff, emissiveIntensity: 3.0, roughness: 0.2 
-//     })
-//   );
-//   devTipGlow.position.set(0, -1.90, 0);
-//   this.nozzle.add(devTipGlow);
-//   this.group.userData.devTipGlow = devTipGlow;
-
-//   // ── CONTINUOUS LIQUID STREAMS (3 small streams from the tip) ──
-//   [-0.10, 0, 0.10].forEach((ox) => {
-//     const mat = new THREE.MeshStandardMaterial({
-//       color: 0x33cc88,
-//       emissive: 0x22aa66,
-//       emissiveIntensity: 1.0,
-//       roughness: 0.15,
-//       metalness: 0.1,
-//       transparent: true,
-//       opacity: 0,
-//       depthWrite: false,
-//     });
-//     const stream = new THREE.Mesh(
-//       new THREE.CylinderGeometry(0.022, 0.016, 1.4, 12, 1, true),
-//       mat
-//     );
-//     stream.position.set(ox, -2.6, 0);
-//     this.nozzle.add(stream);
-//     this.liquidStreams.push(stream);
-//     this.streamMats.push(mat);
-//   });
-
-//   // ── LIQUID POOL (puddle on wafer) ──
-//   this.poolGroup = new THREE.Group();
-//   this.poolGroup.position.y = 0.41;
-//   this.group.add(this.poolGroup);
-  
-//   this.liquidPool = new THREE.Mesh(
-//     new THREE.CylinderGeometry(0.86, 0.86, 0.012, 64),
-//     new THREE.MeshStandardMaterial({
-//       color: 0x33cc88,
-//       roughness: 0.05,
-//       metalness: 0.05,
-//       transparent: true,
-//       opacity: 0,
-//       emissive: 0x22aa66,
-//       emissiveIntensity: 0.4,
-//     })
-//   );
-//   this.poolGroup.add(this.liquidPool);
-
-//   // ── SPIRAL PATTERN ON POOL ──
-//   this.spiralCanvas = document.createElement("canvas");
-//   this.spiralCanvas.width = 512;
-//   this.spiralCanvas.height = 512;
-//   this.spiralCtx = this.spiralCanvas.getContext("2d")!;
-//   this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
-  
-//   this.spiralMesh = new THREE.Mesh(
-//     new THREE.CircleGeometry(0.85, 80),
-//     new THREE.MeshBasicMaterial({
-//       map: this.spiralTex,
-//       transparent: true,
-//       opacity: 0,
-//       depthWrite: false,
-//       side: THREE.DoubleSide,
-//       blending: THREE.AdditiveBlending,
-//     })
-//   );
-//   this.spiralMesh.rotation.x = -Math.PI / 2;
-//   this.spiralMesh.position.y = 0.015;
-//   this.spiralMesh.renderOrder = 10;
-//   this.poolGroup.add(this.spiralMesh);
-// }
-
-//   startDev(wx: number, wz: number) {
-//     this.group.position.set(wx, WAFER_TRANSFER_Y - 0.5, wz);
-//     this.group.visible = false;  // always visible on develop module
-//     this.active = true;
-//     this.phase = "descend";
-//     this.phaseT = 0;
-//     this.phaseDur = 0.8;
-//     this.poolSpin = 0;
-//     this.spiralAngle = 0;
-    
-//     this.nozzle.position.set(1.4, 3.44, 0);
-//     const dc = this.group.userData.devCarriage as THREE.Mesh;
-//     if (dc) dc.position.set(1.4, 3.44, 0);
-    
-//     (this.liquidPool.material as THREE.MeshStandardMaterial).opacity = 0;
-//     (this.liquidPool.material as THREE.MeshStandardMaterial).color.setHex(0x33cc88);
-    
-//     this.streamMats.forEach((m) => {
-//       m.opacity = 0;
-//       m.color.setHex(0x33cc88);
-//       m.emissive.setHex(0x22aa66);
-//     });
-    
-//     // Clear spiral
-//     this.spiralCtx.clearRect(0, 0, 512, 512);
-//     this.spiralTex.needsUpdate = true;
-//     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
-//   }
-
-//   stopDev() {
-//     this.active = false;
-//     this.phase = "idle";
-//     this.streamMats.forEach((m) => { m.opacity = 0; });
-//     this.nozzle.position.set(1.4, 3.44, 0);
-//     const dc = this.group.userData.devCarriage as THREE.Mesh;
-//     if (dc) dc.position.set(1.4, 3.44, 0);
-//     this.group.visible = false;  // stay visible — parked on module
-//   }
-//   // Draw spiral trail showing developer/rinse spreading from center outward
-//   private _drawSpiralTrail(spiralR: number, spinSpeed: number, dt: number, isRinse: boolean) {
-//     const ctx = this.spiralCtx;
-//     const C = 256;
-//     const maxR = 230;
-    
-//     const steps = Math.max(3, Math.floor(spinSpeed * dt * 30));
-//     const color = isRinse ? "#66bbff" : "#33ccaa";
-    
-//     for (let s = 0; s < steps; s++) {
-//       this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (dt / steps);
-//       const r = spiralR * maxR;
-      
-//       const px = C + Math.cos(this.spiralAngle) * r;
-//       const py = C + Math.sin(this.spiralAngle) * r;
-      
-//       // Glowing trail
-//       const grad = ctx.createRadialGradient(px, py, 0, px, py, 10);
-//       grad.addColorStop(0, color + "ff");
-//       grad.addColorStop(0.5, color + "88");
-//       grad.addColorStop(1, color + "00");
-//       ctx.fillStyle = grad;
-//       ctx.beginPath();
-//       ctx.arc(px, py, 10, 0, Math.PI * 2);
-//       ctx.fill();
-      
-//       // Bright streak
-//       ctx.fillStyle = "#ffffff";
-//       ctx.globalAlpha = 0.5;
-//       ctx.beginPath();
-//       ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-//       ctx.fill();
-//       ctx.globalAlpha = 1;
-//     }
-    
-//     this.spiralTex.needsUpdate = true;
-//   }
-
-//   tick(dt: number, speed: number) {
-//     if (!this.active) return;
-//     const sDt = dt * speed;
-//     this.phaseT += sDt;
-//     const t = Math.min(this.phaseT / this.phaseDur, 1);
-//     const poolMat = this.liquidPool.material as THREE.MeshStandardMaterial;
-
-//     switch (this.phase) {
-//       case "descend": {
-//         if (t < 0.5) {
-//           const slideT = t / 0.5;
-//           const slideE = slideT < 0.5 ? 2*slideT*slideT : 1-2*(1-slideT)*(1-slideT);
-//           this.nozzle.position.x = lerp(1.4, 0, slideE);
-//           this.nozzle.position.y = 3.44;
-//           const dc = this.group.userData.devCarriage as THREE.Mesh;
-//           if (dc) dc.position.x = lerp(1.4, 0, slideE);
-//         } else {
-//           const dropT = (t - 0.5) / 0.5;
-//           const dropE = dropT < 0.5 ? 2*dropT*dropT : 1-2*(1-dropT)*(1-dropT);
-//           this.nozzle.position.x = 0;
-//           this.nozzle.position.y = lerp(3.44, 1.85, dropE);
-//           const dc = this.group.userData.devCarriage as THREE.Mesh;
-//           if (dc) dc.position.x = 0;
-//         }
-//         if (t >= 1) {
-//           this.phase = "spray";
-//           this.phaseT = 0;
-//           this.phaseDur = 2.5;
-//           // Set stream color BLUE-GREEN (developer TMAH)
-//           this.streamMats.forEach((m) => {
-//             m.color.setHex(0x33ccee);
-//             m.emissive.setHex(0x0099dd);
-//           });
-//           poolMat.color.setHex(0x33cc88);
-//         }
-//         break;
-//       }
-
-//       case "spray": {
-//         // ── CONTINUOUS STREAMS (smooth opacity, slight pulsing) ──
-//         this.streamMats.forEach((m, i) => {
-//           m.opacity = Math.min(t * 2, 0.92);
-//           m.emissiveIntensity = 1.0 + 0.4 * Math.sin(this.phaseT * 12 + i * 0.7);
-//         });
-
-//         // Build up liquid pool
-//         poolMat.opacity = Math.min(t * 0.85, 0.85);
-        
-//         // Spin the puddle (slow at first, faster as developer dispenses)
-//         this.poolSpin += sDt * lerp(0.5, 3.0, t);
-//         this.poolGroup.rotation.y = this.poolSpin;
-        
-//         // Draw spiral pattern showing developer spreading outward
-//         const spiralR = lerp(0.05, 0.85, t);
-//         this._drawSpiralTrail(spiralR, lerp(60, 300, t), sDt, false);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.75, t);
-
-//         if (t >= 1) {
-//           this.phase = "puddle";
-//           this.phaseT = 0;
-//           this.phaseDur = 1.8;
-//           this.streamMats.forEach((m) => { m.opacity = 0; });
-//         }
-//         break;
-//       }
-
-//       case "puddle": {
-//         // Sit and develop — pool slowly spins, color darkens
-//         poolMat.color.lerp(new THREE.Color(0x22aa66), sDt * 0.6);
-//         this.poolSpin += sDt * 1.2;
-//         this.poolGroup.rotation.y = this.poolSpin;
-        
-//         // Spiral pattern fades to uniform
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0.75, 0.3, t);
-        
-//         if (t >= 1) {
-//           this.phase = "rinse";
-//           this.phaseT = 0;
-//           this.phaseDur = 1.5;
-//           // Switch streams to BLUE rinse water
-//           this.streamMats.forEach((m) => {
-//             m.color.setHex(0x66bbff);
-//             m.emissive.setHex(0x3399ff);
-//           });
-//           // Clear spiral for rinse pattern
-//           this.spiralCtx.clearRect(0, 0, 512, 512);
-//           this.spiralTex.needsUpdate = true;
-//           this.spiralAngle = 0;
-//         }
-//         break;
-//       }
-
-//       case "rinse": {
-//         // ── CONTINUOUS RINSE STREAMS ──
-//         this.streamMats.forEach((m, i) => {
-//           m.opacity = Math.min(t * 2, 0.92);
-//           m.emissiveIntensity = 1.2 + 0.4 * Math.sin(this.phaseT * 14 + i * 0.7);
-//         });
-        
-//         // Pool color shifts to blue rinse
-//         poolMat.color.lerp(new THREE.Color(0x66bbff), sDt * 1.2);
-//         // Pool slowly drains
-//         poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 0.3);
-        
-//         // Fast spin during rinse
-//         this.poolSpin += sDt * 5.0;
-//         this.poolGroup.rotation.y = this.poolSpin;
-        
-//         // Draw rinse spiral pattern
-//         const spiralR = lerp(0.1, 0.9, t);
-//         this._drawSpiralTrail(spiralR, 400, sDt, true);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.7, t < 0.7 ? t : (1 - t) * 3);
-
-//         if (t >= 1) {
-//           this.phase = "retract";
-//           this.phaseT = 0;
-//           this.phaseDur = 0.6;
-//           this.streamMats.forEach((m) => { m.opacity = 0; });
-//         }
-//         break;
-//       }
-
-//       case "retract": {
-//         if (t < 0.5) {
-//           const liftT = t / 0.5;
-//           this.nozzle.position.y = lerp(1.85, 3.44, liftT);
-//           this.nozzle.position.x = 0;
-//         } else {
-//           const slideT = (t - 0.5) / 0.5;
-//           this.nozzle.position.y = 3.44;
-//           this.nozzle.position.x = lerp(0, 1.4, slideT);
-//           const dc = this.group.userData.devCarriage as THREE.Mesh;
-//           if (dc) dc.position.x = lerp(0, 1.4, slideT);
-//         }
-        
-//         // Pool fades
-//         poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 1.5);
-//         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 
-//           Math.max(0, (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity - sDt * 1.5);
-        
-//         if (t >= 1) {
-//           this.phase = "done";
-//           this.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       case "done": break;
-//     }
-//   }
-// }
-
-class DevLiquidAnimator {
-  group: THREE.Group;
-  liquidPool: THREE.Mesh;
-  
-  // ── SWING ARM ASSEMBLY ──
-  pivotPost: THREE.Mesh;
-  swingBar: THREE.Group;
-  valveBody: THREE.Mesh;
-  nozzleTip: THREE.Mesh;
-  tipGlow: THREE.Mesh;
-  
-  // ── CONTINUOUS STREAMS (3 small parallel streams for developer manifold) ──
-  liquidStreams: THREE.Mesh[] = [];
-  streamMats: THREE.MeshStandardMaterial[] = [];
-  
-  // ── SPIRAL PATTERN ──
-  spiralCanvas!: HTMLCanvasElement;
-  spiralCtx!: CanvasRenderingContext2D;
-  spiralTex!: THREE.CanvasTexture;
-  spiralMesh!: THREE.Mesh;
-  spiralAngle = 0;
-  
-  // ── PERF: throttling state ──
-  private _drawAccum = 0;
-  private _matUpdateAccum = 0;
-  
-  poolGroup!: THREE.Group;
-  poolSpin = 0;
-
-  readonly POST_X = 0.0;
-  readonly POST_Z = 1.2;          // ← FLIPPED: +1.2 instead of -1.2 (front side)
-  readonly BAR_LENGTH = 1.4;
-  readonly NOZZLE_DROP = 0.40;
-  readonly TIP_DROP = 0.70;
-  
-  active = false;
-  phase: "idle" | "swing_in" | "spray" | "puddle" | "rinse" | "swing_out" | "drain" | "done" = "idle";
-  phaseT = 0;
-  phaseDur = 1;
-  
-  // ── DEVELOPER SWING DIRECTION (post at front, arm swings back over chuck) ──
-  readonly SWING_PARKED = -Math.PI / 2;   // -90° parked pointing away (+X direction)
-  readonly SWING_OVER   = Math.PI / 2;    // +90° swung over chuck (-Z direction toward back)
-  swingAngle = -Math.PI / 2;
-
-  constructor(scene: THREE.Scene) {
-    this.group = new THREE.Group();
-    scene.add(this.group);
-    this.group.visible = false;
-
-    // ── LIQUID POOL ──
-    this.poolGroup = new THREE.Group();
-    this.poolGroup.position.y = 0.05;
-    this.group.add(this.poolGroup);
-
-    this.liquidPool = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.75, 0.75, 0.012, 64),
-      new THREE.MeshStandardMaterial({
-        color: 0x33cc88, roughness: 0.05, metalness: 0.05,
-        transparent: true, opacity: 0,
-        emissive: 0x22aa66, emissiveIntensity: 0.4,
-      })
-    );
-    this.poolGroup.add(this.liquidPool);
-
-    // ── SPIRAL PATTERN ──
-    this.spiralCanvas = document.createElement("canvas");
-    this.spiralCanvas.width = 512;
-    this.spiralCanvas.height = 512;
-    this.spiralCtx = this.spiralCanvas.getContext("2d")!;
-    this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
-
-    this.spiralMesh = new THREE.Mesh(
-      new THREE.CircleGeometry(0.74, 80),
-      new THREE.MeshBasicMaterial({
-        map: this.spiralTex, transparent: true, opacity: 0,
-        depthWrite: false, side: THREE.DoubleSide,
-        blending: THREE.AdditiveBlending,
-      })
-    );
-    this.spiralMesh.rotation.x = -Math.PI / 2;
-    this.spiralMesh.position.y = 0.015;
-    this.spiralMesh.renderOrder = 10;
-    this.poolGroup.add(this.spiralMesh);
-
-    // BASE MOUNTING ASSEMBLY — attached to chuck surface
-    const POST_X = this.POST_X;
-    const POST_Z = this.POST_Z;
-    
-    const basePlate = new THREE.Mesh(
-      new THREE.BoxGeometry(0.85, 0.10, 0.75),
-      new THREE.MeshStandardMaterial({
-        color: 0x1c2230,
-        roughness: 0.35,
-        metalness: 0.92,
-        emissive: 0x050810,
-        emissiveIntensity: 0.4,
-      })
-    );
-    basePlate.position.set(POST_X, 0.05, POST_Z);
-    basePlate.castShadow = true;
-    this.group.add(basePlate);
-
-    const baseBevel = new THREE.Mesh(
-      new THREE.BoxGeometry(0.88, 0.025, 0.78),
-      new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.20, metalness: 0.95 })
-    );
-    baseBevel.position.set(POST_X, 0.108, POST_Z);
-    this.group.add(baseBevel);
-
-    [[-0.32, -0.27], [0.32, -0.27], [-0.32, 0.27], [0.32, 0.27]].forEach(([dx, dz]) => {
-      const boltBody = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.045, 0.045, 0.06, 6),
-        new THREE.MeshStandardMaterial({ color: 0x111118, metalness: 0.98, roughness: 0.2 })
-      );
-      boltBody.position.set(POST_X + (dx as number), 0.135, POST_Z + (dz as number));
-      this.group.add(boltBody);
-
-      const boltHead = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.05, 0.05, 0.02, 6),
-        new THREE.MeshStandardMaterial({ color: 0x778899, metalness: 0.95, roughness: 0.15 })
-      );
-      boltHead.position.set(POST_X + (dx as number), 0.17, POST_Z + (dz as number));
-      this.group.add(boltHead);
-    });
-
-    const controlBox = new THREE.Mesh(
-      new THREE.BoxGeometry(0.55, 0.40, 0.50),
-      new THREE.MeshStandardMaterial({ color: 0x2a3340, roughness: 0.32, metalness: 0.88, emissive: 0x0a1525, emissiveIntensity: 0.5 })
-    );
-    controlBox.position.set(POST_X, 0.32, POST_Z);
-    controlBox.castShadow = true;
-    this.group.add(controlBox);
-
-    const frontPanel = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.36, 0.015), new THREE.MeshStandardMaterial({ color: 0x1a1f28, roughness: 0.4, metalness: 0.7 }));
-    frontPanel.position.set(POST_X, 0.32, POST_Z + 0.26);
-    this.group.add(frontPanel);
-
-    const statusLED = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12), new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00ddff, emissiveIntensity: 3.5, roughness: 0.2 }));
-    statusLED.rotation.x = Math.PI / 2; statusLED.position.set(POST_X - 0.18, 0.42, POST_Z + 0.27); this.group.add(statusLED);
-
-    const powerLED = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12), new THREE.MeshStandardMaterial({ color: 0x00ff44, emissive: 0x00ff44, emissiveIntensity: 3.0, roughness: 0.2 }));
-    powerLED.rotation.x = Math.PI / 2; powerLED.position.set(POST_X - 0.08, 0.42, POST_Z + 0.27); this.group.add(powerLED);
-
-    this.tipGlow = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12), new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xff8800, emissiveIntensity: 0.5, roughness: 0.2 }));
-    this.tipGlow.rotation.x = Math.PI / 2; this.tipGlow.position.set(POST_X + 0.02, 0.42, POST_Z + 0.27); this.group.add(this.tipGlow);
-
-    const boxTopCap = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.04, 0.53), new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.22, metalness: 0.94 }));
-    boxTopCap.position.set(POST_X, 0.54, POST_Z); this.group.add(boxTopCap);
-
-    const postFlange = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.20, 0.08, 16), new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.18, metalness: 0.96, emissive: 0x112233, emissiveIntensity: 0.3 }));
-    postFlange.position.set(POST_X, 0.60, POST_Z); this.group.add(postFlange);
-
-    for (let i = 0; i < 6; i++) {
-      const angle = (i / 6) * Math.PI * 2;
-      const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.025, 6), new THREE.MeshStandardMaterial({ color: 0x222233, metalness: 0.95, roughness: 0.25 }));
-      bolt.position.set(POST_X + Math.cos(angle) * 0.155, 0.64, POST_Z + Math.sin(angle) * 0.155);
-      this.group.add(bolt);
-    }
-
-    const POST_HEIGHT = 1.8; const POST_BASE_Y = 0.64;
-    this.pivotPost = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.090, POST_HEIGHT, 16), new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.12, metalness: 0.95 }));
-    this.pivotPost.position.set(POST_X, POST_BASE_Y + POST_HEIGHT / 2, POST_Z); this.group.add(this.pivotPost);
-
-    [0.25, 0.55, 0.85].forEach((frac) => {
-      const band = new THREE.Mesh(new THREE.TorusGeometry(0.082, 0.014, 6, 20), new THREE.MeshStandardMaterial({ color: 0x778899, metalness: 0.96, roughness: 0.2 }));
-      band.rotation.x = Math.PI / 2; band.position.set(POST_X, POST_BASE_Y + POST_HEIGHT * frac, POST_Z); this.group.add(band);
-    });
-
-    const brace = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.85, 0.04), new THREE.MeshStandardMaterial({ color: 0x556677, roughness: 0.22, metalness: 0.93 }));
-    brace.position.set(POST_X + 0.20, 0.95, POST_Z); brace.rotation.z = -Math.PI / 5; this.group.add(brace);
-    const braceBracket = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.06, 0.10), new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.25, metalness: 0.92 }));
-    braceBracket.position.set(POST_X + 0.30, 0.55, POST_Z); this.group.add(braceBracket);
-
-    const conduit = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, POST_HEIGHT * 0.85, 8), new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7, metalness: 0.2 }));
-    conduit.position.set(POST_X - 0.11, POST_BASE_Y + POST_HEIGHT * 0.45, POST_Z); this.group.add(conduit);
-    [0.2, 0.5, 0.8].forEach((frac) => { const clamp = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.03, 0.05), new THREE.MeshStandardMaterial({ color: 0x556677, metalness: 0.94, roughness: 0.25 })); clamp.position.set(POST_X - 0.10, POST_BASE_Y + POST_HEIGHT * frac, POST_Z); this.group.add(clamp); });
-
-    const postTopHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.18, 16), new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.18, metalness: 0.95, emissive: 0x002244, emissiveIntensity: 0.4 }));
-    postTopHousing.position.set(POST_X, POST_BASE_Y + POST_HEIGHT + 0.05, POST_Z); this.group.add(postTopHousing);
-    const postTopCap = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.13, 0.04, 16), new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.15, metalness: 0.96 }));
-    postTopCap.position.set(POST_X, POST_BASE_Y + POST_HEIGHT + 0.16, POST_Z); this.group.add(postTopCap);
-
-    this.swingBar = new THREE.Group(); this.swingBar.position.set(POST_X, POST_BASE_Y + POST_HEIGHT + 0.05, POST_Z); this.group.add(this.swingBar);
-    const BAR_LENGTH = this.BAR_LENGTH;
-    const swingBarMesh = new THREE.Mesh(new THREE.BoxGeometry(BAR_LENGTH, 0.09, 0.13), new THREE.MeshStandardMaterial({ color: 0x37404a, roughness: 0.18, metalness: 0.92 }));
-    swingBarMesh.position.set(BAR_LENGTH / 2 + 0.06, 0, 0); this.swingBar.add(swingBarMesh);
-    const barRibTop = new THREE.Mesh(new THREE.BoxGeometry(BAR_LENGTH * 0.92, 0.04, 0.05), new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.20, metalness: 0.94 })); barRibTop.position.set(BAR_LENGTH / 2 + 0.05, 0.045, 0); this.swingBar.add(barRibTop);
-    const barRibBot = new THREE.Mesh(new THREE.BoxGeometry(BAR_LENGTH * 0.92, 0.04, 0.05), new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.20, metalness: 0.94 })); barRibBot.position.set(BAR_LENGTH / 2 + 0.05, -0.045, 0); this.swingBar.add(barRibBot);
-
-
-    this.valveBody = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.10, 0.32, 16), new THREE.MeshStandardMaterial({ color: 0x1a1f24, roughness: 0.40, metalness: 0.55, emissive: 0x002244, emissiveIntensity: 0.3 }));
-    this.valveBody.position.set(BAR_LENGTH - 0.05, -this.NOZZLE_DROP, 0); this.swingBar.add(this.valveBody);
-
-    [-0.10, 0.10].forEach((yOff) => { const ring = new THREE.Mesh(new THREE.TorusGeometry(0.135, 0.018, 6, 20), new THREE.MeshStandardMaterial({ color: 0x778899, metalness: 0.95, roughness: 0.18 })); ring.rotation.x = Math.PI / 2; ring.position.set(BAR_LENGTH - 0.05, -this.NOZZLE_DROP + yOff, 0); this.swingBar.add(ring); });
-
-    this.nozzleTip = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.08, 0.16), new THREE.MeshStandardMaterial({ color: 0xb8c4d0, roughness: 0.08, metalness: 0.98 })); this.nozzleTip.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP, 0); this.swingBar.add(this.nozzleTip);
-
-    [-0.06, 0, 0.06].forEach((zOff) => { const tipBody = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.025, 0.06, 12), new THREE.MeshStandardMaterial({ color: 0x778899, metalness: 0.96, roughness: 0.12 })); tipBody.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP - 0.03, zOff); this.swingBar.add(tipBody); const tipPoint = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.04, 10), new THREE.MeshStandardMaterial({ color: 0x445566, metalness: 0.98, roughness: 0.1 })); tipPoint.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP - 0.08, zOff); tipPoint.rotation.x = Math.PI; this.swingBar.add(tipPoint); });
-
-    [-0.06, 0, 0.06].forEach((zOff) => { const mat = new THREE.MeshStandardMaterial({ color: 0x33cc88, emissive: 0x22aa66, emissiveIntensity: 1.0, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0, depthWrite: false }); const streamLen = 1.0; const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.020, 0.014, streamLen, 12, 1, true), mat); stream.position.set(BAR_LENGTH - 0.05, -this.TIP_DROP - streamLen / 2 - 0.10, zOff); this.swingBar.add(stream); this.liquidStreams.push(stream); this.streamMats.push(mat); });
-
-    this.swingBar.rotation.y = this.SWING_PARKED;
-  }
-
-  startDev(wx: number, wz: number) {
-    // Position is fixed permanently in _build() — never reposition here
-    this.group.visible = true;
-    this.active = true;
-    this.phase = "swing_in";
-    this.phaseT = 0;
-    this.phaseDur = 1.0;
-    this.poolSpin = 0;
-    this.spiralAngle = 0;
-    this.swingAngle = this.SWING_PARKED;
-    this.swingBar.rotation.y = this.SWING_PARKED;
-    
-    (this.liquidPool.material as THREE.MeshStandardMaterial).opacity = 0;
-    (this.liquidPool.material as THREE.MeshStandardMaterial).color.setHex(0x33cc88);
-    
-    this.streamMats.forEach((m) => {
-      m.opacity = 0;
-      m.color.setHex(0x33cc88);
-      m.emissive.setHex(0x22aa66);
-			m.needsUpdate = true;
-    });
-    
-    this.spiralCtx.clearRect(0, 0, 512, 512);
-    this.spiralTex.needsUpdate = true;
-    (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
-		this.tipGlow.visible = false;
-		console.log('[DEV] startDev at', wx, wz, 'visible:', this.group.visible);
-  }
-
-  stopDev() {
-    this.active = false;
-    this.phase = "idle";
-    this.streamMats.forEach((m) => { m.opacity = 0; });
-    this.tipGlow.visible = false;
-  }
-
-  private _drawSpiralTrail(spiralR: number, spinSpeed: number, dt: number, isRinse: boolean) {
-    const ctx = this.spiralCtx;
-    const C = 256;
-    const maxR = 230;
-    const steps = Math.max(3, Math.floor(spinSpeed * dt * 30));
-    const color = isRinse ? "#66bbff" : "#33ccaa";
-
-    for (let s = 0; s < steps; s++) {
-      this.spiralAngle += (spinSpeed / 60) * Math.PI * 2 * (dt / steps);
-      const r = spiralR * maxR;
-      const px = C + Math.cos(this.spiralAngle) * r;
-      const py = C + Math.sin(this.spiralAngle) * r;
-
-      const grad = ctx.createRadialGradient(px, py, 0, px, py, 10);
-      grad.addColorStop(0, color + "ff");
-      grad.addColorStop(0.5, color + "88");
-      grad.addColorStop(1, color + "00");
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(px, py, 10, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.globalAlpha = 0.5;
-      ctx.beginPath();
-      ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-    this.spiralTex.needsUpdate = true;
-  }
-
-  tick(dt: number, speed: number) {
-    if (!this.active) {
-      return; // arm stays visible on module, just idle
-    }
-
-    const sDt = dt * speed;
-    this.phaseT += sDt;
-    const t = Math.min(this.phaseT / this.phaseDur, 1);
-    const poolMat = this.liquidPool.material as THREE.MeshStandardMaterial;
-    const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
-
-    switch (this.phase) {
-      case "swing_in": {
-        // Rotate from parked to over wafer
-        this.swingAngle = lerp(this.SWING_PARKED, this.SWING_OVER, ease);
-        this.swingBar.rotation.y = this.swingAngle;
-        if (t >= 1) {
-          this.phase = "spray";
-          this.phaseT = 0;
-          this.phaseDur = 2.2;
-          this.tipGlow.visible = true;
-          // Developer (teal) color
-          this.streamMats.forEach((m) => {
-            m.color.setHex(0x33ccee);
-            m.emissive.setHex(0x0099dd);
-          });
-          (this.tipGlow.material as THREE.MeshStandardMaterial).color.setHex(0x00aaff);
-          (this.tipGlow.material as THREE.MeshStandardMaterial).emissive.setHex(0x0088ff);
-        }
-        break;
-      }
-
-      case "spray": {
-        // Continuous streams pulsing
-        this.streamMats.forEach((m, i) => {
-          m.opacity = Math.min(t * 2, 0.92);
-          m.emissiveIntensity = 1.0 + 0.4 * Math.sin(this.phaseT * 12 + i * 0.7);
-        });
-        (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
-          3.0 + 0.8 * Math.sin(this.phaseT * 18);
-        
-        poolMat.opacity = Math.min(t * 0.85, 0.85);
-        this.poolSpin += sDt * lerp(0.5, 3.0, t);
-        this.poolGroup.rotation.y = this.poolSpin;
-        
-        const spiralR = lerp(0.05, 0.85, t);
-        this._drawSpiralTrail(spiralR, lerp(60, 300, t), sDt, false);
-        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.75, t);
-
-        if (t >= 1) {
-          this.phase = "puddle";
-          this.phaseT = 0;
-          this.phaseDur = 1.8;
-          this.streamMats.forEach((m) => { m.opacity = 0; });
-        }
-        break;
-      }
-
-      case "puddle": {
-        // Developer sits and reacts — pool color deepens
-        poolMat.color.lerp(new THREE.Color(0x22aa66), sDt * 0.6);
-        this.poolSpin += sDt * 1.2;
-        this.poolGroup.rotation.y = this.poolSpin;
-        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0.75, 0.3, t);
-        
-        if (t >= 1) {
-          this.phase = "rinse";
-          this.phaseT = 0;
-          this.phaseDur = 1.5;
-          // Switch streams to blue rinse
-          this.streamMats.forEach((m) => {
-            m.color.setHex(0x66bbff);
-            m.emissive.setHex(0x3399ff);
-          });
-          this.spiralCtx.clearRect(0, 0, 512, 512);
-          this.spiralTex.needsUpdate = true;
-          this.spiralAngle = 0;
-        }
-        break;
-      }
-
-      case "rinse": {
-        this.streamMats.forEach((m, i) => {
-          m.opacity = Math.min(t * 2, 0.92);
-          m.emissiveIntensity = 1.2 + 0.4 * Math.sin(this.phaseT * 14 + i * 0.7);
-        });
-        poolMat.color.lerp(new THREE.Color(0x66bbff), sDt * 1.2);
-        poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 0.3);
-        this.poolSpin += sDt * 5.0;
-        this.poolGroup.rotation.y = this.poolSpin;
-        
-        const spiralR = lerp(0.1, 0.9, t);
-        this._drawSpiralTrail(spiralR, 400, sDt, true);
-        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity =
-          lerp(0, 0.7, t < 0.7 ? t : (1 - t) * 3);
-
-        if (t >= 1) {
-          this.phase = "swing_out";
-          this.phaseT = 0;
-          this.phaseDur = 1.0;
-          this.streamMats.forEach((m) => { m.opacity = 0; });
-          this.tipGlow.visible = false;
-        }
-        break;
-      }
-
-      case "swing_out": {
-        // Rotate back to parked
-        this.swingAngle = lerp(this.SWING_OVER, this.SWING_PARKED, ease);
-        this.swingBar.rotation.y = this.swingAngle;
-        // Keep spinning for drain
-        this.poolSpin += sDt * 3.0;
-        this.poolGroup.rotation.y = this.poolSpin;
-        if (t >= 1) {
-          this.phase = "drain";
-          this.phaseT = 0;
-          this.phaseDur = 0.8;
-        }
-        break;
-      }
-
-      case "drain": {
-        poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 1.2);
-        (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = Math.max(
-          0, (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity - sDt * 1.5
-        );
-        if (t >= 1) {
-          this.phase = "done";
-          this.phaseT = 0;
-        }
-        break;
-      }
-
-      case "done": break;
-    }
-  }
-}
 
 
 // ─── MODULE BUILDER ───────────────────────────────────────────────────────────
@@ -30123,7 +27406,8 @@ class DevLiquidAnimator {
 
 function buildModule(mod: ProcessStep): THREE.Group {
   const grp = new THREE.Group();
-  grp.position.set(mod.x, 0, mod.z);
+  const nudgeZ = mod.type === "iface" ? IFACE_LOCAL_Z[mod.id] ?? 0 : 0;
+  grp.position.set(mod.x, 0, mod.z + nudgeZ);
   grp.userData.id = mod.id;
 
   const W = 2.9, D = 2.9, H = 2.7;
@@ -30579,418 +27863,7 @@ function addBigLabel(parent: THREE.Group | THREE.Scene, text: string, color: num
 function buildFlowArrows(_scene: THREE.Scene) {
   /* no-op: static yellow “process arrows” replaced by ConveyorBelt track meshes */
 }
-// ─── ROBOT BUILDER ───────────────────────────────────────────────────────────
 
-// function buildRobot(scene: THREE.Scene, basePos: THREE.Vector3, robotColor = 0x445566, ledColor = 0x00ff88): RobotObject {
-//   const g = new THREE.Group(); g.position.copy(basePos);
- 
-//   const M_BODY  = new THREE.MeshStandardMaterial({ color: robotColor, roughness: 0.22, metalness: 0.88 });
-//   const M_JOINT = new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.16, metalness: 0.92 });
-//   const M_LED   = matEmissive(ledColor, 2.5);
-//   const M_ALUM  = new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 });
-//   const M_DARK  = matPBR(0x151820, 0.35, 0.88);
- 
-//   const addM = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0): THREE.Mesh => {
-//     const m = new THREE.Mesh(geo, mat);
-//     m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
-//     parent.add(m); return m;
-//   };
- 
-//   addM(g, new THREE.CylinderGeometry(0.65, 0.82, 0.22, 32), M_ALUM.clone(), 0, 0.11, 0);
-//   addM(g, new THREE.CylinderGeometry(0.55, 0.65, 0.62, 32), M_BODY.clone(), 0, 0.52, 0);
-//   const ledRing = addM(g, new THREE.TorusGeometry(0.53, 0.028, 8, 48), M_LED.clone(), 0, 0.8, 0);
-//   ledRing.rotation.x = Math.PI / 2;
- 
-//   const turret = new THREE.Group(); turret.position.set(0, 0.8, 0); g.add(turret);
-//   addM(turret, new THREE.CylinderGeometry(0.42, 0.46, 0.40, 24), M_BODY.clone(), 0, 0.20, 0);
-//   addM(turret, new THREE.CylinderGeometry(0.30, 0.30, 0.24, 18), M_JOINT.clone(), 0, 0.42, 0);
- 
-//   const shoulder = new THREE.Group(); shoulder.position.set(0, 0.44, 0); turret.add(shoulder);
-//   addM(shoulder, new THREE.BoxGeometry(1.28, 0.70, 1.08), M_BODY.clone(), 0, 0, 0);
-//   addM(shoulder, new THREE.CylinderGeometry(0.44, 0.44, 1.14, 18), M_JOINT.clone(), 0, 0, 0);
- 
-//   const upperArm = new THREE.Group(); upperArm.position.set(0, 0.38, 0); shoulder.add(upperArm);
-//   addM(upperArm, new THREE.BoxGeometry(0.74, 2.3, 0.65), M_BODY.clone(), 0, 1.15, 0);
-//   for (let i = 0; i < 4; i++) addM(upperArm, new THREE.BoxGeometry(0.76, 0.075, 0.67), M_DARK.clone(), 0, 0.3 + i * 0.6, 0);
-//   addM(upperArm, new THREE.BoxGeometry(0.12, 2.0, 0.09), M_ALUM.clone(), 0.32, 1.15, 0.30);
- 
-//   const elbow = new THREE.Group(); elbow.position.set(0, 2.34, 0); upperArm.add(elbow);
-//   addM(elbow, new THREE.SphereGeometry(0.44, 28, 18), M_JOINT.clone(), 0, 0, 0);
-//   addM(elbow, new THREE.CylinderGeometry(0.36, 0.36, 1.14, 18), M_BODY.clone(), 0, 0, 0);
- 
-//   const foreArm = new THREE.Group(); elbow.add(foreArm);
-//   addM(foreArm, new THREE.BoxGeometry(0.6, 1.80, 0.52), M_BODY.clone(), 0, 0.90, 0);
-//   for (let i = 0; i < 2; i++) addM(foreArm, new THREE.BoxGeometry(0.62, 0.065, 0.54), M_DARK.clone(), 0, 0.25 + i * 0.72, 0);
-//   addM(foreArm, new THREE.BoxGeometry(0.10, 1.55, 0.08), M_ALUM.clone(), 0.26, 0.90, 0.22);
- 
-//   const wrist = new THREE.Group(); wrist.position.set(0, 1.84, 0); foreArm.add(wrist);
-//   addM(wrist, new THREE.CylinderGeometry(0.30, 0.34, 0.60, 28), M_JOINT.clone(), 0, 0, 0);
- 
-//   const gripper = new THREE.Group(); gripper.position.set(0, 0.36, 0); wrist.add(gripper);
-//   addM(gripper, new THREE.BoxGeometry(0.48, 0.40, 0.48), M_BODY.clone(), 0, 0.20, 0);
-//   addM(gripper, new THREE.CylinderGeometry(0.22, 0.24, 0.18, 18), M_JOINT.clone(), 0, 0.40, 0);
- 
-//   const bladeMat = new THREE.MeshStandardMaterial({ color: 0xd8e4ef, roughness: 0.04, metalness: 0.98 });
-//   addM(gripper, new THREE.BoxGeometry(1.72, 0.028, 0.68), bladeMat, 0.86, 0.44, 0);
-//   [-0.28, 0.28].forEach((tz) => addM(gripper, new THREE.BoxGeometry(0.52, 0.022, 0.08), bladeMat, 1.82, 0.44, tz));
-//   [0.5, 1.1, 1.6].forEach((bx) => addM(gripper, new THREE.CylinderGeometry(0.055, 0.055, 0.035, 12),
-//     new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3, metalness: 0.7 }), bx, 0.456, 0));
-//   addM(gripper, new THREE.SphereGeometry(0.045, 8, 8), M_LED.clone(), 0, 0.44, 0.30);
- 
-//   const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
-//   statusPL.position.set(0, 2.4, 0); g.add(statusPL);
-
-// // Replace the robot builder's runIK function with this improved version
-// // Also update WaferStateMachine attachTo/detachAt methods
-
-// // In buildRobot function, replace the runIK implementation:
-
-// function runIK(tgt: THREE.Vector3) {
-//   // Step 1 — point the turret toward the target
-//   const baseWP = new THREE.Vector3();
-//   g.getWorldPosition(baseWP);
-//   const dx = tgt.x - baseWP.x;
-//   const dz = tgt.z - baseWP.z;
-//   const yaw = Math.atan2(dx, dz);
-//   turret.rotation.set(0, yaw, 0);
-  
-//   // Robot geometry constants
-//   const L1 = 2.34;
-//   const L2 = 1.84;
-//   const shoulderOffset = 0.44;
-//   const wristToGrip = 0.84;
-  
-//   // Convert target to turret local space
-//   const localTgt = turret.worldToLocal(tgt.clone());
-  
-//   // Determine if this is a pick/place operation (lower height)
-//   const isPickPlace = Math.abs(localTgt.y - 0.93) < 0.2;
-//   const wristTargetY = localTgt.y + wristToGrip - (isPickPlace ? 0.15 : 0);
-//   const wristR = Math.sqrt(localTgt.x * localTgt.x + localTgt.z * localTgt.z);
-//   const sx = wristR;
-//   const sy = wristTargetY - shoulderOffset;
-  
-//   // Calculate distance from shoulder to wrist
-//   let D = Math.sqrt(sx * sx + sy * sy);
-//   D = Math.min(D, L1 + L2 - 0.05);
-//   D = Math.max(D, Math.abs(L1 - L2) + 0.05);
-  
-//   // Law of cosines for elbow angle
-//   const cosElbow = (D * D - L1 * L1 - L2 * L2) / (2 * L1 * L2);
-//   const elbowAngle = Math.acos(Math.min(1, Math.max(-1, cosElbow)));
-  
-//   // Law of cosines for shoulder angle
-//   const cosShoulder = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
-//   const shoulderInner = Math.acos(Math.min(1, Math.max(-1, cosShoulder)));
-//   const targetAngle = Math.atan2(sx, sy);
-  
-//   // Apply joint angles
-//   let shoulderAngle = targetAngle - shoulderInner;
-//   shoulderAngle = Math.min(Math.max(shoulderAngle, -Math.PI / 2.5), Math.PI / 2);
-//   shoulder.rotation.set(shoulderAngle, 0, 0);
-  
-//   let elbowAngleValue = -(Math.PI - elbowAngle);
-//   elbowAngleValue = Math.min(Math.max(elbowAngleValue, -Math.PI / 1.8), 0);
-//   elbow.rotation.set(elbowAngleValue, 0, 0);
-  
-//   // Keep blade horizontal
-//   const cumulativePitch = shoulder.rotation.x + elbow.rotation.x;
-//   let wristAngle = -cumulativePitch;
-  
-//   // Add micro-adjustments for pick/place
-//   if (isPickPlace) {
-//     wristAngle += Math.sin(Date.now() * 0.008) * 0.02;
-//   }
-  
-//   wrist.rotation.set(wristAngle, 0, 0);
-// }
-
-// /*
-// // COMMENTED OUT - These are loose code snippets that need to be properly integrated into classes
-
-// // Replace the _driveRobotTo method in the Sim class:
-// private _driveRobotTo(rob: RobotObject, tgt: THREE.Vector3, dt: number, mult: number): void {
-//   // Smooth target interpolation
-//   if (!rob.group.userData.smoothTarget) {
-//     rob.group.userData.smoothTarget = tgt.clone();
-//   }
-  
-//   const smoothFactor = 0.15;
-//   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
-//   rob.runIK(rob.group.userData.smoothTarget);
-// }
-
-// // Replace the belt Z constants in _tickWafer - find all occurrences and update:
-// // Look for: const beltZ = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
-// // Replace with:
-// const beltZ = isTop ? TOP_Z + 2.6 : BOT_Z - 2.6;
-
-// // Also update BELT_Y at the top of _tickWafer:
-// const BELT_Y = 0.22; // Changed from 0.48
-
-// // Fix the conveyor belt positions in _build (already have these but ensure they're correct):
-// this.conveyorTop = new ConveyorBelt(this.scene, -15, 18, TOP_Z + 2.6, 0x0099ff);
-// this.conveyorBot = new ConveyorBelt(this.scene, -15, 18, BOT_Z - 2.6, 0x00cc66);
-
-// // Ensure robotD is declared at the top of the Sim class:
-// // Find the line with the other robot declarations and add robotD:
-// robotA!: RobotObject; 
-// robotEFEM!: RobotObject; 
-// robotB!: RobotObject; 
-// robotC!: RobotObject; 
-// robotD!: RobotObject;  // Add this line
-
-// // Update the _getCarrierForStep method:
-// private _getCarrierForStep(si: number): RobotObject {
-//   if (si === 0 || si === 16) return this.robotEFEM;
-//   if (si >= 1 && si <= 3) return this.robotA;
-//   if (si >= 4 && si <= 7) return this.robotC;
-//   if (si >= 8 && si <= 10) return this.robotB;
-//   if (si >= 11 && si <= 15) return this.robotD;
-//   return this.robotEFEM;
-// }
-
-// // Replace attachTo in WaferStateMachine:
-// attachTo(robot: RobotObject) {
-//   this.carrierRobot = robot;
-//   this.scene.remove(this.mesh);
-//   robot.gripper.add(this.mesh);
-  
-//   // Position wafer ON TOP of the blade
-//   // Blade extends in +X, surface at y=0.44 from gripper origin
-//   // Wafer should sit at y=0.5 to be slightly above blade surface
-//   this.mesh.position.set(0.86, 0.5, 0);
-//   this.mesh.rotation.set(0, 0, 0);
-//   this.onConveyor = false;
-  
-//   // Visual feedback - flash the wafer
-//   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
-//   if (pr) {
-//     const mat = pr.material as THREE.MeshStandardMaterial;
-//     const origEmissive = mat.emissiveIntensity;
-//     mat.emissive.setHex(0xffffff);
-//     mat.emissiveIntensity = 2.5;
-//     setTimeout(() => {
-//       mat.emissive.setHex(WAFER_COLORS[this.wi]);
-//       mat.emissiveIntensity = origEmissive;
-//     }, 200);
-//   }
-  
-//   // Also flash the robot's LED
-//   robot.statusPL.intensity = 3.0;
-//   setTimeout(() => {
-//     if (robot.statusPL) robot.statusPL.intensity = 1.2;
-//   }, 300);
-// }
-
-// // Replace detachAt in WaferStateMachine:
-// detachAt(worldPos: THREE.Vector3) {
-//   if (!this.carrierRobot) return;
-  
-//   // Store reference to robot before detaching
-//   const robot = this.carrierRobot;
-  
-//   // Remove from robot gripper
-//   robot.gripper.remove(this.mesh);
-//   this.scene.add(this.mesh);
-  
-//   // Position at module chuck height (y=0.93 for wafer chuck)
-//   this.mesh.position.copy(worldPos);
-//   this.mesh.position.y = 0.93; // Chuck surface height
-  
-//   // Slight rotation for visual interest
-//   this.mesh.rotation.y = Math.random() * Math.PI * 2;
-  
-//   this.carrierRobot = null;
-  
-//   // Visual feedback - impact flash
-//   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
-//   if (pr) {
-//     const mat = pr.material as THREE.MeshStandardMaterial;
-//     mat.emissive.setHex(0xffffff);
-//     mat.emissiveIntensity = 1.8;
-//     setTimeout(() => {
-//       mat.emissive.setHex(WAFER_COLORS[this.wi]);
-//       mat.emissiveIntensity = 0.7;
-//     }, 250);
-//   }
-  
-//   // Flash the module's LED
-//   const modObj = (window as any).currentModule?.userData;
-//   if (modObj?.processLight) {
-//     const originalIntensity = (modObj.processLight as THREE.PointLight).intensity;
-//     (modObj.processLight as THREE.PointLight).intensity = 4.0;
-//     setTimeout(() => {
-//       if (modObj.processLight) (modObj.processLight as THREE.PointLight).intensity = originalIntensity;
-//     }, 300);
-//   }
-// }
-
-// // Improve the _driveRobotTo function for smoother motion:
-// private _driveRobotTo(rob: RobotObject, tgt: THREE.Vector3, dt: number, mult: number) {
-//   // Smooth target interpolation for visual quality
-//   if (!rob.group.userData.smoothTarget) {
-//     rob.group.userData.smoothTarget = tgt.clone();
-//   }
-  
-//   // Interpolate target for smoother motion
-//   const smoothFactor = 0.15;
-//   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
-  
-//   // Run IK with smoothed target
-//   rob.runIK(rob.group.userData.smoothTarget);
-  
-//   // Add subtle floating motion when idle (not carrying wafer)
-//   const carried = (rob.group.userData.carriedWafer !== undefined);
-//   if (!carried && rob.group.userData.isIdle) {
-//     const time = Date.now() * 0.003;
-//     const idleOffset = Math.sin(time) * 0.02;
-//     rob.gripper.position.y = 0.36 + idleOffset * 0.5;
-//   }
-// }
-
-// // Update the _animRobots function to track carried state:
-// private _animRobots(dt: number) {
-//   const t = this.simTime;
-//   if (!this.robotA || !this.robotEFEM || !this.robotB || !this.robotC || !this.robotD) return;
-
-//   // Helper — find which wafer (if any) this robot is currently carrying
-//   const findCarried = (r: RobotObject) => {
-//     const carried = this.wSMs.find((w) => w.launched && !w.done && w.carrierRobot === r);
-//     // Store carried state on robot group for animation
-//     r.group.userData.carriedWafer = carried ? true : false;
-//     return carried;
-//   };
-
-//   // Helper — generate an idle hover position above the robot's base
-//   const idleTgt = (r: RobotObject, phase: number) => {
-//     const hoverRadius = 2.5;
-//     const hoverHeight = 2.4;
-//     return r.basePos.clone().add(new THREE.Vector3(
-//       hoverRadius + Math.sin(t * 0.28 + phase) * 0.6,
-//       hoverHeight + Math.sin(t * 0.35 + phase) * 0.25,
-//       Math.cos(t * 0.22 + phase) * 0.8
-//     ));
-//   };
-
-//   // For each robot, drive to its assigned module (if carrying a wafer)
-//   // or hover idly near its base.
-//   const robots: { r: RobotObject; phase: number; mult: number }[] = [
-//     { r: this.robotEFEM, phase: 0,   mult: 1.15 },
-//     { r: this.robotA,    phase: 1.2, mult: 1.0  },
-//     { r: this.robotC,    phase: 2.4, mult: 1.1  },
-//     { r: this.robotB,    phase: 3.6, mult: 0.95 },
-//     { r: this.robotD,    phase: 4.8, mult: 1.05 },
-//   ];
-
-//   robots.forEach(({ r, phase, mult }) => {
-//     const carried = findCarried(r);
-//     r.group.userData.isIdle = !carried;
-    
-//     const tgt = carried
-//       ? new THREE.Vector3(
-//           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].x,
-//           0.98,  // Slightly above module for pick/place
-//           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].z
-//         )
-//       : idleTgt(r, phase);
-      
-//     this._driveRobotTo(r, tgt, dt, mult);
-
-//     // Pulsing status LED
-//     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8 + phase);
-    
-//     // Add trailing particles when moving with wafer (optional)
-//     if (carried && !r.group.userData.trailParticles) {
-//       // Create particle trail for moving wafer
-//       r.group.userData.trailParticles = this._createTrailParticles(r);
-//     }
-//   });
-// }
-
-// // Helper to create visual trail particles (optional but adds polish)
-// private _createTrailParticles(robot: RobotObject) {
-//   const particleCount = 30;
-//   const particles: THREE.Points[] = [];
-//   const geometry = new THREE.BufferGeometry();
-//   const positions = new Float32Array(particleCount * 3);
-//   for (let i = 0; i < particleCount; i++) {
-//     positions[i*3] = 0;
-//     positions[i*3+1] = 0;
-//     positions[i*3+2] = 0;
-//   }
-//   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-//   const material = new THREE.PointsMaterial({
-//     color: 0x88aaff,
-//     size: 0.03,
-//     transparent: true,
-//     opacity: 0.6,
-//     blending: THREE.AdditiveBlending
-//   });
-//   const particleSystem = new THREE.Points(geometry, material);
-//   robot.group.add(particleSystem);
-//   return particleSystem;
-// }
-
-// // Fix the belt Z constants in _tickWafer - replace all occurrences:
-// // Find this line in the case "conveyor_move" block:
-// // const beltZ = isTop ? TOP_Z - 2.2 : BOT_Z + 2.2;
-// // Replace with:
-// const beltZ = isTop ? TOP_Z + 2.6 : BOT_Z - 2.6;
-
-// // Also fix the BELT_Y constant at the top of _tickWafer:
-// const BELT_Y = 0.22; // Changed from 0.48
-
-// // Add this helper function for smooth pick/place animation
-// private _animatePickPlace(sm: WaferStateMachine, robot: RobotObject, targetPos: THREE.Vector3, duration: number = 0.4) {
-//   const startPos = sm.mesh.position.clone();
-//   const startTime = this.simTime;
-//   const endTime = startTime + duration;
-  
-//   const animate = () => {
-//     const now = this.simTime;
-//     if (now >= endTime) {
-//       // Animation complete
-//       return;
-//     }
-    
-//     const t = (now - startTime) / duration;
-//     // Ease in-out curve
-//     const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    
-//     // Interpolate position with arc
-//     const currentPos = startPos.clone().lerp(targetPos, ease);
-//     currentPos.y = startPos.y + Math.sin(Math.PI * ease) * 0.15; // Arc motion
-    
-//     sm.mesh.position.copy(currentPos);
-    
-//     // Slight rotation during pick/place
-//     sm.mesh.rotation.y = ease * Math.PI * 0.5;
-    
-//     requestAnimationFrame(() => animate());
-//   };
-  
-//   animate();
-// }
-// */
- 
-//   function getJoints(): JointData {
-//     return {
-//       base:     { c: turret.rotation.y },
-//       shoulder: { c: shoulder.rotation.x },
-//       elbow:    { c: elbow.rotation.x },
-//       wrist:    { c: wrist.rotation.x },
-//     };
-//   }
- 
-//   scene.add(g);
-//   return {
-//     group: g, turret, shoulder, upperArm, elbow, foreArm, wrist, gripper, statusPL,
-//     basePos: basePos.clone(),
-//     runIK, getJoints,
-//     worldPos: () => { const v = new THREE.Vector3(); gripper.getWorldPosition(v); return v; }
-//   };
-// }
 
 const RAIL_Y = 8;
 const RAIL_START = -22;
@@ -32493,105 +29366,7 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
   wrist.quaternion.slerp(qTmp, armSlerpRate).normalize();
 }
 
-// function runIK(tgt: THREE.Vector3): void {
-//   const baseWP = new THREE.Vector3();
-//   root.getWorldPosition(baseWP);   // root = robot base / turret base
 
-//   const dx = tgt.x - baseWP.x;
-//   const dz = tgt.z - baseWP.z;
-//   const horizDist = Math.hypot(dx, dz) || 0.1;
-
-//   // ── 1. Turret Yaw (smooth shortest path) ──
-//   const rawYaw = Math.atan2(-dz, dx);
-//   const prevYaw = root.userData._ikYaw ?? rawYaw;
-//   let delta = rawYaw - prevYaw;
-//   while (delta > Math.PI) delta -= 2 * Math.PI;
-//   while (delta < -Math.PI) delta += 2 * Math.PI;
-  
-//   const newYaw = prevYaw + delta;
-//   root.userData._ikYaw = newYaw;
-
-//   qTmp.setFromAxisAngle(axisY, newYaw);
-//   turret.quaternion.slerp(qTmp, 0.18).normalize();
-
-//   // ── 2. Height-aware IK with Module-Specific Adjustments ──
-//   const shoulderBaseY = baseWP.y + SHOULDER_Y;
-//   let verticalOff = tgt.y - shoulderBaseY;
-
-//   // ── SPECIAL CASE: SCANNER ──
-//   const isScanner = Math.abs(tgt.x - 36) < 4;   // Scanner is at x≈36
-//   const isHMDS = Math.abs(tgt.x + 6) < 3;       // HMDS is at x≈-6
-
-//   let targetHeightBonus = 0;
-
-//   if (isScanner) {
-//     targetHeightBonus = 2.8;        // Rise significantly for scanner slot
-//     verticalOff += 1.2;             // Extra lift
-//   } else if (isHMDS) {
-//     targetHeightBonus = 1.6;        // Clear HMDS chamber top
-//   } else if (tgt.y > 4.5) {         // General high targets (FOUP, etc.)
-//     targetHeightBonus = 1.1;
-//   }
-
-//   const reachHoriz = Math.max(horizDist - 0.3, 0.8);   // slight pullback
-
-//   // Wrist target in shoulder-local space
-//   const wx = reachHoriz - L3;
-//   const wy = verticalOff + targetHeightBonus;
-
-//   let D = Math.hypot(wx, wy);
-
-//   // Dynamic reach limits
-//   const Dmax = (L1 + L2) * 0.96;
-//   const Dmin = Math.abs(L1 - L2) * 0.6 + 0.3;
-//   D = Math.max(Dmin, Math.min(Dmax, D));
-
-//   // Law of cosines
-//   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
-//   const elbowInterior = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
-
-//   const wristDirAng = Math.atan2(wy, wx);
-//   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
-//   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
-
-//   // Elbow-up configuration (best for wafer handling)
-//   let shoulderAngle = wristDirAng + shOff;
-//   let elbowAngle = -(Math.PI - elbowInterior);
-
-//   // ── Module-Specific Shoulder Height Bias ──
-//   if (isScanner) {
-//     shoulderAngle = Math.max(shoulderAngle, 0.9);   // Force higher lift
-//   } else if (isHMDS) {
-//     shoulderAngle = Math.max(shoulderAngle, 0.6);
-//   }
-
-//   // ── Joint Limits (tighter but safe) ──
-//   shoulderAngle = clamp(shoulderAngle, -0.6, Math.PI * 0.78);
-//   elbowAngle    = clamp(elbowAngle,    -Math.PI * 0.92, -0.15);
-
-//   // Wrist keeps gripper roughly horizontal
-//   let wristAngle = -(shoulderAngle + elbowAngle) * 0.92;
-//   wristAngle = clamp(wristAngle, -Math.PI * 0.75, Math.PI * 0.75);
-
-//   // ── 3. Apply with different smoothing per joint ──
-//   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
-//   shoulder.quaternion.slerp(qTmp, isScanner ? 0.12 : 0.24).normalize();
-
-//   qTmp.setFromAxisAngle(axisZ, elbowAngle);
-//   elbow.quaternion.slerp(qTmp, 0.22).normalize();
-
-//   // Forearm stays mostly neutral
-//   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.18).normalize();
-
-//   qTmp.setFromAxisAngle(axisZ, wristAngle);
-//   wrist.quaternion.slerp(qTmp, isScanner ? 0.15 : 0.25).normalize();
-
-//   // Optional: Slight forearm twist compensation for scanner
-//   if (isScanner) {
-//     const twistQ = new THREE.Quaternion().setFromAxisAngle(axisX, 0.15);
-//     wrist.quaternion.multiplyQuaternions(wrist.quaternion, twistQ);
-//   }
-// }
 
  
       function getJoints(): JointData {
@@ -32827,119 +29602,7 @@ function buildDehydrationGLB(
   return placeholder;
 }
 
-//⬇️ PASTE NEW FUNCTION HERE ⬇️
 
-
-
-
-
-// function buildHardBakeGLB(
-//   scene: THREE.Scene,
-//   mod: ProcessStep,
-//   onReady?: (group: THREE.Group) => void
-// ): THREE.Group {
-//   const placeholder = new THREE.Group();
-//   placeholder.position.set(mod.x, 0, mod.z);
-//   placeholder.userData.id = mod.id;
-//   scene.add(placeholder);
-
-//   const loader = new GLTFLoader();
-//   loader.load(
-//     '/hardbakeglb.glb',
-//     (gltf: any) => {
-//       const root = gltf.scene as THREE.Group;
-
-//       const tempBox = new THREE.Box3().setFromObject(root);
-//       const size = new THREE.Vector3();
-//       tempBox.getSize(size);
-
-//       const targetW = 4;
-//       const currentMax = Math.max(size.x, size.z);
-//       const scale = targetW / currentMax;
-//       root.scale.setScalar(scale);
-
-//       const box = new THREE.Box3().setFromObject(root);
-//       const FLOOR_Y = 2;
-//       root.position.y = FLOOR_Y - box.min.y;
-//       const afterBox = new THREE.Box3().setFromObject(root);
-//       const afterCenter = new THREE.Vector3();
-//       afterBox.getCenter(afterCenter);
-//       root.position.x -= afterCenter.x;
-//       root.position.z -= afterCenter.z + 0.6;
-
-//       const namedParts: Record<string, THREE.Object3D> = {};
-//       root.traverse((obj) => {
-//         namedParts[obj.name] = obj;
-//         if ((obj as THREE.Mesh).isMesh) {
-//           obj.castShadow = true;
-//           obj.receiveShadow = true;
-//         }
-//       });
-
-//       const hotPlate =
-//         namedParts['HotPlate'] || namedParts['Hot_Plate'] ||
-//         namedParts['Plate'] || namedParts['Heater'] || namedParts['Top'];
-
-//       const lightGreen =
-//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
-//       const lightRed =
-//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
-
-//       const scheme = { base: 0x4a1808, emissive: 0xff4422, light: 0xff3300, pl: 0xff3300 };
-
-//       if (hotPlate && (hotPlate as THREE.Mesh).isMesh) {
-//         const heatMat = new THREE.MeshStandardMaterial({
-//           color: scheme.base,
-//           emissive: scheme.emissive,
-//           emissiveIntensity: 2.2,
-//           roughness: 0.45,
-//           metalness: 0.5,
-//         });
-//         (hotPlate as THREE.Mesh).material = heatMat;
-//         placeholder.userData.heatMaterial = heatMat;
-//         placeholder.userData.colorScheme = scheme;
-//       }
-
-//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
-//         const greenMat = new THREE.MeshStandardMaterial({
-//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
-//         });
-//         (lightGreen as THREE.Mesh).material = greenMat;
-//         placeholder.userData.greenLight = greenMat;
-//       }
-
-//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
-//         const redMat = new THREE.MeshStandardMaterial({
-//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
-//         });
-//         (lightRed as THREE.Mesh).material = redMat;
-//         placeholder.userData.redLight = redMat;
-//       }
-
-//       const pl = new THREE.PointLight(scheme.pl, 0, 7);
-//       pl.position.set(0, 1.2, 0);
-//       root.add(pl);
-//       placeholder.userData.processLight = pl;
-
-//       placeholder.add(root);
-//       placeholder.userData.glbRoot = root;
-//       placeholder.userData.loaded = true;
-
-//       addModuleLabel(placeholder, mod);
-//       // ── ADD BAKE CHUCK (positioning handled by addWaferChuck)
-//       const chuck = addWaferChuck(placeholder, 'bake');
-//       // Always visible so wafer has a surface to sit on
-//       chuck.visible = true;
-//       positionWaferAnchorAboveChuck(placeholder, root);
-
-//       if (onReady) onReady(placeholder);
-//     },
-//     undefined,
-//     (err: any) => console.error('HardBake GLB failed to load:', err)
-//   );
-
-//   return placeholder;
-// }
 
 function buildHardBakeGLB(
   scene: THREE.Scene,
@@ -34311,6 +30974,7 @@ function placeWaferAnchorOnChuck(
 
 function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
   const W = 5, D = 3.4, H = 3.2;
+  const nudgeZ = mod.type === "iface" ? IFACE_LOCAL_Z[mod.id] ?? 0 : 0;
 
   // ── BASE COLOR LOGIC ──
   // Dehydration Bake (dehy) and Post-Apply Bake (pab) get RED plinths (baking visual)
@@ -34351,7 +31015,7 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
       emissiveIntensity: emissiveIntensity,
     })
   );
-  plinth.position.set(mod.x, -0.5 + H / 2, mod.z);
+  plinth.position.set(mod.x, -0.5 + H / 2, mod.z + nudgeZ);
   plinth.castShadow = true;
   plinth.receiveShadow = true;
   scene.add(plinth);
@@ -34372,11 +31036,11 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
   });
 
   const stripFront = new THREE.Mesh(new THREE.BoxGeometry(W, 0.06, 0.04), stripMat);
-  stripFront.position.set(mod.x, -0.5 + H - 0.08, mod.z + D / 2);
+  stripFront.position.set(mod.x, -0.5 + H - 0.08, mod.z + nudgeZ + D / 2);
   scene.add(stripFront);
 
   const stripBack = new THREE.Mesh(new THREE.BoxGeometry(W, 0.06, 0.04), stripMat.clone());
-  stripBack.position.set(mod.x, -0.5 + H - 0.08, mod.z - D / 2);
+  stripBack.position.set(mod.x, -0.5 + H - 0.08, mod.z + nudgeZ - D / 2);
   scene.add(stripBack);
 
   // ── VERTICAL SIDE STRIPS ──
@@ -34388,7 +31052,7 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
     sideStrip.position.set(
       mod.x + sx * (W / 2),
       -0.5 + H * 0.5,
-      mod.z
+      mod.z + nudgeZ
     );
     scene.add(sideStrip);
   });
@@ -34404,7 +31068,7 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
       emissiveIntensity: emissiveIntensity * 0.5,
     })
   );
-  bevel.position.set(mod.x, -0.5 + H, mod.z);
+  bevel.position.set(mod.x, -0.5 + H, mod.z + nudgeZ);
   scene.add(bevel);
 
   // ── BOTTOM BEVEL ──
@@ -34416,7 +31080,7 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
       metalness: 0.65,
     })
   );
-  bottomBevel.position.set(mod.x, -0.5 + 0.02, mod.z);
+  bottomBevel.position.set(mod.x, -0.5 + 0.02, mod.z + nudgeZ);
   scene.add(bottomBevel);
 
   // ── CORNER ACCENT DOTS ──
@@ -34435,7 +31099,7 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
     dot.position.set(
       mod.x + sx! * (W / 2 - 0.18),
       -0.5 + H + 0.025,
-      mod.z + sz! * (D / 2 - 0.18)
+      mod.z + nudgeZ + sz! * (D / 2 - 0.18)
     );
     scene.add(dot);
   });
@@ -34451,13 +31115,13 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
       emissiveIntensity: (mod.id === 'dehy' || mod.id === 'pab' || mod.id === 'hardbake') ? 0.4 : 0,
     })
   );
-  idPlate.position.set(mod.x, -0.5 + H * 0.35, mod.z + D / 2 + 0.012);
+  idPlate.position.set(mod.x, -0.5 + H * 0.35, mod.z + nudgeZ + D / 2 + 0.012);
   scene.add(idPlate);
 
   // ── HOT GLOW LIGHT for baking plinths (subtle red point light at base) ──
   if (mod.id === 'dehy' || mod.id === 'pab' || mod.id === 'hardbake') {
     const bakeGlow = new THREE.PointLight(0xff3300, 1.2, 4);
-    bakeGlow.position.set(mod.x, -0.3, mod.z);
+    bakeGlow.position.set(mod.x, -0.3, mod.z + nudgeZ);
     scene.add(bakeGlow);
     plinth.userData.bakeGlow = bakeGlow;
   }
@@ -35221,586 +31885,7 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
   }
 }
 
-// function addPlinthNameplates(scene: THREE.Scene): void {
-//   ALL_STEPS.forEach((mod) => {
-//     const SKIP_PLINTH_IDS = new Set([
-//       'foup',
-//       'scanner',
-//       'iface_in',
-//       'iface_out',
-//       'spindry',
-//     ]);
-//     if (SKIP_PLINTH_IDS.has(mod.id)) return;
 
-//     // ── Front/back nameplate (name + short + temp) ──
-//     const makeNameplateMesh = (): THREE.Mesh => {
-//       const CW = 1024, CH = 256;
-//       const canvas = document.createElement('canvas');
-//       canvas.width = CW;
-//       canvas.height = CH;
-//       const ctx = canvas.getContext('2d')!;
-
-//       const r = (mod.color >> 16) & 255;
-//       const g = (mod.color >> 8) & 255;
-//       const b = mod.color & 255;
-//       const css = `rgb(${r},${g},${b})`;
-
-//       // Gradient background
-//       const grad = ctx.createLinearGradient(0, 0, 0, CH);
-//       grad.addColorStop(0, '#0d1726');
-//       grad.addColorStop(1, '#060c16');
-//       ctx.fillStyle = grad;
-//       ctx.fillRect(0, 0, CW, CH);
-
-//       // Outer accent border
-//       ctx.strokeStyle = css;
-//       ctx.lineWidth = 10;
-//       ctx.strokeRect(8, 8, CW - 16, CH - 16);
-
-//       // Top accent bar
-//       ctx.fillStyle = css;
-//       ctx.fillRect(8, 8, CW - 16, 18);
-//       // Bottom accent bar
-//       ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
-//       ctx.fillRect(8, CH - 22, CW - 16, 14);
-
-//       // LINE 1: SHORT CODE — big, bold, glowing
-//       ctx.font = '900 110px "Arial Black", "Segoe UI", sans-serif';
-//       ctx.fillStyle = css;
-//       ctx.shadowColor = css;
-//       ctx.shadowBlur = 24;
-//       ctx.textAlign = 'left';
-//       ctx.textBaseline = 'alphabetic';
-//       ctx.fillText(mod.short, 36, 130);
-
-//       // LINE 2: FULL NAME — white, bold
-//       ctx.shadowBlur = 6;
-//       ctx.shadowColor = 'rgba(0,0,0,0.8)';
-//       ctx.fillStyle = '#ffffff';
-//       ctx.font = 'bold 48px "Segoe UI", Arial, sans-serif';
-//       ctx.textAlign = 'left';
-//       const displayName = mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name;
-//       ctx.fillText(displayName, 36, 200);
-
-//       // Temperature badge (right side)
-//       if (mod.temp !== null) {
-//         const tempCss = mod.temp > 50 ? '#ff5522' : '#22aaff';
-//         ctx.shadowBlur = 16;
-//         ctx.shadowColor = tempCss;
-//         ctx.fillStyle = tempCss;
-//         ctx.font = '900 64px "Courier New", monospace';
-//         ctx.textAlign = 'right';
-//         ctx.fillText(`${mod.temp}°C`, CW - 40, 120);
-//       }
-
-//       ctx.shadowBlur = 0;
-
-//       const tex = new THREE.CanvasTexture(canvas);
-//       tex.minFilter = THREE.LinearFilter;
-//       tex.magFilter = THREE.LinearFilter;
-//       tex.anisotropy = 8;
-
-//       const plate = new THREE.Mesh(
-//         new THREE.PlaneGeometry(4, 1.5),
-//         new THREE.MeshBasicMaterial({
-//           map: tex,
-//           transparent: false,
-//           depthTest: true,
-//           depthWrite: true,
-//           side: THREE.DoubleSide,
-//         })
-//       );
-//       plate.renderOrder = 10;
-//       return plate;
-//     };
-
-//     // ── Side nameplate (short code + temp, centered) ──
-//     const makeSideNameplateMesh = (): THREE.Mesh => {
-//       const CW = 768, CH = 256;
-//       const canvas = document.createElement('canvas');
-//       canvas.width = CW;
-//       canvas.height = CH;
-//       const ctx = canvas.getContext('2d')!;
-
-//       const r = (mod.color >> 16) & 255;
-//       const g = (mod.color >> 8) & 255;
-//       const b = mod.color & 255;
-//       const css = `rgb(${r},${g},${b})`;
-
-//       const grad = ctx.createLinearGradient(0, 0, 0, CH);
-//       grad.addColorStop(0, '#0d1726');
-//       grad.addColorStop(1, '#060c16');
-//       ctx.fillStyle = grad;
-//       ctx.fillRect(0, 0, CW, CH);
-
-//       ctx.strokeStyle = css;
-//       ctx.lineWidth = 10;
-//       ctx.strokeRect(8, 8, CW - 16, CH - 16);
-
-//       ctx.fillStyle = css;
-//       ctx.fillRect(8, 8, CW - 16, 16);
-//       ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
-//       ctx.fillRect(8, CH - 20, CW - 16, 12);
-
-//       // Big centered short code
-//       ctx.font = '900 120px "Arial Black", "Segoe UI", sans-serif';
-//       ctx.fillStyle = css;
-//       ctx.shadowColor = css;
-//       ctx.shadowBlur = 26;
-//       ctx.textAlign = 'center';
-//       ctx.textBaseline = 'middle';
-//       ctx.fillText(mod.short, CW / 2, CH / 2 - 10);
-
-//       // Temp below code
-//       if (mod.temp !== null) {
-//         const tempCss = mod.temp > 50 ? '#ff5522' : '#22aaff';
-//         ctx.shadowBlur = 10;
-//         ctx.shadowColor = tempCss;
-//         ctx.fillStyle = tempCss;
-//         ctx.font = 'bold 44px "Courier New", monospace';
-//         ctx.fillText(`${mod.temp}°C`, CW / 2, CH - 50);
-//       }
-
-//       ctx.shadowBlur = 0;
-
-//       const tex = new THREE.CanvasTexture(canvas);
-//       tex.minFilter = THREE.LinearFilter;
-//       tex.magFilter = THREE.LinearFilter;
-//       tex.anisotropy = 8;
-
-//       const plate = new THREE.Mesh(
-//         new THREE.PlaneGeometry(3.8, 1.3),
-//         new THREE.MeshBasicMaterial({
-//           map: tex,
-//           transparent: false,
-//           depthTest: true,
-//           depthWrite: true,
-//           side: THREE.DoubleSide,
-//         })
-//       );
-//       plate.renderOrder = 10;
-//       return plate;
-//     };
-
-//     // ── Same positions as before (unchanged) ──
-//     const PLINTH_H    = 3.2;
-//     const PLINTH_Y0   = -0.5;
-//     const PLATE_Y     = PLINTH_Y0 + PLINTH_H * 0.40;
-//     const FACE_OFFSET = 2.5;
-//     const SIDE_OFFSET = 2.6;
-
-//     const isTopRow = mod.z < 0;
-//     const isBotRow = mod.z > 0;
-
-//     if (isTopRow) {
-//       const front = makeNameplateMesh();
-//       front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-//       scene.add(front);
-
-//       const back = makeNameplateMesh();
-//       back.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
-//       back.rotation.y = Math.PI;
-//       scene.add(back);
-
-//       const sideLeft = makeSideNameplateMesh();
-//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
-//       sideLeft.rotation.y = -Math.PI / 2;
-//       scene.add(sideLeft);
-
-//       const sideRight = makeSideNameplateMesh();
-//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
-//       sideRight.rotation.y = Math.PI / 2;
-//       scene.add(sideRight);
-
-//     } else if (isBotRow) {
-//       const front = makeNameplateMesh();
-//       front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
-//       front.rotation.y = Math.PI;
-//       scene.add(front);
-
-//       const back = makeNameplateMesh();
-//       back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-//       scene.add(back);
-
-//       const sideLeft = makeSideNameplateMesh();
-//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
-//       sideLeft.rotation.y = -Math.PI / 2;
-//       scene.add(sideLeft);
-
-//       const sideRight = makeSideNameplateMesh();
-//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
-//       sideRight.rotation.y = Math.PI / 2;
-//       scene.add(sideRight);
-//     }
-//   });
-// }
-
-// function addPlinthNameplates(scene: THREE.Scene): void {
-//   ALL_STEPS.forEach((mod) => {
-//     const SKIP_PLINTH_IDS = new Set([
-//       'foup', 'scanner', 'iface_in', 'iface_out', 'spindry',
-//     ]);
-//     if (SKIP_PLINTH_IDS.has(mod.id)) return;
-
-//     const makeNameplateMesh = (): THREE.Mesh => {
-//       const CW = 1024, CH = 300;
-//       const canvas = document.createElement('canvas');
-//       canvas.width = CW;
-//       canvas.height = CH;
-//       const ctx = canvas.getContext('2d')!;
-
-//       // ── BASE METAL GRADIENT ──
-//       const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
-//       metalGrad.addColorStop(0,    '#dde2e8');
-//       metalGrad.addColorStop(0.12, '#f0f4f7');
-//       metalGrad.addColorStop(0.45, '#c8ced4');
-//       metalGrad.addColorStop(0.88, '#e4e8ec');
-//       metalGrad.addColorStop(1,    '#adb4bc');
-//       ctx.fillStyle = metalGrad;
-//       ctx.fillRect(0, 0, CW, CH);
-
-//       // ── BRUSHED LINES ──
-//       ctx.globalAlpha = 0.045;
-//       ctx.strokeStyle = '#ffffff';
-//       ctx.lineWidth = 1;
-//       for (let y = 2; y < CH; y += 3) {
-//         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
-//       }
-//       ctx.globalAlpha = 1;
-
-//       // ── OUTER BEVEL (3D raised effect) ──
-//       ctx.fillStyle = '#ffffff';
-//       ctx.fillRect(0, 0, CW, 7);       // top highlight
-//       ctx.fillRect(0, 0, 7, CH);       // left highlight
-//       ctx.fillStyle = '#555c64';
-//       ctx.fillRect(0, CH - 7, CW, 7);  // bottom shadow
-//       ctx.fillRect(CW - 7, 0, 7, CH);  // right shadow
-
-//       // ── INNER BEVEL ──
-//       ctx.fillStyle = '#bcc2c8';
-//       ctx.fillRect(7, 7, CW - 14, 4);
-//       ctx.fillRect(7, 7, 4, CH - 14);
-//       ctx.fillStyle = '#888e94';
-//       ctx.fillRect(7, CH - 11, CW - 14, 4);
-//       ctx.fillRect(CW - 11, 7, 4, CH - 14);
-
-//       // ── INNER PANEL ──
-//       const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
-//       innerGrad.addColorStop(0,   '#b0b8c0');
-//       innerGrad.addColorStop(0.25,'#d0d8de');
-//       innerGrad.addColorStop(0.75,'#c8d0d6');
-//       innerGrad.addColorStop(1,   '#a0a8b0');
-//       ctx.fillStyle = innerGrad;
-//       ctx.fillRect(11, 11, CW - 22, CH - 22);
-
-//       // ── 3D DEPTH SHADOW (top-left inner shadow) ──
-//       const shadowGrad = ctx.createLinearGradient(11, 11, 60, 60);
-//       shadowGrad.addColorStop(0, 'rgba(0,0,0,0.18)');
-//       shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
-//       ctx.fillStyle = shadowGrad;
-//       ctx.fillRect(11, 11, CW - 22, CH - 22);
-
-//       // ── COLOR ACCENT STRIPE (left edge) ──
-//       const r = (mod.color >> 16) & 255;
-//       const g = (mod.color >> 8)  & 255;
-//       const b =  mod.color        & 255;
-//       ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
-//       ctx.fillRect(11, 11, 24, CH - 22);
-//       ctx.fillStyle = `rgb(${r},${g},${b})`;
-//       ctx.fillRect(11, 11, 14, CH - 22);
-//       ctx.fillStyle = 'rgba(255,255,255,0.5)';
-//       ctx.fillRect(11, 11, 5, CH - 22);
-
-//       // ── SPECULAR HIGHLIGHT (top sheen) ──
-//       const sheenGrad = ctx.createLinearGradient(0, 11, 0, 11 + CH * 0.35);
-//       sheenGrad.addColorStop(0, 'rgba(255,255,255,0.28)');
-//       sheenGrad.addColorStop(1, 'rgba(255,255,255,0)');
-//       ctx.fillStyle = sheenGrad;
-//       ctx.fillRect(11, 11, CW - 22, CH * 0.35);
-
-//       // ── SHORT CODE — embossed 3-layer ──
-//       ctx.font = "bold 120px 'Arial Black', Arial, sans-serif";
-//       ctx.textAlign = 'left';
-//       ctx.textBaseline = 'alphabetic';
-//       // shadow
-//       ctx.fillStyle = 'rgba(0,0,0,0.45)';
-//       ctx.fillText(mod.short, 48, 168);
-//       // highlight
-//       ctx.fillStyle = 'rgba(255,255,255,0.65)';
-//       ctx.fillText(mod.short, 46, 166);
-//       // main
-//       ctx.fillStyle = '#1a2028';
-//       ctx.fillText(mod.short, 47, 167);
-
-//       // ── FULL NAME ──
-//       const displayName = mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name;
-//       ctx.font = "bold 44px 'Arial', sans-serif";
-//       ctx.textAlign = 'left';
-//       ctx.fillStyle = 'rgba(0,0,0,0.4)';
-//       ctx.fillText(displayName, 48, 234);
-//       ctx.fillStyle = '#1a2030';
-//       ctx.fillText(displayName, 47, 233);
-
-//       // ── TEMPERATURE BADGE (right side, embossed) ──
-//       if (mod.temp !== null) {
-//         const isHot = mod.temp > 50;
-//         const tempColor = isHot ? '#cc3300' : '#0055bb';
-//         const tempBg    = isHot ? 'rgba(180,40,0,0.13)' : 'rgba(0,60,180,0.13)';
-//         // Badge background
-//         ctx.fillStyle = tempBg;
-//         ctx.beginPath();
-//         ctx.roundRect(CW - 240, 30, 210, 100, 10);
-//         ctx.fill();
-//         ctx.strokeStyle = tempColor;
-//         ctx.lineWidth = 3;
-//         ctx.stroke();
-//         // Temp text embossed
-//         ctx.font = "bold 72px 'Courier New', monospace";
-//         ctx.textAlign = 'center';
-//         ctx.fillStyle = 'rgba(0,0,0,0.35)';
-//         ctx.fillText(`${mod.temp}°C`, CW - 135 + 2, 108);
-//         ctx.fillStyle = 'rgba(255,255,255,0.5)';
-//         ctx.fillText(`${mod.temp}°C`, CW - 135 - 1, 106);
-//         ctx.fillStyle = tempColor;
-//         ctx.fillText(`${mod.temp}°C`, CW - 135, 107);
-//       }
-
-//       // ── CORNER RIVETS ──
-//       const drawRivet = (rx: number, ry: number) => {
-//         ctx.fillStyle = 'rgba(0,0,0,0.3)';
-//         ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
-//         const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
-//         rg.addColorStop(0,   '#eef2f6');
-//         rg.addColorStop(0.4, '#a8b0b8');
-//         rg.addColorStop(1,   '#707880');
-//         ctx.fillStyle = rg;
-//         ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
-//         ctx.strokeStyle = '#505860';
-//         ctx.lineWidth = 2;
-//         ctx.beginPath(); ctx.moveTo(rx - 5, ry); ctx.lineTo(rx + 5, ry); ctx.stroke();
-//         ctx.fillStyle = 'rgba(255,255,255,0.7)';
-//         ctx.beginPath(); ctx.arc(rx - 3, ry - 3, 3.5, 0, Math.PI * 2); ctx.fill();
-//       };
-//       drawRivet(28, 28);
-//       drawRivet(CW - 28, 28);
-//       drawRivet(28, CH - 28);
-//       drawRivet(CW - 28, CH - 28);
-
-//       // ── BOTTOM LABEL STRIP ──
-//       ctx.fillStyle = `rgba(${r},${g},${b},0.18)`;
-//       ctx.fillRect(11, CH - 38, CW - 22, 27);
-//       ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
-//       ctx.font = "bold 16px 'Courier New', monospace";
-//       ctx.textAlign = 'center';
-//       ctx.fillText('SMaRT SIMULATOR — PROCESS MODULE', CW / 2, CH - 18);
-
-//       const tex = new THREE.CanvasTexture(canvas);
-//       tex.minFilter = THREE.LinearFilter;
-//       tex.magFilter = THREE.LinearFilter;
-//       tex.anisotropy = 8;
-
-//       const plate = new THREE.Mesh(
-//         new THREE.PlaneGeometry(4.2, 1.4),
-//         new THREE.MeshBasicMaterial({
-//           map: tex,
-//           transparent: false,
-//           depthTest: true,
-//           depthWrite: true,
-//           side: THREE.DoubleSide,
-//         })
-//       );
-//       plate.renderOrder = 10;
-//       return plate;
-//     };
-
-//     const makeSideNameplateMesh = (): THREE.Mesh => {
-//       const CW = 768, CH = 300;
-//       const canvas = document.createElement('canvas');
-//       canvas.width = CW;
-//       canvas.height = CH;
-//       const ctx = canvas.getContext('2d')!;
-
-//       const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
-//       metalGrad.addColorStop(0,    '#dde2e8');
-//       metalGrad.addColorStop(0.12, '#f0f4f7');
-//       metalGrad.addColorStop(0.45, '#c8ced4');
-//       metalGrad.addColorStop(0.88, '#e4e8ec');
-//       metalGrad.addColorStop(1,    '#adb4bc');
-//       ctx.fillStyle = metalGrad;
-//       ctx.fillRect(0, 0, CW, CH);
-
-//       ctx.globalAlpha = 0.045;
-//       ctx.strokeStyle = '#ffffff';
-//       ctx.lineWidth = 1;
-//       for (let y = 2; y < CH; y += 3) {
-//         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
-//       }
-//       ctx.globalAlpha = 1;
-
-//       // Outer bevel
-//       ctx.fillStyle = '#ffffff';
-//       ctx.fillRect(0, 0, CW, 7);
-//       ctx.fillRect(0, 0, 7, CH);
-//       ctx.fillStyle = '#555c64';
-//       ctx.fillRect(0, CH - 7, CW, 7);
-//       ctx.fillRect(CW - 7, 0, 7, CH);
-
-//       // Inner bevel
-//       ctx.fillStyle = '#bcc2c8';
-//       ctx.fillRect(7, 7, CW - 14, 4);
-//       ctx.fillRect(7, 7, 4, CH - 14);
-//       ctx.fillStyle = '#888e94';
-//       ctx.fillRect(7, CH - 11, CW - 14, 4);
-//       ctx.fillRect(CW - 11, 7, 4, CH - 14);
-
-//       // Inner panel
-//       const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
-//       innerGrad.addColorStop(0,   '#b0b8c0');
-//       innerGrad.addColorStop(0.25,'#d0d8de');
-//       innerGrad.addColorStop(0.75,'#c8d0d6');
-//       innerGrad.addColorStop(1,   '#a0a8b0');
-//       ctx.fillStyle = innerGrad;
-//       ctx.fillRect(11, 11, CW - 22, CH - 22);
-
-//       // 3D depth shadow
-//       const shadowGrad = ctx.createLinearGradient(11, 11, 55, 55);
-//       shadowGrad.addColorStop(0, 'rgba(0,0,0,0.16)');
-//       shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
-//       ctx.fillStyle = shadowGrad;
-//       ctx.fillRect(11, 11, CW - 22, CH - 22);
-
-//       // Specular sheen
-//       const sheenGrad = ctx.createLinearGradient(0, 11, 0, 11 + CH * 0.35);
-//       sheenGrad.addColorStop(0, 'rgba(255,255,255,0.26)');
-//       sheenGrad.addColorStop(1, 'rgba(255,255,255,0)');
-//       ctx.fillStyle = sheenGrad;
-//       ctx.fillRect(11, 11, CW - 22, CH * 0.35);
-
-//       // Color accent stripe
-//       const r = (mod.color >> 16) & 255;
-//       const g = (mod.color >> 8)  & 255;
-//       const b =  mod.color        & 255;
-//       ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
-//       ctx.fillRect(11, 11, 20, CH - 22);
-//       ctx.fillStyle = `rgb(${r},${g},${b})`;
-//       ctx.fillRect(11, 11, 12, CH - 22);
-//       ctx.fillStyle = 'rgba(255,255,255,0.5)';
-//       ctx.fillRect(11, 11, 4, CH - 22);
-
-//       // Short code centered — embossed
-//       ctx.font = "bold 130px 'Arial Black', Arial, sans-serif";
-//       ctx.textAlign = 'center';
-//       ctx.textBaseline = 'alphabetic';
-//       ctx.fillStyle = 'rgba(0,0,0,0.45)';
-//       ctx.fillText(mod.short, CW / 2 + 2, 182);
-//       ctx.fillStyle = 'rgba(255,255,255,0.65)';
-//       ctx.fillText(mod.short, CW / 2 - 1, 180);
-//       ctx.fillStyle = '#1a2028';
-//       ctx.fillText(mod.short, CW / 2, 181);
-
-//       // Temp below
-//       if (mod.temp !== null) {
-//         const isHot = mod.temp > 50;
-//         const tempColor = isHot ? '#cc3300' : '#0055bb';
-//         ctx.font = "bold 48px 'Courier New', monospace";
-//         ctx.fillStyle = 'rgba(0,0,0,0.35)';
-//         ctx.fillText(`${mod.temp}°C`, CW / 2 + 2, 252);
-//         ctx.fillStyle = tempColor;
-//         ctx.fillText(`${mod.temp}°C`, CW / 2, 250);
-//       }
-
-//       // Corner rivets
-//       const drawRivet = (rx: number, ry: number) => {
-//         ctx.fillStyle = 'rgba(0,0,0,0.3)';
-//         ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 9, 0, Math.PI * 2); ctx.fill();
-//         const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 9);
-//         rg.addColorStop(0,   '#eef2f6');
-//         rg.addColorStop(0.4, '#a8b0b8');
-//         rg.addColorStop(1,   '#707880');
-//         ctx.fillStyle = rg;
-//         ctx.beginPath(); ctx.arc(rx, ry, 9, 0, Math.PI * 2); ctx.fill();
-//         ctx.strokeStyle = '#505860';
-//         ctx.lineWidth = 2;
-//         ctx.beginPath(); ctx.moveTo(rx - 5, ry); ctx.lineTo(rx + 5, ry); ctx.stroke();
-//         ctx.fillStyle = 'rgba(255,255,255,0.7)';
-//         ctx.beginPath(); ctx.arc(rx - 3, ry - 3, 3, 0, Math.PI * 2); ctx.fill();
-//       };
-//       drawRivet(26, 26);
-//       drawRivet(CW - 26, 26);
-//       drawRivet(26, CH - 26);
-//       drawRivet(CW - 26, CH - 26);
-
-//       const tex = new THREE.CanvasTexture(canvas);
-//       tex.minFilter = THREE.LinearFilter;
-//       tex.magFilter = THREE.LinearFilter;
-//       tex.anisotropy = 8;
-
-//       const plate = new THREE.Mesh(
-//         new THREE.PlaneGeometry(3.8, 1.4),
-//         new THREE.MeshBasicMaterial({
-//           map: tex,
-//           transparent: false,
-//           depthTest: true,
-//           depthWrite: true,
-//           side: THREE.DoubleSide,
-//         })
-//       );
-//       plate.renderOrder = 10;
-//       return plate;
-//     };
-
-//     // ── POSITIONS — raised higher from floor ──
-//     const PLINTH_H    = 3.2;
-//     const PLINTH_Y0   = -0.5;
-//     const PLATE_Y     = PLINTH_Y0 + PLINTH_H * 0.62; // ← was 0.40, now 0.62 = higher up
-//     const FACE_OFFSET = 2.5;
-//     const SIDE_OFFSET = 2.6;
-
-//     const isTopRow = mod.z < 0;
-//     const isBotRow = mod.z > 0;
-
-//     if (isTopRow) {
-//       const front = makeNameplateMesh();
-//       front.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-//       scene.add(front);
-
-//       const back = makeNameplateMesh();
-//       back.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
-//       back.rotation.y = Math.PI;
-//       scene.add(back);
-
-//       const sideLeft = makeSideNameplateMesh();
-//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
-//       sideLeft.rotation.y = -Math.PI / 2;
-//       scene.add(sideLeft);
-
-//       const sideRight = makeSideNameplateMesh();
-//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
-//       sideRight.rotation.y = Math.PI / 2;
-//       scene.add(sideRight);
-
-//     } else if (isBotRow) {
-//       const front = makeNameplateMesh();
-//       front.position.set(mod.x, PLATE_Y, mod.z - FACE_OFFSET);
-//       front.rotation.y = Math.PI;
-//       scene.add(front);
-
-//       const back = makeNameplateMesh();
-//       back.position.set(mod.x, PLATE_Y, mod.z + FACE_OFFSET);
-//       scene.add(back);
-
-//       const sideLeft = makeSideNameplateMesh();
-//       sideLeft.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
-//       sideLeft.rotation.y = -Math.PI / 2;
-//       scene.add(sideLeft);
-
-//       const sideRight = makeSideNameplateMesh();
-//       sideRight.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
-//       sideRight.rotation.y = Math.PI / 2;
-//       scene.add(sideRight);
-//     }
-//   });
-// }
 
 
 
@@ -35808,7 +31893,7 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
 function addPlinthNameplates(scene: THREE.Scene): void {
   ALL_STEPS.forEach((mod) => {
     const SKIP_PLINTH_IDS = new Set([
-      'foup', 'scanner',
+    
     ]);
     if (SKIP_PLINTH_IDS.has(mod.id)) return;
 
@@ -36262,3527 +32347,7 @@ detachAt(worldPos: THREE.Vector3): void {
     );
 }
 } 
-// ─── SIMULATION ──────────────────────────────────────────────────────────────
 
-// class Sim {
-//   renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.PerspectiveCamera;
-//   speed: number; paused: boolean; simTime: number; fps: number;
-//   onUI: (ui: UIState) => void; onLog: (entry: LogEntry) => void; onTooltip: (tt: TooltipState) => void; onProcessPopup: (modId: "prcoat" | "develop" | null) => void;
-//   private _frm = 0; private _lastFpsT = 0; private _lastT = 0; private _animId = 0; private _logSeq = 0;
-//   orbit = { theta: Math.PI * 0.11, phi: 0.36, radius: 48, tT: Math.PI * 0.11, tP: 0.36, tR: 48, cx: 4, cy: 0.2, cz: 0, tcx: 4, tcy: 0.2, tcz: 0, drag: false, btn: -1, sx: 0, sy: 0 };
-//   modObjs: Record<string, THREE.Group> = {}; busy: Record<string, number> = {};
-// robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: RobotObject; robotD!: RobotObject;
-//   gantryRail!: THREE.Group;
-//   prCoatOverlay!: PrCoatOverlay;
-//   devOverlay!: DevPuddleOverlay;
-//   wafers: THREE.Group[] = []; wSMs: WaferStateMachine[] = [];
-//   spinCoat!: SpinCoatAnimator; devLiquid!: DevLiquidAnimator;
-//   conveyorTop!: ConveyorBelt;
-//   conveyorBot!: ConveyorBelt;
-//   conveyorSegments: ConveyorBelt[] = [];
-//   n2Particles!: Particles; waterParticles!: Particles;
-//   hmdsFog!: HMDSFog;
-//   heatVapors: Record<string, HeatVapor> = {};
-//   private _blockBoxes: Record<string, THREE.Box3> = {};
-//   private _shadowFixApplied = false;
-//   private _md!: (e: MouseEvent) => void; private _mu!: () => void;
-//   private _mm!: (e: MouseEvent) => void; private _wh!: (e: WheelEvent) => void;
-//   private _activeCoatWI = -1; private _activeDevWI = -1;
-//   private _raycaster = new THREE.Raycaster();
-//   private _lastRaycastT = 0;
-
-//   constructor(renderer: THREE.WebGLRenderer, onUI: (ui: UIState) => void, onLog: (e: LogEntry) => void, onTooltip: (tt: TooltipState) => void, onProcessPopup: (modId: "prcoat" | "develop" | null) => void) {
-//     this.renderer = renderer; this.scene = new THREE.Scene();
-//     this.camera = new THREE.PerspectiveCamera(44, renderer.domElement.clientWidth / renderer.domElement.clientHeight, 0.08, 350);
-//     this.speed = 1; this.paused = false; this.simTime = 0; this.fps = 60;
-//     this.onUI = onUI; this.onLog = onLog; this.onTooltip = onTooltip; this.onProcessPopup = onProcessPopup;
-//     this._build(); this._bindEvents();
-//   }
-
-//   // Signal that a video modal is open so the render loop can throttle/skip frames
-//   setVideoOpen(open: boolean) {
-//     (this as any)._videoOpen = open;
-//     console.log("[PERF] Video open state:", open);
-//   }
-
-//   private _addLog(msg: string, cls: LogEntry["cls"] = "") { this.onLog({ id: ++this._logSeq, msg, cls }); }
-
-//   private _build() {
-//     setupLighting(this.scene);
-//     buildEnv(this.scene);
-// ALL_STEPS.forEach((mod) => {
-//   if (mod.id === 'output') return; // single FOUP only
-
-//   let grp: THREE.Group;
-//   if (mod.id === 'dehy' || mod.id === 'pab') {
-//     grp = buildDehydrationGLB(this.scene, mod);
-//   } else if (mod.id === 'hardbake') {
-//     grp = buildHardBakeGLB(this.scene, mod);
-//   } else if (mod.id === 'prcoat') {
-//     grp = buildPrCoatGLB(this.scene, mod);
-//   } else if (mod.id === 'hmds') {
-//     grp = buildHMDSGLB(this.scene, mod);
-//   } else if (mod.id === 'peb') {
-//     grp = buildPostBakeGLB(this.scene, mod);
-//   } else if (mod.id === 'rinse') {
-//     grp = buildDIWaterRinseGLB(this.scene, mod);
-//   } else if (mod.id === 'develop') {
-//     grp = buildDeveloperModuleGLB(this.scene, mod);
-//   } else if (mod.id === 'scanner') {
-//     grp = buildScannerGLB(this.scene, mod);
-//   } else if (mod.type === 'cold') {
-//     grp = buildChillPlateGLB(this.scene, mod);
-//   } else {
-//     grp = buildModule(mod);
-//     this.scene.add(grp);
-//   }
-//   this.modObjs[mod.id] = grp;
-// });
-//     buildFlowArrows(this.scene);
-//     addPlinthNameplates(this.scene);
-//     addRowLabelBars(this.scene);
-    
-//     // ── Physical nameplates — attached to every module group ──
-//     // Called after all GLBs have been queued so groups exist.
-//     // GLB groups may still be loading; attachNamePlate reads the
-//     // local bounding box, so call it after a short defer to let
-//     // synchronous geometry settle.
-//     setTimeout(() => {
-//       attachAllNamePlates(this.modObjs, ALL_STEPS);
-      
-//       // Re-attach after another delay for GLBs that load slowly
-//       setTimeout(() => {
-//         attachAllNamePlates(this.modObjs, ALL_STEPS);
-//       }, 2000);
-//     }, 1200);
-    
-//     // Fix PR Coat nozzle - reconnect to piping system
-//     setTimeout(() => {
-//       const prCoat = this.modObjs['prcoat'];
-//       if (prCoat) {
-//         this._reconnectPrCoatNozzle(prCoat);
-//       }
-      
-//       // Second pass for slow-loading GLB
-//       setTimeout(() => {
-//         const prCoat = this.modObjs['prcoat'];
-//         if (prCoat) {
-//           this._reconnectPrCoatNozzle(prCoat);
-//         }
-//       }, 2000);
-//     }, 1500);
-    
-//     //this.gantryRail = buildGantryRail(this.scene);
-//     const _prS = ALL_STEPS.find(s => s.id === 'prcoat')!;
-//     this.prCoatOverlay = new PrCoatOverlay(this.scene, _prS.x, _prS.z, WAFER_COLORS[0]);
-//     const _devS = ALL_STEPS.find(s => s.id === 'develop')!;
-//     this.devOverlay = new DevPuddleOverlay(this.scene, _devS.x, _devS.z);
-
-//     // No conveyor belt segments: single robot handles all wafer transfers.
-//     // Conveyor arrays are preserved only for compatibility with legacy code paths.
- 
-//     // Robots — sit on the INNER side of each track (toward z=0), so the belt
-//     // is on one side and the robot reaches modules from the other.
-// // Place robot between FOUP (x=-20) and DEHY (x=-11), at midpoint x=-15.5
-// // Scale 1.0 is correct — the GLB already has proper dimensions
-// buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
-//     this.robotEFEM = r; 
-//     this.robotA    = r; 
-//     this.robotB    = r; 
-//     this.robotC    = r; 
-//     this.robotD    = r;
-    
-//     // ── Lock robot base to floor level ──
-//     r.group.position.y = 0;          // snap to floor on load
-//     r.group.userData.baseY = 0;      // override whatever GLB baked in
-//     r.group.userData.zLiftY = 0;
-//     console.log('[ROBOT] loaded at', r.basePos.toArray(), 'scale 1.0');
-//   });
-  
-//   this._buildRailTrack();   // ← add rail track system
-  
-//     // Process animators
-//    const prcoatStep = ALL_STEPS.find(s => s.id === 'prcoat')!;
-//     const developStep = ALL_STEPS.find(s => s.id === 'develop')!;
-    
-//     this.spinCoat = new SpinCoatAnimator(this.scene);
-//     // Parent spinCoat to the prcoat module placeholder so it inherits transforms
-//     const prGrp = this.modObjs['prcoat'];
-//     const prWorld = new THREE.Vector3(prcoatStep.x, MODULE_FLOOR_Y, prcoatStep.z);
-//     if (prGrp) { prGrp.add(this.spinCoat.group); prGrp.worldToLocal(prWorld); this.spinCoat.group.position.copy(prWorld); }
-//     else { this.spinCoat.group.position.set(prcoatStep.x, MODULE_FLOOR_Y, prcoatStep.z); }
-//     this.spinCoat.group.visible = true;
-//     // start parked
-//     if (this.spinCoat.swingBar) this.spinCoat.swingBar.rotation.y = Math.PI;
-
-//     this.devLiquid = new DevLiquidAnimator(this.scene);
-//     // Parent devLiquid to the develop module placeholder so it inherits transforms
-//     const devGrp = this.modObjs['develop'];
-//     const devWorld = new THREE.Vector3(developStep.x, MODULE_FLOOR_Y, developStep.z);
-//     if (devGrp) { devGrp.add(this.devLiquid.group); devGrp.worldToLocal(devWorld); this.devLiquid.group.position.copy(devWorld); }
-//     else { this.devLiquid.group.position.set(developStep.x, MODULE_FLOOR_Y, developStep.z); }
-//     this.devLiquid.group.visible = true;
-//     // start parked
-//     if (this.devLiquid.swingBar) this.devLiquid.swingBar.rotation.y = -Math.PI / 2;
-
-//     // Particle systems
-//     const dryS   = ALL_STEPS.find((s) => s.id === "spindry")!;
-//     const rinseS = ALL_STEPS.find((s) => s.id === "rinse")!;
-//     const hmdsS  = ALL_STEPS.find((s) => s.id === "hmds")!;
-//     this.n2Particles    = new Particles(this.scene, new THREE.Vector3(dryS.x,   1.3, dryS.z),   0x66eeff, 60, 0.072);
-//     this.waterParticles = new Particles(this.scene, new THREE.Vector3(rinseS.x, 1.3, rinseS.z), 0x2299ff, 50, 0.068);
-//     this.hmdsFog        = new HMDSFog(this.scene, new THREE.Vector3(hmdsS.x, 1.3, hmdsS.z));
-
-//     // Heat vapor for hot plates
-//    // Heat vapor for hot plates — color matches each module's heat scheme
-//     const vaporColors: Record<string, number> = {
-//       dehy:     0xffaa66,  // orange vapor
-//       pab:      0xff7755,  // red-orange vapor
-//       hardbake: 0xff5544,  // red vapor
-//       hmds:     0xffcc88,  // amber vapor
-//       peb:      0xff8866,  // warm red vapor
-//     };
-//     ALL_STEPS.filter(s => s.type === "hot").forEach(s => {
-//       const vColor = vaporColors[s.id] ?? 0xffaa66;
-//       this.heatVapors[s.id] = new HeatVapor(this.scene, new THREE.Vector3(s.x, 1.0, s.z), vColor, 20);
-//     });
-//     // One combined platform under all module rows
-//     buildCombinedPlatform(this.scene);
-//     // Collision keep-out boxes (static procedural modules; GLBs update once loaded).
-//     const foup = this.modObjs["foup"];
-//     if (foup) this._blockBoxes["foup"] = new THREE.Box3().setFromObject(foup).expandByScalar(2.5);
-//     const scanner = this.modObjs["scanner"];
-//     if (scanner) this._blockBoxes["scanner"] = new THREE.Box3().setFromObject(scanner).expandByScalar(0.15);
-
-//     // Wafers
-//     for (let i = 0; i < NUM_WAFERS; i++) {
-//       const w = buildWafer(WAFER_COLORS[i]);
-//       w.visible = false; this.scene.add(w);
-//       this.wafers.push(w); this.wSMs.push(new WaferStateMachine(i, w, this.scene));
-//     }
-//     setTimeout(() => {
-//       this._disableAllShadows();
-//       this._shadowFixApplied = true;
-//     }, 1000);
-//   }
-
-//   private _buildRailTrack(): void {
-//     // A thin flat beam along the floor connecting FOUP to end of track
-//     const TRACK_MIN_X = -20;
-//     const TRACK_MAX_X =  26;
-//     const trackLen    = TRACK_MAX_X - TRACK_MIN_X;
-    
-//     // Main rail beam — sits flush on the floor
-//     const railGeo = new THREE.BoxGeometry(trackLen, 0.08, 0.32);
-//     const railMat = new THREE.MeshStandardMaterial({
-//       color:     0x223344,
-//       metalness: 0.85,
-//       roughness: 0.25,
-//     });
-//     const rail = new THREE.Mesh(railGeo, railMat);
-//     rail.position.set(TRACK_MIN_X + trackLen / 2, 0.04, 0);   // sits on Y=0 floor
-//     rail.castShadow = true;
-//     rail.receiveShadow = true;
-//     this.scene.add(rail);
-    
-//     // Two thin guide rails (top edges)
-//     const guideGeo = new THREE.BoxGeometry(trackLen, 0.04, 0.04);
-//     const guideMat = new THREE.MeshStandardMaterial({
-//       color:     0x00d8ff,
-//       metalness: 0.9,
-//       roughness: 0.1,
-//       emissive:  new THREE.Color(0x00d8ff),
-//       emissiveIntensity: 0.4,
-//     });
-//     [-0.13, 0.13].forEach(zOff => {
-//       const guide = new THREE.Mesh(guideGeo, guideMat);
-//       guide.position.set(TRACK_MIN_X + trackLen / 2, 0.10, zOff);
-//       guide.castShadow = false;
-//       guide.receiveShadow = false;
-//       this.scene.add(guide);
-//     });
-    
-//     // Tick marks every 2 units so it reads as a machined rail
-//     for (let x = TRACK_MIN_X; x <= TRACK_MAX_X; x += 2) {
-//       const tickGeo = new THREE.BoxGeometry(0.04, 0.06, 0.32);
-//       const tick    = new THREE.Mesh(tickGeo, railMat);
-//       tick.position.set(x, 0.07, 0);
-//       tick.castShadow = false;
-//       tick.receiveShadow = true;
-//       this.scene.add(tick);
-//     }
-//   }
-
-//   // private _reconnectPrCoatNozzle(prCoatGroup: THREE.Group): void {
-//   //   // Find or create nozzle assembly group
-//   //   let nozzleGroup = prCoatGroup.userData.nozzleGroup as THREE.Group;
-//   //   if (!nozzleGroup) {
-//   //     nozzleGroup = new THREE.Group();
-//   //     nozzleGroup.name = "NozzleAssembly";
-//   //     prCoatGroup.add(nozzleGroup);
-//   //     prCoatGroup.userData.nozzleGroup = nozzleGroup;
-//   //   }
-    
-//   //   // Clear existing nozzle parts to rebuild properly
-//   //   while (nozzleGroup.children.length) {
-//   //     nozzleGroup.remove(nozzleGroup.children[0]);
-//   //   }
-    
-//   //   // Materials
-//   //   const metalMat = new THREE.MeshStandardMaterial({ color: 0x778899, roughness: 0.12, metalness: 0.94 });
-//   //   const darkMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.15, metalness: 0.92 });
-//   //   const tipMat = new THREE.MeshStandardMaterial({ color: 0xbb9966, metalness: 0.88, roughness: 0.1 });
-//   //   const glowMat = new THREE.MeshStandardMaterial({ color: 0xff44cc, emissive: 0xff22aa, emissiveIntensity: 2.2 });
-    
-//   //   // === CONTINUOUS PIPE FROM SOURCE TO TIP (NO GAPS) ===
-    
-//   //   // 1. Vertical supply pipe (from overhead)
-//   //   const supplyPipe = new THREE.Mesh(
-//   //     new THREE.CylinderGeometry(0.085, 0.085, 1.5, 12),
-//   //     metalMat
-//   //   );
-//   //   supplyPipe.position.set(0.8, 1.25, 0.6);
-//   //   supplyPipe.castShadow = true;
-//   //   nozzleGroup.add(supplyPipe);
-    
-//   //   // 2. First elbow - connects vertical to horizontal (continuous)
-//   //   const elbow1 = new THREE.Mesh(
-//   //     new THREE.SphereGeometry(0.105, 16, 12),
-//   //     metalMat
-//   //   );
-//   //   elbow1.position.set(0.8, 0.5, 0.6);
-//   //   nozzleGroup.add(elbow1);
-    
-//   //   // 3. Horizontal pipe (touches elbow1 exactly)
-//   //   const horizPipe = new THREE.Mesh(
-//   //     new THREE.CylinderGeometry(0.08, 0.08, 1.2, 12),
-//   //     metalMat
-//   //   );
-//   //   horizPipe.rotation.z = Math.PI / 2;
-//   //   horizPipe.position.set(1.4, 0.5, 0.6);
-//   //   nozzleGroup.add(horizPipe);
-    
-//   //   // 4. Second elbow - connects horizontal to vertical down
-//   //   const elbow2 = new THREE.Mesh(
-//   //     new THREE.SphereGeometry(0.105, 16, 12),
-//   //     metalMat
-//   //   );
-//   //   elbow2.position.set(2.0, 0.5, 0.6);
-//   //   nozzleGroup.add(elbow2);
-    
-//   //   // 5. Downward pipe (touches elbow2 exactly)
-//   //   const downPipe = new THREE.Mesh(
-//   //     new THREE.CylinderGeometry(0.075, 0.075, 0.48, 12),
-//   //     metalMat
-//   //   );
-//   //   downPipe.position.set(2.0, 0.26, 0.6);
-//   //   nozzleGroup.add(downPipe);
-    
-//   //   // 6. Nozzle valve body (directly connected, NO GAP)
-//   //   const valveBody = new THREE.Mesh(
-//   //     new THREE.CylinderGeometry(0.13, 0.11, 0.32, 16),
-//   //     darkMat
-//   //   );
-//   //   valveBody.position.set(2.0, 0.05, 0.6);
-//   //   nozzleGroup.add(valveBody);
-    
-//   //   // 7. Nozzle tip (directly connected to valve body)
-//   //   const nozzleTip = new THREE.Mesh(
-//   //     new THREE.ConeGeometry(0.048, 0.13, 12),
-//   //     tipMat
-//   //   );
-//   //   nozzleTip.position.set(2.0, -0.08, 0.6);
-//   //   nozzleGroup.add(nozzleTip);
-    
-//   //   // 8. Glow tip (at nozzle exit)
-//   //   const tipGlow = new THREE.Mesh(
-//   //     new THREE.SphereGeometry(0.03, 8, 8),
-//   //     glowMat
-//   //   );
-//   //   tipGlow.position.set(2.0, -0.15, 0.6);
-//   //   tipGlow.userData.isTipGlow = true;
-//   //   nozzleGroup.add(tipGlow);
-    
-//   //   // 9. Connection coupler - hides any remaining seam
-//   //   const coupler = new THREE.Mesh(
-//   //     new THREE.TorusGeometry(0.095, 0.025, 8, 24),
-//   //     new THREE.MeshStandardMaterial({ color: 0xaa8866, metalness: 0.85, roughness: 0.2 })
-//   //   );
-//   //   coupler.rotation.x = Math.PI / 2;
-//   //   coupler.position.set(2.0, 0.21, 0.6);
-//   //   nozzleGroup.add(coupler);
-    
-//   //   // 10. Second coupler at elbow junction
-//   //   const coupler2 = new THREE.Mesh(
-//   //     new THREE.TorusGeometry(0.095, 0.02, 8, 24),
-//   //     new THREE.MeshStandardMaterial({ color: 0xaa8866, metalness: 0.85, roughness: 0.2 })
-//   //   );
-//   //   coupler2.rotation.z = Math.PI / 2;
-//   //   coupler2.position.set(1.4, 0.5, 0.6);
-//   //   nozzleGroup.add(coupler2);
-    
-//   //   // Store references for animation
-//   //   prCoatGroup.userData.nozzleTipGlow = tipGlow;
-//   //   prCoatGroup.userData.nozzleTip = nozzleTip;
-    
-//   //   console.log('[FIX] Nozzle pipe gap closed - continuous connection established');
-//   // }
-
-// private _reconnectPrCoatNozzle(prCoatGroup: THREE.Group): void {
-//   // ── Remove any previously built nozzle from scene ──
-//   const existing = this.scene.getObjectByName("PrCoatNozzleAssembly");
-//   if (existing) this.scene.remove(existing);
-
-//   const nozzleGroup = new THREE.Group();
-//   nozzleGroup.name = "PrCoatNozzleAssembly";
-
-//   const metalMat = new THREE.MeshStandardMaterial({ color: 0x778899, roughness: 0.12, metalness: 0.94 });
-//   const darkMat  = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.15, metalness: 0.92 });
-//   const tipMat   = new THREE.MeshStandardMaterial({ color: 0xbb9966, metalness: 0.88, roughness: 0.1 });
-//   const glowMat  = new THREE.MeshStandardMaterial({ color: 0xff44cc, emissive: 0xff22aa, emissiveIntensity: 2.2 });
-
-//   // ── Get the PR Coat module's world position ──
-//   const modWorldPos = new THREE.Vector3();
-//   prCoatGroup.getWorldPosition(modWorldPos);
-
-//   // ── Find the top of the GLB (chuck surface) ──
-//   const glbRoot = prCoatGroup.userData.glbRoot as THREE.Object3D | undefined;
-//   let chuckTopY = MODULE_FLOOR_Y + 1.5; // fallback
-//   if (glbRoot) {
-//     const box = new THREE.Box3().setFromObject(glbRoot);
-//     chuckTopY = box.max.y;
-//   }
-
-//   // ── World-space anchor: center of the PR Coat module ──
-//   const WX = modWorldPos.x;   // module world X
-//   const WZ = modWorldPos.z;   // module world Z
-
-//   // ── Geometry constants ──
-//   const SUPPLY_H    = 1.8;
-//   const HORIZ_W     = 1.4;
-//   const DOWN_H      = 0.55;
-//   const VALVE_H     = 0.35;
-//   const TIP_H       = 0.15;
-
-//   // Pipe starts above the chuck, offset to the side
-//   const PIPE_X_OFF  = -1.0;   // offset left of module center
-//   const PIPE_Z_OFF  =  0.5;   // offset toward camera
-
-//   const supplyTopY    = chuckTopY + SUPPLY_H;
-//   const supplyBotY    = chuckTopY;
-//   const supplyMidY    = (supplyTopY + supplyBotY) / 2;
-
-//   // 1. Vertical supply pipe
-//   const supplyPipe = new THREE.Mesh(
-//     new THREE.CylinderGeometry(0.055, 0.055, SUPPLY_H, 12), metalMat
-//   );
-//   supplyPipe.position.set(WX + PIPE_X_OFF, supplyMidY, WZ + PIPE_Z_OFF);
-//   nozzleGroup.add(supplyPipe);
-
-//   // 2. Elbow 1 — at bottom of supply pipe
-//   const elbow1Y = supplyBotY;
-//   const elbow1 = new THREE.Mesh(new THREE.SphereGeometry(0.07, 16, 12), metalMat);
-//   elbow1.position.set(WX + PIPE_X_OFF, elbow1Y, WZ + PIPE_Z_OFF);
-//   nozzleGroup.add(elbow1);
-
-//   // 3. Horizontal pipe — runs from elbow1 to above chuck center
-//   const horizStartX = WX + PIPE_X_OFF;
-//   const horizEndX   = WX + 0.2;          // ends near chuck center
-//   const horizMidX   = (horizStartX + horizEndX) / 2;
-//   const horizLen    = Math.abs(horizEndX - horizStartX);
-//   const horizPipe = new THREE.Mesh(
-//     new THREE.CylinderGeometry(0.05, 0.05, horizLen, 12), metalMat
-//   );
-//   horizPipe.rotation.z = Math.PI / 2;
-//   horizPipe.position.set(horizMidX, elbow1Y, WZ + PIPE_Z_OFF);
-//   nozzleGroup.add(horizPipe);
-
-//   // 4. Elbow 2 — at end of horizontal pipe
-//   const elbow2X = horizEndX;
-//   const elbow2 = new THREE.Mesh(new THREE.SphereGeometry(0.07, 16, 12), metalMat);
-//   elbow2.position.set(elbow2X, elbow1Y, WZ + PIPE_Z_OFF);
-//   nozzleGroup.add(elbow2);
-
-//   // 5. Down pipe — from elbow2 down toward chuck
-//   const downPipeTopY    = elbow1Y;
-//   const downPipeBotY    = downPipeTopY - DOWN_H;
-//   const downPipeMidY    = (downPipeTopY + downPipeBotY) / 2;
-//   const downPipe = new THREE.Mesh(
-//     new THREE.CylinderGeometry(0.048, 0.048, DOWN_H, 12), metalMat
-//   );
-//   downPipe.position.set(elbow2X, downPipeMidY, WZ + PIPE_Z_OFF);
-//   nozzleGroup.add(downPipe);
-
-//   // 6. Valve body — top flush with downPipe bottom
-//   const valveTopY    = downPipeBotY;
-//   const valveBotY    = valveTopY - VALVE_H;
-//   const valveMidY    = (valveTopY + valveBotY) / 2;
-//   const valveBody = new THREE.Mesh(
-//     new THREE.CylinderGeometry(0.085, 0.07, VALVE_H, 16), darkMat
-//   );
-//   valveBody.position.set(elbow2X, valveMidY, WZ + PIPE_Z_OFF);
-//   nozzleGroup.add(valveBody);
-
-//   // 7. Nozzle tip — top flush with valve bottom
-//   const tipTopY  = valveBotY;
-//   const tipBotY  = tipTopY - TIP_H;
-//   const tipMidY  = (tipTopY + tipBotY) / 2;
-//   const nozzleTip = new THREE.Mesh(
-//     new THREE.ConeGeometry(0.032, TIP_H, 12), tipMat
-//   );
-//   nozzleTip.position.set(elbow2X, tipMidY, WZ + PIPE_Z_OFF);
-//   nozzleGroup.add(nozzleTip);
-
-//   // 8. Glow at tip exit
-//   const tipGlow = new THREE.Mesh(
-//     new THREE.SphereGeometry(0.022, 8, 8), glowMat
-//   );
-//   tipGlow.position.set(elbow2X, tipBotY, WZ + PIPE_Z_OFF);
-//   tipGlow.userData.isTipGlow = true;
-//   nozzleGroup.add(tipGlow);
-
-//   // 9. Coupler at valve junction
-//   const coupler = new THREE.Mesh(
-//     new THREE.TorusGeometry(0.065, 0.018, 8, 24),
-//     new THREE.MeshStandardMaterial({ color: 0xaa8866, metalness: 0.85, roughness: 0.2 })
-//   );
-//   coupler.rotation.x = Math.PI / 2;
-//   coupler.position.set(elbow2X, valveTopY, WZ + PIPE_Z_OFF);
-//   nozzleGroup.add(coupler);
-
-//   // ── Add directly to scene (world space — no parent transform issues) ──
-//   this.scene.add(nozzleGroup);
-
-//   // Store refs for animation
-//   prCoatGroup.userData.nozzleTipGlow = tipGlow;
-//   prCoatGroup.userData.nozzleTip     = nozzleTip;
-//   prCoatGroup.userData.nozzleGroup   = nozzleGroup;
-
-//   console.log('[FIX] Nozzle built in world space at', WX.toFixed(2), chuckTopY.toFixed(2), WZ.toFixed(2));
-// }
-
-//   private _driveRobotTo(rob: RobotObject, tgt: THREE.Vector3, dt: number, mult: number) {
-//     rob.runIK(tgt);
-//     const we = new THREE.Euler().setFromQuaternion(rob.wrist.quaternion, "XYZ");
-//     we.z = Math.sin(this.simTime * 1.05 * mult) * 0.04;
-//     rob.wrist.quaternion.setFromEuler(we);
-//   }
-
-//   /** Temporarily disable HMDS + helper collision meshes during pick sequence */
-// private _maskCollisions(mask: boolean) {
-//   const hmds = this.modObjs['hmds'];
-//   if (!hmds) return;
-//   hmds.traverse((obj) => {
-//     if ((obj as THREE.Mesh).isMesh && obj.userData.collidable !== false) {
-//       // Store original raycast behavior, then disable
-//       if (mask) {
-//         obj.userData._origRaycast = obj.raycast;
-//         obj.raycast = () => {};   // no-op disables ghost collisions
-//       } else if (obj.userData._origRaycast) {
-//         obj.raycast = obj.userData._origRaycast;
-//         delete obj.userData._origRaycast;
-//       }
-//     }
-//   });
-// }
-
-//   private _disableAllShadows() {
-//     this.scene.traverse((obj) => {
-//       if ((obj as THREE.Mesh).isMesh) {
-//         const mesh = obj as THREE.Mesh;
-//         mesh.castShadow = false;
-//         mesh.receiveShadow = false;
-//       }
-//       if ((obj as any).castShadow !== undefined) {
-//         (obj as any).castShadow = false;
-//       }
-//       if ((obj as any).receiveShadow !== undefined) {
-//         (obj as any).receiveShadow = false;
-//       }
-//     });
-//   }
-
-// // private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
-// //   const ud = robot.group.userData;
-// //   const current = (ud.gripperState as number) ?? 0;
-// //   const blend = 0.18;
-// //   ud.gripperState = lerp(current, targetState, blend);
-// //   const g = ud.gripperState as number;
-// //   ud.vacuumEngaged = g > 0.7;
- 
-// //   // Visual feedback on the blade meshes (Blade_Top / Blade_Bot / Blade_Mount).
-// //   // We pulse the emissive of any mesh under the gripper / fork that has a
-// //   // standard material — gives a clean "vacuum locked" indicator without
-// //   // depending on bone names that may or may not exist.
-// //   if (!ud._bladeMats) {
-// //     const mats: THREE.MeshStandardMaterial[] = [];
-// //     const collect = (node: THREE.Object3D) => {
-// //       if ((node as THREE.Mesh).isMesh) {
-// //         const m = (node as THREE.Mesh).material as THREE.MeshStandardMaterial;
-// //         if (m && (m as any).isMeshStandardMaterial) mats.push(m);
-// //       }
-// //     };
-// //     robot.fork.traverse(collect);
-// //     if (robot.gripper && robot.gripper !== robot.fork) robot.gripper.traverse(collect);
-// //     ud._bladeMats = mats;
-// //     // Cache the original emissive so we can restore on release
-// //     ud._bladeEmissiveBase = mats.map(m => ({
-// //       hex: m.emissive.getHex(),
-// //       intensity: m.emissiveIntensity,
-// //     }));
-// //   }
- 
-// //   const mats        = ud._bladeMats as THREE.MeshStandardMaterial[];
-// //   const base        = ud._bladeEmissiveBase as { hex: number; intensity: number }[];
-// //   const t           = this.simTime;
-// //   const engagedHex  = 0x00ddff;
-// //   const engagedAmp  = 1.8 + 1.2 * Math.abs(Math.sin(t * 8));
- 
-// //   mats.forEach((m, i) => {
-// //     if (g > 0.05) {
-// //       // Blend toward cyan emissive when vacuum is on
-// //       const tgt = new THREE.Color(engagedHex);
-// //       m.emissive.lerp(tgt, 0.15);
-// //       m.emissiveIntensity = lerp(m.emissiveIntensity, engagedAmp * g, 0.18);
-// //     } else {
-// //       // Restore original
-// //       const b = base[i];
-// //       m.emissive.lerp(new THREE.Color(b.hex), 0.10);
-// //       m.emissiveIntensity = lerp(m.emissiveIntensity, b.intensity, 0.10);
-// //     }
-// //   });
-// // }
-
-
-// // private _animRobots(dt: number) {
-// //   const t = this.simTime;
-// //   const r = this.robotEFEM;
-// //   if (!r || !r.runIK) return;
-// //   if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
-
-// //   // ── One-time init ──
-// //   if (!r.group.userData.railInit) {
-// //     r.group.userData.railX        = r.basePos.x;
-// //     r.group.userData.armPhase     = 'idle';
-// //     r.group.userData.phaseT       = 0;
-// //     r.group.userData.railInit     = true;
-// //     r.group.userData.gripperState = 0;
-// //     r.group.userData.turretRestY  = r.turret.rotation.y;
-// //     r.group.userData._ikYaw      = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
-// //     r.group.userData.bezierT      = 0;
-// //     r.group.userData.bezierStart  = new THREE.Vector3();
-// //     r.group.userData.bezierEnd    = new THREE.Vector3();
-// //     r.group.userData.bezierCP1    = new THREE.Vector3();
-// //     r.group.userData.bezierCP2    = new THREE.Vector3();
-// //     r.group.userData.dwellTimer   = 0;
-// //   }
-
-// //   // ── Compute finger-to-gripper offset (in gripper local space) ──
-// //   // This tells us how far forward the wafer sits relative to the gripper origin
-// //   const computeFingerOffset = (): THREE.Vector3 => {
-// //     const ud = r.group.userData;
-// //     const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-// //     const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-// //     const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
-// //     const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
-
-// //     if (!t1 || !d1) return new THREE.Vector3();
-
-// //     // Finger world midpoint
-// //     const fingerMid = new THREE.Vector3();
-// //     const tmp = new THREE.Vector3();
-// //     t1.getWorldPosition(tmp); fingerMid.add(tmp);
-// //     d1.getWorldPosition(tmp); fingerMid.add(tmp);
-// //     if (t2 && d2) {
-// //       t2.getWorldPosition(tmp); fingerMid.add(tmp);
-// //       d2.getWorldPosition(tmp); fingerMid.add(tmp);
-// //       fingerMid.multiplyScalar(0.25);
-// //     } else {
-// //       fingerMid.multiplyScalar(0.5);
-// //     }
-
-// //     // Gripper world position
-// //     const gripWP = new THREE.Vector3();
-// //     r.gripper.getWorldPosition(gripWP);
-
-// //     // Offset = how far fingers extend past gripper origin
-// //     return fingerMid.clone().sub(gripWP);
-// //   };
-
-// //   // ── Helper: convert "where wafer should be" → "where gripper should be" ──
-// //   const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
-// //     const fingerOffset = computeFingerOffset();
-// //     // Subtract finger offset so fingers (not gripper) end up at waferTarget
-// //     return waferTarget.clone().sub(fingerOffset);
-// //   };
-
-// //   // ── Keep-out collision clamp (FOUP / scanner) ────────────────────────────
-// //   const APPROACH_OFFSET = 0.25;
-// //   const RETRACT_DIST = 0.3;
-// //   const TRANSFER_MIN_Y = 0.18;
-// //   const keepOut = (id: "foup" | "scanner", desired: THREE.Vector3, from: THREE.Vector3): THREE.Vector3 => {
-// //     const box = this._blockBoxes[id];
-// //     if (!box) return desired;
-// //     // If desired point is inside the box, pull it out along the approach ray.
-// //     if (!box.containsPoint(desired)) return desired;
-// //     const dir = desired.clone().sub(from);
-// //     if (dir.lengthSq() < 1e-6) return desired;
-// //     dir.normalize();
-// //     // Walk out of the box by stepping backwards.
-// //     const out = desired.clone();
-// //     for (let i = 0; i < 20 && box.containsPoint(out); i++) {
-// //       out.addScaledVector(dir, -0.08);
-// //     }
-// //     return out;
-// //   };
-
-// //   // ── Carried wafers: transform owned by gripper.attach(); no world-space lerp ──
-
-// //   // ── Find target wafer ──
-// //   const carried = this.wSMs.find(
-// //     (w) => w.launched && !w.done && w.carrierRobot === r
-// //   );
-// //   const waiting = this.wSMs.find(
-// //     (w) => w.launched && !w.done && !w.carrierRobot &&
-// //            w.state === 'track_approach' && !(w as any)._picked
-// //   );
-// //   const target = carried ?? waiting ?? null;
-
-// //   const ud = r.group.userData;
-
-// //   // Smooth easing
-// //   const sCurve = (x: number) => {
-// //     x = Math.max(0, Math.min(1, x));
-// //     return x * x * (3 - 2 * x);
-// //   };
-
-// //   // Bezier evaluator
-// //   const evalBezier = (out: THREE.Vector3, t01: number) => {
-// //     const p0 = ud.bezierStart as THREE.Vector3;
-// //     const p1 = ud.bezierCP1   as THREE.Vector3;
-// //     const p2 = ud.bezierCP2   as THREE.Vector3;
-// //     const p3 = ud.bezierEnd   as THREE.Vector3;
-// //     const u = 1 - t01, u2 = u * u, u3 = u2 * u;
-// //     const tt = t01 * t01, ttt = tt * t01;
-// //     out.set(
-// //       u3 * p0.x + 3 * u2 * t01 * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
-// //       u3 * p0.y + 3 * u2 * t01 * p1.y + 3 * u * tt * p2.y + ttt * p3.y,
-// //       u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
-// //     );
-// //   };
-
-// //   // Rail target + integration BEFORE runIK.
-// //   // DISABLED: full-track robot travel. EFEM only handles FOUP -> DEHY handoff.
-// //  // Rail target + integration BEFORE runIK.
-// //   // Robot travels the full track to service all 4 handoff zones.
-// //   const RAIL_MIN = -22;
-// //   const RAIL_MAX = 32;
-// //   let dropStep = ALL_STEPS[0];
-// //   let prevStep = ALL_STEPS[0];
-// //   let pickupX = r.basePos.x;
-// //   let pickupZ = 0;
-// //   let isPicked = false;
-// //   let railTargetX = ud.railX as number;
-
-// //   if (target) {
-// //     dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
-// //     const prevStepIdx = Math.max(target.stepIdx - 1, 0);
-// //     prevStep = ALL_STEPS[prevStepIdx];
-// //     pickupX = (target as any)._pickupX as number ?? prevStep.x;
-// //     pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
-// //     isPicked = !!(target as any)._picked;
-// //     railTargetX = clamp(isPicked ? dropStep.x : pickupX, RAIL_MIN, RAIL_MAX);
-// //   }
-
-// //   // Smooth rail movement
-// //   const railSpeed = 6.0;
-// //   const currentRailX = ud.railX as number;
-// //   const dxRail = railTargetX - currentRailX;
-// //   const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * dt * this.speed);
-// //   ud.railX = currentRailX + railStep;
-// //   r.group.position.x = ud.railX as number;
-
-// //   if (!target) {
-// //     ud.armPhase = 'idle';
-// //     ud.phaseT = 0;
-// //     const idleTgt = new THREE.Vector3(
-// //       r.group.position.x,
-// //       1.8,
-// //       Math.sin(t * 0.22) * 1.5
-// //     );
-// //     r.runIK(targetForGripper(idleTgt));
-// //     this._setGripperState(r, 0, dt);
-
-// //   } else {
-// //     // if (target.stepIdx > 1 && !target.carrierRobot) {
-// //     //   // DISABLED:
-// //     //   // Robot should only transfer FOUP → Dehydration Bake.
-// //     //   // Downstream handling is conveyor-owned.
-// //     //   ud.armPhase = 'idle';
-// //     //   ud.phaseT = 0;
-// //     //   return;
-// //     // }
-// //     const railX = ud.railX as number;
-// //     const distPick = Math.abs(railX - pickupX);
-// //     const distDrop = Math.abs(railX - dropStep.x);
-
-// //     ud.phaseT = (ud.phaseT as number) + dt * this.speed;
-// //     const phaseT = ud.phaseT as number;
-// //     const phase  = ud.armPhase as string;
-
-// //     const pickWorld = new THREE.Vector3();
-// //     if (prevStep.type === "foup") {
-// //       const foupGrp = this.modObjs["foup"];
-// //       const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-// //       const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-// //       if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(pickWorld);
-// //       else pickWorld.set(pickupX, 1.55, pickupZ);
-// //     } else {
-// //       const modGrp = this.modObjs[prevStep.id];
-// //       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-// //       if (wa) wa.getWorldPosition(pickWorld);
-// //       else pickWorld.set(pickupX, 0.93, pickupZ);
-// //     }
-
-// //     const dropWorld = new THREE.Vector3();
-// //     // Step 16 = return wafer to FOUP after hardbake
-// //     const returnToFoup = target.stepIdx >= ALL_STEPS.length;
-// //     if (dropStep.type === "foup" || returnToFoup) {
-// //       const foupGrp = this.modObjs["foup"];
-// //       const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-// //       const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-// //       if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(dropWorld);
-// //       else dropWorld.set(ALL_STEPS[0].x, 1.55, ALL_STEPS[0].z);
-// //     } else {
-// //       const modGrp = this.modObjs[dropStep.id];
-// //       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-// //       if (wa) wa.getWorldPosition(dropWorld);
-// //       else dropWorld.set(dropStep.x, 0.93, dropStep.z);
-// //     }
-
-// //     // ── Safe approach / collision rules ────────────────────────────────────
-// //     const APPROACH_OFFSET = 0.4;      // vertical approach height above port
-// //     const APPROACH_BACKOFF = 0.25;    // stop short of equipment opening
-// //     const RETRACT_DIST = 0.3;         // pull out before lifting/turning
-// //     const TRANSFER_MIN_Y = 0.18;      // never dip into floor/under-plinth plane
-// //     // Wafer geometry from buildWafer(): thickness H=0.035 so half=0.0175.
-// //     const WAFER_HALF_T = 0.0175;
-// //     // Fork should sit slightly under wafer bottom before vacuum (mm-level clearance).
-// //     const PICK_CLEARANCE = 0.003;
-// //     const SAFE_HEIGHT     = 2.4;
-
-// //     if (!isPicked) {
-// //       // Approach direction: from TCP toward the port (used for backoff + retract).
-// //       const tcpNow = new THREE.Vector3();
-// //       r.gripper.getWorldPosition(tcpNow);
-// //       const approachDir = pickWorld.clone().sub(tcpNow);
-// //       if (approachDir.lengthSq() > 1e-6) approachDir.normalize();
-
-// //       // Back off along approach ray so TCP never enters FOUP/scanner volume.
-// //       const backoffBase = pickWorld.clone().addScaledVector(approachDir, -APPROACH_BACKOFF);
-// //       const backoffSafe = prevStep.type === "foup"
-// //         ? keepOut("foup", backoffBase, tcpNow)
-// //         : (prevStep.id === "scanner" ? keepOut("scanner", backoffBase, tcpNow) : backoffBase);
-
-// //       const approachPos = new THREE.Vector3(backoffSafe.x, pickWorld.y + APPROACH_OFFSET + 0.4, backoffSafe.z);
-// //       const insertPos   = new THREE.Vector3(backoffSafe.x, pickWorld.y + APPROACH_OFFSET,       backoffSafe.z);
-// //       const contactPos  = new THREE.Vector3(
-// //         pickWorld.x,
-// //         // Align fork surface just below wafer bottom.
-// //         pickWorld.y - WAFER_HALF_T + PICK_CLEARANCE,
-// //         pickWorld.z
-// //       );
-// //       contactPos.y = Math.max(contactPos.y, TRANSFER_MIN_Y);
-
-// //       switch (phase) {
-// //         case 'idle':
-// //         case 'retract':
-// //           ud.armPhase = 'approach';
-// //           ud.phaseT = 0;
-// //           break;
-
-// //         case 'approach':
-// //           r.runIK(targetForGripper(approachPos));
-// //           this._setGripperState(r, 0, dt);
-// //           if (distPick < 1.0 && phaseT > 0.6) {
-// //             ud.armPhase = 'insert';
-// //             ud.phaseT = 0;
-// //           }
-// //           break;
-
-// //         case 'insert': {
-// //           const p = sCurve(Math.min(phaseT / 0.9, 1));
-// //           const tgt = new THREE.Vector3().lerpVectors(approachPos, insertPos, p);
-// //           r.runIK(targetForGripper(tgt));
-// //           this._setGripperState(r, 0, dt);
-// //           if (p >= 1) {
-// //             ud.armPhase = 'contact';
-// //             ud.phaseT = 0;
-// //           }
-// //           break;
-// //         }
-
-// //         case 'contact': {
-// //           const p = sCurve(Math.min(phaseT / 0.5, 1));
-// //           const tgt = new THREE.Vector3().lerpVectors(insertPos, contactPos, p);
-// //           r.runIK(targetForGripper(tgt));
-// //           this._setGripperState(r, 0.3, dt);
-// //           if (p >= 1) {
-// //             ud.armPhase = 'vacuum_dwell';
-// //             ud.phaseT = 0;
-// //             ud.dwellTimer = 0;
-// //           }
-// //           break;
-// //         }
-
-// //         case 'vacuum_dwell': {
-// //           ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
-// //           const dwellP = (ud.dwellTimer as number) / 0.5;
-// //           const settleY = Math.sin(dwellP * Math.PI) * 0.008;
-// //           const settledPos = contactPos.clone();
-// //           settledPos.y -= settleY;
-// //           r.runIK(targetForGripper(settledPos));
-// //           this._setGripperState(r, 1, dt);
-
-// //           r.group.updateWorldMatrix(true, true);
-// //           // TCP = gripper origin + finger midpoint offset (same basis as targetForGripper / runIK).
-// //           const gripWP = new THREE.Vector3();
-// //           r.gripper.getWorldPosition(gripWP);
-// //           const tcpWorld = gripWP.clone().add(computeFingerOffset());
-// //           // Did the arm reach the commanded contact point (not wafer mesh pivot — that can be metres away)?
-// //           const ikErr = tcpWorld.distanceTo(settledPos);
-// //           const waferWp = new THREE.Vector3();
-// //           target.mesh.getWorldPosition(waferWp);
-// //           const waferToTcp = tcpWorld.distanceTo(waferWp);
-// //           const sx = Math.max(Math.abs(r.group.scale.x), 0.35);
-// //           const PICK_IK_TOL = Math.max(0.12, 0.06 * sx);
-// //           const PICK_WAFER_TOL = Math.max(0.22, 0.1 * sx);
-// //           const ALIGN_TIMEOUT = 1.2;
-// //           const dwell = ud.dwellTimer as number;
-// //           const aligned = ikErr < PICK_IK_TOL || waferToTcp < PICK_WAFER_TOL;
-// //           const canAttach = dwell >= 0.45 && (aligned || dwell >= ALIGN_TIMEOUT);
-
-// //           if (canAttach) {
-// //             if (!aligned && dwell >= ALIGN_TIMEOUT) {
-// //               console.warn('[PICK] alignment timeout — attach anyway', {
-// //                 wi: target.wi,
-// //                 ikErr: +ikErr.toFixed(3),
-// //                 waferToTcp: +waferToTcp.toFixed(3),
-// //                 tolIk: +PICK_IK_TOL.toFixed(3),
-// //               });
-// //             } else {
-// //               console.log('[PICK] aligned', {
-// //                 wi: target.wi,
-// //                 ikErr: +ikErr.toFixed(3),
-// //                 waferToTcp: +waferToTcp.toFixed(3),
-// //               });
-// //             }
-// //             target.attachTo(r);
-// //             (target as any)._picked = true;
-// //             this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED → ${prevStep.short}`, 'pick');
-
-// //             const startW = contactPos.clone();
-// //             const endW   = new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET + 0.4, dropWorld.z);
-// //             (ud.bezierStart as THREE.Vector3).copy(startW);
-// //             (ud.bezierEnd as THREE.Vector3).copy(endW);
-// //             (ud.bezierCP1 as THREE.Vector3).set(startW.x, SAFE_HEIGHT, startW.z);
-// //             (ud.bezierCP2 as THREE.Vector3).set(endW.x, SAFE_HEIGHT, endW.z);
-// //             ud.bezierT = 0;
-
-// //             ud.postAttachHold = 0;
-// //             ud.armPhase = 'lift';
-// //             ud.phaseT = 0;
-// //           }
-// //           break;
-// //         }
-
-// //         case 'lift': {
-// //           const hold = (ud.postAttachHold as number) ?? 0;
-// //           ud.postAttachHold = hold + dt * this.speed;
-// //           // 0–0.2s: settle at contact
-// //           if (hold < 0.2) {
-// //             r.runIK(targetForGripper(contactPos));
-// //             this._setGripperState(r, 1, dt);
-// //             break;
-// //           }
-// //           // 0.2–0.4s: retract out of port before lifting/turning (prevents collisions)
-// //           if (hold < 0.4) {
-// //             const retractPos = contactPos.clone().addScaledVector(approachDir, -RETRACT_DIST);
-// //             retractPos.y = Math.max(retractPos.y, TRANSFER_MIN_Y);
-// //             r.runIK(targetForGripper(retractPos));
-// //             this._setGripperState(r, 1, dt);
-// //             break;
-// //           }
-// //           const liftPos = new THREE.Vector3(pickWorld.x, SAFE_HEIGHT, pickWorld.z);
-// //           const p = sCurve(Math.min(phaseT / 0.7, 1));
-// //           const tgt = new THREE.Vector3().lerpVectors(contactPos, liftPos, p);
-// //           r.runIK(targetForGripper(tgt));
-// //           this._setGripperState(r, 1, dt);
-// //           if (p >= 1) {
-// //             delete ud.postAttachHold;
-// //             ud.armPhase = 'transport';
-// //             ud.phaseT = 0;
-// //             ud.bezierT = 0;
-// //           }
-// //           break;
-// //         }
-
-// //         default:
-// //           ud.armPhase = 'approach';
-// //           ud.phaseT = 0;
-// //           break;
-// //       }
-
-// //     } else {
-// //       // Place target uses module waferAnchor (chuck top reference). Drop world pos is anchor.
-// //       // Wafer should sit on chuck: wafer center = chuckTop + waferHalfThickness.
-// //       const tcpNow = new THREE.Vector3();
-// //       r.gripper.getWorldPosition(tcpNow);
-// //       const approachDir = dropWorld.clone().sub(tcpNow);
-// //       if (approachDir.lengthSq() > 1e-6) approachDir.normalize();
-// //       const backoffBase = dropWorld.clone().addScaledVector(approachDir, -APPROACH_BACKOFF);
-// //       const backoffSafe = dropStep.id === "scanner"
-// //         ? keepOut("scanner", backoffBase, tcpNow)
-// //         : backoffBase;
-
-// //       const approachDrop = new THREE.Vector3(backoffSafe.x, dropWorld.y + APPROACH_OFFSET + 0.4, backoffSafe.z);
-// //       const insertDrop   = new THREE.Vector3(backoffSafe.x, dropWorld.y + APPROACH_OFFSET,       backoffSafe.z);
-// //       const placePos     = new THREE.Vector3(dropWorld.x, dropWorld.y + WAFER_HALF_T, dropWorld.z);
-// //       placePos.y = Math.max(placePos.y, TRANSFER_MIN_Y);
-
-// //       switch (phase) {
-// //         case 'lift':
-// //         case 'transport':
-// //         case 'carry':
-// //         case 'rise': {
-// //           ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.45, 1);
-// //           const tBz = sCurve(ud.bezierT as number);
-// //           const tgt = new THREE.Vector3();
-// //           evalBezier(tgt, tBz);
-// //           r.runIK(targetForGripper(tgt));
-// //           this._setGripperState(r, 1, dt);
-// //           if ((ud.bezierT as number) >= 1) {
-// //             ud.armPhase = 'lower';
-// //             ud.phaseT = 0;
-// //           }
-// //           break;
-// //         }
-
-// //         case 'lower': {
-// //           const p = sCurve(Math.min(phaseT / 0.8, 1));
-// //           const tgt = new THREE.Vector3().lerpVectors(approachDrop, insertDrop, p);
-// //           r.runIK(targetForGripper(tgt));
-// //           this._setGripperState(r, 1, dt);
-// //           if (p >= 1) {
-// //             ud.armPhase = 'place_contact';
-// //             ud.phaseT = 0;
-// //           }
-// //           break;
-// //         }
-
-// //         case 'place_contact': {
-// //           const p = sCurve(Math.min(phaseT / 0.5, 1));
-// //           const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
-// //           r.runIK(targetForGripper(tgt));
-// //           this._setGripperState(r, 1, dt);
-// //           if (p >= 1) {
-// //             ud.armPhase = 'release';
-// //             ud.phaseT = 0;
-// //           }
-// //           break;
-// //         }
-
-// //         case 'release': {
-// //           // Validate finger midpoint vs target
-// //           const fingerMid = new THREE.Vector3();
-// //           const tmp = new THREE.Vector3();
-// //           const fT1 = ud.fingerTop1 as THREE.Object3D | undefined;
-// //           const fD1 = ud.fingerDown1 as THREE.Object3D | undefined;
-// //           if (fT1 && fD1) {
-// //             fT1.getWorldPosition(tmp); fingerMid.add(tmp);
-// //             fD1.getWorldPosition(tmp); fingerMid.add(tmp);
-// //             fingerMid.multiplyScalar(0.5);
-// //           }
-// //           const targetPos = dropWorld.clone();
-// //           const posError = fingerMid.distanceTo(targetPos);
-
-// //           r.runIK(targetForGripper(placePos));
-// //           this._setGripperState(r, 0, dt);
-
-// //           const POS_TOL = 0.12;
-// //           const timeoutFallback = phaseT > 1.5;
-
-// //           if ((posError <= POS_TOL && phaseT > 0.4) || timeoutFallback) {
-// //             target.detachAt(targetPos);
-// //             this._addLog(`[${WAFER_NAMES[target.wi]}] RELEASE @ ${dropStep.short}`, 'place');
-// //             target.state = 'processing';
-// //             target.processTimer = 0;
-// //             this._onProcessStart(target, dropStep);
-// //             this.busy[dropStep.id] = target.wi;
-// //             (target as any)._picked = false;
-// //             (target as any)._pickupX = undefined;
-// //             (target as any)._pickupZ = undefined;
-// //             ud.armPhase = 'retractUp';
-// //             ud.phaseT = 0;
-// //           }
-// //           break;
-// //         }
-
-// //         case 'retractUp': {
-// //           const p = sCurve(Math.min(phaseT / 0.6, 1));
-// //           const tgt = new THREE.Vector3().lerpVectors(placePos, approachDrop, p);
-// //           r.runIK(targetForGripper(tgt));
-// //           this._setGripperState(r, 0, dt);
-// //           if (p >= 1) {
-// //             ud.armPhase = 'retract';
-// //             ud.phaseT = 0;
-// //           }
-// //           break;
-// //         }
-
-// //         case 'retract':
-// //           r.runIK(targetForGripper(approachDrop));
-// //           this._setGripperState(r, 0, dt);
-// //           if (phaseT > 0.5) {
-// //             ud.armPhase = 'idle';
-// //             ud.phaseT = 0;
-// //           }
-// //           break;
-
-// //         default:
-// //           ud.armPhase = 'transport';
-// //           ud.phaseT = 0;
-// //           break;
-// //       }
-// //     }
-// //   }
-
-// //   // ── Status LED ──
-// //   if (ud.gripperState as number > 0.7) {
-// //     r.statusPL.color.setHex(0x00ffff);
-// //     r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
-// //   } else if (carried) {
-// //     r.statusPL.color.setHex(0x00ff88);
-// //     r.statusPL.intensity = 1.8;
-// //   } else {
-// //     r.statusPL.color.setHex(0x00d8ff);
-// //     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
-// //   }
-// // }
-
-
-// private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
-//   const ud = robot.group.userData;
-//   const current = (ud.gripperState as number) ?? 0;
-//   ud.gripperState = lerp(current, targetState, 0.18);
-//   ud.vacuumEngaged = (ud.gripperState as number) > 0.7;
-//   // No material changes — robot keeps its natural colors.
-// }
-
-// // private _animRobots(dt: number) {
-// //   const t = this.simTime;
-// //   const r = this.robotEFEM;
-// //   if (!r || !r.runIK) return;
-// //   if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
- 
-// //   // ── One-time init ──
-// //   if (!r.group.userData.railInit) {
-// //     r.group.userData.railX        = r.basePos.x;
-// //     r.group.userData.armPhase     = 'idle';
-// //     r.group.userData.phaseT       = 0;
-// //     r.group.userData.railInit     = true;
-// //     r.group.userData.gripperState = 0;
-// //     r.group.userData.turretRestY  = r.turret.rotation.y;
-// //     r.group.userData._ikYaw       = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
-// //     r.group.userData.bezierT      = 0;
-// //     r.group.userData.bezierStart  = new THREE.Vector3();
-// //     r.group.userData.bezierEnd    = new THREE.Vector3();
-// //     r.group.userData.bezierCP1    = new THREE.Vector3();
-// //     r.group.userData.bezierCP2    = new THREE.Vector3();
-// //     r.group.userData.dwellTimer   = 0;
-// //   }
- 
-// //   // ── Compute finger-to-gripper offset (in gripper local space) ──
-// //   const computeFingerOffset = (): THREE.Vector3 => {
-// //     const ud = r.group.userData;
-// //     const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-// //     const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-// //     const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
-// //     const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
-// //     if (!t1 || !d1) return new THREE.Vector3();
-// //     const fingerMid = new THREE.Vector3();
-// //     const tmp = new THREE.Vector3();
-// //     t1.getWorldPosition(tmp); fingerMid.add(tmp);
-// //     d1.getWorldPosition(tmp); fingerMid.add(tmp);
-// //     if (t2 && d2) {
-// //       t2.getWorldPosition(tmp); fingerMid.add(tmp);
-// //       d2.getWorldPosition(tmp); fingerMid.add(tmp);
-// //       fingerMid.multiplyScalar(0.25);
-// //     } else {
-// //       fingerMid.multiplyScalar(0.5);
-// //     }
-// //     const gripWP = new THREE.Vector3();
-// //     r.gripper.getWorldPosition(gripWP);
-// //     return fingerMid.clone().sub(gripWP);
-// //   };
- 
-// //   const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
-// //     const fingerOffset = computeFingerOffset();
-// //     return waferTarget.clone().sub(fingerOffset);
-// //   };
- 
-// //   // ══════════════════════════════════════════════════════════════════════════
-// //   // COLLISION SYSTEM — strict no-fly zones for FOUP & scanner
-// //   // ══════════════════════════════════════════════════════════════════════════
-// //   // SAFETY_MARGIN grew from 0.15 → 0.55 so the TCP stays well clear.
-// //   const SAFETY_MARGIN = 1.5;
- 
-// //   // Re-expand boxes each frame (cheap; handles GLB loads + module motion).
-// //  const getKeepOutBox = (id: "foup" | "scanner"): THREE.Box3 | null => {
-// //   const grp = this.modObjs[id];
-// //   if (!grp) return null;
-// //   const glbRoot = (grp.userData.glbRoot as THREE.Object3D | undefined) ?? grp;
-// //   glbRoot.updateWorldMatrix(true, true);
-// //   const box = new THREE.Box3().setFromObject(glbRoot);
-// //   box.expandByScalar(4.5);
-// //   this._blockBoxes[id] = box;
-// //   return box;
-// // };
- 
-// //   /**
-// //    * Hard clamp: if `desired` lies inside the keep-out box, push it to the
-// //    * NEAREST point on the box surface. Unlike the previous keepOut() (which
-// //    * walked backwards along the approach ray and could still leave the point
-// //    * deep inside), this ALWAYS produces a point outside the box.
-// //    */
-// //   const clampOutsideBox = (
-// //     desired: THREE.Vector3,
-// //     box: THREE.Box3 | null
-// //   ): THREE.Vector3 => {
-// //     if (!box || !box.containsPoint(desired)) return desired;
-// //     const center = new THREE.Vector3();
-// //     box.getCenter(center);
-// //     // Vector from box center to desired point — clamp to nearest face.
-// //     const half = new THREE.Vector3();
-// //     box.getSize(half).multiplyScalar(0.5);
-// //     const local = desired.clone().sub(center);
-// //     // Find which axis has the largest |local/half| ratio — that's the closest face.
-// //     const ratios = [
-// //       Math.abs(local.x) / half.x,
-// //       Math.abs(local.y) / half.y,
-// //       Math.abs(local.z) / half.z,
-// //     ];
-// //     const maxRatio = Math.max(...ratios);
-// //     const out = local.clone().divideScalar(maxRatio).add(center);
-// //     // Tiny epsilon push so we sit strictly OUTSIDE, not on the surface.
-// //     const dir = out.clone().sub(center).normalize();
-// //     out.addScaledVector(dir, 0.02);
-// //     return out;
-// //   };
- 
-// //   /**
-// //    * Approach FOUP/scanner ONLY from the +Z face (the door/opening).
-// //    * Returns a "safe approach point" that is guaranteed outside the keep-out
-// //    * box AND on the correct side of the enclosure.
-// //    */
-// // // REPLACE safeApproach with this stricter version:
-// // const safeApproach = (
-// //   stepId: string,
-// //   portWorld: THREE.Vector3,
-// //   distance: number
-// // ): THREE.Vector3 => {
-// //   const grp = this.modObjs[stepId];
-// //   if (!grp) return portWorld.clone();
-  
-// //   const box = getKeepOutBox(stepId as "foup" | "scanner");
-// //   if (!box) return portWorld.clone().add(new THREE.Vector3(0, 0, distance));
-  
-// //   const center = new THREE.Vector3();
-// //   box.getCenter(center);
-  
-// //   // Direction FROM box center TO port (outward facing direction)
-// //   const outDir = portWorld.clone().sub(center).normalize();
-  
-// //   // Place approach point OUTSIDE the box along outward direction
-// //   const boxSize = new THREE.Vector3();
-// //   box.getSize(boxSize);
-// //   const boxRadius = Math.max(boxSize.x, boxSize.z) * 0.5;
-  
-// //   // Approach = outside box surface + extra clearance
-// //   const approach = center.clone().addScaledVector(outDir, boxRadius + distance + 3.5);
-// //   approach.y = portWorld.y; // keep same height
-// //   return approach;
-// // };
-// //   // ── Sticky locks ──
-// //   const APPROACH_OFFSET   = 0.6;
-// // const APPROACH_BACKOFF  = 8.0;
-// // const INSERT_DEPTH      = 0.01;
-// // const RETRACT_DIST      = 8.0;   // how far to pull straight out after pick
-// //   const TRANSFER_MIN_Y    = 0.18;   // floor floor for TCP
-// //   const WAFER_HALF_T      = 0.0175;
-// //   const PICK_CLEARANCE    = 0.003;
-// //   const SAFE_HEIGHT       = 6.0;    // travel altitude
- 
-// //   // ── Find target wafer ──
-// //   const carried = this.wSMs.find(
-// //     (w) => w.launched && !w.done && w.carrierRobot === r
-// //   );
-// //   const waiting = this.wSMs.find(
-// //     (w) => w.launched && !w.done && !w.carrierRobot &&
-// //            w.state === 'track_approach' && !(w as any)._picked
-// //   );
-// //   const target = carried ?? waiting ?? null;
- 
-// //   const ud = r.group.userData;
-// //   const sCurve = (x: number) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
- 
-// //   const evalBezier = (out: THREE.Vector3, t01: number) => {
-// //     const p0 = ud.bezierStart as THREE.Vector3;
-// //     const p1 = ud.bezierCP1   as THREE.Vector3;
-// //     const p2 = ud.bezierCP2   as THREE.Vector3;
-// //     const p3 = ud.bezierEnd   as THREE.Vector3;
-// //     const u = 1 - t01, u2 = u * u, u3 = u2 * u;
-// //     const tt = t01 * t01, ttt = tt * t01;
-// //     out.set(
-// //       u3 * p0.x + 3 * u2 * t01 * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
-// //       u3 * p0.y + 3 * u2 * t01 * p1.y + 3 * u * tt * p2.y + ttt * p3.y,
-// //       u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
-// //     );
-// //   };
- 
-// //   // ── Rail target + integration ──
-// //   const RAIL_MIN = -22;
-// //   const RAIL_MAX = 32;
-// //   let dropStep = ALL_STEPS[0];
-// //   let prevStep = ALL_STEPS[0];
-// //   let pickupX = r.basePos.x;
-// //   let pickupZ = 0;
-// //   let isPicked = false;
-// //   let railTargetX = ud.railX as number;
- 
-// //   if (target) {
-// //     dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
-// //     const prevStepIdx = Math.max(target.stepIdx - 1, 0);
-// //     prevStep = ALL_STEPS[prevStepIdx];
-// //     pickupX = (target as any)._pickupX as number ?? prevStep.x;
-// //     pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
-// //     isPicked = !!(target as any)._picked;
-// //     railTargetX = clamp(isPicked ? dropStep.x : pickupX, RAIL_MIN, RAIL_MAX);
-// //   }
- 
-// //   const railSpeed = 6.0;
-// //   const currentRailX = ud.railX as number;
-// //   const dxRail = railTargetX - currentRailX;
-// //   const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * dt * this.speed);
-// //   ud.railX = currentRailX + railStep;
-// //   r.group.position.x = ud.railX as number;
- 
-// //   if (!target) {
-// //     ud.armPhase = 'idle';
-// //     ud.phaseT = 0;
-// //     const idleTgt = new THREE.Vector3(
-// //       r.group.position.x,
-// //       1.8,
-// //       Math.sin(t * 0.22) * 1.5
-// //     );
-// //     r.runIK(targetForGripper(idleTgt));
-// //     this._setGripperState(r, 0, dt);
-// //     return;
-// //   }
- 
-// //   const railX = ud.railX as number;
-// //   const distPick = Math.abs(railX - pickupX);
-// //   ud.phaseT = (ud.phaseT as number) + dt * this.speed;
-// //   const phaseT = ud.phaseT as number;
-// //   const phase  = ud.armPhase as string;
- 
-// //   // ── Resolve pick/drop world positions ──
-// //   const pickWorld = new THREE.Vector3();
-// //   if (prevStep.type === "foup") {
-// //     const foupGrp = this.modObjs["foup"];
-// //     const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-// //     const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-// //     if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(pickWorld);
-// //     else pickWorld.set(pickupX, 1.55, pickupZ);
-// //   } else {
-// //     const modGrp = this.modObjs[prevStep.id];
-// //     const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-// //     if (wa) wa.getWorldPosition(pickWorld);
-// //     else pickWorld.set(pickupX, 0.93, pickupZ);
-// //   }
- 
-// //   const dropWorld = new THREE.Vector3();
-// //   const returnToFoup = target.stepIdx >= ALL_STEPS.length;
-// //   if (dropStep.type === "foup" || returnToFoup) {
-// //     const foupGrp = this.modObjs["foup"];
-// //     const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-// //     const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-// //     if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(dropWorld);
-// //     else dropWorld.set(ALL_STEPS[0].x, 1.55, ALL_STEPS[0].z);
-// //   } else {
-// //     const modGrp = this.modObjs[dropStep.id];
-// //     const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-// //     if (wa) wa.getWorldPosition(dropWorld);
-// //     else dropWorld.set(dropStep.x, 0.93, dropStep.z);
-// //   }
- 
-// //   if (!isPicked) {
-// //     // ════════════════════════════════════════════════════════════════════════
-// //     // PICK SEQUENCE
-// //     // ════════════════════════════════════════════════════════════════════════
-// //     const isProtected = prevStep.type === "foup" || prevStep.id === "scanner";
-// //     const protectId   = prevStep.type === "foup" ? "foup" : "scanner";
-// //     const keepBox     = isProtected ? getKeepOutBox(protectId as "foup" | "scanner") : null;
- 
-// //     // Approach point: front-of-port, well outside the keep-out box.
-// //     const approachRaw = isProtected
-// //       ? safeApproach(protectId, pickWorld, APPROACH_BACKOFF)
-// //       : pickWorld.clone();
-// //     const approachPos = new THREE.Vector3(
-// //       approachRaw.x,
-// //       pickWorld.y + APPROACH_OFFSET,
-// //       approachRaw.z
-// //     );
- 
-// //     // Insert: slide along the front-facing direction INTO the port, but
-// //     // clamp every step against the keep-out box.
-// //     const insertPos = isProtected
-// //       ? clampOutsideBox(
-// //           new THREE.Vector3(
-// //             approachRaw.x +
-// //               (this.modObjs[protectId]?.userData?.frontFacing?.x ?? 0) * -INSERT_DEPTH,
-// //             pickWorld.y + APPROACH_OFFSET * 0.4,
-// //             approachRaw.z +
-// //               (this.modObjs[protectId]?.userData?.frontFacing?.z ?? 1) * -INSERT_DEPTH
-// //           ),
-// //           keepBox
-// //         )
-// //       : new THREE.Vector3(pickWorld.x, pickWorld.y + APPROACH_OFFSET * 0.4, pickWorld.z);
- 
-// //     // Contact: exactly at the wafer (or clamped if FOUP/scanner).
-// //    // Contact: stay OUTSIDE the box — never penetrate FOUP/scanner
-// //     const contactPos = (() => {
-// //       if (!isProtected || !keepBox) {
-// //         const raw = new THREE.Vector3(pickWorld.x, pickWorld.y - WAFER_HALF_T + PICK_CLEARANCE, pickWorld.z);
-// //         raw.y = Math.max(raw.y, TRANSFER_MIN_Y);
-// //         return raw;
-// //       }
-// //       const center = new THREE.Vector3(); keepBox.getCenter(center);
-// //       const outDir = pickWorld.clone().sub(center).normalize();
-// //       const half = new THREE.Vector3(); keepBox.getSize(half).multiplyScalar(0.5);
-// //       const facePoint = center.clone().addScaledVector(outDir, Math.max(half.x, half.z) + 3.5);
-// //       facePoint.y = Math.max(pickWorld.y, TRANSFER_MIN_Y);
-// //       return facePoint;
-// //     })();
- 
-// //     switch (phase) {
-// //       case 'idle':
-// //       case 'retract':
-// //         ud.armPhase = 'approach';
-// //         ud.phaseT = 0;
-// //         break;
- 
-// //       case 'approach':
-// //         r.runIK(targetForGripper(approachPos));
-// //         this._setGripperState(r, 0, dt);
-// //         if (distPick < 1.0 && phaseT > 0.6) {
-// //           ud.armPhase = 'insert';
-// //           ud.phaseT = 0;
-// //         }
-// //         break;
- 
-// //       case 'insert': {
-// //         const p = sCurve(Math.min(phaseT / 0.9, 1));
-// //         const tgt = new THREE.Vector3().lerpVectors(approachPos, insertPos, p);
-// //         // Final safety clamp on the interpolated point (in case lerp dipped in).
-// //         const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
-// //         r.runIK(targetForGripper(safe));
-// //         this._setGripperState(r, 0, dt);
-// //         if (p >= 1) {
-// //           ud.armPhase = 'contact';
-// //           ud.phaseT = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       case 'contact': {
-// //         const p = sCurve(Math.min(phaseT / 0.5, 1));
-// //         const tgt = new THREE.Vector3().lerpVectors(insertPos, contactPos, p);
-// //         const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
-// //         r.runIK(targetForGripper(safe));
-// //         this._setGripperState(r, 0.3, dt);
-// //         if (p >= 1) {
-// //           ud.armPhase = 'vacuum_dwell';
-// //           ud.phaseT = 0;
-// //           ud.dwellTimer = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       case 'vacuum_dwell': {
-// //         ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
-// //         const dwellP = (ud.dwellTimer as number) / 0.5;
-// //         const settleY = Math.sin(dwellP * Math.PI) * 0.008;
-// //         const settledPos = contactPos.clone();
-// //         settledPos.y -= settleY;
-// //         r.runIK(targetForGripper(settledPos));
-// //         this._setGripperState(r, 1, dt);
- 
-// //         r.group.updateWorldMatrix(true, true);
-// //         const gripWP = new THREE.Vector3();
-// //         r.gripper.getWorldPosition(gripWP);
-// //         const tcpWorld = gripWP.clone().add(computeFingerOffset());
-// //         const ikErr = tcpWorld.distanceTo(settledPos);
-// //         const waferWp = new THREE.Vector3();
-// //         target.mesh.getWorldPosition(waferWp);
-// //         const waferToTcp = tcpWorld.distanceTo(waferWp);
-// //         const sx = Math.max(Math.abs(r.group.scale.x), 0.35);
-// //         const PICK_IK_TOL = Math.max(0.12, 0.06 * sx);
-// //         const PICK_WAFER_TOL = Math.max(0.22, 0.1 * sx);
-// //         const ALIGN_TIMEOUT = 1.2;
-// //         const dwell = ud.dwellTimer as number;
-// //         const aligned = ikErr < PICK_IK_TOL || waferToTcp < PICK_WAFER_TOL;
-// //         const canAttach = dwell >= 0.45 && (aligned || dwell >= ALIGN_TIMEOUT);
- 
-// //         if (canAttach) {
-// //           target.attachTo(r);
-// //           (target as any)._picked = true;
-// //           this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED → ${prevStep.short}`, 'pick');
- 
-// //           const startW = contactPos.clone();
-// //           const endW   = new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET + 0.4, dropWorld.z);
-// //           (ud.bezierStart as THREE.Vector3).copy(startW);
-// //           (ud.bezierEnd as THREE.Vector3).copy(endW);
-// //           (ud.bezierCP1 as THREE.Vector3).set(startW.x, SAFE_HEIGHT, startW.z);
-// //           (ud.bezierCP2 as THREE.Vector3).set(endW.x, SAFE_HEIGHT, endW.z);
-// //           ud.bezierT = 0;
- 
-// //           ud.postAttachHold = 0;
-// //           ud.armPhase = 'lift';
-// //           ud.phaseT = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       case 'lift': {
-// //         const hold = (ud.postAttachHold as number) ?? 0;
-// //         ud.postAttachHold = hold + dt * this.speed;
-// //         if (hold < 0.2) {
-// //           r.runIK(targetForGripper(contactPos));
-// //           this._setGripperState(r, 1, dt);
-// //           break;
-// //         }
-// //         if (hold < 0.5) {
-// //           // STRAIGHT-OUT retract along front-facing direction (out of the port)
-// //           // before lifting upward. Critical: never sideways inside the box.
-// //           const retractPos = isProtected
-// //             ? safeApproach(protectId, contactPos, RETRACT_DIST)
-// //             : contactPos.clone().add(new THREE.Vector3(0, 0, RETRACT_DIST));
-// //           retractPos.y = Math.max(retractPos.y, TRANSFER_MIN_Y);
-// //           r.runIK(targetForGripper(retractPos));
-// //           this._setGripperState(r, 1, dt);
-// //           break;
-// //         }
-// //         // Now lift straight up from the retracted position.
-// //         const retractedBase = isProtected
-// //           ? safeApproach(protectId, contactPos, RETRACT_DIST)
-// //           : contactPos.clone().add(new THREE.Vector3(0, 0, RETRACT_DIST));
-// //         const liftPos = new THREE.Vector3(retractedBase.x, SAFE_HEIGHT, retractedBase.z);
-// //         const p = sCurve(Math.min((hold - 0.5) / 0.6, 1));
-// //         const tgt = new THREE.Vector3().lerpVectors(retractedBase, liftPos, p);
-// //         r.runIK(targetForGripper(tgt));
-// //         this._setGripperState(r, 1, dt);
-// //         if (p >= 1) {
-// //           delete ud.postAttachHold;
-// //           ud.armPhase = 'transport';
-// //           ud.phaseT = 0;
-// //           ud.bezierT = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       default:
-// //         ud.armPhase = 'approach';
-// //         ud.phaseT = 0;
-// //         break;
-// //     }
- 
-// //   } else {
-// //     // ════════════════════════════════════════════════════════════════════════
-// //     // PLACE SEQUENCE
-// //     // ════════════════════════════════════════════════════════════════════════
-// //     const isProtected = dropStep.type === "foup" || dropStep.id === "scanner" || returnToFoup;
-// //     const protectId   = (dropStep.type === "foup" || returnToFoup) ? "foup" : "scanner";
-// //     const keepBox     = isProtected ? getKeepOutBox(protectId as "foup" | "scanner") : null;
- 
-// //     const approachRaw = isProtected
-// //       ? safeApproach(protectId, dropWorld, APPROACH_BACKOFF)
-// //       : dropWorld.clone();
-// //     const approachDrop = new THREE.Vector3(
-// //       approachRaw.x,
-// //       dropWorld.y + APPROACH_OFFSET + 0.4,
-// //       approachRaw.z
-// //     );
-// //     const insertDrop = isProtected
-// //       ? clampOutsideBox(
-// //           new THREE.Vector3(
-// //             approachRaw.x +
-// //               (this.modObjs[protectId]?.userData?.frontFacing?.x ?? 0) * -INSERT_DEPTH,
-// //             dropWorld.y + APPROACH_OFFSET,
-// //             approachRaw.z +
-// //               (this.modObjs[protectId]?.userData?.frontFacing?.z ?? 1) * -INSERT_DEPTH
-// //           ),
-// //           keepBox
-// //         )
-// //       : new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET, dropWorld.z);
- 
-// //     const placeRaw = new THREE.Vector3(dropWorld.x, dropWorld.y + WAFER_HALF_T, dropWorld.z);
-// //     const placePos = isProtected ? clampOutsideBox(placeRaw, keepBox) : placeRaw;
-// //     placePos.y = Math.max(placePos.y, TRANSFER_MIN_Y);
- 
-// //     switch (phase) {
-// //       case 'lift':
-// //       case 'transport':
-// //       case 'carry':
-// //       case 'rise': {
-// //         ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.45, 1);
-// //         const tBz = sCurve(ud.bezierT as number);
-// //         const tgt = new THREE.Vector3();
-// //         evalBezier(tgt, tBz);
-// //         r.runIK(targetForGripper(tgt));
-// //         this._setGripperState(r, 1, dt);
-// //         if ((ud.bezierT as number) >= 1) {
-// //           ud.armPhase = 'lower';
-// //           ud.phaseT = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       case 'lower': {
-// //         const p = sCurve(Math.min(phaseT / 0.8, 1));
-// //         const tgt = new THREE.Vector3().lerpVectors(approachDrop, insertDrop, p);
-// //         const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
-// //         r.runIK(targetForGripper(safe));
-// //         this._setGripperState(r, 1, dt);
-// //         if (p >= 1) {
-// //           ud.armPhase = 'place_contact';
-// //           ud.phaseT = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       case 'place_contact': {
-// //         const p = sCurve(Math.min(phaseT / 0.5, 1));
-// //         const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
-// //         const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
-// //         r.runIK(targetForGripper(safe));
-// //         this._setGripperState(r, 1, dt);
-// //         if (p >= 1) {
-// //           ud.armPhase = 'release';
-// //           ud.phaseT = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       case 'release': {
-// //         const fingerMid = new THREE.Vector3();
-// //         const tmp = new THREE.Vector3();
-// //         const fT1 = ud.fingerTop1  as THREE.Object3D | undefined;
-// //         const fD1 = ud.fingerDown1 as THREE.Object3D | undefined;
-// //         if (fT1 && fD1) {
-// //           fT1.getWorldPosition(tmp); fingerMid.add(tmp);
-// //           fD1.getWorldPosition(tmp); fingerMid.add(tmp);
-// //           fingerMid.multiplyScalar(0.5);
-// //         }
-// //         const posError = fingerMid.distanceTo(dropWorld);
-// //         r.runIK(targetForGripper(placePos));
-// //         this._setGripperState(r, 0, dt);
-// //         const POS_TOL = 0.12;
-// //         const timeoutFallback = phaseT > 1.5;
-// //         if ((posError <= POS_TOL && phaseT > 0.4) || timeoutFallback) {
-// //           target.detachAt(dropWorld);
-// //           this._addLog(`[${WAFER_NAMES[target.wi]}] RELEASE @ ${dropStep.short}`, 'place');
-// //           target.state = 'processing';
-// //           target.processTimer = 0;
-// //           this._onProcessStart(target, dropStep);
-// //           this.busy[dropStep.id] = target.wi;
-// //           (target as any)._picked = false;
-// //           (target as any)._pickupX = undefined;
-// //           (target as any)._pickupZ = undefined;
-// //           ud.armPhase = 'retractUp';
-// //           ud.phaseT = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       case 'retractUp': {
-// //         // STRAIGHT-OUT retract along front face, before lifting up.
-// //         const retractedBase = isProtected
-// //           ? safeApproach(protectId, placePos, RETRACT_DIST)
-// //           : placePos.clone().add(new THREE.Vector3(0, 0, RETRACT_DIST));
-// //         const p = sCurve(Math.min(phaseT / 0.6, 1));
-// //         const tgt = new THREE.Vector3().lerpVectors(placePos, retractedBase, p);
-// //         r.runIK(targetForGripper(tgt));
-// //         this._setGripperState(r, 0, dt);
-// //         if (p >= 1) {
-// //           ud.armPhase = 'retract';
-// //           ud.phaseT = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       case 'retract': {
-// //         const retractedBase = isProtected
-// //           ? safeApproach(protectId, placePos, RETRACT_DIST)
-// //           : approachDrop;
-// //         const liftTgt = new THREE.Vector3(retractedBase.x, SAFE_HEIGHT, retractedBase.z);
-// //         const p = sCurve(Math.min(phaseT / 0.5, 1));
-// //         const tgt = new THREE.Vector3().lerpVectors(retractedBase, liftTgt, p);
-// //         r.runIK(targetForGripper(tgt));
-// //         this._setGripperState(r, 0, dt);
-// //         if (phaseT > 0.7) {
-// //           ud.armPhase = 'idle';
-// //           ud.phaseT = 0;
-// //         }
-// //         break;
-// //       }
- 
-// //       default:
-// //         ud.armPhase = 'transport';
-// //         ud.phaseT = 0;
-// //         break;
-// //     }
-// //   }
- 
-// //   // ── Status LED ──
-// //   if (ud.gripperState as number > 0.7) {
-// //     r.statusPL.color.setHex(0x00ffff);
-// //     r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
-// //   } else if (carried) {
-// //     r.statusPL.color.setHex(0x00ff88);
-// //     r.statusPL.intensity = 1.8;
-// //   } else {
-// //     r.statusPL.color.setHex(0x00d8ff);
-// //     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
-// //   }
-// // }
-
-// private _animRobots(dt: number) {
-//   const t = this.simTime;
-//   const r = this.robotEFEM;
-//   if (!r || !r.runIK) return;
-//   if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
-
-//   // ── One-time init ──
-//   if (!r.group.userData.railInit) {
-//     r.group.userData.railX        = r.group.position.x;
-//     r.group.userData.baseY        = 0;        // ← force floor, not GLB baked Y
-//     r.group.userData.zLiftY       = 0;
-//     r.group.userData.armPhase     = 'idle';
-//     r.group.userData.phaseT       = 0;
-//     r.group.userData.railInit     = true;
-//     r.group.userData.gripperState = 0;
-//     r.group.userData._ikYaw       = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
-//     r.group.userData.bezierT      = 0;
-//     r.group.userData.bezierStart  = new THREE.Vector3();
-//     r.group.userData.bezierEnd    = new THREE.Vector3();
-//     r.group.userData.bezierCP1    = new THREE.Vector3();
-//     r.group.userData.bezierCP2    = new THREE.Vector3();
-//     r.group.userData.dwellTimer   = 0;
-//   }
-
-//   const ud = r.group.userData;
-
-//   // ── Finger-to-gripper offset helper ──
-//   const computeFingerOffset = (): THREE.Vector3 => {
-//     const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-//     const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-//     if (!t1 || !d1) return new THREE.Vector3();
-//     const fingerMid = new THREE.Vector3();
-//     const tmp = new THREE.Vector3();
-//     t1.getWorldPosition(tmp); fingerMid.add(tmp);
-//     d1.getWorldPosition(tmp); fingerMid.add(tmp);
-//     fingerMid.multiplyScalar(0.5);
-//     const gripWP = new THREE.Vector3();
-//     r.gripper.getWorldPosition(gripWP);
-//     return fingerMid.clone().sub(gripWP);
-//   };
-
-//   const getKeepOutBox = (id: string): THREE.Box3 | null => {
-//     const grp = this.modObjs[id];
-//     if (!grp) return null;
-//     const glbRoot = (grp.userData.glbRoot as THREE.Object3D | undefined) ?? grp;
-//     glbRoot.updateWorldMatrix(true, true);
-//     const box = new THREE.Box3().setFromObject(glbRoot);
-
-//     let expansion = 1.5;
-//     if (id === 'foup') expansion = 4.5;
-//     else if (id === 'scanner') expansion = 4.5;
-//     else if (id === 'hmds') expansion = 2.0;
-//     else if (id === 'prcoat' || id === 'develop') expansion = 1.8;
-
-//     box.expandByScalar(expansion);
-//     this._blockBoxes[id] = box;
-//     return box;
-//   };
-
-//   const avoidCollisions = (desired: THREE.Vector3): THREE.Vector3 => {
-//     const safe = desired.clone();
-//     const hazardModules = ['hmds', 'prcoat', 'develop', 'scanner'];
-//     const center = new THREE.Vector3();
-//     const half = new THREE.Vector3();
-
-//     for (const modId of hazardModules) {
-//       const box = getKeepOutBox(modId);
-//       if (!box || !box.containsPoint(safe)) continue;
-//       box.getCenter(center);
-//       box.getSize(half).multiplyScalar(0.5);
-//       const local = safe.clone().sub(center);
-//       const ratios = [
-//         Math.abs(local.x) / half.x,
-//         Math.abs(local.y) / half.y,
-//         Math.abs(local.z) / half.z,
-//       ];
-//       const maxRatio = Math.max(...ratios);
-//       if (maxRatio <= 0) continue;
-//       local.divideScalar(maxRatio);
-//       safe.copy(center).add(local);
-//       const outDir = safe.clone().sub(center).normalize();
-//       safe.addScaledVector(outDir, 0.3);
-//     }
-
-//     return safe;
-//   };
-
-//   const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
-//     const fingerOffset = computeFingerOffset();
-//     const raw = waferTarget.clone().sub(fingerOffset);
-//     return avoidCollisions(raw);
-//   };
-
-//   // ── Motion params ──
-//   const APPROACH_OFFSET = 0.3;
-//   const TRANSFER_MIN_Y  = 0.8;
-//   const WAFER_HALF_T    = 0.0175;
-//   const PICK_CLEARANCE  = 0.003;
-//   const SAFE_HEIGHT  = 9.5;
-//     const Z_LIFT_HIGH  = 0.8;
-//     const Z_LIFT_LOW   = 0.0;
-//     const FOUP_MAX_Y   = 3.2;   // ← FOUP top height — arm never goes above this near FOUP
-//    const FOUP_MIN_X = ALL_STEPS[0].x + 1.5;  // ALL_STEPS[0] is always FOUP
-//  // ← front face of FOUP
-
-//    const clampForFoup = (pos: THREE.Vector3): THREE.Vector3 => {
-//   if (!target || prevStep.type !== "foup") return pos;
-//   const clamped = pos.clone();
-//   clamped.x = Math.max(clamped.x, FOUP_MIN_X);   // never go behind FOUP front
-//   clamped.y = Math.min(clamped.y, FOUP_MAX_Y);    // never go above FOUP top
-//   return clamped;
-// };
-  
-
-//   // ── Find target wafer ──
-//   const carried = this.wSMs.find((w) => w.launched && !w.done && w.carrierRobot === r);
-//   const waiting = this.wSMs.find(
-//     (w) => w.launched && !w.done && !w.carrierRobot &&
-//            w.state === 'track_approach' && !(w as any)._picked
-//   );
-//   const target = carried ?? waiting ?? null;
-
-//   const sCurve = (x: number) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
-
-//   const evalBezier = (out: THREE.Vector3, t01: number) => {
-//     const p0 = ud.bezierStart as THREE.Vector3;
-//     const p1 = ud.bezierCP1   as THREE.Vector3;
-//     const p2 = ud.bezierCP2   as THREE.Vector3;
-//     const p3 = ud.bezierEnd   as THREE.Vector3;
-//     const u = 1 - t01, u2 = u * u, u3 = u2 * u;
-//     const tt = t01 * t01, ttt = tt * t01;
-//     out.set(
-//       u3 * p0.x + 3 * u2 * t01 * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
-//       u3 * p0.y + 3 * u2 * t01 * p1.y + 3 * u * tt * p2.y + ttt * p3.y,
-//       u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
-//     );
-//   };
-
-//   // ── Determine pickup / drop positions FIRST ──
-//   let dropStep = ALL_STEPS[0];
-//   let prevStep = ALL_STEPS[0];
-//   let isPicked = false;
-//   const pickWorld = new THREE.Vector3();
-//   const dropWorld = new THREE.Vector3();
-
-//   if (target) {
-//     dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
-//     const prevStepIdx = Math.max(target.stepIdx - 1, 0);
-//     prevStep = ALL_STEPS[prevStepIdx];
-//     isPicked = !!(target as any)._picked;
-
-//     // ── PICK WORLD: get actual wafer mesh position (works for ANY module) ──
-//     target.mesh.getWorldPosition(pickWorld);
-//     // CRITICAL: wafer pickup height is always the transfer height.
-//     pickWorld.y = WAFER_TRANSFER_Y;
-//     // Scanner wafer is at the front slot, not the body center
-//     if (prevStep.id === 'scanner') {
-//       pickWorld.x = prevStep.x;
-//       pickWorld.z = prevStep.z - 3.3;
-//     }
-
-//     // ── DROP WORLD: get target module's wafer anchor ──
-//     const isReturning = (target as any)._returnToFoup === true;
-    
-//     if (dropStep.type === 'foup' || isReturning) {
-//       const foupGrp = this.modObjs['foup'];
-//       const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-//       const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-//       if (anchors?.[slotIx]) {
-//         anchors[slotIx].getWorldPosition(dropWorld);
-//         // CRITICAL: clamp Y to prevent going above FOUP top
-//         dropWorld.y = Math.min(dropWorld.y, 2.5);
-//       } else {
-//         // Fallback: place at FOUP front face at safe height
-//         dropWorld.set(ALL_STEPS[0].x + 4.0, 2.0, ALL_STEPS[0].z);
-//       }
-//     } else if (dropStep.id === 'scanner') {
-//       // SCANNER: place at slot opening on FRONT face (negative Z side)
-//       dropWorld.set(dropStep.x, WAFER_TRANSFER_Y, dropStep.z - 3.3);
-//     } else {
-//       const modGrp = this.modObjs[dropStep.id];
-//       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-//       if (wa) {
-//         // Use exact anchor world position (do not override Y)
-//         wa.getWorldPosition(dropWorld);
-//       } else {
-//         dropWorld.set(dropStep.x, WAFER_TRANSFER_Y + 0.02, dropStep.z);
-//       }
-//     }
-// }
-
-//   // ── Compute rail target: position robot near the relevant module ──
-//   // CRITICAL: rail follows the X of pickup (before pick) or drop (after pick)
-//   const TRACK_MIN = -14;   // can't go past FOUP enclosure
-//   const TRACK_MAX =  22;   // extended to reach scanner at x=36
-//   let railTargetX = ud.railX as number;
-
-//   if (target) {
-//     // Position robot rail X near where the action is
-//     // For scanner: rail needs to position robot at scanner.x so arm can reach the slot
-//     let targetX = isPicked ? dropStep.x : pickWorld.x;
-    
-//     // Special handling: scanner is far out, but robot reaches with extended arm
-//     if (isPicked && dropStep.id === 'scanner') {
-//       targetX = dropStep.x - 4;  // stand 4 units back from scanner center
-//     }
-//     if (!isPicked && prevStep.id === 'scanner') {
-//       targetX = prevStep.x - 4;  // same when picking from scanner
-//     }
-    
-//     railTargetX = clamp(targetX, TRACK_MIN, TRACK_MAX);
-//   }
-
-//   // ── Smooth rail movement ──
-//   const railSpeed = 8.0;
-//   const currentRailX = ud.railX as number;
-//   const dxRail = railTargetX - currentRailX;
-//   const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * dt * this.speed);
-//   ud.railX = currentRailX + railStep;
-//   r.group.position.x = ud.railX as number;
-
-//   // ── Z-Lift: REMOVED from robot body ──
-//   // Base stays at floor. Arm reaches up/down via IK only.
-//   r.group.position.y = 0;   // always floor-locked
-  
-//   // ── Rail still moves on X ──
-//   r.group.position.x = ud.railX as number;
-  
-//   // ── Carriage block follows robot X, stays glued to rail ──
-//   if (!ud._carriage) {
-//     const cGeo = new THREE.BoxGeometry(0.55, 0.12, 0.40);
-//     const cMat = new THREE.MeshStandardMaterial({
-//       color:     0x1a2a3a,
-//       metalness: 0.9,
-//       roughness: 0.2,
-//     });
-//     const carriage = new THREE.Mesh(cGeo, cMat);
-//     carriage.name = '__robotCarriage__';
-//     carriage.castShadow = true;
-//     carriage.receiveShadow = true;
-//     this.scene.add(carriage);
-//     ud._carriage = carriage;
-//   }
-//   const carriage = ud._carriage as THREE.Mesh;
-//   carriage.position.set(
-//     r.group.position.x,   // tracks robot X exactly
-//     0.06,                 // sits on top of the rail beam
-//     0
-//   );
-
-//   // ── NO TARGET: idle hover ──
-//   if (!target) {
-//     ud.armPhase = 'idle';
-//     ud.phaseT = 0;
-//     const idleTgt = new THREE.Vector3(
-//       r.group.position.x + 1.5,
-//       r.group.position.y + 2.5,
-//       Math.sin(t * 0.22) * 0.5
-//     );
-//     r.runIK(targetForGripper(idleTgt));
-//     this._setGripperState(r, 0, dt);
-//     r.statusPL.color.setHex(0x00d8ff);
-//     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
-//     return;
-//   }
-
-//   const railX = ud.railX as number;
-//   const targetRailX = isPicked ? dropStep.x : pickWorld.x;
-//   const railDist = Math.abs(railX - clamp(targetRailX, TRACK_MIN, TRACK_MAX));
-//   const railArrived = railDist < 0.5;
-
-//   ud.phaseT = (ud.phaseT as number) + dt * this.speed;
-//   const phaseT = ud.phaseT as number;
-//   const phase = ud.armPhase as string;
-
-//   // ══════════════════════════════════════════════════════════════════════════
-//   // PICK SEQUENCE
-//   // ══════════════════════════════════════════════════════════════════════════
-// // ══════════════════════════════════════════════════════
-// // REPLACE the entire PICK SEQUENCE section (if (!isPicked))
-// // in _animRobots with this:
-// // ══════════════════════════════════════════════════════
-
-// if (!isPicked) {
-
-//   // ── FOUP-specific safe zone ──
-//   const isFoupPick = prevStep.type === "foup";
-//   const FOUP_FRONT_X = (ALL_STEPS[0].x + 5.5); // safe front face of FOUP
-//   const FOUP_MAX_Y = 2.8;                        // FOUP ceiling — never go above
-
-//   // ── Safe pickup world position ──
-//   // For FOUP: pick from staging point IN FRONT of door, not inside
-//   const safePickX = isFoupPick 
-//     ? Math.max(pickWorld.x, FOUP_FRONT_X)   // clamp to front face
-//     : pickWorld.x;
-//   const safePickY = isFoupPick
-//     ? Math.min(pickWorld.y, FOUP_MAX_Y)      // clamp to below FOUP ceiling
-//     : pickWorld.y;
-
-//   // Approach: come from the side at wafer height — NO upward arc into FOUP
-//   const approachPos = new THREE.Vector3(
-//     isFoupPick ? FOUP_FRONT_X + 2.0 : pickWorld.x,  // stand away from FOUP
-//     isFoupPick ? safePickY           : safePickY + APPROACH_OFFSET + 0.3,
-//     pickWorld.z
-//   );
-
-//   // Insert: move toward FOUP door horizontally
-//   const insertPos = new THREE.Vector3(
-//     isFoupPick ? FOUP_FRONT_X + 0.5 : pickWorld.x,
-//     safePickY,
-//     pickWorld.z
-//   );
-
-//   // Contact: exactly at wafer, clamped to front of FOUP
-//   const contactPos = new THREE.Vector3(
-//     Math.max(safePickX, isFoupPick ? FOUP_FRONT_X : -999),
-//     Math.max(safePickY - WAFER_HALF_T + PICK_CLEARANCE, TRANSFER_MIN_Y),
-//     pickWorld.z
-//   );
-
-//   switch (phase) {
-//     case 'idle':
-//     case 'retract':
-//       ud.armPhase = 'approach';
-//       ud.phaseT = 0;
-//       break;
-
-//     case 'approach': {
-//       r.runIK(targetForGripper(approachPos));
-//       this._setGripperState(r, 0, dt);
-//       if (railArrived && phaseT > 0.5) {
-//         ud.armPhase = 'insert';
-//         ud.phaseT = 0;
-//       }
-//       break;
-//     }
-
-//     case 'insert': {
-//       const p = sCurve(Math.min(phaseT / 0.8, 1));
-//       // Interpolate HORIZONTALLY from approach to insert — no Y change for FOUP
-//       const tgt = new THREE.Vector3(
-//         lerp(approachPos.x, insertPos.x, p),
-//         isFoupPick ? safePickY : lerp(approachPos.y, insertPos.y, p),
-//         pickWorld.z
-//       );
-//       r.runIK(targetForGripper(tgt));
-//       this._setGripperState(r, 0, dt);
-//       if (p >= 1) {
-//         ud.armPhase = 'contact';
-//         ud.phaseT = 0;
-//       }
-//       break;
-//     }
-
-//     case 'contact': {
-//       const p = sCurve(Math.min(phaseT / 0.6, 1));
-//       const tgt = new THREE.Vector3(
-//         lerp(insertPos.x, contactPos.x, p),
-//         Math.min(  // always enforce FOUP ceiling
-//           lerp(insertPos.y, contactPos.y, p),
-//           isFoupPick ? FOUP_MAX_Y : 999
-//         ),
-//         pickWorld.z
-//       );
-//       r.runIK(targetForGripper(tgt));
-//       this._setGripperState(r, 0.3, dt);
-//       if (p >= 1) {
-//         ud.armPhase = 'vacuum_dwell';
-//         ud.phaseT = 0;
-//         ud.dwellTimer = 0;
-//       }
-//       break;
-//     }
-
-//     case 'vacuum_dwell': {
-//       ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
-//       // Stay at contact — enforce FOUP ceiling
-//       const dwellPos = contactPos.clone();
-//       dwellPos.y = Math.min(dwellPos.y, isFoupPick ? FOUP_MAX_Y : 999);
-//       r.runIK(targetForGripper(dwellPos));
-//       this._setGripperState(r, 1, dt);
-
-//       if ((ud.dwellTimer as number) >= 0.4) {
-//         target.attachTo(r);
-//         (target as any)._picked = true;
-//         this._addLog(`[${WAFER_NAMES[target.wi]}] PICK ↑ ${prevStep.short}`, 'pick');
-
-//         // Bezier transport arc — lift HORIZONTALLY first for FOUP,
-//         // then arc up and over to destination
-//         const startW = contactPos.clone();
-//         const endW = new THREE.Vector3(
-//           dropWorld.x, 
-//           dropWorld.y + APPROACH_OFFSET + 0.3, 
-//           dropWorld.z
-//         );
-
-//         // For FOUP: exit horizontally before going up
-//         const cp1 = isFoupPick
-//           ? new THREE.Vector3(FOUP_FRONT_X + 3.0, safePickY + 1.0, startW.z)  // exit sideways first
-//           : new THREE.Vector3(startW.x, SAFE_HEIGHT, startW.z);
-
-//         const cp2 = new THREE.Vector3(endW.x, SAFE_HEIGHT, endW.z);
-
-//         (ud.bezierStart as THREE.Vector3).copy(startW);
-//         (ud.bezierEnd   as THREE.Vector3).copy(endW);
-//         (ud.bezierCP1   as THREE.Vector3).copy(cp1);
-//         (ud.bezierCP2   as THREE.Vector3).copy(cp2);
-//         ud.bezierT = 0;
-//         ud.postAttachHold = 0;
-//         ud.armPhase = 'lift';
-//         ud.phaseT = 0;
-//       }
-//       break;
-//     }
-
-//     case 'lift': {
-//       const hold = (ud.postAttachHold as number) ?? 0;
-//       ud.postAttachHold = hold + dt * this.speed;
-
-//       if (hold < 0.15) {
-//         // Hold at contact briefly
-//         r.runIK(targetForGripper(contactPos));
-//         this._setGripperState(r, 1, dt);
-//       } else if (hold < 0.45 && isFoupPick) {
-//         // FOUP: retract HORIZONTALLY out of FOUP door before lifting up
-//         const retractX = lerp(contactPos.x, FOUP_FRONT_X + 3.5, 
-//           sCurve((hold - 0.15) / 0.3));
-//         const retractPos = new THREE.Vector3(retractX, safePickY, pickWorld.z);
-//         r.runIK(targetForGripper(retractPos));
-//         this._setGripperState(r, 1, dt);
-//       } else {
-//         // Now lift straight up — safely away from FOUP
-//         const liftBase = isFoupPick 
-//           ? new THREE.Vector3(FOUP_FRONT_X + 3.5, safePickY, pickWorld.z)
-//           : contactPos.clone();
-//         const liftPos = liftBase.clone();
-//         liftPos.y = SAFE_HEIGHT;
-//         const liftP = sCurve(Math.min((hold - (isFoupPick ? 0.45 : 0.15)) / 0.5, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(liftBase, liftPos, liftP);
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 1, dt);
-//         if (liftP >= 1) {
-//           delete ud.postAttachHold;
-//           ud.armPhase = 'transport';
-//           ud.phaseT = 0;
-//           ud.bezierT = 0;
-//         }
-//       }
-//       break;
-//     }
-
-//     default:
-//       ud.armPhase = 'approach';
-//       ud.phaseT = 0;
-//       break;
-//   }
-
-//      } else {
-//     // ══════════════════════════════════════════════════════════════════════════
-//     // PLACE SEQUENCE
-//     // ══════════════════════════════════════════════════════════════════════════
-//     const isScannerDrop = dropStep.id === 'scanner';
-//     const isFoupDrop = dropStep.type === 'foup' || (target as any)._returnToFoup;
-    
-//     // FOUP-specific safe zone (same as pick)
-//     const FOUP_FRONT_X = (ALL_STEPS[0].x + 5.5);
-//     const FOUP_MAX_Y = 2.8;
-    
-//     // Compute safe approach based on destination type
-//     let approachDrop: THREE.Vector3;
-//     let insertDrop: THREE.Vector3;
-//     let placePos: THREE.Vector3;
-    
-//     if (isFoupDrop) {
-//       // FOUP RETURN: approach horizontally, never go above FOUP top
-//       approachDrop = new THREE.Vector3(
-//         FOUP_FRONT_X + 2.0,        // stand in front of FOUP
-//         Math.min(dropWorld.y, FOUP_MAX_Y),
-//         dropWorld.z
-//       );
-//       insertDrop = new THREE.Vector3(
-//         FOUP_FRONT_X + 0.5,         // approach door
-//         Math.min(dropWorld.y, FOUP_MAX_Y),
-//         dropWorld.z
-//       );
-//       placePos = new THREE.Vector3(
-//         Math.max(dropWorld.x, FOUP_FRONT_X),  // never go behind front
-//         Math.min(dropWorld.y + 0.05, FOUP_MAX_Y),
-//         dropWorld.z
-//       );
-//     } else if (isScannerDrop) {
-//       // SCANNER PLACE: approach from front (z < dropWorld.z), slide into slot horizontally
-//       // Scanner slot is at (dropStep.x, WAFER_TRANSFER_Y, dropStep.z - 3.3)
-//       approachDrop = new THREE.Vector3(
-//         dropWorld.x,
-//         WAFER_TRANSFER_Y + 0.3,
-//         dropWorld.z - 2.5            // stand 2.5 units in front of slot
-//       );
-//       insertDrop = new THREE.Vector3(
-//         dropWorld.x,
-//         WAFER_TRANSFER_Y,
-//         dropWorld.z - 0.8            // approach slot opening
-//       );
-//       placePos = new THREE.Vector3(
-//         dropWorld.x,
-//         WAFER_TRANSFER_Y,
-//         dropWorld.z                  // inside slot at exact position
-//       );
-//     } else {
-//       // STANDARD MODULE PLACE
-//       approachDrop = new THREE.Vector3(
-//         dropWorld.x,
-//         WAFER_TRANSFER_Y + APPROACH_OFFSET + 0.3,
-//         dropWorld.z
-//       );
-//       insertDrop = new THREE.Vector3(
-//         dropWorld.x,
-//         WAFER_TRANSFER_Y + 0.1,
-//         dropWorld.z
-//       );
-//       placePos = new THREE.Vector3(
-//         dropWorld.x,
-//         WAFER_TRANSFER_Y + 0.05,
-//         dropWorld.z
-//       );
-//     }
-
-//     switch (phase) {
-//       case 'lift':
-//       case 'transport':
-//       case 'carry':
-//       case 'rise': {
-//         ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.5, 1);
-//         const tBz = sCurve(ud.bezierT as number);
-//         const tgt = new THREE.Vector3();
-//         evalBezier(tgt, tBz);
-        
-//         // For FOUP destination: clamp arc height so we never go above FOUP top
-//         if (isFoupDrop) {
-//           tgt.y = Math.min(tgt.y, FOUP_MAX_Y + 1.5);
-//         }
-        
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 1, dt);
-//         if ((ud.bezierT as number) >= 1 && railArrived) {
-//           ud.armPhase = 'approach_drop';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       case 'approach_drop': {
-//         // Move to approach position above/in-front-of drop point
-//         const p = sCurve(Math.min(phaseT / 0.6, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(
-//           new THREE.Vector3(approachDrop.x, SAFE_HEIGHT, approachDrop.z),
-//           approachDrop,
-//           p
-//         );
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 1, dt);
-//         if (p >= 1) {
-//           ud.armPhase = isFoupDrop ? 'foup_insert' : (isScannerDrop ? 'scanner_insert' : 'place_contact');
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       case 'foup_insert': {
-//         // Move horizontally into FOUP at constant height
-//         const p = sCurve(Math.min(phaseT / 0.8, 1));
-//         const tgt = new THREE.Vector3(
-//           lerp(approachDrop.x, insertDrop.x, p),
-//           Math.min(approachDrop.y, FOUP_MAX_Y),
-//           dropWorld.z
-//         );
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 1, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'place_contact';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       case 'scanner_insert': {
-//         // Move forward into scanner slot at slot height
-//         const p = sCurve(Math.min(phaseT / 0.7, 1));
-//         const tgt = new THREE.Vector3(
-//           dropWorld.x,
-//           lerp(approachDrop.y, insertDrop.y, p),
-//           lerp(approachDrop.z, insertDrop.z, p)
-//         );
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 1, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'place_contact';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       case 'place_contact': {
-//         const p = sCurve(Math.min(phaseT / 0.6, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
-        
-//         // Safety clamps
-//         if (isFoupDrop) {
-//           tgt.y = Math.min(tgt.y, FOUP_MAX_Y);
-//           tgt.x = Math.max(tgt.x, FOUP_FRONT_X);
-//         }
-        
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 1, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'release';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       case 'release': {
-//         r.runIK(targetForGripper(placePos));
-//         this._setGripperState(r, 0, dt);
-        
-//         if (phaseT > 0.4) {
-//           // Detach wafer at drop world position
-//           target.detachAt(dropWorld);
-//           (target as any)._picked = false;
-//           (target as any)._pickupX = undefined;
-//           (target as any)._pickupZ = undefined;
-
-//           // Handle FOUP return completion
-//           if ((target as any)._returnToFoup) {
-//             (target as any)._returnToFoup = false;
-//             (target as any)._returning = false;
-//             target.done = true;
-//             target.state = 'done';
-//             target.mesh.visible = true;
-//             this._addLog(`[${WAFER_NAMES[target.wi]}] RETURNED TO FOUP ✓`, 'place');
-            
-//             // Place wafer at the FOUP slot position
-//             const foupGrp = this.modObjs['foup'];
-//             const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-//             if (anchors?.[target.wi]) {
-//               const slotPos = new THREE.Vector3();
-//               anchors[target.wi].getWorldPosition(slotPos);
-//               target.mesh.position.copy(slotPos);
-//             }
-//           } else {
-//             this._addLog(`[${WAFER_NAMES[target.wi]}] PLACE @ ${dropStep.short}`, 'place');
-//             target.state = 'processing';
-//             target.processTimer = 0;
-//             this._onProcessStart(target, dropStep);
-//             this.busy[dropStep.id] = target.wi;
-//           }
-          
-//           // Choose retract phase based on destination
-//           ud.armPhase = isScannerDrop ? 'scanner_retract' : (isFoupDrop ? 'foup_retract' : 'retract');
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       case 'scanner_retract': {
-//         // Pull straight back out of scanner slot
-//         const p = sCurve(Math.min(phaseT / 0.7, 1));
-//         const retractedPos = new THREE.Vector3(
-//           placePos.x,
-//           placePos.y,
-//           placePos.z - 2.0       // pull back along -Z
-//         );
-//         const tgt = new THREE.Vector3().lerpVectors(placePos, retractedPos, p);
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 0, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'retract';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       case 'foup_retract': {
-//         // Pull straight out of FOUP horizontally before lifting
-//         const p = sCurve(Math.min(phaseT / 0.7, 1));
-//         const retractedPos = new THREE.Vector3(
-//           FOUP_FRONT_X + 3.5,
-//           Math.min(placePos.y, FOUP_MAX_Y),
-//           placePos.z
-//         );
-//         const tgt = new THREE.Vector3(
-//           lerp(placePos.x, retractedPos.x, p),
-//           Math.min(lerp(placePos.y, retractedPos.y, p), FOUP_MAX_Y),
-//           placePos.z
-//         );
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 0, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'retract';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       case 'retract': {
-//         // Lift up to safe height
-//         const liftedPos = new THREE.Vector3(
-//           r.group.position.x,
-//           SAFE_HEIGHT,
-//           0
-//         );
-//         const p = sCurve(Math.min(phaseT / 0.5, 1));
-//         const startPos = isFoupDrop
-//           ? new THREE.Vector3(FOUP_FRONT_X + 3.5, Math.min(placePos.y, FOUP_MAX_Y), placePos.z)
-//           : (isScannerDrop ? new THREE.Vector3(placePos.x, placePos.y, placePos.z - 2.0) : placePos);
-//         const tgt = new THREE.Vector3().lerpVectors(startPos, liftedPos, p);
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 0, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'idle';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
-
-//       default:
-//         ud.armPhase = 'transport';
-//         ud.phaseT = 0;
-//         break;
-//     }
-//   }
-
-//   // ── Status LED ──
-//   if ((ud.gripperState as number) > 0.7) {
-//     r.statusPL.color.setHex(0x00ffff);
-//     r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
-//   } else if (carried) {
-//     r.statusPL.color.setHex(0x00ff88);
-//     r.statusPL.intensity = 1.8;
-//   } else {
-//     r.statusPL.color.setHex(0x00d8ff);
-//     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
-//   }
-// }
-
-
-
-
-// private _getCarrierForStep(si: number): RobotObject | null {
-//     // Single robot handles every step-to-step transfer in the no-belt layout.
-//     return this.robotEFEM ?? null;
-//   }
-// //   private _useConveyor(fromIdx: number, toIdx: number): boolean {
-// //     const topRange = (i: number) => i >= 1 && i <= 7;
-// //     const botRange = (i: number) => i >= 10 && i <= 16;
-// //     return (topRange(fromIdx) && topRange(toIdx)) || (botRange(fromIdx) && botRange(toIdx));
-// //   }
-// private _useConveyor(fromIdx: number, toIdx: number): boolean {
-//     // No conveyor belts in this single-robot flow.
-//     return false;
-//   }
-//  private _tickWafer(sm: WaferStateMachine, dt: number) {
-//   if (sm.done || !sm.launched) return;
-  
-//   // Already returning to FOUP and being carried by robot — let robot finish
-//   if ((sm as any)._returning && sm.carrierRobot) {
-//     // Wafer transform owned by gripper.attach() — nothing to do here
-//     return;
-//   }
-  
-//   const w = sm.mesh;
-//   if (sm.spinning && !this.paused) { sm.spin += dt * this.speed * 8; w.rotation.y = sm.spin; }
-
-//   const sDt = dt * this.speed;
-
-//   switch (sm.state) {
-
-//     // ── IDLE: decide next move ──────────────────────────────────────────────
-//  case "idle": {
-//       // After all steps done, return wafer to FOUP
-//       if (sm.stepIdx >= ALL_STEPS.length) {
-//         // Don't mark done yet — return wafer to FOUP first
-//         if (!(sm as any)._returning) {
-//           (sm as any)._returning = true;
-//           (sm as any)._returnToFoup = true;
-//           (sm as any)._picked = false;
-          
-//           // Set pickup point as the last processed module (hardbake)
-//           const lastMod = ALL_STEPS[ALL_STEPS.length - 1];
-//           (sm as any)._pickupX = lastMod.x;
-//           (sm as any)._pickupZ = lastMod.z;
-          
-//           sm.state = "track_approach";
-//           sm.timer = 0;
-//           this._addLog(`[${WAFER_NAMES[sm.wi]}] RETURNING → FOUP`, "move");
-//           return;
-//         }
-
-//         // Already returning — wait for robot to complete
-//         return;
-//       }
-
-//       const mod = ALL_STEPS[sm.stepIdx];
-
-//       // Don't reserve if another wafer owns this module
-//       if (this.busy[mod.id] !== undefined && this.busy[mod.id] !== sm.wi) return;
-
-//       // Wait for robot to be ready
-//       if (!this.robotEFEM || !this.robotEFEM.gripper) return;
-
-//       // Don't start if robot is busy carrying another wafer
-//       const robotBusy = this.wSMs.some(
-//         (o) => o !== sm && o.carrierRobot === this.robotEFEM
-//       );
-//       if (robotBusy) return;
-
-//       // Reserve the module and hand off to the robot
-//       this.busy[mod.id] = sm.wi;
-//       (sm as any)._picked = false;
-      
-//       // Set pickup point as the previous module
-//       const prevStepIdx = Math.max(sm.stepIdx - 1, 0);
-//       const prevMod = ALL_STEPS[prevStepIdx];
-//       (sm as any)._pickupX = prevMod.x;
-//       (sm as any)._pickupZ = prevMod.z;
-      
-//       sm.state = "track_approach";
-//       sm.timer = 0;
-//       sm.owner = "robot";
-//       sm.mesh.visible = true;
-//       this._addLog(`[${WAFER_NAMES[sm.wi]}] REQUEST → ${mod.short}`, "move");
-//       break;
-//     }
-//     // ── CONVEYOR MOVE: slide along belt surface ─────────────────────────────
-//     case "conveyor_move": {
-//       const done = sm.tickConveyor(sDt);
-//       if (done) {
-//         sm.onConveyor = false;
-//         const mod   = ALL_STEPS[sm.stepIdx];
-//         const isTop = mod.z < 0;
-//         const beltZ = isTop ? TOP_TRACK_BELT_Z : BOT_TRACK_BELT_Z;
-
-//         // Begin entry animation: belt → module chuck
-//         sm.entryEl  = 0;
-//         sm.entryDur = 0.6 / Math.max(this.speed, 1);
-//         sm.entryStart.set(mod.x, CONVEYOR_WAFER_Y, beltZ);
-        
-//         // FIX 5: Use actual waferAnchor world position if available
-//         const modGrp = this.modObjs[mod.id];
-//         const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-//         const endPos = new THREE.Vector3();
-//         if (wa) {
-//           wa.getWorldPosition(endPos);
-//         } else {
-//           endPos.set(mod.x, 0.93, mod.z);
-//         }
-//         sm.entryEnd.copy(endPos);
-//         sm.state = "belt_to_module";
-//         this._addLog(`[${WAFER_NAMES[sm.wi]}] ENTER → ${mod.short}`, "pick");
-//       }
-//       break;
-//     }
-
-//     // ── BELT TO MODULE: glide from belt into module ─────────────────────────
-//     case "belt_to_module": {
-//       sm.entryEl += sDt;
-//       const t = Math.min(sm.entryEl / sm.entryDur, 1);
-//       const e = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
-//       w.position.x = lerp(sm.entryStart.x, sm.entryEnd.x, e);
-//       w.position.y = lerp(sm.entryStart.y, sm.entryEnd.y, e);
-//       w.position.z = lerp(sm.entryStart.z, sm.entryEnd.z, e);
-//       if (t >= 1) {
-//         w.position.copy(sm.entryEnd);
-//         const mod = ALL_STEPS[sm.stepIdx];
-//         sm.state = "processing";
-//         sm.processTimer = 0;
-//         this._onProcessStart(sm, mod);
-//         this._addLog(`[${WAFER_NAMES[sm.wi]}] PLACE @ ${mod.short}`, "place");
-//       }
-//       break;
-//     }
-
-//     // ── PROCESSING: wafer sits on chuck being processed ─────────────────────
-//     case "processing": {
-//       sm.processTimer += sDt;
-//       const mod = ALL_STEPS[sm.stepIdx];
-//       const mo  = this.modObjs[mod.id];
-
-//       if (mo?.userData.processLight) {
-//         const li: Record<string, number> = { hot: 4.0, cold: 3.2, scan: 6.0, coat: 3.5, wet: 3.0, dry: 3.0, iface: 2.5, foup: 1.5 };
-//         (mo.userData.processLight as THREE.PointLight).intensity =
-//           (li[mod.type] ?? 2.5) + 0.6 * Math.sin(this.simTime * 4);
-//       }
-//       if (mo?.userData.innerRing) {
-//         const mat = (mo.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial;
-//         mat.emissiveIntensity = 2.5 + 1.5 * Math.sin(this.simTime * 6);
-//       }
-//       if (mod.type === "hot" && mo?.userData.coils) {
-//         (mo.userData.coils as THREE.Mesh[]).forEach((coil, idx) => {
-//           const cm = coil.material as THREE.MeshStandardMaterial;
-//           cm.emissiveIntensity = 1.5 + 1.0 * Math.sin(this.simTime * 4 + idx);
-//         });
-//       }
-// 			if (mod.id === "prcoat"  && this._activeCoatWI === sm.wi) {
-// 				this.spinCoat.tick(dt, this.speed);
-// 				const prLayer = w.userData.prLayer as THREE.Mesh | undefined;
-// 				if (prLayer) {
-// 					const mat = prLayer.material as THREE.MeshStandardMaterial;
-// 					const pink = new THREE.Color(0xcc1177);
-// 					if (["dispense","spinup","coating"].includes(this.spinCoat.phase)) {
-// 						mat.color.lerp(pink, 0.12);
-// 						mat.emissive.lerp(pink, 0.08);
-// 						mat.opacity = lerp(mat.opacity, 0.95, 0.06);
-// 						const glowRing = w.userData.glowRing as THREE.Mesh | undefined;
-// 						if (glowRing) {
-// 							(glowRing.material as THREE.MeshStandardMaterial).color.lerp(pink, 0.1);
-// 							(glowRing.material as THREE.MeshStandardMaterial).emissive.lerp(pink, 0.06);
-// 						}
-// 					}
-// 				}
-// 			}
-// 			if (mod.id === "develop" && this._activeDevWI  === sm.wi) {
-// 				this.devLiquid.tick(dt, this.speed);
-// 				const prLayer = w.userData.prLayer as THREE.Mesh | undefined;
-// 				if (prLayer) {
-// 					const mat = prLayer.material as THREE.MeshStandardMaterial;
-// 					const baseCol = new THREE.Color(WAFER_COLORS[sm.wi]);
-// 					const green = new THREE.Color(0x33cc88);
-// 					const grey = new THREE.Color(0x8899cc);
-// 					if (["spray","puddle"].includes(this.devLiquid.phase)) {
-// 						mat.color.lerp(green, 0.12);
-// 						mat.emissive.lerp(new THREE.Color(0x22aa66), 0.08);
-// 						mat.opacity = lerp(mat.opacity, 0.95, 0.06);
-// 					} else if (["rinse","drain"].includes(this.devLiquid.phase)) {
-// 						mat.color.lerp(grey, 0.10);
-// 						mat.emissive.lerp(new THREE.Color(0x112244), 0.06);
-// 						mat.opacity = lerp(mat.opacity, 0.9, 0.08);
-// 					} else {
-// 						mat.color.lerp(baseCol, 0.06);
-// 						mat.emissive.lerp(new THREE.Color(0x000000), 0.04);
-// 						mat.opacity = lerp(mat.opacity, 0.0, 0.06);
-// 					}
-// 				}
-// 			}
-// 			if (mod.id === "scanner") {
-// 				this._animateScannerEntry(sm, dt);
-// 			}
-// 			if (mod.id === "scanner" && mo?.userData.uvBeam) {
-//         const beam = mo.userData.uvBeam as THREE.Mesh;
-//         const bmat = beam.material as THREE.MeshStandardMaterial;
-//         bmat.emissiveIntensity = 1.5 + 1.2 * Math.abs(Math.sin(this.simTime * 8));
-//         bmat.opacity = 0.08 + 0.08 * Math.abs(Math.sin(this.simTime * 8));
-//         const pr = w.userData.prLayer as THREE.Mesh;
-//         if (pr) {
-//           (pr.material as THREE.MeshStandardMaterial).emissiveIntensity =
-//             0.7 + 0.5 * Math.abs(Math.sin(this.simTime * 8));
-//         }
-//       }
-
-//       if (sm.processTimer >= mod.time) {
-//         this._onProcessEnd(sm, mod, mo);
-//         if (this.busy[mod.id] === sm.wi) delete this.busy[mod.id];
-
-//         // Check if NEXT step is also on conveyor → exit back to belt first
-//         const nextIdx    = sm.stepIdx + 1;
-//         const nextOnConv = nextIdx < ALL_STEPS.length &&
-//                            this._useConveyor(sm.stepIdx, nextIdx);
-
-//         if (nextOnConv) {
-//           const isTop = mod.z < 0;
-//           const beltZ = isTop ? TOP_TRACK_BELT_Z : BOT_TRACK_BELT_Z;
-
-//           // Exit animation: chuck → belt
-//           sm.exitEl  = 0;
-//           sm.exitDur = 0.6 / Math.max(this.speed, 1);
-//           sm.exitStart.set(mod.x, 0.93, mod.z);
-//           sm.exitEnd.set(mod.x, CONVEYOR_WAFER_Y, beltZ);
-//           sm.state = "module_to_belt";
-//           this._addLog(`[${WAFER_NAMES[sm.wi]}] EXIT ← ${mod.short}`, "move");
-//         } else {
-//           // Robot picks up — advance to next step normally
-//           sm.stepIdx++; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
-//         }
-//       }
-//       break;
-//     }
-
-//     // ── MODULE TO BELT: glide from chuck back out to belt ───────────────────
-//     case "module_to_belt": {
-//       sm.exitEl += sDt;
-//       const t = Math.min(sm.exitEl / sm.exitDur, 1);
-//       const e = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
-//       w.position.x = lerp(sm.exitStart.x, sm.exitEnd.x, e);
-//       w.position.y = lerp(sm.exitStart.y, sm.exitEnd.y, e);
-//       w.position.z = lerp(sm.exitStart.z, sm.exitEnd.z, e);
-//       if (t >= 1) {
-//         w.position.copy(sm.exitEnd);
-//         sm.stepIdx++;
-//         sm.state = "idle";
-//         sm.timer = 0;
-//         sm.processTimer = 0;
-//       }
-//       break;
-//     }
-
-//     // ── ROBOT STATES ────────────────────────────────────────────────────────
-// //  case "track_approach": {
-// //   sm.timer += sDt;
-// //   const robot = this._getCarrierForStep(sm.stepIdx);
-// //   if (!robot) { sm.state = "idle"; return; }
-  
-// //   const railX = robot.group.userData.railX ?? robot.basePos.x;
-// //   const picked = (sm as any)._picked;
-// //   const pickupX = (sm as any)._pickupX;
-
-// //   if (!picked) {
-// //     // PHASE 1: slide to pickup location, then attach
-// //     const distToPickup = Math.abs(railX - pickupX);
-// //     if (distToPickup < 0.5 && sm.timer > 0.3) {
-// //       sm.attachTo(robot);
-// //       (sm as any)._picked = true;
-// //       sm.timer = 0;
-// //       this._addLog(`[${WAFER_NAMES[sm.wi]}] PICK ↑ ${ALL_STEPS[Math.max(sm.stepIdx-1,0)].short}`, "pick");
-// //     }
-// //   } else {
-// //     // PHASE 2: slide to drop location, then place
-// //     const mod = ALL_STEPS[sm.stepIdx];
-// //     const distToDrop = Math.abs(railX - mod.x);
-// //     if (distToDrop < 0.5 && sm.timer > 0.3) {
-// //       sm.state = "track_place";
-// //       sm.timer = 0;
-// //     }
-// //   }
-// //   break;
-// // }
-// //     case "track_place": {
-// //       sm.timer += sDt;
-// //       if (sm.timer >= PLACE_DELAY) {
-// //         const mod = ALL_STEPS[sm.stepIdx];
-// //         sm.detachAt(sm.targetPos);
-// //         this._addLog(`[${WAFER_NAMES[sm.wi]}] PLACE @ ${mod.short}`, "place");
-// //         sm.state = "processing"; sm.processTimer = 0;
-// //         this._onProcessStart(sm, mod);
-// //       }
-// //       break;
-// //     }
-
-// case "track_approach": {
-//   // Wafer sits at pickup location until robot grabs it.
-//   // Once _animRobots calls attachTo(), wafer moves with robot automatically.
-//   // Once _animRobots calls detachAt() + sets state='processing', we're done.
-//   sm.timer += sDt;
-//   // Safety timeout — if stuck for 60 sim-seconds, reset to idle
-//   if (sm.timer > 60) {
-//     sm.state = "idle";
-//     sm.timer = 0;
-//     (sm as any)._picked  = false;
-//     (sm as any)._pickupX = undefined;
-//     (sm as any)._pickupZ = undefined;
-//   }
-//   break;
-// }
-
-// // case "track_place": {
-// //   sm.state        = "processing";
-// //   sm.processTimer = 0;
-// //   break;
-// // }
-
-// case "track_place": {
-//   // No-op: handled by _animRobots now. Skip straight to processing if reached.
-//   sm.state = "processing";
-//   sm.processTimer = 0;
-//   break;
-// }
-//   }
-// }
-//   private _onProcessStart(sm: WaferStateMachine, mod: ProcessStep) {
-//     const w = sm.mesh;
-//     if (mod.id === "prcoat") {
-//       sm.spinning = true;
-//       this.prCoatOverlay.start();
-//       this.onProcessPopup("prcoat");
-//       if (this._activeCoatWI < 0) {
-//         this._activeCoatWI = sm.wi;
-//         const prS = ALL_STEPS.find(s => s.id === 'prcoat')!;
-//         // Position is already set in _build — just start the animation
-//         this.spinCoat.startCoat(prS.x, prS.z, 0xcc1177);
-//         this.spinCoat.group.visible = true;
-//       }
-//     }
-//     if (mod.id === "develop") {
-//       if (this._activeDevWI < 0) {
-//         this._activeDevWI = sm.wi;
-//         this.devLiquid.startDev(mod.x, mod.z);
-//         this.devOverlay.start();
-//         this.onProcessPopup("develop");
-//       }
-//     }
-//     if (mod.id === "spindry" || mod.id === "rinse" || mod.id === "develop") sm.spinning = true;
-//     if (mod.id === "hmds") this.hmdsFog.on();
-//     if (mod.id === "spindry") this.n2Particles.on();
-//     if (mod.id === "rinse") this.waterParticles.on();
-//     if (mod.type === "hot" && this.heatVapors[mod.id]) this.heatVapors[mod.id].on();
-//   }
-
-//   private _openProcessPage(htmlFile: string, title: string): void {
-//     const windowName = htmlFile.replace(/[^a-z0-9]/gi, '_');
-//     if ((window as any)[`_${windowName}_opened`]) {
-//       console.log(`[POPUP] ${htmlFile} already open`);
-//       return;
-//     }
-
-//     const popupWindow = window.open(
-//       `/${htmlFile}`,
-//       windowName,
-//       "width=1000,height=700,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no"
-//     );
-
-//     if (popupWindow) {
-//       popupWindow.document.title = title;
-//       (window as any)[`_${windowName}_opened`] = true;
-
-//       const checkClosed = setInterval(() => {
-//         if (popupWindow.closed) {
-//           (window as any)[`_${windowName}_opened`] = false;
-//           clearInterval(checkClosed);
-//           console.log(`[POPUP] ${htmlFile} closed`);
-//         }
-//       }, 1000);
-
-//       this._addLog(`[POPUP] Opened ${title}`, "");
-//     } else {
-//       console.warn(`[POPUP] Failed to open ${htmlFile} - popup blocked?`);
-//       this._addLog(`[POPUP] BLOCKED: Allow popups for ${title}`, "");
-//     }
-//   }
-
-// 	// Scanner stage animation: slide in, step-and-scan, slide out
-// 	private _animateScannerEntry(sm: WaferStateMachine, dt: number) {
-// 		const phase = sm.processTimer;
-// 		const wafer = sm.mesh;
-// 		const scannerMod = ALL_STEPS.find(s => s.id === 'scanner')!;
-
-// 		// Anchor wafer at the slot position (front face of scanner)
-// 		if (!wafer.userData.scannerOrigPos) {
-// 			wafer.userData.scannerOrigPos = new THREE.Vector3(
-// 				scannerMod.x,
-// 				WAFER_TRANSFER_Y,
-// 				scannerMod.z - 3.3   // slot is at front face
-// 			);
-// 			wafer.userData.scannerStartTime = sm.processTimer;
-// 		}
-
-// 		const slotPos = wafer.userData.scannerOrigPos as THREE.Vector3;
-// 		const TOTAL_DUR = scannerMod.time;
-// 		const t = Math.min(phase / TOTAL_DUR, 1);
-
-// 		if (t < 0.15) {
-// 			// Phase 1: slide INTO slot from front
-// 			const p = t / 0.15;
-// 			const ease = p < 0.5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p);
-// 			wafer.position.x = slotPos.x;
-// 			wafer.position.y = slotPos.y;
-// 			wafer.position.z = lerp(slotPos.z - 1.5, slotPos.z, ease);
-// 		} else if (t < 0.45) {
-// 			// Phase 2: step-and-scan in X direction (inside slot)
-// 			const p = (t - 0.15) / 0.30;
-// 			const stepCycle = (p * 4) % 1;
-// 			const scanOffset = (stepCycle < 0.8)
-// 				? -0.3 + stepCycle * 0.75
-// 				: -0.3 + 0.6 * (1 - (stepCycle - 0.8) / 0.2);
-// 			wafer.position.x = slotPos.x + scanOffset;
-// 			wafer.position.y = slotPos.y;
-// 			wafer.position.z = slotPos.z;
-// 		} else if (t < 0.55) {
-// 			// Phase 3: pause at center
-// 			wafer.position.x = slotPos.x;
-// 			wafer.position.y = slotPos.y;
-// 			wafer.position.z = slotPos.z;
-// 		} else if (t < 0.85) {
-// 			// Phase 4: step-and-scan back
-// 			const p = (t - 0.55) / 0.30;
-// 			const stepCycle = (p * 4) % 1;
-// 			const scanOffset = (stepCycle < 0.8)
-// 				? 0.3 - stepCycle * 0.75
-// 				: 0.3 - 0.6 * (1 - (stepCycle - 0.8) / 0.2);
-// 			wafer.position.x = slotPos.x + scanOffset;
-// 			wafer.position.y = slotPos.y;
-// 			wafer.position.z = slotPos.z;
-// 		} else {
-// 			// Phase 5: slide OUT of slot to front
-// 			const p = (t - 0.85) / 0.15;
-// 			const ease = p < 0.5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p);
-// 			wafer.position.x = slotPos.x;
-// 			wafer.position.y = slotPos.y;
-// 			wafer.position.z = lerp(slotPos.z, slotPos.z - 1.5, ease);
-// 		}
-
-// 		// Tiny vibration during scan
-// 		wafer.position.y = slotPos.y + Math.sin(phase * 8) * 0.005;
-// 	}
-
-//   private _onProcessEnd(sm: WaferStateMachine, mod: ProcessStep, mo?: THREE.Group) {
-//     const w = sm.mesh;
-// 		// Reset scanner animation markers when exiting scanner
-// 		if (mod.id === "scanner") {
-// 			w.userData.scannerOrigPos = undefined;
-// 			w.userData.scannerStartTime = undefined;
-// 		}
-//     if (mo?.userData.processLight) (mo.userData.processLight as THREE.PointLight).intensity = 0;
-//     if (mo?.userData.innerRing) {
-//       const mat = (mo.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial;
-//       mat.emissiveIntensity = 2.5;
-//     }
-//     sm.spinning = false;
-//     if (mod.id === "prcoat") {
-//       const PINK = 0xcc1177;
-//       const pr = w.userData.prLayer as THREE.Mesh | undefined;
-//       if (pr) {
-//         const mat = pr.material as THREE.MeshStandardMaterial;
-//         mat.color.setHex(PINK);
-//         mat.emissive.setHex(PINK);
-//         mat.emissiveIntensity = 1.0;
-//         mat.opacity = 0.98;
-//       }
-//       const glowRing = w.userData.glowRing as THREE.Mesh | undefined;
-//       if (glowRing) {
-//         const gmat = glowRing.material as THREE.MeshStandardMaterial;
-//         gmat.color.setHex(PINK);
-//         gmat.emissive.setHex(PINK);
-//       }
-//     }
-//    if (mod.id === "develop" && this._activeDevWI === sm.wi) {
-//       this.devLiquid.stopDev(); this._activeDevWI = -1;
-//       this.devOverlay.stop();
-//       this.onProcessPopup(null);
-//       // leave wafer color handling to the processing-phase animator
-//       const glowRing = sm.mesh.userData.glowRing as THREE.Mesh | undefined;
-//       if (glowRing) {
-//         const orig = WAFER_COLORS[sm.wi];
-//         (glowRing.material as THREE.MeshStandardMaterial).color.setHex(orig);
-//         (glowRing.material as THREE.MeshStandardMaterial).emissive.setHex(orig);
-//       }
-//     }
-//     if (mod.id === "prcoat") { this.prCoatOverlay.stop(); this.onProcessPopup(null); }
-//     if (mod.id === "hmds") this.hmdsFog.off();
-//     if (mod.id === "spindry") this.n2Particles.off();
-//     if (mod.id === "rinse") this.waterParticles.off();
-//     if (mod.type === "hot" && this.heatVapors[mod.id]) this.heatVapors[mod.id].off();
-//     // Reset liquid overlay
-//     if (mod.type === "wet") {
-//       const liq = w.userData.liquid as THREE.Mesh;
-//       if (liq) (liq.material as THREE.MeshStandardMaterial).opacity = 0;
-//     }
-//     // Reset PR layer emissive after scanner
-//     if (mod.id === "scanner") {
-//       const pr = w.userData.prLayer as THREE.Mesh;
-//       if (pr) (pr.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.7;
-//     }
-//   }
-
-//   // REPLACE _launchWafer with:
-//   private _launchWafer(wi: number) {
-//   const sm = this.wSMs[wi];
-//   if (sm.launched) return;
-//   sm.launched = true;
-//   sm.mesh.visible = true;
-//   sm.mesh.scale.setScalar(1);
-
-//   // ── Place wafer at FOUP position (visible, pickable) ──
-//   const foupStep = ALL_STEPS[0]; // FOUP
-//   const foupGrp = this.modObjs["foup"];
-  
-//   // Try slot anchors first (procedural FOUP)
-//   const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-//   const slotIx = Math.min(wi, Math.max(0, (anchors?.length ?? 1) - 1));
-  
-//   if (anchors?.[slotIx]) {
-//     const p = new THREE.Vector3();
-//     anchors[slotIx].getWorldPosition(p);
-//     sm.mesh.position.copy(p);
-//   } else {
-//     // GLB FOUP fallback — place wafer in front of FOUP at known height
-//     // Wafer sits ABOVE the FOUP base so robot can see/pick it
-//     sm.mesh.position.set(foupStep.x + 5.0, 3.0, foupStep.z);
-//   }
-
-//   sm.mesh.rotation.set(0, 0, 0);
-//   sm.state = "idle";
-//   sm.stepIdx = 1;  // First destination is DEHY (step 1)
-//   sm.owner = "none";
-  
-//   console.log(`[LAUNCH] ${WAFER_NAMES[wi]} at`, sm.mesh.position.toArray());
-//   this._addLog(`[${WAFER_NAMES[wi]}] LAUNCHED from FOUP`, "pick");
-// }
-
-//   private _updateCamera() {
-//     const o = this.orbit;
-//     o.theta = lerp(o.theta, o.tT, 0.075); o.phi = lerp(o.phi, o.tP, 0.075);
-//     o.radius = lerp(o.radius, o.tR, 0.075);
-//     o.cx = lerp(o.cx, o.tcx, 0.075); o.cy = lerp(o.cy, o.tcy, 0.075); o.cz = lerp(o.cz, o.tcz, 0.075);
-//     this.camera.position.set(
-//       o.cx + o.radius * Math.sin(o.phi) * Math.sin(o.theta),
-//       o.cy + o.radius * Math.cos(o.phi),
-//       o.cz + o.radius * Math.sin(o.phi) * Math.cos(o.theta)
-//     );
-//     this.camera.lookAt(o.cx, o.cy, o.cz); this.camera.updateProjectionMatrix();
-//   }
-
-//   setPreset(p: CameraPreset) { this.orbit.tT = p.theta; this.orbit.tP = p.phi; this.orbit.tR = p.radius; this.orbit.tcx = p.cx; this.orbit.tcy = p.cy; this.orbit.tcz = p.cz; }
-
-//   private _buildUI(): UIState {
-//     let active = 0, completed = 0;
-//     const wafers = this.wSMs.map((sm, i) => {
-//       if (sm.launched && !sm.done) active++;
-//       if (sm.done) completed++;
-//       return { wi: sm.wi, name: WAFER_NAMES[i], state: sm.state, stepIdx: sm.stepIdx, stepName: sm.stepIdx < ALL_STEPS.length ? ALL_STEPS[sm.stepIdx].name : "Complete", processTimer: sm.processTimer, stepTime: sm.stepIdx < ALL_STEPS.length ? ALL_STEPS[sm.stepIdx].time : 1, done: sm.done, launched: sm.launched };
-//     });
-//    return { 
-//       wafers, simTime: this.simTime, fps: this.fps, active, completed,
-//       jointsEFEM: this.robotEFEM ? this.robotEFEM.getJoints() : null,
-//     };
-//   }
-
-//   private _loop = () => {
-//     this._animId = requestAnimationFrame(this._loop);
-//     const now = performance.now();
-//     const rawDt = Math.min((now - this._lastT) / 1000, 0.05); this._lastT = now;
-
-//     // ── SKIP ENTIRE FRAME if video popup is open (massive perf boost)
-//     if ((this as any)._videoOpen) {
-//       // Render at ~10fps to keep UI responsive while video plays
-//       if (now - ((this as any)._lastVideoFrame || 0) < 100) return;
-//       (this as any)._lastVideoFrame = now;
-//       this.renderer.render(this.scene, this.camera);
-//       return;
-//     }
-
-//     this._frm++;
-//     if (now - this._lastFpsT > 1000) { this.fps = Math.round(this._frm * 1000 / (now - this._lastFpsT)); this._frm = 0; this._lastFpsT = now; }
-//     const dt = this.paused ? 0 : rawDt;
-//     if (!this.paused) this.simTime += dt * this.speed;
-//     if (!this.paused) {
-//       // Refresh keep-out boxes once GLBs finish loading.
-//       const foup = this.modObjs["foup"];
-//       if (foup) this._blockBoxes["foup"] = new THREE.Box3().setFromObject(foup).expandByScalar(2.5);
-//       const scanner = this.modObjs["scanner"];
-//       if (scanner) this._blockBoxes["scanner"] = new THREE.Box3().setFromObject(scanner).expandByScalar(0.15);
-//       if (!this._shadowFixApplied) {
-//         this._disableAllShadows();
-//         this._shadowFixApplied = true;
-//       }
-//       this.conveyorSegments.forEach((belt, i) => {
-//         const isTop = i < 7;
-//         belt.tick(dt, this.speed, isTop ? 1 : -1);
-//       });
-//       this.n2Particles.tick(dt, this.speed);
-//       this.waterParticles.tick(dt, this.speed);
-//       this.hmdsFog.tick(dt, this.speed, this.simTime);
-//       Object.values(this.heatVapors).forEach(v => v.tick(dt, this.speed));
-//       this.prCoatOverlay?.tick(dt, this.speed);
-//       this.devOverlay?.tick(dt, this.speed);
-//       if (this.gantryRail && this.robotEFEM) {
-//         tickGantryRail(this.gantryRail, this.robotEFEM.group.position.x, this.simTime);
-//       }
-//       const nextIdx = this.wSMs.findIndex((sm) => !sm.launched);
-//       if (nextIdx >= 0) {
-//         const prev = this.wSMs[nextIdx - 1];
-//         // Launch next wafer once previous has moved past DEHY (step 1 done)
-//         const canLaunch = nextIdx === 0 || (prev && prev.launched && prev.stepIdx >= 2);
-//         if (canLaunch) this._launchWafer(nextIdx);
-//       }
-// // ── 1. Tick every wafer state machine ──
-// this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
-
-// // ── 2. Carried wafers follow the gripper in world space ──
-// // ── 2. Carried wafers — visibility only; transform handled by parent (gripper) ──
-// // ── Carried wafers: parented to gripper via attach(); no per-frame position lerp ──
-
-// // ── 3. GLB module animations ──
-
-//       // ── Animate Dehydration Bake GLB ──
-//       // ── Animate GLB hot-plate modules (dehy + hardbake) ──
-//       const animateGlbHotPlate = (modId: string, freqMult = 1) => {
-//         const grp = this.modObjs[modId];
-//         if (!grp?.userData.loaded) return;
-//         const idx = ALL_STEPS.findIndex(s => s.id === modId);
-//         const isActive = this.wSMs.some(
-//           (sm) => sm.launched && !sm.done &&
-//                   sm.stepIdx === idx &&
-//                   sm.state === 'processing'
-//         );
-
-//        const heatMat = grp.userData.heatMaterial as THREE.MeshStandardMaterial;
-//         if (heatMat) {
-//           // Stronger red glow for PAB (since it's a hotter bake)
-//           const isPAB = grp.userData.isPAB === true;
-//           const activeMin = isPAB ? 4.5 : 3.5;
-//           const activeAmp = isPAB ? 2.2 : 1.8;
-//           heatMat.emissiveIntensity = isActive
-//             ? activeMin + activeAmp * Math.sin(this.simTime * 3.5 * freqMult)
-//             : (isPAB ? 0.9 : 0.6) + 0.2 * Math.sin(this.simTime * 1.2);
-//         }
-
-//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial;
-//         const redMat = grp.userData.redLight as THREE.MeshStandardMaterial;
-//         if (greenMat && redMat) {
-//           if (isActive) {
-//             greenMat.emissiveIntensity = 3.5 + 1.0 * Math.sin(this.simTime * 4);
-//             redMat.emissiveIntensity = 0.3;
-//           } else {
-//             greenMat.emissiveIntensity = 0.3;
-//             redMat.emissiveIntensity = 2.0 + 0.8 * Math.sin(this.simTime * 2);
-//           }
-//         }
-
-//         const pl = grp.userData.processLight as THREE.PointLight;
-//         if (pl) {
-//           pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(this.simTime * 4) : 0.4;
-//         }
-//       };
-
-//      animateGlbHotPlate('dehy', 1.0);
-//       animateGlbHotPlate('pab', 1.1);
-//       animateGlbHotPlate('hardbake', 1.2);
-
-
-
-
-
-//       // ── Animate PR Coat GLB (spin chuck + dispense arm + lights) ──
-//       const animatePrCoat = () => {
-//         const grp = this.modObjs['prcoat'];
-//         if (!grp?.userData.loaded) return;
-//         const idx = ALL_STEPS.findIndex(s => s.id === 'prcoat');
-//         const isActive = this.wSMs.some(
-//           (sm) => sm.launched && !sm.done &&
-//                   sm.stepIdx === idx &&
-//                   sm.state === 'processing'
-//         );
-
-//         // Spin the chuck (fast during coating, slow drift when idle)
-//         const spinChuck = grp.userData.spinChuck as THREE.Object3D | undefined;
-//         if (spinChuck) {
-//           spinChuck.rotation.y += (isActive ? 0.45 : 0.005) * this.speed;
-//         }
-
-//         // Swing dispense arm in/out
-//         const arm = grp.userData.dispenseArm as THREE.Object3D | undefined;
-//         const restY = grp.userData.armRestY as number | undefined;
-//         if (arm && restY !== undefined) {
-//           const targetY = isActive
-//             ? restY + Math.PI / 4 + Math.sin(this.simTime * 1.5) * 0.15
-//             : restY;
-//           arm.rotation.y = lerp(arm.rotation.y, targetY, 0.04);
-//         }
-
-//         // Chuck material violet glow pulse
-//         const chuckMat = grp.userData.chuckMaterial as THREE.MeshStandardMaterial | undefined;
-//         if (chuckMat) {
-//           chuckMat.emissiveIntensity = isActive
-//             ? 1.5 + 1.0 * Math.sin(this.simTime * 5)
-//             : 0.25 + 0.1 * Math.sin(this.simTime * 1.2);
-//         }
-
-//         // Indicator lights
-//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-//         const redMat = grp.userData.redLight as THREE.MeshStandardMaterial | undefined;
-//         if (greenMat && redMat) {
-//           if (isActive) {
-//             greenMat.emissiveIntensity = 3.5 + 1.0 * Math.sin(this.simTime * 4);
-//             redMat.emissiveIntensity = 0.3;
-//           } else {
-//             greenMat.emissiveIntensity = 0.3;
-//             redMat.emissiveIntensity = 2.0 + 0.8 * Math.sin(this.simTime * 2);
-//           }
-//         }
-
-//         // Process point light pulse
-//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
-//         if (pl) {
-//           pl.intensity = isActive ? 3.0 + 1.2 * Math.sin(this.simTime * 5) : 0.3;
-//         }
-//       };
-//       const anyActive = this.wSMs.some((sm) => sm.launched && !sm.done);
-//       if (anyActive) animatePrCoat();
-
-//       const animateDeveloper = () => {
-//         const grp = this.modObjs['develop'];
-//         if (!grp?.userData.loaded) return;
-//         const idx = ALL_STEPS.findIndex(s => s.id === 'develop');
-//         const isActive = this.wSMs.some(
-//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
-//         );
-
-//         // Spin the chuck during developing
-//         const chuck = grp.userData.spinChuck as THREE.Object3D | undefined;
-//         if (chuck) {
-//           chuck.rotation.y += (isActive ? 0.08 : 0.005) * this.speed;
-//         }
-
-//         // Swing dispense arm
-//         const arm = grp.userData.dispenseArm as THREE.Object3D | undefined;
-//         const restY = grp.userData.armRestY as number | undefined;
-//         if (arm && restY !== undefined) {
-//           const targetY = isActive
-//             ? restY + Math.PI / 4 + Math.sin(this.simTime * 1.2) * 0.12
-//             : restY;
-//           arm.rotation.y = lerp(arm.rotation.y, targetY, 0.04);
-//         }
-
-//         const chuckMat = grp.userData.chuckMaterial as THREE.MeshStandardMaterial | undefined;
-//         if (chuckMat) {
-//           chuckMat.emissiveIntensity = isActive
-//             ? 2.0 + 1.2 * Math.abs(Math.sin(this.simTime * 4))
-//             : 0.3 + 0.1 * Math.sin(this.simTime * 0.8);
-//         }
-
-//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
-//         if (greenMat && redMat) {
-//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
-//         }
-
-//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
-//         if (pl) pl.intensity = isActive ? 3.0 + 1.5 * Math.abs(Math.sin(this.simTime * 4)) : 0.3;
-//       };
-//       if (anyActive) animateDeveloper();
-
-
-//       const animateDIWaterRinse = () => {
-//         const grp = this.modObjs['rinse'];
-//         if (!grp?.userData.loaded) return;
-//         const idx = ALL_STEPS.findIndex(s => s.id === 'rinse');
-//         const isActive = this.wSMs.some(
-//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
-//         );
-//         const bowlMat = grp.userData.bowlMaterial as THREE.MeshStandardMaterial | undefined;
-//         if (bowlMat) {
-//           bowlMat.emissiveIntensity = isActive
-//             ? 2.5 + 1.2 * Math.abs(Math.sin(this.simTime * 4))
-//             : 0.3 + 0.1 * Math.sin(this.simTime * 0.8);
-//         }
-//         const nozzleMat = grp.userData.nozzleMaterial as THREE.MeshStandardMaterial | undefined;
-//         if (nozzleMat) {
-//           nozzleMat.emissiveIntensity = isActive
-//             ? 1.5 + 0.8 * Math.sin(this.simTime * 5)
-//             : 0.2;
-//         }
-//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
-//         if (greenMat && redMat) {
-//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
-//         }
-//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
-//         if (pl) pl.intensity = isActive ? 3.0 + 1.2 * Math.abs(Math.sin(this.simTime * 4)) : 0.3;
-//       };
-//       if (anyActive) animateDIWaterRinse();
-    
-//       const animatePostBake = () => {
-//         const grp = this.modObjs['peb'];
-//         if (!grp?.userData.loaded) return;
-//         const idx = ALL_STEPS.findIndex(s => s.id === 'peb');
-//         const isActive = this.wSMs.some(
-//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
-//         );
-//         const heatMat = grp.userData.heatMaterial as THREE.MeshStandardMaterial | undefined;
-//         if (heatMat) {
-//           heatMat.emissiveIntensity = isActive
-//             ? 4.0 + 2.0 * Math.sin(this.simTime * 3.5)
-//             : 0.6 + 0.2 * Math.sin(this.simTime * 1.2);
-//         }
-//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
-//         if (greenMat && redMat) {
-//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
-//         }
-//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
-//         if (pl) pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(this.simTime * 4) : 0.4;
-//       };
-//       if (anyActive) animatePostBake();
-
-//       const animateHMDS = () => {
-//         const grp = this.modObjs['hmds'];
-//         if (!grp?.userData.loaded) return;
-//         const idx = ALL_STEPS.findIndex(s => s.id === 'hmds');
-//         const isActive = this.wSMs.some(
-//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
-//         );
-//         const chamberMat = grp.userData.chamberMaterial as THREE.MeshStandardMaterial | undefined;
-//         if (chamberMat) {
-//           chamberMat.emissiveIntensity = isActive
-//             ? 2.5 + 1.5 * Math.abs(Math.sin(this.simTime * 3))
-//             : 0.4 + 0.1 * Math.sin(this.simTime * 0.8);
-//         }
-//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
-//         if (greenMat && redMat) {
-//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
-//         }
-//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
-//         if (pl) pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(this.simTime * 3) : 0.3;
-//       };
-//       if (anyActive) animateHMDS();
-
-//       // ── Animate Scanner GLB ──
-//       const animateScanner = () => {
-//         const grp = this.modObjs['scanner'];
-//         if (!grp?.userData.loaded) return;
-//         const idx = ALL_STEPS.findIndex(s => s.id === 'scanner');
-//         const isActive = this.wSMs.some(
-//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
-//         );
-//         const beam = grp.userData.uvBeam as THREE.Mesh | undefined;
-//         if (beam) {
-//           const bmat = beam.material as THREE.MeshStandardMaterial;
-//           bmat.opacity = isActive ? 0.08 + 0.08 * Math.abs(Math.sin(this.simTime * 8)) : 0.02;
-//           bmat.emissiveIntensity = isActive ? 1.5 + 1.2 * Math.abs(Math.sin(this.simTime * 8)) : 0.3;
-//         }
-//         const lensMat = grp.userData.lensMaterial as THREE.MeshStandardMaterial | undefined;
-//         if (lensMat) {
-//           lensMat.emissiveIntensity = isActive ? 3.5 + 2.0 * Math.abs(Math.sin(this.simTime * 10)) : 0.8;
-//         }
-//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
-//         if (greenMat && redMat) {
-//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
-//         }
-//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
-//         if (pl) pl.intensity = isActive ? 5.0 + 2.0 * Math.abs(Math.sin(this.simTime * 8)) : 0.4;
-
-//         // Pulse slot glow when active
-//         const slotGlow = grp.userData.slotGlow as THREE.Mesh | undefined;
-//         if (slotGlow) {
-//           const mat = slotGlow.material as THREE.MeshStandardMaterial;
-//           mat.emissiveIntensity = isActive
-//             ? 4.0 + 2.0 * Math.abs(Math.sin(this.simTime * 6))
-//             : 1.5 + 0.5 * Math.sin(this.simTime * 1.5);
-//         }
-//       };
-//       if (anyActive) animateScanner();
-
-//       // ── Animate Chill Plates GLB ──
-//       const animateChillPlate = (modId: string) => {
-//         const grp = this.modObjs[modId];
-//         if (!grp?.userData.loaded) return;
-//         const idx = ALL_STEPS.findIndex(s => s.id === modId);
-//         const isActive = this.wSMs.some(
-//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
-//         );
-//         const plateMat = grp.userData.plateMaterial as THREE.MeshStandardMaterial | undefined;
-//         if (plateMat) {
-//           plateMat.emissiveIntensity = isActive
-//             ? 2.5 + 1.2 * Math.sin(this.simTime * 2.5)
-//             : 0.4 + 0.15 * Math.sin(this.simTime * 0.8);
-//         }
-//         const finMat = grp.userData.finMaterial as THREE.MeshStandardMaterial | undefined;
-//         if (finMat) {
-//           finMat.emissiveIntensity = isActive ? 1.2 + 0.5 * Math.sin(this.simTime * 3) : 0.4;
-//         }
-//         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-//         const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
-//         if (greenMat && redMat) {
-//           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-//           redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
-//         }
-//         const pl = grp.userData.processLight as THREE.PointLight | undefined;
-//         if (pl) pl.intensity = isActive ? 2.8 + 1.0 * Math.sin(this.simTime * 3) : 0.3;
-//       };
-//       if (anyActive) {
-//         animateChillPlate('chill1');
-//         animateChillPlate('chill2');
-//         animateChillPlate('chill3');
-//       }
-
-//       const animateChuckLights = (grp: THREE.Group) => {
-//         const modId = grp.userData.id as string | undefined;
-//         if (!modId) return;
-//         const idx = ALL_STEPS.findIndex((m) => m.id === modId);
-//         if (idx < 0) return;
-//         const chuckLight = grp.userData.waferChuck?.userData.chuckLight as THREE.PointLight | undefined;
-//         if (!chuckLight) return;
-
-//         const baseIntensity = typeof chuckLight.userData.baseIntensity === 'number'
-//           ? chuckLight.userData.baseIntensity
-//           : chuckLight.intensity;
-//         chuckLight.userData.baseIntensity = baseIntensity;
-
-//         const isActive = this.wSMs.some(
-//           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
-//         );
-//         chuckLight.intensity = isActive
-//           ? baseIntensity + 0.8 * Math.abs(Math.sin(this.simTime * 5))
-//           : Math.max(0.15, baseIntensity * 0.35 + 0.25 * Math.abs(Math.sin(this.simTime * 2)));
-//       };
-//       if (anyActive) {
-//         Object.values(this.modObjs).forEach((grp) => animateChuckLights(grp as THREE.Group));
-//       }
-//     }
-    
-//     // ── Nameplate LED pulse ──
-//     tickNamePlateLEDs(this.modObjs, this.busy, this.simTime);
-    
-//     this._animRobots(dt); this._updateCamera(); this.onUI(this._buildUI());
-//     this.renderer.render(this.scene, this.camera);
-//   };
-
-//   start() { this._lastT = performance.now(); this._loop(); }
-
-//   reset() {
-//    this.spinCoat.stopCoat(); this._activeCoatWI = -1;
-//     this.devLiquid.stopDev(); this._activeDevWI = -1;
-//     this.prCoatOverlay?.stop();
-//     this.devOverlay?.stop();
-//     this.n2Particles.off(); this.waterParticles.off(); this.hmdsFog.off();
-//     Object.values(this.heatVapors).forEach(v => v.off());
-//     this.wSMs.forEach((sm) => {
-//       if (sm.carrierRobot) sm.detachAt(new THREE.Vector3(ALL_STEPS[0].x, 0.38, ALL_STEPS[0].z));
-//       sm.stepIdx = 0; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
-//       sm.spin = 0; sm.spinning = false; sm.launched = false; sm.done = false; sm.carrierRobot = null;
-//       sm.owner = "none";
-//       sm.onConveyor = false; sm.mesh.visible = false; sm.mesh.rotation.y = 0;
-//       sm.mesh.position.set(ALL_STEPS[0].x, 0.38, ALL_STEPS[0].z);
-//       const liq = sm.mesh.userData.liquid as THREE.Mesh;
-//       if (liq) (liq.material as THREE.MeshStandardMaterial).opacity = 0;
-//     });
-//     Object.keys(this.busy).forEach((k) => delete this.busy[k]);
-//     Object.values(this.modObjs).forEach((m) => {
-//       if (m.userData.processLight) (m.userData.processLight as THREE.PointLight).intensity = 0;
-//       if (m.userData.innerRing) ((m.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 2.5;
-//     });
-//     this.simTime = 0; this.paused = false; this._addLog("--- SIMULATION RESET ---", "");
-//   }
-
-//   setBoundingBox(visible: boolean) {
-//     const existing = this.scene.getObjectByName("__boundingBox__");
-//     if (existing) this.scene.remove(existing);
-//     if (!visible) return;
-//     const box = new THREE.Box3();
-//     Object.entries(this.modObjs).forEach(([id, grp]) => { if (id !== "foup") { const b = new THREE.Box3().setFromObject(grp); box.union(b); } });
-//     box.expandByScalar(0.55);
-//     const grp = new THREE.Group(); grp.name = "__boundingBox__";
-//     const size = new THREE.Vector3(); box.getSize(size);
-//     const center = new THREE.Vector3(); box.getCenter(center);
-//     const edgeMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.2, metalness: 0.9 });
-//     const T2 = 0.045;
-//     const addEdge = (sx: number, sy: number, sz: number, px: number, py: number, pz: number) => {
-//       const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), edgeMat);
-//       m.position.set(center.x + px, center.y + py, center.z + pz); grp.add(m);
-//     };
-//     const hw = size.x / 2, hh = size.y / 2, hd = size.z / 2;
-//     [[hh, hd], [hh, -hd], [-hh, hd], [-hh, -hd]].forEach(([y, z]) => addEdge(size.x, T2, T2, 0, y as number, z as number));
-//     [[hh, hw], [hh, -hw], [-hh, hw], [-hh, -hw]].forEach(([y, x]) => addEdge(T2, T2, size.z, x as number, y as number, 0));
-//     [[hw, hd], [hw, -hd], [-hw, hd], [-hw, -hd]].forEach(([x, z]) => addEdge(T2, size.y, T2, x as number, 0, z as number));
-//     this.scene.add(grp);
-//   }
-
-//   toggleLabels(show: boolean) {
-//     toggleNamePlates(this.modObjs, show);
-//   }
-
-//   _bindEvents() {
-//     const el = this.renderer.domElement;
-//     el.addEventListener("mousedown", this._md = (e) => { this.orbit.drag = true; this.orbit.btn = e.button; this.orbit.sx = e.clientX; this.orbit.sy = e.clientY; });
-//     window.addEventListener("mouseup", this._mu = () => { this.orbit.drag = false; });
-//     window.addEventListener("mousemove", this._mm = (e) => {
-//       if (this.orbit.drag) {
-//         const dx = (e.clientX - this.orbit.sx) * 0.005, dy = (e.clientY - this.orbit.sy) * 0.005;
-//         this.orbit.sx = e.clientX; this.orbit.sy = e.clientY;
-//         if (this.orbit.btn === 0) { this.orbit.tT -= dx; this.orbit.tP = clamp(this.orbit.tP - dy, 0.04, Math.PI * 0.46); }
-//         else if (this.orbit.btn === 2) { this.orbit.tcx -= Math.cos(this.orbit.theta) * dx * 40; this.orbit.tcz += Math.sin(this.orbit.theta) * dx * 40; }
-//       }
-//       if (this.orbit.drag) {
-//         this.onTooltip({ visible: false, x: 0, y: 0, name: "", temp: "", meta: "", tempColor: "" });
-//         return;
-//       }
-//       const now = performance.now();
-//       if (now - this._lastRaycastT < 100) return;
-//       this._lastRaycastT = now;
-
-//       // Tooltip raycasting
-//       const rect = el.getBoundingClientRect();
-//       const mouse = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
-//       this._raycaster.setFromCamera(mouse, this.camera);
-//       const allMeshes: THREE.Object3D[] = [];
-//       Object.values(this.modObjs).forEach((grp) => grp.traverse((c) => { if ((c as THREE.Mesh).isMesh) allMeshes.push(c); }));
-//       const hits = this._raycaster.intersectObjects(allMeshes);
-//       if (hits.length) {
-//         let obj: THREE.Object3D | null = hits[0].object;
-//         while (obj && !obj.userData.id) obj = obj.parent;
-//         const mod = obj ? ALL_STEPS.find((m) => m.id === obj!.userData.id) : null;
-//         if (mod) {
-//           this.onTooltip({ visible: true, x: e.clientX, y: e.clientY, name: mod.name, temp: mod.temp ? mod.temp + "°C" : "—", tempColor: mod.temp ? (mod.temp > 50 ? "#ff6030" : "#0099ff") : "#445566", meta: `TYPE: ${mod.type.toUpperCase()} · DURATION: ${mod.time}s` });
-//           return;
-//         }
-//       }
-//       this.onTooltip({ visible: false, x: 0, y: 0, name: "", temp: "", meta: "", tempColor: "" });
-//     });
-//     el.addEventListener("wheel", this._wh = (e) => { this.orbit.tR = clamp(this.orbit.tR + e.deltaY * 0.022, 4, 85); e.preventDefault(); }, { passive: false });
-//     el.addEventListener("contextmenu", (e) => e.preventDefault());
-//   }
-
-//   destroy() {
-//     cancelAnimationFrame(this._animId);
-//     this.renderer.domElement.removeEventListener("mousedown", this._md);
-//     window.removeEventListener("mouseup", this._mu);
-//     window.removeEventListener("mousemove", this._mm);
-//     this.renderer.domElement.removeEventListener("wheel", this._wh);
-//   }
-// }
 
 class Sim {
   renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.PerspectiveCamera;
@@ -40805,593 +33370,7 @@ private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
   // No material changes — robot keeps its natural colors.
 }
 
-// private _animRobots(dt: number) {
-//   const t = this.simTime;
-//   const r = this.robotEFEM;
-//   if (!r || !r.runIK) return;
-//   if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
- 
-//   // ── One-time init ──
-//   if (!r.group.userData.railInit) {
-//     r.group.userData.railX        = r.basePos.x;
-//     r.group.userData.armPhase     = 'idle';
-//     r.group.userData.phaseT       = 0;
-//     r.group.userData.railInit     = true;
-//     r.group.userData.gripperState = 0;
-//     r.group.userData.turretRestY  = r.turret.rotation.y;
-//     r.group.userData._ikYaw       = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
-//     r.group.userData.bezierT      = 0;
-//     r.group.userData.bezierStart  = new THREE.Vector3();
-//     r.group.userData.bezierEnd    = new THREE.Vector3();
-//     r.group.userData.bezierCP1    = new THREE.Vector3();
-//     r.group.userData.bezierCP2    = new THREE.Vector3();
-//     r.group.userData.dwellTimer   = 0;
-//   }
- 
-//   // ── Compute finger-to-gripper offset (in gripper local space) ──
-//   const computeFingerOffset = (): THREE.Vector3 => {
-//     const ud = r.group.userData;
-//     const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-//     const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-//     const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
-//     const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
-//     if (!t1 || !d1) return new THREE.Vector3();
-//     const fingerMid = new THREE.Vector3();
-//     const tmp = new THREE.Vector3();
-//     t1.getWorldPosition(tmp); fingerMid.add(tmp);
-//     d1.getWorldPosition(tmp); fingerMid.add(tmp);
-//     if (t2 && d2) {
-//       t2.getWorldPosition(tmp); fingerMid.add(tmp);
-//       d2.getWorldPosition(tmp); fingerMid.add(tmp);
-//       fingerMid.multiplyScalar(0.25);
-//     } else {
-//       fingerMid.multiplyScalar(0.5);
-//     }
-//     const gripWP = new THREE.Vector3();
-//     r.gripper.getWorldPosition(gripWP);
-//     return fingerMid.clone().sub(gripWP);
-//   };
- 
-//   const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
-//     const fingerOffset = computeFingerOffset();
-//     return waferTarget.clone().sub(fingerOffset);
-//   };
- 
-//   // ══════════════════════════════════════════════════════════════════════════
-//   // COLLISION SYSTEM — strict no-fly zones for FOUP & scanner
-//   // ══════════════════════════════════════════════════════════════════════════
-//   // SAFETY_MARGIN grew from 0.15 → 0.55 so the TCP stays well clear.
-//   const SAFETY_MARGIN = 1.5;
- 
-//   // Re-expand boxes each frame (cheap; handles GLB loads + module motion).
-//  const getKeepOutBox = (id: "foup" | "scanner"): THREE.Box3 | null => {
-//   const grp = this.modObjs[id];
-//   if (!grp) return null;
-//   const glbRoot = (grp.userData.glbRoot as THREE.Object3D | undefined) ?? grp;
-//   glbRoot.updateWorldMatrix(true, true);
-//   const box = new THREE.Box3().setFromObject(glbRoot);
-//   box.expandByScalar(4.5);
-//   this._blockBoxes[id] = box;
-//   return box;
-// };
- 
-//   /**
-//    * Hard clamp: if `desired` lies inside the keep-out box, push it to the
-//    * NEAREST point on the box surface. Unlike the previous keepOut() (which
-//    * walked backwards along the approach ray and could still leave the point
-//    * deep inside), this ALWAYS produces a point outside the box.
-//    */
-//   const clampOutsideBox = (
-//     desired: THREE.Vector3,
-//     box: THREE.Box3 | null
-//   ): THREE.Vector3 => {
-//     if (!box || !box.containsPoint(desired)) return desired;
-//     const center = new THREE.Vector3();
-//     box.getCenter(center);
-//     // Vector from box center to desired point — clamp to nearest face.
-//     const half = new THREE.Vector3();
-//     box.getSize(half).multiplyScalar(0.5);
-//     const local = desired.clone().sub(center);
-//     // Find which axis has the largest |local/half| ratio — that's the closest face.
-//     const ratios = [
-//       Math.abs(local.x) / half.x,
-//       Math.abs(local.y) / half.y,
-//       Math.abs(local.z) / half.z,
-//     ];
-//     const maxRatio = Math.max(...ratios);
-//     const out = local.clone().divideScalar(maxRatio).add(center);
-//     // Tiny epsilon push so we sit strictly OUTSIDE, not on the surface.
-//     const dir = out.clone().sub(center).normalize();
-//     out.addScaledVector(dir, 0.02);
-//     return out;
-//   };
- 
-//   /**
-//    * Approach FOUP/scanner ONLY from the +Z face (the door/opening).
-//    * Returns a "safe approach point" that is guaranteed outside the keep-out
-//    * box AND on the correct side of the enclosure.
-//    */
-// // REPLACE safeApproach with this stricter version:
-// const safeApproach = (
-//   stepId: string,
-//   portWorld: THREE.Vector3,
-//   distance: number
-// ): THREE.Vector3 => {
-//   const grp = this.modObjs[stepId];
-//   if (!grp) return portWorld.clone();
-  
-//   const box = getKeepOutBox(stepId as "foup" | "scanner");
-//   if (!box) return portWorld.clone().add(new THREE.Vector3(0, 0, distance));
-  
-//   const center = new THREE.Vector3();
-//   box.getCenter(center);
-  
-//   // Direction FROM box center TO port (outward facing direction)
-//   const outDir = portWorld.clone().sub(center).normalize();
-  
-//   // Place approach point OUTSIDE the box along outward direction
-//   const boxSize = new THREE.Vector3();
-//   box.getSize(boxSize);
-//   const boxRadius = Math.max(boxSize.x, boxSize.z) * 0.5;
-  
-//   // Approach = outside box surface + extra clearance
-//   const approach = center.clone().addScaledVector(outDir, boxRadius + distance + 3.5);
-//   approach.y = portWorld.y; // keep same height
-//   return approach;
-// };
-//   // ── Sticky locks ──
-//   const APPROACH_OFFSET   = 0.6;
-// const APPROACH_BACKOFF  = 8.0;
-// const INSERT_DEPTH      = 0.01;
-// const RETRACT_DIST      = 8.0;   // how far to pull straight out after pick
-//   const TRANSFER_MIN_Y    = 0.18;   // floor floor for TCP
-//   const WAFER_HALF_T      = 0.0175;
-//   const PICK_CLEARANCE    = 0.003;
-//   const SAFE_HEIGHT       = 6.0;    // travel altitude
- 
-//   // ── Find target wafer ──
-//   const carried = this.wSMs.find(
-//     (w) => w.launched && !w.done && w.carrierRobot === r
-//   );
-//   const waiting = this.wSMs.find(
-//     (w) => w.launched && !w.done && !w.carrierRobot &&
-//            w.state === 'track_approach' && !(w as any)._picked
-//   );
-//   const target = carried ?? waiting ?? null;
- 
-//   const ud = r.group.userData;
-//   const sCurve = (x: number) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
- 
-//   const evalBezier = (out: THREE.Vector3, t01: number) => {
-//     const p0 = ud.bezierStart as THREE.Vector3;
-//     const p1 = ud.bezierCP1   as THREE.Vector3;
-//     const p2 = ud.bezierCP2   as THREE.Vector3;
-//     const p3 = ud.bezierEnd   as THREE.Vector3;
-//     const u = 1 - t01, u2 = u * u, u3 = u2 * u;
-//     const tt = t01 * t01, ttt = tt * t01;
-//     out.set(
-//       u3 * p0.x + 3 * u2 * t01 * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
-//       u3 * p0.y + 3 * u2 * t01 * p1.y + 3 * u * tt * p2.y + ttt * p3.y,
-//       u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
-//     );
-//   };
- 
-//   // ── Rail target + integration ──
-//   const RAIL_MIN = -22;
-//   const RAIL_MAX = 32;
-//   let dropStep = ALL_STEPS[0];
-//   let prevStep = ALL_STEPS[0];
-//   let pickupX = r.basePos.x;
-//   let pickupZ = 0;
-//   let isPicked = false;
-//   let railTargetX = ud.railX as number;
- 
-//   if (target) {
-//     dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
-//     const prevStepIdx = Math.max(target.stepIdx - 1, 0);
-//     prevStep = ALL_STEPS[prevStepIdx];
-//     pickupX = (target as any)._pickupX as number ?? prevStep.x;
-//     pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
-//     isPicked = !!(target as any)._picked;
-//     railTargetX = clamp(isPicked ? dropStep.x : pickupX, RAIL_MIN, RAIL_MAX);
-//   }
- 
-//   const railSpeed = 6.0;
-//   const currentRailX = ud.railX as number;
-//   const dxRail = railTargetX - currentRailX;
-//   const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * dt * this.speed);
-//   ud.railX = currentRailX + railStep;
-//   r.group.position.x = ud.railX as number;
- 
-//   if (!target) {
-//     ud.armPhase = 'idle';
-//     ud.phaseT = 0;
-//     const idleTgt = new THREE.Vector3(
-//       r.group.position.x,
-//       1.8,
-//       Math.sin(t * 0.22) * 1.5
-//     );
-//     r.runIK(targetForGripper(idleTgt));
-//     this._setGripperState(r, 0, dt);
-//     return;
-//   }
- 
-//   const railX = ud.railX as number;
-//   const distPick = Math.abs(railX - pickupX);
-//   ud.phaseT = (ud.phaseT as number) + dt * this.speed;
-//   const phaseT = ud.phaseT as number;
-//   const phase  = ud.armPhase as string;
- 
-//   // ── Resolve pick/drop world positions ──
-//   const pickWorld = new THREE.Vector3();
-//   if (prevStep.type === "foup") {
-//     const foupGrp = this.modObjs["foup"];
-//     const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-//     const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-//     if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(pickWorld);
-//     else pickWorld.set(pickupX, 1.55, pickupZ);
-//   } else {
-//     const modGrp = this.modObjs[prevStep.id];
-//     const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-//     if (wa) wa.getWorldPosition(pickWorld);
-//     else pickWorld.set(pickupX, 0.93, pickupZ);
-//   }
- 
-//   const dropWorld = new THREE.Vector3();
-//   const returnToFoup = target.stepIdx >= ALL_STEPS.length;
-//   if (dropStep.type === "foup" || returnToFoup) {
-//     const foupGrp = this.modObjs["foup"];
-//     const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-//     const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-//     if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(dropWorld);
-//     else dropWorld.set(ALL_STEPS[0].x, 1.55, ALL_STEPS[0].z);
-//   } else {
-//     const modGrp = this.modObjs[dropStep.id];
-//     const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-//     if (wa) wa.getWorldPosition(dropWorld);
-//     else dropWorld.set(dropStep.x, 0.93, dropStep.z);
-//   }
- 
-//   if (!isPicked) {
-//     // ════════════════════════════════════════════════════════════════════════
-//     // PICK SEQUENCE
-//     // ════════════════════════════════════════════════════════════════════════
-//     const isProtected = prevStep.type === "foup" || prevStep.id === "scanner";
-//     const protectId   = prevStep.type === "foup" ? "foup" : "scanner";
-//     const keepBox     = isProtected ? getKeepOutBox(protectId as "foup" | "scanner") : null;
- 
-//     // Approach point: front-of-port, well outside the keep-out box.
-//     const approachRaw = isProtected
-//       ? safeApproach(protectId, pickWorld, APPROACH_BACKOFF)
-//       : pickWorld.clone();
-//     const approachPos = new THREE.Vector3(
-//       approachRaw.x,
-//       pickWorld.y + APPROACH_OFFSET,
-//       approachRaw.z
-//     );
- 
-//     // Insert: slide along the front-facing direction INTO the port, but
-//     // clamp every step against the keep-out box.
-//     const insertPos = isProtected
-//       ? clampOutsideBox(
-//           new THREE.Vector3(
-//             approachRaw.x +
-//               (this.modObjs[protectId]?.userData?.frontFacing?.x ?? 0) * -INSERT_DEPTH,
-//             pickWorld.y + APPROACH_OFFSET * 0.4,
-//             approachRaw.z +
-//               (this.modObjs[protectId]?.userData?.frontFacing?.z ?? 1) * -INSERT_DEPTH
-//           ),
-//           keepBox
-//         )
-//       : new THREE.Vector3(pickWorld.x, pickWorld.y + APPROACH_OFFSET * 0.4, pickWorld.z);
- 
-//     // Contact: exactly at the wafer (or clamped if FOUP/scanner).
-//    // Contact: stay OUTSIDE the box — never penetrate FOUP/scanner
-//     const contactPos = (() => {
-//       if (!isProtected || !keepBox) {
-//         const raw = new THREE.Vector3(pickWorld.x, pickWorld.y - WAFER_HALF_T + PICK_CLEARANCE, pickWorld.z);
-//         raw.y = Math.max(raw.y, TRANSFER_MIN_Y);
-//         return raw;
-//       }
-//       const center = new THREE.Vector3(); keepBox.getCenter(center);
-//       const outDir = pickWorld.clone().sub(center).normalize();
-//       const half = new THREE.Vector3(); keepBox.getSize(half).multiplyScalar(0.5);
-//       const facePoint = center.clone().addScaledVector(outDir, Math.max(half.x, half.z) + 3.5);
-//       facePoint.y = Math.max(pickWorld.y, TRANSFER_MIN_Y);
-//       return facePoint;
-//     })();
- 
-//     switch (phase) {
-//       case 'idle':
-//       case 'retract':
-//         ud.armPhase = 'approach';
-//         ud.phaseT = 0;
-//         break;
- 
-//       case 'approach':
-//         r.runIK(targetForGripper(approachPos));
-//         this._setGripperState(r, 0, dt);
-//         if (distPick < 1.0 && phaseT > 0.6) {
-//           ud.armPhase = 'insert';
-//           ud.phaseT = 0;
-//         }
-//         break;
- 
-//       case 'insert': {
-//         const p = sCurve(Math.min(phaseT / 0.9, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(approachPos, insertPos, p);
-//         // Final safety clamp on the interpolated point (in case lerp dipped in).
-//         const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
-//         r.runIK(targetForGripper(safe));
-//         this._setGripperState(r, 0, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'contact';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
- 
-//       case 'contact': {
-//         const p = sCurve(Math.min(phaseT / 0.5, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(insertPos, contactPos, p);
-//         const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
-//         r.runIK(targetForGripper(safe));
-//         this._setGripperState(r, 0.3, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'vacuum_dwell';
-//           ud.phaseT = 0;
-//           ud.dwellTimer = 0;
-//         }
-//         break;
-//       }
- 
-//       case 'vacuum_dwell': {
-//         ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
-//         const dwellP = (ud.dwellTimer as number) / 0.5;
-//         const settleY = Math.sin(dwellP * Math.PI) * 0.008;
-//         const settledPos = contactPos.clone();
-//         settledPos.y -= settleY;
-//         r.runIK(targetForGripper(settledPos));
-//         this._setGripperState(r, 1, dt);
- 
-//         r.group.updateWorldMatrix(true, true);
-//         const gripWP = new THREE.Vector3();
-//         r.gripper.getWorldPosition(gripWP);
-//         const tcpWorld = gripWP.clone().add(computeFingerOffset());
-//         const ikErr = tcpWorld.distanceTo(settledPos);
-//         const waferWp = new THREE.Vector3();
-//         target.mesh.getWorldPosition(waferWp);
-//         const waferToTcp = tcpWorld.distanceTo(waferWp);
-//         const sx = Math.max(Math.abs(r.group.scale.x), 0.35);
-//         const PICK_IK_TOL = Math.max(0.12, 0.06 * sx);
-//         const PICK_WAFER_TOL = Math.max(0.22, 0.1 * sx);
-//         const ALIGN_TIMEOUT = 1.2;
-//         const dwell = ud.dwellTimer as number;
-//         const aligned = ikErr < PICK_IK_TOL || waferToTcp < PICK_WAFER_TOL;
-//         const canAttach = dwell >= 0.45 && (aligned || dwell >= ALIGN_TIMEOUT);
- 
-//         if (canAttach) {
-//           target.attachTo(r);
-//           (target as any)._picked = true;
-//           this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED → ${prevStep.short}`, 'pick');
- 
-//           const startW = contactPos.clone();
-//           const endW   = new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET + 0.4, dropWorld.z);
-//           (ud.bezierStart as THREE.Vector3).copy(startW);
-//           (ud.bezierEnd as THREE.Vector3).copy(endW);
-//           (ud.bezierCP1 as THREE.Vector3).set(startW.x, SAFE_HEIGHT, startW.z);
-//           (ud.bezierCP2 as THREE.Vector3).set(endW.x, SAFE_HEIGHT, endW.z);
-//           ud.bezierT = 0;
- 
-//           ud.postAttachHold = 0;
-//           ud.armPhase = 'lift';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
- 
-//       case 'lift': {
-//         const hold = (ud.postAttachHold as number) ?? 0;
-//         ud.postAttachHold = hold + dt * this.speed;
-//         if (hold < 0.2) {
-//           r.runIK(targetForGripper(contactPos));
-//           this._setGripperState(r, 1, dt);
-//           break;
-//         }
-//         if (hold < 0.5) {
-//           // STRAIGHT-OUT retract along front-facing direction (out of the port)
-//           // before lifting upward. Critical: never sideways inside the box.
-//           const retractPos = isProtected
-//             ? safeApproach(protectId, contactPos, RETRACT_DIST)
-//             : contactPos.clone().add(new THREE.Vector3(0, 0, RETRACT_DIST));
-//           retractPos.y = Math.max(retractPos.y, TRANSFER_MIN_Y);
-//           r.runIK(targetForGripper(retractPos));
-//           this._setGripperState(r, 1, dt);
-//           break;
-//         }
-//         // Now lift straight up from the retracted position.
-//         const retractedBase = isProtected
-//           ? safeApproach(protectId, contactPos, RETRACT_DIST)
-//           : contactPos.clone().add(new THREE.Vector3(0, 0, RETRACT_DIST));
-//         const liftPos = new THREE.Vector3(retractedBase.x, SAFE_HEIGHT, retractedBase.z);
-//         const p = sCurve(Math.min((hold - 0.5) / 0.6, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(retractedBase, liftPos, p);
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 1, dt);
-//         if (p >= 1) {
-//           delete ud.postAttachHold;
-//           ud.armPhase = 'transport';
-//           ud.phaseT = 0;
-//           ud.bezierT = 0;
-//         }
-//         break;
-//       }
- 
-//       default:
-//         ud.armPhase = 'approach';
-//         ud.phaseT = 0;
-//         break;
-//     }
- 
-//   } else {
-//     // ════════════════════════════════════════════════════════════════════════
-//     // PLACE SEQUENCE
-//     // ════════════════════════════════════════════════════════════════════════
-//     const isProtected = dropStep.type === "foup" || dropStep.id === "scanner" || returnToFoup;
-//     const protectId   = (dropStep.type === "foup" || returnToFoup) ? "foup" : "scanner";
-//     const keepBox     = isProtected ? getKeepOutBox(protectId as "foup" | "scanner") : null;
- 
-//     const approachRaw = isProtected
-//       ? safeApproach(protectId, dropWorld, APPROACH_BACKOFF)
-//       : dropWorld.clone();
-//     const approachDrop = new THREE.Vector3(
-//       approachRaw.x,
-//       dropWorld.y + APPROACH_OFFSET + 0.4,
-//       approachRaw.z
-//     );
-//     const insertDrop = isProtected
-//       ? clampOutsideBox(
-//           new THREE.Vector3(
-//             approachRaw.x +
-//               (this.modObjs[protectId]?.userData?.frontFacing?.x ?? 0) * -INSERT_DEPTH,
-//             dropWorld.y + APPROACH_OFFSET,
-//             approachRaw.z +
-//               (this.modObjs[protectId]?.userData?.frontFacing?.z ?? 1) * -INSERT_DEPTH
-//           ),
-//           keepBox
-//         )
-//       : new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET, dropWorld.z);
- 
-//     const placeRaw = new THREE.Vector3(dropWorld.x, dropWorld.y + WAFER_HALF_T, dropWorld.z);
-//     const placePos = isProtected ? clampOutsideBox(placeRaw, keepBox) : placeRaw;
-//     placePos.y = Math.max(placePos.y, TRANSFER_MIN_Y);
- 
-//     switch (phase) {
-//       case 'lift':
-//       case 'transport':
-//       case 'carry':
-//       case 'rise': {
-//         ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.45, 1);
-//         const tBz = sCurve(ud.bezierT as number);
-//         const tgt = new THREE.Vector3();
-//         evalBezier(tgt, tBz);
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 1, dt);
-//         if ((ud.bezierT as number) >= 1) {
-//           ud.armPhase = 'lower';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
- 
-//       case 'lower': {
-//         const p = sCurve(Math.min(phaseT / 0.8, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(approachDrop, insertDrop, p);
-//         const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
-//         r.runIK(targetForGripper(safe));
-//         this._setGripperState(r, 1, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'place_contact';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
- 
-//       case 'place_contact': {
-//         const p = sCurve(Math.min(phaseT / 0.5, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
-//         const safe = isProtected ? clampOutsideBox(tgt, keepBox) : tgt;
-//         r.runIK(targetForGripper(safe));
-//         this._setGripperState(r, 1, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'release';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
- 
-//       case 'release': {
-//         const fingerMid = new THREE.Vector3();
-//         const tmp = new THREE.Vector3();
-//         const fT1 = ud.fingerTop1  as THREE.Object3D | undefined;
-//         const fD1 = ud.fingerDown1 as THREE.Object3D | undefined;
-//         if (fT1 && fD1) {
-//           fT1.getWorldPosition(tmp); fingerMid.add(tmp);
-//           fD1.getWorldPosition(tmp); fingerMid.add(tmp);
-//           fingerMid.multiplyScalar(0.5);
-//         }
-//         const posError = fingerMid.distanceTo(dropWorld);
-//         r.runIK(targetForGripper(placePos));
-//         this._setGripperState(r, 0, dt);
-//         const POS_TOL = 0.12;
-//         const timeoutFallback = phaseT > 1.5;
-//         if ((posError <= POS_TOL && phaseT > 0.4) || timeoutFallback) {
-//           target.detachAt(dropWorld);
-//           this._addLog(`[${WAFER_NAMES[target.wi]}] RELEASE @ ${dropStep.short}`, 'place');
-//           target.state = 'processing';
-//           target.processTimer = 0;
-//           this._onProcessStart(target, dropStep);
-//           this.busy[dropStep.id] = target.wi;
-//           (target as any)._picked = false;
-//           (target as any)._pickupX = undefined;
-//           (target as any)._pickupZ = undefined;
-//           ud.armPhase = 'retractUp';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
- 
-//       case 'retractUp': {
-//         // STRAIGHT-OUT retract along front face, before lifting up.
-//         const retractedBase = isProtected
-//           ? safeApproach(protectId, placePos, RETRACT_DIST)
-//           : placePos.clone().add(new THREE.Vector3(0, 0, RETRACT_DIST));
-//         const p = sCurve(Math.min(phaseT / 0.6, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(placePos, retractedBase, p);
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 0, dt);
-//         if (p >= 1) {
-//           ud.armPhase = 'retract';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
- 
-//       case 'retract': {
-//         const retractedBase = isProtected
-//           ? safeApproach(protectId, placePos, RETRACT_DIST)
-//           : approachDrop;
-//         const liftTgt = new THREE.Vector3(retractedBase.x, SAFE_HEIGHT, retractedBase.z);
-//         const p = sCurve(Math.min(phaseT / 0.5, 1));
-//         const tgt = new THREE.Vector3().lerpVectors(retractedBase, liftTgt, p);
-//         r.runIK(targetForGripper(tgt));
-//         this._setGripperState(r, 0, dt);
-//         if (phaseT > 0.7) {
-//           ud.armPhase = 'idle';
-//           ud.phaseT = 0;
-//         }
-//         break;
-//       }
- 
-//       default:
-//         ud.armPhase = 'transport';
-//         ud.phaseT = 0;
-//         break;
-//     }
-//   }
- 
-//   // ── Status LED ──
-//   if (ud.gripperState as number > 0.7) {
-//     r.statusPL.color.setHex(0x00ffff);
-//     r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
-//   } else if (carried) {
-//     r.statusPL.color.setHex(0x00ff88);
-//     r.statusPL.intensity = 1.8;
-//   } else {
-//     r.statusPL.color.setHex(0x00d8ff);
-//     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
-//   }
-// }
+
 
 private _animRobots(dt: number) {
   const t = this.simTime;
@@ -43714,6 +35693,16 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
   getTotalSteps(): number { return ALL_STEPS.length; }
   getCurrentStepInfo(): ProcessStep | null { return ALL_STEPS[this.navStepIndex] ?? null; }
 
+  /** Return progress (0-1) through the current active step for the primary wafer */
+  getCurrentStepProgress(): number {
+    const sm = this.wSMs && this.wSMs.length > 0 ? this.wSMs[0] : null;
+    if (!sm) return 0;
+    const idx = sm.stepIdx;
+    const step = ALL_STEPS[idx];
+    if (!step || !step.time || step.time <= 0) return 0;
+    return Math.min(sm.timer / step.time, 1);
+  }
+
   rewindStep(): void {
     if (this.navStepIndex > 0) this.jumpToStep(this.navStepIndex - 1);
   }
@@ -43914,7 +35903,14 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
       if (m.userData.innerRing) ((m.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 2.5;
     });
     this.navStepIndex = 0;
-    this.simTime = 0; this.paused = false;
+    this.simTime = 0; this.paused = false; this.speed = 1;
+    // move robot to home (near step 0) to ensure canonical start pose
+    try { this._parkRobotNearStep(0); } catch (e) { /* ignore */ }
+
+    // clear any resume-related caches that could allow resuming mid-flow
+    try { delete (this as any).resumePosition; } catch (e) {}
+    try { delete (this as any).savedTimelinePosition; } catch (e) {}
+    try { delete (this as any).processHistory; } catch (e) {}
     this._notifyStepChange(0);
     this._addLog("--- SIMULATION RESET ---", "");
     
@@ -43922,7 +35918,30 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
     if (this.narration) {
       this.narration.reset(); // Clear queued audio and reset step tracking
       this._narratedSteps.clear(); // Reset tracking
-      this.narration.announceReset();
+
+      try {
+        import('../lib/narrationScripts').then(({ getStepNarration }) => {
+          const s0 = ALL_STEPS[0];
+          if (s0) {
+            const script = getStepNarration(s0.id);
+            const text = `Wafer cassette returned to FOUP and EFEM is reset. Simulation reset. Ready to start. ${script?.starting ?? ''}`;
+            if (text.trim()) {
+              this.narration.speak(text, 'high');
+              return;
+            }
+          }
+          this.narration.announceReset();
+        }).catch(() => {
+          this.narration.announceReset();
+        });
+      } catch (e) {
+        this.narration.announceReset();
+      }
+    }
+
+    // Notify UI components that a full reset occurred so they can clear any cached resume state
+    if (typeof window !== 'undefined') {
+      try { window.dispatchEvent(new CustomEvent('sim:reset', { detail: {} })); } catch (e) {}
     }
   }
 

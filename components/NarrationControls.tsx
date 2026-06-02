@@ -31,6 +31,18 @@ const NarrationControls: React.FC<Props> = ({ simRef }) => {
     };
 
     window.addEventListener('sim:narration-enabled', onNarrationEnabled as EventListener);
+    // Listen for global simulation reset so we can clear any local caches and sync UI
+    const onSimReset = () => {
+      const sim = simRef.current;
+      if (sim?.narration) {
+        try { sim.narration.stop?.(); } catch (e) {}
+        try { sim.narration.reset?.(); } catch (e) {}
+        try { setEnabled(sim.narration.isEnabled()); } catch (e) {}
+      }
+      // Ensure UI shows speed 1 if sim reset
+      try { if (sim) { sim.speed = 1; window.dispatchEvent(new CustomEvent('sim:speed', { detail: { speed: 1 } })); } } catch (e) {}
+    };
+    window.addEventListener('sim:reset', onSimReset as EventListener);
     return () => window.removeEventListener('sim:narration-enabled', onNarrationEnabled as EventListener);
   }, []);
   

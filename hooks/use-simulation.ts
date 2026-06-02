@@ -54,9 +54,41 @@ export function useSimulation(options: UseSimulationOptions = {}): UseSimulation
   }, []);
 
   const setSpeed = useCallback((value: number) => {
+    const prev = simRef.current?.speed ?? null;
     setSpeedState(value);
     if (simRef.current) {
+      // Update sim speed (single source of truth)
       simRef.current.speed = value;
+
+      // Narration behavior:
+      // - Mute/stop narration when running faster than 1x
+      // - When returning to 1x, play narration for the current active step only
+      try {
+        const narration = (simRef.current as any).narration;
+        if (narration) {
+          if (value > 1) {
+            // Immediately stop any spoken/queued narration
+            narration.stop?.();
+          } else if (value === 1) {
+            // Only resume narration for the current active step (do not restart sequence)
+            // Determine the current active step index and play its starting script
+            const sim: any = simRef.current;
+            const getStepInfo = typeof sim.getCurrentStepInfo === 'function' ? sim.getCurrentStepInfo.bind(sim) : null;
+            const activeInfo = getStepInfo ? getStepInfo() : null;
+            if (activeInfo && narration.isEnabled && narration.isEnabled()) {
+              import('../lib/narrationScripts').then(({ getStepNarration }) => {
+                const script = getStepNarration(activeInfo.id);
+                if (script && script.starting) {
+                  narration.speak?.(script.starting, 'normal');
+                }
+              }).catch(() => {});
+            }
+          }
+        }
+      } catch (e) {
+        // swallow — narration is optional
+        // console.warn('Narration sync failed', e);
+      }
     }
   }, []);
 
@@ -68,7 +100,28 @@ export function useSimulation(options: UseSimulationOptions = {}): UseSimulation
     if (simRef.current) {
       simRef.current.reset();
     }
+    // Reset UI state: unpause and reset speed to 1x
     setPausedState(false);
+    setSpeedState(1);
+    if (simRef.current) simRef.current.speed = 1;
+
+    // After reset, play narration for the first step (if narration enabled)
+    try {
+      const narration = (simRef.current as any).narration;
+      const sim: any = simRef.current;
+      const getStepInfo = typeof sim.getCurrentStepInfo === 'function' ? sim.getCurrentStepInfo.bind(sim) : null;
+      const activeInfo = getStepInfo ? getStepInfo() : null;
+      if (narration && activeInfo && narration.isEnabled && narration.isEnabled()) {
+        import('../lib/narrationScripts').then(({ getStepNarration }) => {
+          const script = getStepNarration(activeInfo.id);
+          if (script && script.starting) {
+            narration.speak?.(script.starting, 'high');
+          }
+        }).catch(() => {});
+      }
+    } catch (e) {
+      // ignore
+    }
   }, []);
 
   const setPreset = useCallback((preset: string) => {
