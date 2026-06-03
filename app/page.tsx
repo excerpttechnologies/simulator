@@ -11,6 +11,7 @@ import {
 import ComponentInfoPanel from '../components/ComponentInfoPanel';
 import ComponentInfoToggle from '../components/ComponentInfoToggle';
 import NarrationControls from '../components/NarrationControls';
+import { ProfileMenu } from '../components/ProfileMenu';
 
 // // ═══════════════════════════════════════════════════════════════════════════════
 // // TYPES & DATA
@@ -24169,7 +24170,7 @@ const EFEM_X = -15;
 const EFEM_Z = 0;
 const ALL_STEPS: ProcessStep[] = [
   { id: "foup",      name: "FOUP Input",              short: "FOUP", temp: null, time: 1, color: 0x4488ff, type: "foup",  x: -20, z: 0     },
-  { id: "dehy",      name: "Dehydration Bake 150°C",  short: "DEHY", temp: 150,  time: 3, color: 0xff2200, type: "hot",   x: -11, z: TOP_Z },
+  { id: "dehy",      name: "Dehydration Bake 150°C",  short: "DEHY", temp: 150,  time: 8, color: 0xff2200, type: "hot",   x: -11, z: TOP_Z },
   { id: "hmds",      name: "HMDS Vapor Prime",        short: "HMDS", temp: 110,  time: 2, color: 0xff8800, type: "hot",   x: -6,  z: TOP_Z },
   { id: "chill1",    name: "Chill Plate #1  22°C",    short: "CP-1", temp: 22,   time: 3, color: 0x00ccff, type: "cold",  x: -1,  z: TOP_Z },
   { id: "prcoat",    name: "PR Coat (COT)",           short: "COT",  temp: null, time: 5, color: 0xcc00ff, type: "coat",  x: 4,   z: TOP_Z },
@@ -31882,7 +31883,7 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
 function addPlinthNameplates(scene: THREE.Scene): void {
   ALL_STEPS.forEach((mod) => {
     const SKIP_PLINTH_IDS = new Set([
-    
+      'scanner',  // No floating SCAN plinth plates at scanner row
     ]);
     if (SKIP_PLINTH_IDS.has(mod.id)) return;
 
@@ -34468,34 +34469,15 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
         } else {
           // Robot picks up — advance to next step normally
           sm.stepIdx++; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
-          
-          // ── Update narration position tracker (always, even if disabled) ──
+
           if (sm.wi === 0 && this.narration) {
             this.narration.updateProcessPosition(sm.stepIdx);
           }
-          
-          // ── Narration: announce step transition ──
-          if (sm.wi === 0 && this.narration && this.narration.isEnabled()) {
-            const stepKey = `${sm.stepIdx}-arrive`;
-            if (!this._narratedSteps.has(stepKey)) {
-              this._narratedSteps.add(stepKey);
-              const step = ALL_STEPS[sm.stepIdx];
-              const prevStep = sm.stepIdx > 0 ? ALL_STEPS[sm.stepIdx - 1] : null;
-              
-              if (step) {
-                import('../lib/narrationScripts').then(({ getStepNarration }) => {
-                  if (prevStep) {
-                    const currScript = getStepNarration(step.id);
-                    this.narration.speak(`${prevStep.name} is completed. ${currScript.starting}`, 'normal');
-                  } else {
-                    const script = getStepNarration(step.id);
-                    this.narration.speak(script.starting, 'normal');
-                  }
-                });
-              } else {
-                // Last step completed — all done
-                this.narration.speak('All process steps completed. Wafer returning to FOUP for unload.', 'high');
-              }
+          if (sm.wi === 0 && sm.stepIdx >= ALL_STEPS.length && this.narration?.isEnabled()) {
+            const doneKey = 'process-complete';
+            if (!this._narratedSteps.has(doneKey)) {
+              this._narratedSteps.add(doneKey);
+              this.narration.speak('All process steps completed. Wafer returning to FOUP for unload.', 'high');
             }
           }
         }
@@ -34517,35 +34499,9 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
         sm.state = "idle";
         sm.timer = 0;
         sm.processTimer = 0;
-        
-        // ── Update narration position tracker (always, even if disabled) ──
+
         if (sm.wi === 0 && this.narration) {
           this.narration.updateProcessPosition(sm.stepIdx);
-        }
-        
-        // ── Narration: announce step transition ──
-        if (sm.wi === 0 && this.narration && this.narration.isEnabled()) {
-          const stepKey = `${sm.stepIdx}-arrive`;
-          if (!this._narratedSteps.has(stepKey)) {
-            this._narratedSteps.add(stepKey);
-            const step = ALL_STEPS[sm.stepIdx];
-            const prevStep = sm.stepIdx > 0 ? ALL_STEPS[sm.stepIdx - 1] : null;
-            
-            if (step) {
-              import('../lib/narrationScripts').then(({ getStepNarration }) => {
-                if (prevStep) {
-                  const currScript = getStepNarration(step.id);
-                  this.narration.speak(`${prevStep.name} is completed. ${currScript.starting}`, 'normal');
-                } else {
-                  const script = getStepNarration(step.id);
-                  this.narration.speak(script.starting, 'normal');
-                }
-              });
-            } else {
-              // Last step completed — all done
-              this.narration.speak('All process steps completed. Wafer returning to FOUP for unload.', 'high');
-            }
-          }
         }
       }
       break;
@@ -34623,7 +34579,21 @@ case "track_place": {
 }
   }
 }
+  /** Speak step narration when the wafer is placed on the module chuck (not on step exit). */
+  private _narrateStepArrival(sm: WaferStateMachine, mod: ProcessStep) {
+    if (sm.wi !== 0 || !this.narration?.isEnabled()) return;
+    const stepKey = `${mod.id}-arrive`;
+    if (this._narratedSteps.has(stepKey)) return;
+    this._narratedSteps.add(stepKey);
+    this.narration.updateProcessPosition(sm.stepIdx);
+    import('../lib/narrationScripts').then(({ getStepNarration }) => {
+      const script = getStepNarration(mod.id);
+      this.narration.speak(script.starting, 'normal');
+    });
+  }
+
   private _onProcessStart(sm: WaferStateMachine, mod: ProcessStep) {
+    this._narrateStepArrival(sm, mod);
     const w = sm.mesh;
     if (mod.id === "prcoat") {
       sm.spinning = true;
@@ -36590,6 +36560,7 @@ export default function EFEMSimulator() {
 </div>
             <span style={{ fontSize: 12, color: T.accent, letterSpacing: 1, fontWeight: 600 }}>{fmtClock(ui.simTime)}</span>
             <span style={{ fontSize: 8, color: T.textDim, letterSpacing: 2 }}>{ui.fps} FPS</span>
+            <ProfileMenu />
           </div>
 
 

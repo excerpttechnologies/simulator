@@ -24,5 +24,5 @@ export function validateAdminCredentials(
   return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
 }
 
-/** Client-side session flag (used with httpOnly JWT cookie for middleware) */
+/** Legacy key — cleared on load; auth is memory-only via AuthContext */
 export const AUTH_STORAGE_KEY = "isLoggedIn";

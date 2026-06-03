@@ -56,6 +56,7 @@
 import type { Metadata } from 'next'
 import { JetBrains_Mono, Rajdhani } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { Providers } from '@/components/Providers'
 import './globals.css'
 
 const jetbrainsMono = JetBrains_Mono({ 
@@ -100,7 +101,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${jetbrainsMono.variable} ${rajdhani.variable}`}>
       <body className="font-mono antialiased bg-slate-50 text-hmi-text">
-        {children}
+        <Providers>{children}</Providers>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

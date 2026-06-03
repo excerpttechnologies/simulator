@@ -152,6 +152,22 @@
   animation: error-flash 0.3s ease-in-out;
 }
 
+@keyframes profileMenuIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.profile-menu-dropdown {
+  animation: profileMenuIn 0.16s ease-out;
+  transform-origin: top right;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;

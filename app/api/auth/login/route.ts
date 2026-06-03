@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { signToken } from "@/lib/jwt";
-import { cookieOpts, AUTH_COOKIE } from "@/lib/session";
 import { validateAdminCredentials, ADMIN_USER } from "@/lib/auth-config";
 import { z } from "zod";
 
@@ -39,9 +38,11 @@ export async function POST(req: NextRequest) {
       role: ADMIN_USER.role,
     });
 
-    const response = NextResponse.json({
+    // Token returned in JSON only — client keeps it in memory (no cookie / localStorage)
+    return NextResponse.json({
       success: true,
       message: "Login successful",
+      token,
       user: {
         id: ADMIN_USER.id,
         name: ADMIN_USER.name,
@@ -50,9 +51,6 @@ export async function POST(req: NextRequest) {
         role: ADMIN_USER.role,
       },
     });
-
-    response.cookies.set(AUTH_COOKIE, token, cookieOpts(60 * 60 * 24 * 7));
-    return response;
   } catch (err) {
     console.error("[LOGIN]", err);
     return NextResponse.json(
