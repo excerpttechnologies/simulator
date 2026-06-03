@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AUTH_STORAGE_KEY } from "@/lib/auth-config";
 
 export function LogoutButton({ className = "" }: { className?: string }) {
   const router = useRouter();
@@ -9,9 +10,13 @@ export function LogoutButton({ className = "" }: { className?: string }) {
 
   const handleLogout = async () => {
     setLoading(true);
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      router.push("/login");
+      router.refresh();
+    }
   };
 
   return (

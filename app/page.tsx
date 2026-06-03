@@ -24185,7 +24185,7 @@ const ALL_STEPS: ProcessStep[] = [
   { id: "chill3",    name: "Chill Plate #3  22°C",    short: "CP-3", temp: 22,   time: 2, color: 0x22ddbb, type: "cold",  x: -6,  z: BOT_Z },
   { id: "hardbake",  name: "Hard Bake  130°C",        short: "HBAK", temp: 130,  time: 3, color: 0xff1100, type: "hot",   x: -11, z: BOT_Z },
 ];
- 
+
 const WAFER_COLORS = [0xffaa00, 0x00eeff, 0xdd44ff, 0x44ffaa];
 const WAFER_NAMES  = ["W-001", "W-002", "W-003", "W-004"];
 const W_CSS        = ["#ffaa00", "#00eeff", "#dd44ff", "#44ffaa"];
@@ -27772,7 +27772,7 @@ if (mod.type === "foup") {
 
   
   
-  const SKIP_FLOATING_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out', 'scanner']);
+  const SKIP_FLOATING_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out', 'scanner', 'foup']);
   if (SKIP_FLOATING_LABEL_IDS.has(mod.id)) {
     console.log(`[buildModule] Skipping floating sprite for: ${mod.id}`);
     return grp;     // ← exit early, no floating sprite created
@@ -31132,46 +31132,43 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
 function buildCombinedPlatform(scene: THREE.Scene): void {
   const modules = ALL_STEPS.filter(m => m.id !== 'output' && m.id !== 'scanner');
 
-  // ── TOP ROW (coater side, z < 0) ──
   const topModules = modules.filter(m => m.z < 0);
-  let topCenterX = 2;  // fallback
-  let topWidth = 30;
+  const botModules = modules.filter(m => m.z > 0);
+  const centerModules = modules.filter(m => m.z === 0);
+
+  // ── COMPUTE UNIFIED X-EXTENT for top + bottom (so both boxes match) ──
+  const PAD = 1.8;  // ← change this single value to grow/shrink the side gap on BOTH boxes
+
+  let unifiedMinX = Infinity;
+  let unifiedMaxX = -Infinity;
 
   if (topModules.length > 0) {
-    const topMinX = Math.min(...topModules.map(m => m.x)) - 1.8;
-    const topMaxX = Math.max(...topModules.map(m => m.x)) + 1.8;
-    topCenterX = (topMinX + topMaxX) / 2;
-    topWidth = topMaxX - topMinX;
-    buildPlatform(scene, topCenterX, topModules[0].z, topWidth, 4.5);
+    unifiedMinX = Math.min(unifiedMinX, ...topModules.map(m => m.x));
+    unifiedMaxX = Math.max(unifiedMaxX, ...topModules.map(m => m.x));
+  }
+  if (botModules.length > 0) {
+    unifiedMinX = Math.min(unifiedMinX, ...botModules.map(m => m.x));
+    unifiedMaxX = Math.max(unifiedMaxX, ...botModules.map(m => m.x));
+  }
+
+  const unifiedLeft   = unifiedMinX - PAD;
+  const unifiedRight  = unifiedMaxX + PAD;
+  const unifiedWidth  = unifiedRight - unifiedLeft;
+  const unifiedCenter = (unifiedLeft + unifiedRight) / 2;
+
+  // ── TOP ROW (coater side, z < 0) ──
+  if (topModules.length > 0) {
+    buildPlatform(scene, unifiedCenter, topModules[0].z, unifiedWidth, 4.5);
   }
 
   // ── BOTTOM ROW (developer side, z > 0) ──
-  const botModules = modules.filter(m => m.z > 0);
   if (botModules.length > 0) {
-    const botMinX = Math.min(...botModules.map(m => m.x)) - 1.8;
-    const botMaxX = Math.max(...botModules.map(m => m.x)) + 1.8;
     const botZ = botModules[0].z;
-    const botWidth = botMaxX - botMinX;
-    const botCenterX = (botMinX + botMaxX) / 2;
-
-    // ── THE FIX: push bottom platform AWAY from robot rail and align left edge
-    const topModulesRef = modules.filter(m => m.z < 0);
-    const topMinXRef = topModulesRef.length > 0
-      ? Math.min(...topModulesRef.map(m => m.x)) - 1.8
-      : botMinX;
-
-    // Align left edge of bottom box to match left edge of top box
-    const shiftX = topMinXRef - botMinX;
-    const newBotCenterX = botCenterX + shiftX;
-
-    // Push bot platform deeper into its row (away from rail center)
-    const newBotZ = botZ + 1;
-
-    buildPlatform(scene, newBotCenterX, newBotZ, botWidth, 4.5);
+    const newBotZ = botZ + 1;  // push away from rail center
+    buildPlatform(scene, unifiedCenter, newBotZ, unifiedWidth, 4.5);
   }
 
   // ── CENTER ROW (EFEM / interface, z === 0) ──
-  const centerModules = modules.filter(m => m.z === 0);
   if (centerModules.length > 0) {
     const centerMinX = Math.min(...centerModules.map(m => m.x)) - 1.8;
     const centerMaxX = Math.max(...centerModules.map(m => m.x)) + 1.8;
@@ -31687,9 +31684,9 @@ function buildPlatform(
 // }
 
 function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
-  const SKIP_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out', 'scanner']);
+  const SKIP_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out', 'scanner', 'foup']);
   if (SKIP_LABEL_IDS.has(mod.id)) {
-    console.log(`[LABEL] Skipping virtual module: ${mod.id}`);
+    console.log(`[LABEL] Skipping virtual/special module: ${mod.id}`);
     return;
   }
 
@@ -31874,15 +31871,7 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
     grp.userData.sideLabelX = side;
   }
 
-  // ── LABEL 4: ROOF (top-down) ──
-  if (!isScanner) {
-    const roof = makePlane(LABEL_W * 0.85, LABEL_H * 0.85, 0.75);
-    roof.position.set(0, MODULE_BASE_Y + boxH + 0.05, 0);
-    roof.rotation.x = -Math.PI / 2;
-    roof.renderOrder = 100;
-    grp.add(roof);
-    grp.userData.roofLabel = roof;
-  }
+  // ── ROOF LABEL REMOVED ── No top-down labels
 }
 
 
@@ -32090,7 +32079,6 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       addBackToBack(mod.z + FACE_OFFSET);
     }
   });}
-
 
 
 
@@ -34481,8 +34469,13 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
           // Robot picks up — advance to next step normally
           sm.stepIdx++; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
           
-          // ── Narration: announce step transition ──
+          // ── Update narration position tracker (always, even if disabled) ──
           if (sm.wi === 0 && this.narration) {
+            this.narration.updateProcessPosition(sm.stepIdx);
+          }
+          
+          // ── Narration: announce step transition ──
+          if (sm.wi === 0 && this.narration && this.narration.isEnabled()) {
             const stepKey = `${sm.stepIdx}-arrive`;
             if (!this._narratedSteps.has(stepKey)) {
               this._narratedSteps.add(stepKey);
@@ -34525,8 +34518,13 @@ private _useConveyor(fromIdx: number, toIdx: number): boolean {
         sm.timer = 0;
         sm.processTimer = 0;
         
-        // ── Narration: announce step transition ──
+        // ── Update narration position tracker (always, even if disabled) ──
         if (sm.wi === 0 && this.narration) {
+          this.narration.updateProcessPosition(sm.stepIdx);
+        }
+        
+        // ── Narration: announce step transition ──
+        if (sm.wi === 0 && this.narration && this.narration.isEnabled()) {
           const stepKey = `${sm.stepIdx}-arrive`;
           if (!this._narratedSteps.has(stepKey)) {
             this._narratedSteps.add(stepKey);
@@ -35693,6 +35691,17 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
   getTotalSteps(): number { return ALL_STEPS.length; }
   getCurrentStepInfo(): ProcessStep | null { return ALL_STEPS[this.navStepIndex] ?? null; }
 
+  /** Live primary-wafer process step (simulation), not UI nav index */
+  getActiveProcessStepIndex(): number {
+    const sm = this.wSMs?.length > 0 ? this.wSMs[0] : null;
+    if (!sm) return 0;
+    return Math.min(Math.max(sm.stepIdx, 0), ALL_STEPS.length - 1);
+  }
+
+  getActiveProcessStepInfo(): ProcessStep | null {
+    return ALL_STEPS[this.getActiveProcessStepIndex()] ?? null;
+  }
+
   /** Return progress (0-1) through the current active step for the primary wafer */
   getCurrentStepProgress(): number {
     const sm = this.wSMs && this.wSMs.length > 0 ? this.wSMs[0] : null;
@@ -36291,10 +36300,13 @@ export default function EFEMSimulator() {
       if (simRef.current.narration) {
         simRef.current.narration.setEnabled(true);
         window.dispatchEvent(new CustomEvent('sim:narration-enabled', { detail: { enabled: true } }));
-        const step = ALL_STEPS[simRef.current.getCurrentStep()];
+        const step = simRef.current.getActiveProcessStepInfo?.() ?? simRef.current.getCurrentStepInfo();
+        if (!step) return;
         import('../lib/narrationScripts').then(({ getStepNarration }) => {
           const script = getStepNarration(step.id);
-          simRef.current?.narration?.speak(`Resuming narration at ${step.name}. ${script.starting}`, 'high');
+          if (script?.starting) {
+            simRef.current?.narration?.speak(`Resuming narration at ${step.name}. ${script.starting}`, 'high');
+          }
         });
       }
     }
@@ -36597,21 +36609,25 @@ export default function EFEMSimulator() {
                   const active = navStep === i || ui.wafers.some((w) => w.stepIdx === i && w.state !== "idle");
                   const done   = ui.wafers.some((w) => w.launched && w.stepIdx > i);
                   const isSelected = selectedComp === step.id;
+                  
+                  // COLOR LOGIC: Active=Green (#00ff00), Completed=Grey (#808080), Future=White
+                  const textColor = active ? "#00ff00" : done ? "#808080" : "#ffffff";
+                  
                   return (
                     <div key={`step-${step.id}`} onClick={() => { handleJumpToStep(i); setSelectedComp(step.id); }}
-                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "3.5px 5px", borderRadius: 4, fontSize: 11, border: `1px solid ${isSelected ? "rgba(100,60,220,.55)" : active ? "rgba(0,180,80,.30)" : "transparent"}`, background: isSelected ? "rgba(80,30,180,.10)" : active ? "rgba(0,200,80,.06)" : "transparent", color: active ? "#006633" : done ? "rgba(0,100,180,.35)" : T.textDim, marginBottom: 1, transition: "all .2s", cursor: "pointer" }}>
+                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "3.5px 5px", borderRadius: 4, fontSize: 11, border: `1px solid ${isSelected ? "rgba(100,60,220,.55)" : active ? "rgba(0,255,0,.30)" : "transparent"}`, background: isSelected ? "rgba(80,30,180,.10)" : active ? "rgba(0,255,0,.06)" : "transparent", marginBottom: 1, transition: "all .2s", cursor: "pointer" }}>
                       <span style={{ fontSize: 9, color: "rgba(80,120,160,.7)", minWidth: 18, fontWeight: 700 }}>{String(i + 1).padStart(2, "0")}</span>
-                      <span style={{ width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: isSelected ? "#8844ff" : active ? "#00aa55" : done ? "rgba(0,120,200,.25)" : "rgba(120,160,200,.18)", boxShadow: isSelected ? "0 0 5px #8844ff" : active ? "0 0 5px #00aa55" : "none", display: "inline-block" }} />
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: isSelected ? "#8844ff" : active ? "#00ff00" : done ? "#808080" : "rgba(120,160,200,.18)", boxShadow: isSelected ? "0 0 5px #8844ff" : active ? "0 0 5px #00ff00" : "none", display: "inline-block" }} />
                       <span style={{ 
                               flex: 1, 
                               overflow: "hidden", 
                              textOverflow: "ellipsis", 
                              whiteSpace: "nowrap",
-                             color: active ? "#ffffff" : done ? "rgba(255,255,255,0.45)" : "#ffffff",
+                             color: textColor,
                              fontWeight: active ? 700 : 600,
-                            textShadow: active ? "0 0 8px rgba(255,255,255,0.4)" : "none",
+                            textShadow: active ? "0 0 8px rgba(0,255,0,0.4)" : "none",
                             }}>{step.name}</span>
-                      {step.temp != null && <span style={{ fontSize: 9, color: step.temp > 50 ? "#cc4400" : "#0066cc", fontWeight: 800 }}>{step.temp}°</span>}
+                      {step.temp != null && <span style={{ fontSize: 9, color: active ? "#00ff00" : step.temp > 50 ? "#cc4400" : "#0066cc", fontWeight: 800 }}>{step.temp}°</span>}
                     </div>
                   );
                 })}

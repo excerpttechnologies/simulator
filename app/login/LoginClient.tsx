@@ -6,11 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { z } from "zod";
+import { AUTH_STORAGE_KEY } from "@/lib/auth-config";
 
 const loginSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
+  username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
-  remember: z.boolean().optional(),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -35,27 +35,22 @@ export default function LoginClient() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: data.email, password: data.password }),
+        body: JSON.stringify({ username: data.username, password: data.password }),
       });
 
       const json = await res.json();
 
       if (!res.ok) {
-        setServerError(json.message || "Login failed. Please try again.");
+        setServerError(json.message || "Invalid username or password");
         return;
       }
 
+      // Client flag (middleware uses httpOnly JWT cookie smsim_auth)
+      localStorage.setItem(AUTH_STORAGE_KEY, "true");
+
       const destination = !from || from === "/login" || from === "" ? "/" : from;
-      try {
-        const res = await fetch(destination, { method: "GET", credentials: "same-origin" });
-        if (res.ok) {
-          window.location.replace(destination);
-        } else {
-          window.location.replace("/");
-        }
-      } catch (e) {
-        window.location.replace("/");
-      }
+      router.push(destination);
+      router.refresh();
     } catch {
       setServerError("Network error. Please check your connection.");
     }
@@ -121,19 +116,27 @@ export default function LoginClient() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">Email address</label>
-              <input type="email" autoComplete="email" placeholder="you@example.com" {...register("email")}
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
+              <input
+                type="text"
+                autoComplete="username"
+                placeholder="admin"
+                {...register("username")}
                 className={`w-full px-4 py-3 rounded-xl bg-slate-800/80 border text-white placeholder-slate-500
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all
-                  ${errors.email ? "border-red-500/70 focus:ring-red-500" : "border-slate-700 hover:border-slate-600"}`}
+                  ${errors.username ? "border-red-500/70 focus:ring-red-500" : "border-slate-700 hover:border-slate-600"}`}
               />
-              {errors.email && (<p className="mt-1.5 text-xs text-red-400">{errors.email.message}</p>)}
+              {errors.username && (<p className="mt-1.5 text-xs text-red-400">{errors.username.message}</p>)}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
               <div className="relative">
-                <input type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="••••••••" {...register("password")}
+                <input
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  {...register("password")}
                   className={`w-full px-4 py-3 pr-12 rounded-xl bg-slate-800/80 border text-white placeholder-slate-500
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all
                     ${errors.password ? "border-red-500/70 focus:ring-red-500" : "border-slate-700 hover:border-slate-600"}`}
@@ -155,22 +158,6 @@ export default function LoginClient() {
               {errors.password && (<p className="mt-1.5 text-xs text-red-400">{errors.password.message}</p>)}
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2.5 cursor-pointer group">
-                <div className="relative">
-                  <input type="checkbox" {...register("remember")} className="sr-only peer" />
-                  <div className="w-4 h-4 rounded border border-slate-600 bg-slate-800 peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors flex items-center justify-center">
-                    <svg className="w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100 absolute" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <span className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors select-none">Remember me</span>
-              </label>
-
-              <a href="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium">Forgot password?</a>
-            </div>
-
             <button type="submit" disabled={isSubmitting} className="w-full py-3 px-4 rounded-xl font-semibold text-white text-sm bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-950 transition-all duration-200 shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2">
               {isSubmitting ? (
                 <>
@@ -182,7 +169,7 @@ export default function LoginClient() {
                 </>
               ) : (
                 <>
-                  Sign in
+                  Login
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -191,7 +178,6 @@ export default function LoginClient() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">Don&apos;t have an account? <a href="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">Create one</a></p>
           <p className="mt-8 text-center text-xs text-slate-600">© {new Date().getFullYear()} Semantic Skills Junction LLP</p>
         </div>
       </div>

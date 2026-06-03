@@ -23,6 +23,7 @@ export class NarrationManager {
   private isSpeaking = false;
   private enabled = true;
   private lastStepIndex = -1;
+  private currentProcessStepIndex = -1; // Track live process position
   
   constructor(config: NarrationConfig = {}) {
     this.synth = window.speechSynthesis;
@@ -163,6 +164,7 @@ export class NarrationManager {
   public reset() {
     this.stop();
     this.lastStepIndex = -1;
+    this.currentProcessStepIndex = -1; // Reset process position tracking
   }
   
   /** Pause / resume */
@@ -177,11 +179,27 @@ export class NarrationManager {
   /** Enable / disable narration */
   public setEnabled(enabled: boolean) {
     this.enabled = enabled;
-    if (!enabled) this.stop();
+    if (!enabled) {
+      this.stop();
+    } else {
+      // When re-enabling, sync to current process position
+      // The simulation should call updateProcessPosition after setEnabled(true)
+      // to ensure narration starts from the correct step
+    }
   }
   
   public isEnabled(): boolean {
     return this.enabled;
+  }
+  
+  /** Update the current process step index (called by simulation on every step transition) */
+  public updateProcessPosition(stepIndex: number) {
+    this.currentProcessStepIndex = stepIndex;
+  }
+  
+  /** Get the current process position being tracked */
+  public getCurrentProcessStep(): number {
+    return this.currentProcessStepIndex;
   }
   
   /** Set volume/rate dynamically */

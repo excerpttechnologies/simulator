@@ -73,7 +73,12 @@ export function useSimulation(options: UseSimulationOptions = {}): UseSimulation
             // Only resume narration for the current active step (do not restart sequence)
             // Determine the current active step index and play its starting script
             const sim: any = simRef.current;
-            const getStepInfo = typeof sim.getCurrentStepInfo === 'function' ? sim.getCurrentStepInfo.bind(sim) : null;
+            const getStepInfo =
+              typeof sim.getActiveProcessStepInfo === 'function'
+                ? sim.getActiveProcessStepInfo.bind(sim)
+                : typeof sim.getCurrentStepInfo === 'function'
+                  ? sim.getCurrentStepInfo.bind(sim)
+                  : null;
             const activeInfo = getStepInfo ? getStepInfo() : null;
             if (activeInfo && narration.isEnabled && narration.isEnabled()) {
               import('../lib/narrationScripts').then(({ getStepNarration }) => {

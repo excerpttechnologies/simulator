@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 
-const SECRET = process.env.JWT_SECRET!;
+// Set JWT_SECRET in production .env (recommended).
+const SECRET =
+  process.env.JWT_SECRET || "smsim-dev-jwt-secret-change-in-production";
 
 export interface JWTPayload {
   userId: string;

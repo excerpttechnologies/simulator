@@ -140,7 +140,7 @@
 ============================================= */
 .row-key-info { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; width: auto; padding: 12px 12px; max-width: 70%; }
 .key-info-label { font-family: 'Share Tech Mono', monospace; font-size: 16px; color: black; letter-spacing: 2px; margin-bottom: 6px; }
-.key-info-content { font-size: 14px; color: var(--text); line-height: 1.2; }
+.key-info-content { font-size: 12px; color: var(--text); line-height: 1.6; }
 .key-info-content strong { color: black; }
 
 
@@ -1471,35 +1471,25 @@
   width: 100%;
 }
 
-.nm-spc-metrics {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
 /* LEFT SIDE */
 .nm-spc-metrics .left-heading {
+  margin-right: auto;
   text-align: left;
-  flex: 1;
 }
 
-/* RIGHT SIDE */
 .nm-spc-metrics .right-heading {
+  margin-left: auto;
+  margin-right: 462px; /* adjust value */
   text-align: right;
-   padding-right: 20px;
 }
 .nm-spc-metric-chip {
   font-family: 'Share Tech Mono', monospace;
   font-size: 12px;
-  padding: 3px 5px;
+  padding: 3px 9px;
   border-radius: 4px;
   background: var(--panel2);
   color: var(--text2);
   border: 1px solid var(--border2);
-
-  width: fit-content;   /* prevents extra stretching */
-  max-width: max-content;
 }
 
 /* SPC + Offline defect — side by side, equal halves */
@@ -1546,7 +1536,7 @@
 /* Offline defect image card */
 .nm-offline-image-wrapper {
   width: 100%;
-   height: 260px;
+   height: 240px;
   border-radius: 10px;
   overflow: hidden;
   background: var(--panel2);
@@ -1562,14 +1552,13 @@
   height: 100% !important;
   display: block;
   object-fit: fill;
-  margin-top: -6 px;
 }
 
 /* SPC rules section */
 .nm-spc-rules {
   border-top: 1px solid var(--border2);
   padding-top: 10px;
-  margin-top: 6 px;
+  margin-top: 6px;
 }
 
 .nm-rules-label {
@@ -2552,7 +2541,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    margin-top: -10px;
+    margin-top: 4px;
 }
 
 .exf-rc-img-wrap {
@@ -3679,7 +3668,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: -53px;
+  margin-top: -44px;
   position: relative;
   transform: translateX(clamp(8px, 1vw, 15px));
   left: 0;
@@ -3776,12 +3765,12 @@
 /* LOT ID + RECIPE only for FM-002 / FM-003 / FM-004 / FM-005 */
 .new-module-lot-recipe {
   position: absolute;
-  left: 50%;
+  left: 780px;
   top: 390px;   /* little top align */
-  width: 350px;
+  width: 240px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .new-module-lot-recipe .static-info-btn {
@@ -4296,9 +4285,10 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 10px 12px;
-  display: flex;
+  display: column;
   gap: 12px;
   align-items: center;
+  object-fit: contain;
   overflow: hidden;
 }
 
@@ -4319,28 +4309,219 @@
 }
 
 .dev-conc-side-info-box {
-  width: 50%;
-  height: 280px;
-  margin-bottom: -26px;
-
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  background: var(--panel2);
-  padding: 10px 12px;
-
-  font-size: 17px;
+  width: 45%;
+  font-size: 16px;
   line-height: 1.35;
   color: var(--text2);
   overflow: hidden;
 }
 
-.dev-conc-info-title {
-  font-family: 'Orbitron', monospace;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  color: var(--accent);  /* same as dev-info-title */
-  margin-bottom: 4px;
+
+
+
+
+
+
+.nm-chart-title {
+    text-align: left !important;
+}
+
+.nm-chart-header {
+    justify-content: flex-start !important;
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.dev-conc-wafer-image {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    display: block !important;
+    object-fit: contain !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.exhaust-bottom-row {
+    width: 100%;
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.exhaust-bottom-card {
+    flex: 1;                 /* exact 50% + 50% */
+    min-width: 0;
+    height: 362px;
+    margin-top: -16px;
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.exhaust-bottom-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: fill;
+    display: block;
+}
+
+
+
+
+.exhaust-info-card {
+    padding: 20px;
+    background: #f8faff;
+    border: 1px solid #d7dde8;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.exhaust-info-title {
+    margin-bottom: 18px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1d4f91;
+    text-align: center;
+    border-bottom: 2px solid #d7dde8;
+    padding-bottom: 10px;
+}
+
+.exhaust-info-row {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    font-size: 15px;
+    color: #333;
+}
+
+.exhaust-info-row strong {
+    color: #0d3d75;
+}
+
+
+
+.exhaust-full-width-panel {
+    width: 100% !important;
+    grid-column: 1 / -1 !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.static-info-btn {
+    background: #f7fbff !important;
+    border: 1px solid #b9d7f7 !important;
+    border-radius: 8px !important;
+
+    box-shadow:
+        0 2px 8px rgba(0,0,0,0.06),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+
+    transition: all 0.25s ease;
+}
+
+.static-info-btn:hover {
+    border-color: #4a90e2 !important;
+    box-shadow:
+        0 4px 12px rgba(74,144,226,0.15);
+}
+
+.static-info-btn .scenario-text {
+    color: #163d6b !important;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.static-info-btn strong {
+    color: #0066cc;
+    font-weight: 800;
+}
