@@ -2,6 +2,7 @@
 // @ts-nocheck
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react"
+import { useRouter } from "next/navigation"
 import * as THREE from "three"
 import {
   attachAllNamePlates,
@@ -36072,6 +36073,7 @@ function JointPanel({ title, joints, prefix }: { title: string; joints: JointDat
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 
 export default function EFEMSimulator() {
+  const router = useRouter();
   const mountRef = useRef<HTMLDivElement>(null);
   const simRef   = useRef<Sim | null>(null);
   const [simulationState, setSimulationState] = useState<"BOOT"|"INITIALIZING"|"READY"|"RUNNING"|"ERROR">("BOOT");
@@ -36451,7 +36453,7 @@ export default function EFEMSimulator() {
   />
   
   <button
-    onClick={() => window.location.href = "/Failure"}
+    onClick={() => router.push("/Failure")}
     style={{
       padding: "7px 14px",
       borderRadius: 8,
@@ -36470,7 +36472,7 @@ export default function EFEMSimulator() {
   </button>
 
   <button
-    onClick={() => window.location.href = "/Recipe"}
+    onClick={() => router.push("/Recipe")}
     style={{
       padding: "7px 14px",
       borderRadius: 8,

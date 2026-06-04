@@ -2531,7 +2531,7 @@ const Failure: React.FC = () => {
                     <span>SMa<span className="accent">RT</span></span>
                 </div>
                 <div className="nav-links">
-                    <a href="/" className="nav-link">HOME</a>
+                    <button type="button" className="nav-link" onClick={() => router.push("/")}>HOME</button>
                 </div>
                 <div className="nav-right">
                     <span className="status-dot" />
