@@ -24155,6 +24155,12 @@ const IFACE_LOCAL_Z: Record<string, number> = {
   iface_out: 0,
   iface_in:  -0.4,
 };
+// Per-module fine offset along Z to seat the GLB inside its plinth.
+// Positive = push toward +Z (front), negative = pull back into the box.
+const IFACE_GLB_Z_OFFSET: Record<string, number> = {
+  iface_out: -1.0,
+  iface_in:  + 1.4,   // ← tune this (e.g. -0.6) if iface_in still pokes forward
+};
 const DEG = Math.PI / 180;
 const NUM_WAFERS = 1;
 const PLACE_DELAY = 0.3;
@@ -27774,7 +27780,7 @@ if (mod.type === "foup") {
 
   
   
-  const SKIP_FLOATING_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out', 'scanner', 'foup']);
+  const SKIP_FLOATING_LABEL_IDS = new Set(['spindry', 'scanner', 'foup']);
   if (SKIP_FLOATING_LABEL_IDS.has(mod.id)) {
     console.log(`[buildModule] Skipping floating sprite for: ${mod.id}`);
     return grp;     // ← exit early, no floating sprite created
@@ -29858,13 +29864,15 @@ function buildScannerGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      root.position.y = 0 - box.min.y; // align scanner base with floor
+      const SCANNER_FLOOR_DROP = 1.5;   // ← increase to sink the scanner lower
+      root.position.y = 0 - box.min.y - SCANNER_FLOOR_DROP;
       root.updateWorldMatrix(true, true);
       const rootWorldBox = new THREE.Box3().setFromObject(root);
-      const scannerFrontZ = rootWorldBox.min.z;
-      const scannerPickupZ = scannerFrontZ - 0.35;
-      const scannerSlotZ = scannerFrontZ + 0.16;
-      const scannerTunnelZ = scannerFrontZ - 0.14;
+      // Process line sits at +Z relative to scanner — the front face is max.z
+      const scannerFrontZ  = rootWorldBox.max.z;
+      const scannerPickupZ = scannerFrontZ + 0.35;   // slightly proud of front
+      const scannerSlotZ   = scannerFrontZ - 0.67;   // slot frame just inside the face
+      const scannerTunnelZ = scannerFrontZ + 0.14;   // tunnel just outside
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -30090,6 +30098,102 @@ root.traverse((obj) => {
       scannerWaferAnchor.position.set(0, WAFER_TRANSFER_Y, scannerSlotZ);
       placeholder.add(scannerWaferAnchor);
       placeholder.userData.waferAnchor = scannerWaferAnchor;
+
+      // ── Scanner front-face nameplate (parented to placeholder in local space) ──
+      (() => {
+        const CW = 1024, CH = 300;
+        const nc = document.createElement('canvas');
+        nc.width = CW; nc.height = CH;
+        const ctx = nc.getContext('2d')!;
+
+        const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+        metalGrad.addColorStop(0,    '#dde2e8');
+        metalGrad.addColorStop(0.12, '#f0f4f7');
+        metalGrad.addColorStop(0.45, '#c8ced4');
+        metalGrad.addColorStop(0.88, '#e4e8ec');
+        metalGrad.addColorStop(1,    '#adb4bc');
+        ctx.fillStyle = metalGrad;
+        ctx.fillRect(0, 0, CW, CH);
+
+        ctx.globalAlpha = 0.045;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        for (let y = 2; y < CH; y += 3) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+
+        // Bevels
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, CW, 7); ctx.fillRect(0, 0, 7, CH);
+        ctx.fillStyle = '#555c64'; ctx.fillRect(0, CH-7, CW, 7); ctx.fillRect(CW-7, 0, 7, CH);
+
+        const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
+        innerGrad.addColorStop(0,    '#b0b8c0');
+        innerGrad.addColorStop(0.25, '#d0d8de');
+        innerGrad.addColorStop(0.75, '#c8d0d6');
+        innerGrad.addColorStop(1,    '#a0a8b0');
+        ctx.fillStyle = innerGrad;
+        ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+        // Color accent stripe (scanner is magenta/ee00cc)
+        ctx.fillStyle = `rgb(238,0,204)`;
+        ctx.fillRect(11, 11, 14, CH - 22);
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillRect(11, 11, 5, CH - 22);
+
+        // Short code
+        ctx.font = "bold 120px 'Arial Black', Arial, sans-serif";
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillText('SCAN', 48, 168);
+        ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.fillText('SCAN', 46, 166);
+        ctx.fillStyle = '#1a2028'; ctx.fillText('SCAN', 47, 167);
+
+        // Full name
+        ctx.font = "bold 44px Arial, sans-serif";
+        ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillText('Scanner 193nm Exposure', 48, 234);
+        ctx.fillStyle = '#1a2030';          ctx.fillText('Scanner 193nm Exposure', 47, 233);
+
+        // Rivets
+        const drawRivet = (rx: number, ry: number) => {
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          ctx.beginPath(); ctx.arc(rx+2, ry+2, 10, 0, Math.PI*2); ctx.fill();
+          const rg = ctx.createRadialGradient(rx-3, ry-3, 0, rx, ry, 10);
+          rg.addColorStop(0, '#eef2f6'); rg.addColorStop(0.4, '#a8b0b8'); rg.addColorStop(1, '#707880');
+          ctx.fillStyle = rg;
+          ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI*2); ctx.fill();
+        };
+        drawRivet(28, 28); drawRivet(CW-28, 28); drawRivet(28, CH-28); drawRivet(CW-28, CH-28);
+
+        const tex = new THREE.CanvasTexture(nc);
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.anisotropy = 8;
+
+        const plate = new THREE.Mesh(
+          new THREE.PlaneGeometry(4.0, 1.0),
+          new THREE.MeshBasicMaterial({
+            map: tex, transparent: false,
+            depthTest: true, depthWrite: true,
+            side: THREE.DoubleSide,
+          })
+        );
+
+        // ── Stick plate to the -X face (process/FOUP-facing side of scanner) ──
+        // The scanner is at world x=38; the process line is at lower X, so -X is the front.
+        // Use local coordinates: localMinX = rootWorldBox.min.x - placeholder.position.x
+        const localMinX = rootWorldBox.min.x - placeholder.position.x;
+        const PLATE_Y   = WAFER_TRANSFER_Y + 6.5;  // ↑ raise/lower on the face
+        const PLATE_X   = localMinX + 39;         // just proud of the -X face
+        const PLATE_Z   = 0;                         // centered along Z on the face
+        plate.position.set(PLATE_X, PLATE_Y, PLATE_Z);
+        // Rotate so the plate faces -X (toward the process line / FOUP)
+        plate.rotation.set(0, -Math.PI / 2, 0);
+        plate.renderOrder = 100;
+        placeholder.add(plate);
+
+        console.log('[SCANNER NAMEPLATE] x=', PLATE_X.toFixed(2), 'y=', PLATE_Y.toFixed(2));
+      })();
 
       if (onReady) onReady(placeholder);
     },
@@ -30548,6 +30652,124 @@ function buildPostBakeGLB(
 
 
 
+
+
+function buildInterfaceGLB(
+  scene: THREE.Scene,
+  mod: ProcessStep,
+  onReady?: (group: THREE.Group) => void
+): THREE.Group {
+  const placeholder = new THREE.Group();
+
+  // ── Match the plinth nudge so the GLB sits ON its plinth, not in front of it ──
+  const nudgeZ = IFACE_LOCAL_Z[mod.id] ?? 0;
+  placeholder.position.set(mod.x, 0, mod.z + nudgeZ);
+  placeholder.userData.id = mod.id;
+  scene.add(placeholder);
+
+  const loader = new GLTFLoader();
+  loader.load(
+    '/hardbakeglb.glb',
+    (gltf: any) => {
+      const root = gltf.scene as THREE.Group;
+
+      // ── Scale to module footprint ──
+      const tempBox = new THREE.Box3().setFromObject(root);
+      const size = new THREE.Vector3();
+      tempBox.getSize(size);
+      const targetW = 3.0;
+      const currentMax = Math.max(size.x, size.z);
+      const scale = targetW / currentMax;
+      root.scale.setScalar(scale);
+
+      // ── Snap base to module floor ──
+      const box = new THREE.Box3().setFromObject(root);
+      root.position.y = MODULE_FLOOR_Y - box.min.y;
+
+      // ── Recenter X and Z on the model's true center, THEN apply manual tune ──
+      const afterBox = new THREE.Box3().setFromObject(root);
+      const afterCenter = new THREE.Vector3();
+      afterBox.getCenter(afterCenter);
+      root.position.x -= afterCenter.x;
+      root.position.z -= afterCenter.z;
+      // Manual nudge to seat the body inside its plinth (fixes "came forward").
+      root.position.z += IFACE_GLB_Z_OFFSET[mod.id] ?? 0;
+
+      // ── Index named nodes ──
+      const namedParts: Record<string, THREE.Object3D> = {};
+      root.traverse((obj) => {
+        namedParts[obj.name] = obj;
+        if ((obj as THREE.Mesh).isMesh) {
+          obj.castShadow = true;
+          obj.receiveShadow = true;
+          // ── Force all faces visible from every angle ──
+          const mesh = obj as THREE.Mesh;
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          mats.forEach((mat, i) => {
+            if (mat && mat.side !== THREE.DoubleSide) {
+              const clone = (mat as THREE.Material).clone() as THREE.MeshStandardMaterial;
+              clone.side = THREE.DoubleSide;
+              clone.needsUpdate = true;
+              if (Array.isArray(mesh.material)) {
+                (mesh.material as THREE.Material[])[i] = clone;
+              } else {
+                mesh.material = clone;
+              }
+            }
+          });
+        }
+      });
+
+      // ── Resolve IF_in / IF_out handoff nodes from the GLB (if present) ──
+      const ifIn  = namedParts['IF_in']  || namedParts['IFin']  || namedParts['if_in']  || null;
+      const ifOut = namedParts['IF_out'] || namedParts['IFout'] || namedParts['if_out'] || null;
+
+      const lightGreen =
+        namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+      const lightRed =
+        namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+      const scheme = { base: 0x2a2310, emissive: 0xffdd00, light: 0xffee33, pl: 0xffcc00 };
+
+      if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+        const greenMat = new THREE.MeshStandardMaterial({
+          color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+        });
+        (lightGreen as THREE.Mesh).material = greenMat;
+        placeholder.userData.greenLight = greenMat;
+      }
+
+      if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+        const redMat = new THREE.MeshStandardMaterial({
+          color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+        });
+        (lightRed as THREE.Mesh).material = redMat;
+        placeholder.userData.redLight = redMat;
+      }
+
+      if (ifIn)  placeholder.userData.ifIn  = ifIn;
+      if (ifOut) placeholder.userData.ifOut = ifOut;
+
+      const pl = new THREE.PointLight(scheme.pl, 0, 6);
+      pl.position.set(0, 1.2, 0);
+      root.add(pl);
+      placeholder.userData.processLight = pl;
+
+      placeholder.add(root);
+      placeholder.userData.glbRoot = root;
+      placeholder.userData.loaded = true;
+
+      addModuleLabel(placeholder, mod);
+      positionWaferAnchorAboveChuck(placeholder, root);
+
+      if (onReady) onReady(placeholder);
+    },
+    undefined,
+    (err: any) => console.error('Interface GLB failed to load:', err)
+  );
+
+  return placeholder;
+}
 
 
 function buildDIWaterRinseGLB(
@@ -31686,7 +31908,7 @@ function buildPlatform(
 // }
 
 function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
-  const SKIP_LABEL_IDS = new Set(['spindry', 'iface_in', 'iface_out', 'scanner', 'foup']);
+  const SKIP_LABEL_IDS = new Set(['spindry', 'scanner', 'foup']);
   if (SKIP_LABEL_IDS.has(mod.id)) {
     console.log(`[LABEL] Skipping virtual/special module: ${mod.id}`);
     return;
@@ -31881,6 +32103,216 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
 
 
 
+// function addPlinthNameplates(scene: THREE.Scene): void {
+//   ALL_STEPS.forEach((mod) => {
+//     const SKIP_PLINTH_IDS = new Set([
+//       'scanner',  // No floating SCAN plinth plates at scanner row
+//     ]);
+//     if (SKIP_PLINTH_IDS.has(mod.id)) return;
+
+//     const makeNameplateMesh = (): THREE.Mesh => {
+//       const CW = 1024, CH = 300;
+//       const canvas = document.createElement('canvas');
+//       canvas.width = CW;
+//       canvas.height = CH;
+//       const ctx = canvas.getContext('2d')!;
+
+//       const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+//       metalGrad.addColorStop(0,    '#dde2e8');
+//       metalGrad.addColorStop(0.12, '#f0f4f7');
+//       metalGrad.addColorStop(0.45, '#c8ced4');
+//       metalGrad.addColorStop(0.88, '#e4e8ec');
+//       metalGrad.addColorStop(1,    '#adb4bc');
+//       ctx.fillStyle = metalGrad;
+//       ctx.fillRect(0, 0, CW, CH);
+
+//       ctx.globalAlpha = 0.045;
+//       ctx.strokeStyle = '#ffffff';
+//       ctx.lineWidth = 1;
+//       for (let y = 2; y < CH; y += 3) {
+//         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+//       }
+//       ctx.globalAlpha = 1;
+
+//       ctx.fillStyle = '#ffffff';
+//       ctx.fillRect(0, 0, CW, 7);
+//       ctx.fillRect(0, 0, 7, CH);
+//       ctx.fillStyle = '#555c64';
+//       ctx.fillRect(0, CH - 7, CW, 7);
+//       ctx.fillRect(CW - 7, 0, 7, CH);
+
+//       ctx.fillStyle = '#bcc2c8';
+//       ctx.fillRect(7, 7, CW - 14, 4);
+//       ctx.fillRect(7, 7, 4, CH - 14);
+//       ctx.fillStyle = '#888e94';
+//       ctx.fillRect(7, CH - 11, CW - 14, 4);
+//       ctx.fillRect(CW - 11, 7, 4, CH - 14);
+
+//       const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
+//       innerGrad.addColorStop(0,   '#b0b8c0');
+//       innerGrad.addColorStop(0.25,'#d0d8de');
+//       innerGrad.addColorStop(0.75,'#c8d0d6');
+//       innerGrad.addColorStop(1,   '#a0a8b0');
+//       ctx.fillStyle = innerGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+//       const shadowGrad = ctx.createLinearGradient(11, 11, 60, 60);
+//       shadowGrad.addColorStop(0, 'rgba(0,0,0,0.18)');
+//       shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+//       ctx.fillStyle = shadowGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+//       const r = (mod.color >> 16) & 255;
+//       const g = (mod.color >> 8)  & 255;
+//       const b =  mod.color        & 255;
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
+//       ctx.fillRect(11, 11, 24, CH - 22);
+//       ctx.fillStyle = `rgb(${r},${g},${b})`;
+//       ctx.fillRect(11, 11, 14, CH - 22);
+//       ctx.fillStyle = 'rgba(255,255,255,0.5)';
+//       ctx.fillRect(11, 11, 5, CH - 22);
+
+//       const sheenGrad = ctx.createLinearGradient(0, 11, 0, 11 + CH * 0.35);
+//       sheenGrad.addColorStop(0, 'rgba(255,255,255,0.28)');
+//       sheenGrad.addColorStop(1, 'rgba(255,255,255,0)');
+//       ctx.fillStyle = sheenGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH * 0.35);
+
+//       ctx.font = "bold 120px 'Arial Black', Arial, sans-serif";
+//       ctx.textAlign = 'left';
+//       ctx.textBaseline = 'alphabetic';
+//       ctx.fillStyle = 'rgba(0,0,0,0.45)';
+//       ctx.fillText(mod.short, 48, 168);
+//       ctx.fillStyle = 'rgba(255,255,255,0.65)';
+//       ctx.fillText(mod.short, 46, 166);
+//       ctx.fillStyle = '#1a2028';
+//       ctx.fillText(mod.short, 47, 167);
+
+//       const displayName = mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name;
+//       ctx.font = "bold 44px 'Arial', sans-serif";
+//       ctx.textAlign = 'left';
+//       ctx.fillStyle = 'rgba(0,0,0,0.4)';
+//       ctx.fillText(displayName, 48, 234);
+//       ctx.fillStyle = '#1a2030';
+//       ctx.fillText(displayName, 47, 233);
+
+//       if (mod.temp !== null) {
+//         const isHot = mod.temp > 50;
+//         const tempColor = isHot ? '#cc3300' : '#0055bb';
+//         const tempBg    = isHot ? 'rgba(180,40,0,0.13)' : 'rgba(0,60,180,0.13)';
+//         ctx.fillStyle = tempBg;
+//         ctx.beginPath();
+//         ctx.roundRect(CW - 240, 30, 210, 100, 10);
+//         ctx.fill();
+//         ctx.strokeStyle = tempColor;
+//         ctx.lineWidth = 3;
+//         ctx.stroke();
+//         ctx.font = "bold 72px 'Courier New', monospace";
+//         ctx.textAlign = 'center';
+//         ctx.fillStyle = 'rgba(0,0,0,0.35)';
+//         ctx.fillText(`${mod.temp}°C`, CW - 135 + 2, 108);
+//         ctx.fillStyle = 'rgba(255,255,255,0.5)';
+//         ctx.fillText(`${mod.temp}°C`, CW - 135 - 1, 106);
+//         ctx.fillStyle = tempColor;
+//         ctx.fillText(`${mod.temp}°C`, CW - 135, 107);
+//       }
+
+//       const drawRivet = (rx: number, ry: number) => {
+//         ctx.fillStyle = 'rgba(0,0,0,0.3)';
+//         ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
+//         const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
+//         rg.addColorStop(0,   '#eef2f6');
+//         rg.addColorStop(0.4, '#a8b0b8');
+//         rg.addColorStop(1,   '#707880');
+//         ctx.fillStyle = rg;
+//         ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
+//         ctx.strokeStyle = '#505860';
+//         ctx.lineWidth = 2;
+//         ctx.beginPath(); ctx.moveTo(rx - 5, ry); ctx.lineTo(rx + 5, ry); ctx.stroke();
+//         ctx.fillStyle = 'rgba(255,255,255,0.7)';
+//         ctx.beginPath(); ctx.arc(rx - 3, ry - 3, 3.5, 0, Math.PI * 2); ctx.fill();
+//       };
+//       drawRivet(28, 28);
+//       drawRivet(CW - 28, 28);
+//       drawRivet(28, CH - 28);
+//       drawRivet(CW - 28, CH - 28);
+
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.18)`;
+//       ctx.fillRect(11, CH - 38, CW - 22, 27);
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+//       ctx.font = "bold 16px 'Courier New', monospace";
+//       ctx.textAlign = 'center';
+//       ctx.fillText('SMaRT SIMULATOR — PROCESS MODULE', CW / 2, CH - 18);
+
+//       const tex = new THREE.CanvasTexture(canvas);
+//       tex.minFilter = THREE.LinearFilter;
+//       tex.magFilter = THREE.LinearFilter;
+//       tex.anisotropy = 8;
+
+//       const plate = new THREE.Mesh(
+//         new THREE.PlaneGeometry(3.4, 1.4),
+//         new THREE.MeshBasicMaterial({
+//           map: tex,
+//           transparent: false,
+//           depthTest: true,
+//           depthWrite: true,
+//           side: THREE.FrontSide,
+//         })
+//       );
+//       plate.renderOrder = 10;
+//       return plate;
+//     };
+
+//     // ── POSITIONS ──
+//     const PLINTH_H          = 3.2;
+//     const PLINTH_Y0         = -0.5;
+//     const PLATE_Y           = PLINTH_Y0 + PLINTH_H * 0.50;
+//     const FACE_OFFSET       = 2.5;
+
+//     // Interface modules should use the actual module/plinth face offset,
+//     // not the generic step spacing used by the row plates.
+//     const IFACE_FACE_OFFSET = 1.2; // ~half plinth depth (1.7) + clearance
+
+//     const isIface = mod.id === 'iface_in' || mod.id === 'iface_out';
+
+//     // Two FrontSide plates, back-to-back, each facing outward.
+//     const addBackToBack = (centerZ: number) => {
+//       // Plate A: faces +Z direction (readable from +Z side)
+//       const a = makeNameplateMesh();
+//       a.position.set(mod.x, PLATE_Y, centerZ);
+//       a.rotation.y = 0;
+//       scene.add(a);
+
+//       // Plate B: faces -Z direction (readable from -Z side)
+//       const b = makeNameplateMesh();
+//       b.position.set(mod.x, PLATE_Y, centerZ);
+//       b.rotation.y = Math.PI;
+//       scene.add(b);
+//     };
+
+//     if (isIface) {
+//       addBackToBack(mod.z - IFACE_FACE_OFFSET);
+//       addBackToBack(mod.z + IFACE_FACE_OFFSET);
+//     } else if (mod.z < 0) {
+//       // top row
+//       addBackToBack(mod.z + FACE_OFFSET);
+//       addBackToBack(mod.z - FACE_OFFSET);
+//     } else {
+//       // bottom row + center
+//       addBackToBack(mod.z - FACE_OFFSET);
+//       addBackToBack(mod.z + FACE_OFFSET);
+//     }
+//   });}
+
+
+
+
+
+
+// 
+
+
+
 function addPlinthNameplates(scene: THREE.Scene): void {
   ALL_STEPS.forEach((mod) => {
     const SKIP_PLINTH_IDS = new Set([
@@ -31966,34 +32398,16 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       ctx.fillStyle = '#1a2028';
       ctx.fillText(mod.short, 47, 167);
 
-      const displayName = mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name;
+      const displayName = (mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name)
+        .replace(/\s+\d+\s*°\s*C/gi, '')
+        .replace(/\s+\d+°C/gi, '')
+        .trim();
       ctx.font = "bold 44px 'Arial', sans-serif";
       ctx.textAlign = 'left';
       ctx.fillStyle = 'rgba(0,0,0,0.4)';
       ctx.fillText(displayName, 48, 234);
       ctx.fillStyle = '#1a2030';
       ctx.fillText(displayName, 47, 233);
-
-      if (mod.temp !== null) {
-        const isHot = mod.temp > 50;
-        const tempColor = isHot ? '#cc3300' : '#0055bb';
-        const tempBg    = isHot ? 'rgba(180,40,0,0.13)' : 'rgba(0,60,180,0.13)';
-        ctx.fillStyle = tempBg;
-        ctx.beginPath();
-        ctx.roundRect(CW - 240, 30, 210, 100, 10);
-        ctx.fill();
-        ctx.strokeStyle = tempColor;
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        ctx.font = "bold 72px 'Courier New', monospace";
-        ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(0,0,0,0.35)';
-        ctx.fillText(`${mod.temp}°C`, CW - 135 + 2, 108);
-        ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        ctx.fillText(`${mod.temp}°C`, CW - 135 - 1, 106);
-        ctx.fillStyle = tempColor;
-        ctx.fillText(`${mod.temp}°C`, CW - 135, 107);
-      }
 
       const drawRivet = (rx: number, ry: number) => {
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
@@ -32069,6 +32483,7 @@ function addPlinthNameplates(scene: THREE.Scene): void {
     };
 
     if (isIface) {
+      // Both faces — front (outer) and back (inner toward process row)
       addBackToBack(mod.z - IFACE_FACE_OFFSET);
       addBackToBack(mod.z + IFACE_FACE_OFFSET);
     } else if (mod.z < 0) {
@@ -32080,14 +32495,10 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       addBackToBack(mod.z - FACE_OFFSET);
       addBackToBack(mod.z + FACE_OFFSET);
     }
-  });}
+  });
+}
 
 
-
-
-
-
-// 
 
 function addRowLabelBars(scene: THREE.Scene): void {
   const rowLabels = [
@@ -32127,7 +32538,126 @@ function addRowLabelBars(scene: THREE.Scene): void {
     scene.add(plane);
   });
 }
- 
+
+// ── Scanner front-face nameplate ─────────────────────────────────────────────
+function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
+  const mod = ALL_STEPS.find((s) => s.id === 'scanner');
+  if (!mod) return;
+  const grp = modObjs['scanner'];
+  if (!grp) return;
+
+  const CW = 1024, CH = 300;
+  const canvas = document.createElement('canvas');
+  canvas.width = CW;
+  canvas.height = CH;
+  const ctx = canvas.getContext('2d')!;
+
+  // ── Metal plate background ──
+  const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+  metalGrad.addColorStop(0,    '#dde2e8');
+  metalGrad.addColorStop(0.12, '#f0f4f7');
+  metalGrad.addColorStop(0.45, '#c8ced4');
+  metalGrad.addColorStop(0.88, '#e4e8ec');
+  metalGrad.addColorStop(1,    '#adb4bc');
+  ctx.fillStyle = metalGrad;
+  ctx.fillRect(0, 0, CW, CH);
+
+  ctx.globalAlpha = 0.045;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1;
+  for (let y = 2; y < CH; y += 3) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // Bevels
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, CW, 7);
+  ctx.fillRect(0, 0, 7, CH);
+  ctx.fillStyle = '#555c64';
+  ctx.fillRect(0, CH - 7, CW, 7);
+  ctx.fillRect(CW - 7, 0, 7, CH);
+
+  const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
+  innerGrad.addColorStop(0,    '#b0b8c0');
+  innerGrad.addColorStop(0.25, '#d0d8de');
+  innerGrad.addColorStop(0.75, '#c8d0d6');
+  innerGrad.addColorStop(1,    '#a0a8b0');
+  ctx.fillStyle = innerGrad;
+  ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+  // Color accent stripe
+  const r = (mod.color >> 16) & 255;
+  const g = (mod.color >> 8)  & 255;
+  const b =  mod.color        & 255;
+  ctx.fillStyle = `rgb(${r},${g},${b})`;
+  ctx.fillRect(11, 11, 14, CH - 22);
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillRect(11, 11, 5, CH - 22);
+
+  // Short code
+  ctx.font = "bold 120px 'Arial Black', Arial, sans-serif";
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillText(mod.short, 48, 168);
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.fillText(mod.short, 46, 166);
+  ctx.fillStyle = '#1a2028';
+  ctx.fillText(mod.short, 47, 167);
+
+  // Full name
+  const displayName = (mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name)
+    .replace(/\s+\d+\s*°\s*C/gi, '')
+    .replace(/\s+\d+°C/gi, '')
+    .trim();
+  ctx.font = "bold 44px 'Arial', sans-serif";
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fillText(displayName, 48, 234);
+  ctx.fillStyle = '#1a2030';
+  ctx.fillText(displayName, 47, 233);
+
+  // Rivets
+  const drawRivet = (rx: number, ry: number) => {
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
+    const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
+    rg.addColorStop(0,   '#eef2f6');
+    rg.addColorStop(0.4, '#a8b0b8');
+    rg.addColorStop(1,   '#707880');
+    ctx.fillStyle = rg;
+    ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
+  };
+  drawRivet(28, 28);
+  drawRivet(CW - 28, 28);
+  drawRivet(28, CH - 28);
+  drawRivet(CW - 28, CH - 28);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.anisotropy = 8;
+
+  const plate = new THREE.Mesh(
+    new THREE.PlaneGeometry(3.4, 1.0),
+    new THREE.MeshBasicMaterial({
+      map: tex,
+      transparent: false,
+      depthTest: true,
+      depthWrite: true,
+      side: THREE.DoubleSide,
+    })
+  );
+
+  // ── Position on scanner front face (LOCAL coords — tunes here) ──
+  const PLATE_Y  = 2.0;   // height up the front face — raise/lower to taste
+  const FRONT_Z  = -4.2;  // toward the slot/front face (scanner front is −Z side)
+  plate.position.set(0, PLATE_Y, FRONT_Z);
+  plate.rotation.y = Math.PI; // face −Z toward camera/front
+  plate.renderOrder = 50;
+  grp.add(plate);
+}
+
 // ── tiny helper — canvas rounded-rect path ──────────────────────────────────
 function roundRect(
   ctx: CanvasRenderingContext2D,
@@ -32425,6 +32955,8 @@ ALL_STEPS.forEach((mod) => {
     grp = buildDeveloperModuleGLB(this.scene, mod);
   } else if (mod.id === 'scanner') {
     grp = buildScannerGLB(this.scene, mod);
+  } else if (mod.id === 'iface_out' || mod.id === 'iface_in') {
+    grp = buildInterfaceGLB(this.scene, mod);
   } else if (mod.type === 'cold') {
     grp = buildChillPlateGLB(this.scene, mod);
   } else {
