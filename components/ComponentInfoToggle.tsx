@@ -15,10 +15,10 @@ const ComponentInfoToggle: React.FC<Props> = ({ enabled, onToggle }) => {
         gap: '6px',
         padding: '7px 14px',
         background: enabled
-          ? 'linear-gradient(135deg, #0066ee 0%, #0099ff 100%)'
+          ? 'linear-gradient(135deg, #22dd66 0%, #00ee99 100%)'
           : 'rgba(255,255,255,0.95)',
-        color: enabled ? '#fff' : '#0055cc',
-        border: enabled ? '1px solid #0099ff' : '1px solid rgba(0,80,180,0.20)',
+        color: enabled ? '#000' : '#0055cc',
+        border: enabled ? '1px solid #00ee99' : '1px solid rgba(0,80,180,0.20)',
         borderRadius: '8px',
         cursor: 'pointer',
         fontSize: '10px',
@@ -26,7 +26,7 @@ const ComponentInfoToggle: React.FC<Props> = ({ enabled, onToggle }) => {
         letterSpacing: '1.2px',
         transition: 'all 0.2s ease',
         boxShadow: enabled 
-          ? '0 2px 12px rgba(0, 102, 238, 0.4)' 
+          ? '0 2px 12px rgba(34, 221, 102, 0.4)' 
           : '0 2px 8px rgba(0,80,180,0.10)',
       }}
     >
@@ -35,20 +35,26 @@ const ComponentInfoToggle: React.FC<Props> = ({ enabled, onToggle }) => {
           width: '8px',
           height: '8px',
           borderRadius: '50%',
-          background: enabled ? '#fff' : '#0055cc',
-          boxShadow: enabled ? '0 0 6px rgba(255,255,255,0.8)' : 'none',
+          background: enabled ? '#000' : '#0055cc',
+          boxShadow: enabled ? '0 0 6px rgba(34, 221, 102, 0.8)' : 'none',
+          animation: enabled ? 'pulse 1s infinite' : 'none',
         }}
       />
       <span>COMPONENT INFO</span>
       <span
         style={{
           fontSize: '9px',
-          opacity: 0.85,
           fontWeight: 600,
         }}
       >
-        {enabled ? '● ON' : 'OFF'}
+        {enabled ? '● LIVE' : 'OFF'}
       </span>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+      `}</style>
     </button>
   );
 };

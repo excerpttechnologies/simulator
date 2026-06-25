@@ -18,40 +18,150 @@ interface Props {
 const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
   const [info, setInfo] = useState<ComponentInfo | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [isReady, setIsReady] = useState(false);
 
-  // ── Listen for step changes ──
+  // ── Initialize with Step 0 on mount ──
+  useEffect(() => {
+    const initializeStepInfo = () => {
+      if (!simRef.current) return;
+      
+      // Get Step 0 from the simulator
+      const currentStep = simRef.current.getCurrentStepInfo?.();
+      const currentIndex = simRef.current.getCurrentStep?.() ?? 0;
+      
+      if (currentStep) {
+        updateStepInfo(currentIndex, currentStep);
+        setIsReady(true);
+      }
+    };
+
+    // Try to initialize immediately
+    initializeStepInfo();
+    
+    // Also try after a short delay in case sim isn't ready yet
+    const timeout = setTimeout(initializeStepInfo, 100);
+    
+    return () => clearTimeout(timeout);
+  }, [simRef]);
+
+  // ── Update step info from step object ──
+  const updateStepInfo = (idx: number, step: any) => {
+    if (!step) {
+      // Try to get from ALL_STEPS if step object is missing
+      try {
+        if (typeof window !== 'undefined' && (window as any).ALL_STEPS) {
+          const allSteps = (window as any).ALL_STEPS;
+          if (allSteps[idx]) {
+            step = allSteps[idx];
+          }
+        }
+      } catch (e) {
+        console.error('[ComponentInfo] Could not access ALL_STEPS');
+      }
+      
+      if (!step) {
+        setInfo(null);
+        return;
+      }
+    }
+
+    // Parse step info
+    const tempMatch = step.name?.match(/(\d+)°C?/);
+    const temperature = tempMatch ? `${tempMatch[1]}°C` : undefined;
+    const cleanName = tempMatch ? step.name.replace(tempMatch[0], '').trim() : (step.name || 'Unknown');
+
+    const newInfo: ComponentInfo = {
+      stepIndex: idx,
+      stepId: step.id || 'unknown',
+      name: cleanName || 'Process Step',
+      temperature,
+      duration: step.time ?? step.duration ?? 6,
+      type: getStepType(step.id),
+      description: getStepDescription(step.id),
+      status: 'active',
+    };
+
+    setInfo(newInfo);
+    setElapsedTime(0);
+  };
+
+  // ── Listen for step changes from simulation ──
   useEffect(() => {
     const handler = (e: any) => {
-      const step = e.detail.step;
-      const idx = e.detail.currentIndex;
-      if (!step) return;
-
-      // Parse step info
-      const tempMatch = step.name?.match(/(\d+)°C?/);
-      const temperature = tempMatch ? `${tempMatch[1]}°C` : undefined;
-      const cleanName = tempMatch ? step.name.replace(tempMatch[0], '').trim() : step.name;
-
-      setInfo({
-        stepIndex: idx,
-        stepId: step.id,
-        name: cleanName,
-        temperature,
-        duration: step.duration || 6,
-        type: getStepType(step.id),
-        description: getStepDescription(step.id),
-        status: 'active',
-      });
-      setElapsedTime(0);
+      try {
+        const step = e.detail?.step;
+        const idx = e.detail?.index ?? e.detail?.currentIndex;
+        if (step && idx !== undefined) {
+          updateStepInfo(idx, step);
+          setIsReady(true);
+        }
+      } catch (err) {
+        console.error('[ComponentInfo] Event handler error:', err);
+      }
     };
 
-    window.addEventListener('sim:flowchange', handler);
     window.addEventListener('sim:stepchange', handler);
+    window.addEventListener('sim:flowchange', handler);
 
     return () => {
-      window.removeEventListener('sim:flowchange', handler);
       window.removeEventListener('sim:stepchange', handler);
+      window.removeEventListener('sim:flowchange', handler);
     };
   }, []);
+
+  // ── Polling for real-time sync with active processing ──
+  useEffect(() => {
+    const pollInterval = setInterval(() => {
+      if (!simRef.current) return;
+
+      try {
+        // Method 1: Check simulator's navigation step
+        const currentIndex = simRef.current.getCurrentStep?.() ?? 0;
+        const currentStep = simRef.current.getCurrentStepInfo?.();
+        
+        // Method 2: Check for active wafers and their current step
+        let activeWaferStepIdx = -1;
+        try {
+          const wafers = simRef.current.wSMs;
+          if (wafers && Array.isArray(wafers)) {
+            for (const sm of wafers) {
+              if (sm && sm.launched && !sm.done && sm.state === 'processing') {
+                activeWaferStepIdx = sm.stepIdx;
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          // Silent fail - Method 2 optional
+        }
+
+        // Use active wafer step if available, otherwise use navigation step
+        const stepIdxToShow = activeWaferStepIdx >= 0 ? activeWaferStepIdx : currentIndex;
+        
+        // Get the step info
+        let stepToShow = currentStep;
+        try {
+          if (typeof window !== 'undefined' && (window as any).ALL_STEPS) {
+            const allSteps = (window as any).ALL_STEPS;
+            if (allSteps[stepIdxToShow]) {
+              stepToShow = allSteps[stepIdxToShow];
+            }
+          }
+        } catch (e) {
+          // Silent fail
+        }
+
+        // Update if step changed or if we have new step info
+        if (stepToShow && (!info || stepIdxToShow !== info.stepIndex)) {
+          updateStepInfo(stepIdxToShow, stepToShow);
+        }
+      } catch (e) {
+        console.error('[ComponentInfo] Polling error:', e);
+      }
+    }, 50); // Fast polling: 50ms
+
+    return () => clearInterval(pollInterval);
+  }, [info, simRef]);
 
   // ── Tick elapsed time for current step ──
   useEffect(() => {
@@ -60,13 +170,14 @@ const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
     return () => clearInterval(t);
   }, [info?.stepIndex]);
 
-  if (!info) {
+  // ── Render empty state only if sim is loaded but no step yet ──
+  if (!isReady || !info) {
     return (
       <div style={panelStyle}>
         <div style={emptyStyle}>
           <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>⚙</div>
           <div style={{ color: '#556', fontSize: '12px', textAlign: 'center' }}>
-            Waiting for process to start...
+            {isReady ? 'No process information' : 'Initializing...'}
           </div>
         </div>
       </div>
@@ -91,13 +202,13 @@ const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
         </div>
         <div
           style={{
-            color: '#ff9933',
+            color: '#22dd66',
             fontSize: '10px',
             fontWeight: 'bold',
             padding: '2px 8px',
-            background: 'rgba(255, 153, 51, 0.15)',
+            background: 'rgba(34, 221, 102, 0.15)',
             borderRadius: '10px',
-            border: '1px solid rgba(255, 153, 51, 0.3)',
+            border: '1px solid rgba(34, 221, 102, 0.3)',
           }}
         >
           ● LIVE
@@ -130,7 +241,7 @@ const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
             fontWeight: 'bold',
           }}
         >
-          {info.name}
+          {info.name || 'Process Step'}
         </div>
       </div>
 
@@ -154,7 +265,7 @@ const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
         {/* Duration */}
         <InfoRow
           label="DURATION"
-          value={`${info.duration}s`}
+          value={`${info.duration || 0}s`}
           valueColor="#fff"
           icon="⏱"
         />
@@ -180,7 +291,7 @@ const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
           >
             <span>PROGRESS</span>
             <span style={{ color: '#22dd66' }}>
-              {(progress * 100).toFixed(0)}%
+              {isNaN(progress) ? '0' : (progress * 100).toFixed(0)}%
             </span>
           </div>
           <div
@@ -195,7 +306,7 @@ const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
             <div
               style={{
                 height: '100%',
-                width: `${progress * 100}%`,
+                width: `${isNaN(progress) ? 0 : progress * 100}%`,
                 background: 'linear-gradient(90deg, #22dd66 0%, #33ddff 100%)',
                 transition: 'width 0.1s linear',
                 boxShadow: '0 0 8px rgba(51, 221, 255, 0.5)',
@@ -221,6 +332,22 @@ const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
             {info.description}
           </div>
         )}
+        
+        {/* Status line */}
+        <div
+          style={{
+            marginTop: '12px',
+            padding: '8px 0',
+            borderTop: '1px solid rgba(26, 42, 58, 0.5)',
+            fontSize: '10px',
+            color: '#22dd66',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            letterSpacing: '0.5px',
+          }}
+        >
+          ✓ ACTIVELY MONITORING
+        </div>
       </div>
     </div>
   );
@@ -277,21 +404,25 @@ function InfoRow({
 function getStepType(stepId: string): string {
   const map: Record<string, string> = {
     foup: 'INPUT',
+    dehy: 'HOT PROCESS',
     dehydration: 'HOT PROCESS',
     hmds: 'VAPOR PRIME',
     chill1: 'COLD PROCESS',
+    prcoat: 'COATING',
     pr_coat: 'COATING',
     pab: 'HOT PROCESS',
     chill2: 'COLD PROCESS',
+    iface_out: 'TRANSFER',
     iface_in: 'TRANSFER',
     scanner: 'EXPOSURE',
-    iface_out: 'TRANSFER',
     peb: 'HOT PROCESS',
+    develop: 'DEVELOP',
     developer: 'DEVELOP',
     rinse: 'RINSE',
     spindry: 'DRY',
     chill3: 'COLD PROCESS',
     hardbake: 'HOT PROCESS',
+    output: 'OUTPUT',
   };
   return map[stepId] || 'PROCESS';
 }
@@ -299,23 +430,27 @@ function getStepType(stepId: string): string {
 function getStepDescription(stepId: string): string {
   const map: Record<string, string> = {
     foup: 'Wafer loaded from Front Opening Unified Pod cassette.',
-    dehydration: 'High-temperature bake to remove moisture from wafer surface.',
-    hmds: 'Hexamethyldisilazane vapor prime improves resist adhesion.',
-    chill1: 'Cool wafer to room temperature before coating.',
+    dehy: 'Dehydration bake at 150°C to remove moisture from wafer surface.',
+    dehydration: 'Dehydration bake to remove moisture from wafer surface.',
+    hmds: 'HMDS vapor prime at 110°C improves photoresist adhesion.',
+    chill1: 'Cool wafer to room temperature (22°C) before coating.',
+    prcoat: 'Photoresist applied via spin coating at 1500-3000 RPM.',
     pr_coat: 'Photoresist applied via spin coating at controlled RPM.',
-    pab: 'Post-Apply Bake to evaporate solvents from resist.',
-    chill2: 'Stabilize wafer temperature before exposure.',
-    iface_in: 'Robot transfer to scanner interface.',
-    scanner: '193nm DUV exposure pattern projection.',
-    iface_out: 'Robot transfer from scanner back to track.',
-    peb: 'Post-Exposure Bake activates chemical amplification.',
-    developer: 'Develop liquid dissolves exposed (or unexposed) resist.',
-    rinse: 'DI water rinse to remove developer residue.',
-    spindry: 'High-speed spin + N₂ purge to dry the wafer.',
-    chill3: 'Final cooling stage.',
-    hardbake: 'Hard bake to stabilize resist pattern.',
+    pab: 'Post-Apply Bake at 90°C to evaporate solvents from resist film.',
+    chill2: 'Cool to 22°C to stabilize wafer temperature before scanner transfer.',
+    iface_out: 'Robot transfer from track to scanner interface.',
+    iface_in: 'Robot transfer from scanner interface back to track.',
+    scanner: '193nm DUV ArF exposure pattern projection.',
+    peb: 'Post-Exposure Bake at 120°C activates CAR resist chemistry.',
+    develop: 'Developer module: TMAH puddle dissolves exposed resist.',
+    developer: 'Develop liquid dissolves exposed (or unexposed) photoresist.',
+    rinse: 'DI water rinse to remove developer residue and stop dissolution.',
+    spindry: 'High-speed spin (4000 RPM) + N₂ purge to dry the wafer.',
+    chill3: 'Final cooling stage to 22°C for hard bake preparation.',
+    hardbake: 'Hard bake at 130°C to stabilize and cross-link resist pattern.',
+    output: 'Wafer transferred to output FOUP for final delivery.',
   };
-  return map[stepId] || 'Process step in semiconductor lithography track.';
+  return map[stepId] || 'Process step in 300mm photolithography track.';
 }
 
 // ── Styles ──

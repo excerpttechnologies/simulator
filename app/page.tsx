@@ -4970,7 +4970,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   { id: "chill3",    name: "Chill Plate #3  22°C",    short: "CP-3", temp: 22,   time: 3, color: 0x22ddbb, type: "cold",  x: -6,  z: BOT_Z },
 //   { id: "hardbake",  name: "Hard Bake  130°C",        short: "HBAK", temp: 130,  time: 5, color: 0xff1100, type: "hot",   x: -11, z: BOT_Z },
 // ];
- 
+
 // const WAFER_COLORS = [0xffaa00, 0x00eeff, 0xdd44ff, 0x44ffaa];
 // const WAFER_NAMES  = ["W-001", "W-002", "W-003", "W-004"];
 // const W_CSS        = ["#ffaa00", "#00eeff", "#dd44ff", "#44ffaa"];
@@ -5213,10 +5213,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   // Bright cleanroom background — light blue-white
 //   scene.background = new THREE.Color(0xc8d8e8);
 //   scene.fog = new THREE.FogExp2(0xc8d8e8, 0.0035);
- 
+
 //   scene.add(new THREE.AmbientLight(0xffffff, 2.2));
 //   scene.add(new THREE.HemisphereLight(0xffffff, 0xa8b8c8, 1.8));
- 
+
 //   const key = new THREE.DirectionalLight(0xffffff, 4.5);
 //   key.position.set(-4, 35, 12);
 //   key.castShadow = true;
@@ -5226,11 +5226,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   key.shadow.camera.top = 35;  key.shadow.camera.bottom = -35;
 //   key.shadow.bias = -0.0002;   key.shadow.normalBias = 0.015;
 //   scene.add(key);
- 
+
 //   const fill1 = new THREE.DirectionalLight(0xeef4ff, 2.0); fill1.position.set(12, 20, -8);   scene.add(fill1);
 //   const fill2 = new THREE.DirectionalLight(0xddeeff, 1.4); fill2.position.set(32, 14, -18);  scene.add(fill2);
 //   const rim   = new THREE.DirectionalLight(0x88aacc, 0.6); rim.position.set(-12, 5, -30);    scene.add(rim);
- 
+
 //   // Soft floor accent lights along the belts
 //   const TOP_Z = -5.5, BOT_Z = 5.5;
 //   [TOP_Z, BOT_Z].forEach((z) => {
@@ -5241,10 +5241,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     }
 //   });
 // }
- 
- 
+
+
 // // ─── 2. ENVIRONMENT — clean light floor with subtle grid (replaces buildEnv) ─
- 
+
 // function buildEnv(scene: THREE.Scene) {
 //   // CLEAN LIGHT BLUE FLOOR — like reference image
 //   const flMat = new THREE.MeshStandardMaterial({
@@ -5258,7 +5258,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   fl.position.y = -0.52;
 //   fl.receiveShadow = true;
 //   scene.add(fl);
- 
+
 //   // SUBTLE LIGHT GRID — thin lines, low contrast, matches image
 //   const gridCanvas = document.createElement("canvas");
 //   gridCanvas.width = 1024;
@@ -5282,12 +5282,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     gCtx.lineTo(1024, y);
 //     gCtx.stroke();
 //   }
- 
+
 //   const gridTex = new THREE.CanvasTexture(gridCanvas);
 //   gridTex.wrapS = THREE.RepeatWrapping;
 //   gridTex.wrapT = THREE.RepeatWrapping;
 //   gridTex.repeat.set(6, 3);
- 
+
 //   const grid = new THREE.Mesh(
 //     new THREE.PlaneGeometry(180, 90),
 //     new THREE.MeshBasicMaterial({
@@ -5300,7 +5300,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   grid.rotation.x = -Math.PI / 2;
 //   grid.position.y = -0.5;
 //   scene.add(grid);
- 
+
 //   // Subtle floor highlights (the bright spots in image)
 //   for (let i = 0; i < 8; i++) {
 //     const spot = new THREE.Mesh(
@@ -5320,7 +5320,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     );
 //     scene.add(spot);
 //   }
- 
+
 //   // Dark navy back wall (matches reference top strip)
 //   const wallMat = new THREE.MeshStandardMaterial({
 //     color: 0x1a2838,
@@ -5330,7 +5330,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   const wall = new THREE.Mesh(new THREE.PlaneGeometry(180, 8), wallMat);
 //   wall.position.set(6, 4, -32);
 //   scene.add(wall);
- 
+
 //   // Lighter blue wall above the dark strip
 //   const wallUpper = new THREE.Mesh(
 //     new THREE.PlaneGeometry(180, 22),
@@ -5338,10 +5338,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   );
 //   wallUpper.position.set(6, 19, -32);
 //   scene.add(wallUpper);
- 
+
 //   // ── NO ceiling, NO hex panels — keeps the open clean look ──
 // }
- 
+
 
 // // ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 
@@ -5363,15 +5363,15 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   rollers: THREE.Mesh[] = [];
 //   beltOffset = 0;
 //   beltLength: number;
- 
+
 //   constructor(scene: THREE.Scene, startX: number, endX: number, z: number, color: number) {
 //     this.beltLength = Math.abs(endX - startX);
 //     const centerX = (startX + endX) / 2;
- 
+
 //     // ── LOW BELT, sits at floor-ish level, BESIDE modules ──
 //     const LEG_H  = 0.18;             // very short legs
 //     const BELT_Y = LEG_H + 0.04;     // surface around y=0.22 — well below module chuck (~0.93)
- 
+
 //     // Short legs
 //     const legMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.3, metalness: 0.85 });
 //     const legSpacing = this.beltLength / 5;
@@ -5383,7 +5383,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         scene.add(leg);
 //       });
 //     }
- 
+
 //     // Side rails — clean white/grey to match reference
 //     const railMat = new THREE.MeshStandardMaterial({
 //       color: 0xc8d4e0,
@@ -5397,7 +5397,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       rail.position.set(centerX, BELT_Y + 0.03, z + zOff);
 //       scene.add(rail);
 //     });
- 
+
 //     // Belt surface — light coloured, animated stripe texture
 //     const beltCanvas = document.createElement("canvas");
 //     beltCanvas.width = 512; beltCanvas.height = 64;
@@ -5406,7 +5406,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     const beltTex = new THREE.CanvasTexture(beltCanvas);
 //     beltTex.wrapS = THREE.RepeatWrapping; beltTex.wrapT = THREE.RepeatWrapping;
 //     beltTex.repeat.set(this.beltLength / 2, 1);
- 
+
 //     const beltMesh = new THREE.Mesh(
 //       new THREE.BoxGeometry(this.beltLength, 0.04, 0.95),
 //       new THREE.MeshStandardMaterial({
@@ -5426,7 +5426,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     beltMesh.receiveShadow = true;
 //     scene.add(beltMesh);
 //     this.beltSegments.push(beltMesh);
- 
+
 //     // Bright glow strip BELOW belt — gives the neon-line look from reference
 //     const glowStrip = new THREE.Mesh(
 //       new THREE.BoxGeometry(this.beltLength, 0.025, 0.18),
@@ -5441,7 +5441,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     );
 //     glowStrip.position.set(centerX, BELT_Y - 0.03, z);
 //     scene.add(glowStrip);
- 
+
 //     // Animated stripe markers (sliding along belt)
 //     const stripeMat = new THREE.MeshStandardMaterial({
 //       color,
@@ -5461,7 +5461,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       scene.add(stripe);
 //       this.rollers.push(stripe);
 //     }
- 
+
 //     // End rollers
 //     const rollerMat = new THREE.MeshStandardMaterial({
 //       color: 0xb0c0d0,
@@ -5475,7 +5475,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       scene.add(roller);
 //     });
 //   }
- 
+
 //   private _drawBelt(ctx: CanvasRenderingContext2D, offset: number, color: number) {
 //     ctx.clearRect(0, 0, 512, 64);
 //     // Lighter belt base — matches clean cleanroom feel
@@ -5485,7 +5485,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     grad.addColorStop(1, "#dde6f0");
 //     ctx.fillStyle = grad;
 //     ctx.fillRect(0, 0, 512, 64);
- 
+
 //     const css = `#${color.toString(16).padStart(6, "0")}`;
 //     ctx.strokeStyle = css; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.55;
 //     const spacing = 56;
@@ -5493,14 +5493,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 18, 64); ctx.stroke();
 //     }
 //     ctx.globalAlpha = 1;
- 
+
 //     // Edge accents
 //     ctx.strokeStyle = css; ctx.lineWidth = 2; ctx.globalAlpha = 0.7;
 //     ctx.beginPath(); ctx.moveTo(0, 4); ctx.lineTo(512, 4); ctx.stroke();
 //     ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(512, 60); ctx.stroke();
 //     ctx.globalAlpha = 1;
 //   }
- 
+
 //   tick(dt: number, speed: number, direction = 1) {
 //     this.beltOffset += dt * speed * direction * 32;
 //     this.rollers.forEach((stripe) => {
@@ -5530,28 +5530,28 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   vel: { vx: number; vy: number; vz: number; life: number }[];
 //   colors: Float32Array;
 //   baseColor: THREE.Color;
-  
+
 //   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n: number, sz = 0.07) {
 //     this.n = n; 
 //     this.origin = pos.clone(); 
 //     this.active = false;
 //     this.baseColor = new THREE.Color(color);
-    
+
 //     const pa = new Float32Array(n * 3); 
 //     this.colors = new Float32Array(n * 3);
 //     this.vel = [];
-    
+
 //     for (let i = 0; i < n; i++) {
 //       pa[i * 3]     = pos.x + (Math.random() - 0.5) * 0.9;
 //       pa[i * 3 + 1] = pos.y + 0.5;
 //       pa[i * 3 + 2] = pos.z + (Math.random() - 0.5) * 0.9;
-      
+
 //       // Color variation
 //       const shade = 0.7 + Math.random() * 0.3;
 //       this.colors[i * 3] = this.baseColor.r * shade;
 //       this.colors[i * 3 + 1] = this.baseColor.g * shade;
 //       this.colors[i * 3 + 2] = this.baseColor.b * shade;
-      
+
 //       this.vel.push({ 
 //         vx: (Math.random() - 0.5) * 0.55, 
 //         vy: 0.6 + Math.random() * 1.2, 
@@ -5559,11 +5559,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         life: Math.random() 
 //       });
 //     }
-    
+
 //     this.geo = new THREE.BufferGeometry();
 //     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
 //     this.geo.setAttribute("color", new THREE.BufferAttribute(this.colors, 3));
-    
+
 //     this.mat = new THREE.PointsMaterial({ 
 //       size: sz, 
 //       transparent: true, 
@@ -5573,7 +5573,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       depthWrite: false,
 //       vertexColors: true,
 //     });
-    
+
 //     this.pts = new THREE.Points(this.geo, this.mat);
 //     this.pts.visible = false; 
 //     scene.add(this.pts);
@@ -5584,7 +5584,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.active = true; 
 //     this.pts.visible = true; 
 //   }
-  
+
 //   off() { 
 //     this.active = false; 
 //     this.pts.visible = false; 
@@ -5595,17 +5595,17 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     if (!this.active) return;
 //     const pa = this.geo.attributes.position.array as Float32Array;
 //     const ca = this.geo.attributes.color.array as Float32Array;
-    
+
 //     for (let i = 0; i < this.n; i++) {
 //       const v = this.vel[i]; 
 //       v.life += dt * spd * 0.6;
-      
+
 //       // Color pulsing
 //       const pulse = 0.5 + 0.5 * Math.sin(v.life * 8);
 //       ca[i * 3] = this.baseColor.r * (0.5 + pulse * 0.5);
 //       ca[i * 3 + 1] = this.baseColor.g * (0.3 + pulse * 0.7);
 //       ca[i * 3 + 2] = this.baseColor.b * (0.7 + pulse * 0.3);
-      
+
 //       if (v.life > 1.2) {
 //         v.life = 0;
 //         pa[i * 3]     = this.origin.x + (Math.random() - 0.5) * 0.9;
@@ -5621,7 +5621,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         v.vy -= 0.15 * dt * spd;
 //       }
 //     }
-    
+
 //     this.geo.attributes.position.needsUpdate = true;
 //     this.geo.attributes.color.needsUpdate = true;
 //   }
@@ -5637,13 +5637,13 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   active = false;
 //   vel: { vy: number; life: number; ox: number; oz: number; size: number }[] = [];
 //   sizes: Float32Array;
- 
+
 //   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n = 80) {
 //     this.n = n;
 //     this.origin = pos.clone();
 //     const pa = new Float32Array(n * 3);
 //     this.sizes = new Float32Array(n);
- 
+
 //   for (let i = 0; i < n; i++) {
 //   pa[i * 3] = pos.x;
 //   pa[i * 3 + 1] = pos.y;
@@ -5657,10 +5657,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     size: 0.06 + Math.random() * 0.04,
 //   });
 // }
- 
+
 //     this.geo = new THREE.BufferGeometry();
 //     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
- 
+
 //     const mat = new THREE.PointsMaterial({
 //     color,
 //     size: 0.10,                              // smaller particles (was 0.22)
@@ -5674,18 +5674,18 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.pts.visible = false;
 //     scene.add(this.pts);
 //   }
- 
+
 //   on()  { this.active = true;  this.pts.visible = true;  }
 //   off() { this.active = false; this.pts.visible = false; }
- 
+
 //   tick(dt: number, spd: number) {
 //     if (!this.active) return;
 //     const pa = this.geo.attributes.position.array as Float32Array;
- 
+
 //     for (let i = 0; i < this.n; i++) {
 //       const v = this.vel[i];
 //       v.life += dt * spd * 0.55;
- 
+
 //       if (v.life > 1.8) {
 //         // Respawn AT the module top
 //         v.life = 0;
@@ -5702,7 +5702,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.geo.attributes.position.needsUpdate = true;
 //   }
 // }
- 
+
 // // ─── HMDS VAPOR (swirling fog inside chamber) ────────────────────────────────
 
 // class HMDSFog {
@@ -5739,7 +5739,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.active = true; 
 //     this.group.visible = true; 
 //   }
-  
+
 //   off() { 
 //     this.active = false; 
 //     this.group.visible = false; 
@@ -5836,12 +5836,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //     gCtx.lineTo(1024, y); 
 // //     gCtx.stroke();
 // //   }
-  
+
 // //   const gridTex = new THREE.CanvasTexture(gridCanvas);
 // //   gridTex.wrapS = THREE.RepeatWrapping;
 // //   gridTex.wrapT = THREE.RepeatWrapping;
 // //   gridTex.repeat.set(3, 3);
-  
+
 // //   const grid = new THREE.Mesh(
 // //     new THREE.PlaneGeometry(180, 90),
 // //     new THREE.MeshStandardMaterial({ 
@@ -6407,7 +6407,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     }
 //   }
 // }
- 
+
 
 // // ─── MODULE BUILDER ───────────────────────────────────────────────────────────
 
@@ -6735,60 +6735,60 @@ import { ProfileMenu } from '../components/ProfileMenu';
 
 // // function buildRobot(scene: THREE.Scene, basePos: THREE.Vector3, robotColor = 0x445566, ledColor = 0x00ff88): RobotObject {
 // //   const g = new THREE.Group(); g.position.copy(basePos);
- 
+
 // //   const M_BODY  = new THREE.MeshStandardMaterial({ color: robotColor, roughness: 0.22, metalness: 0.88 });
 // //   const M_JOINT = new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.16, metalness: 0.92 });
 // //   const M_LED   = matEmissive(ledColor, 2.5);
 // //   const M_ALUM  = new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 });
 // //   const M_DARK  = matPBR(0x151820, 0.35, 0.88);
- 
+
 // //   const addM = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0): THREE.Mesh => {
 // //     const m = new THREE.Mesh(geo, mat);
 // //     m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
 // //     parent.add(m); return m;
 // //   };
- 
+
 // //   addM(g, new THREE.CylinderGeometry(0.65, 0.82, 0.22, 32), M_ALUM.clone(), 0, 0.11, 0);
 // //   addM(g, new THREE.CylinderGeometry(0.55, 0.65, 0.62, 32), M_BODY.clone(), 0, 0.52, 0);
 // //   const ledRing = addM(g, new THREE.TorusGeometry(0.53, 0.028, 8, 48), M_LED.clone(), 0, 0.8, 0);
 // //   ledRing.rotation.x = Math.PI / 2;
- 
+
 // //   const turret = new THREE.Group(); turret.position.set(0, 0.8, 0); g.add(turret);
 // //   addM(turret, new THREE.CylinderGeometry(0.42, 0.46, 0.40, 24), M_BODY.clone(), 0, 0.20, 0);
 // //   addM(turret, new THREE.CylinderGeometry(0.30, 0.30, 0.24, 18), M_JOINT.clone(), 0, 0.42, 0);
- 
+
 // //   const shoulder = new THREE.Group(); shoulder.position.set(0, 0.44, 0); turret.add(shoulder);
 // //   addM(shoulder, new THREE.BoxGeometry(1.28, 0.70, 1.08), M_BODY.clone(), 0, 0, 0);
 // //   addM(shoulder, new THREE.CylinderGeometry(0.44, 0.44, 1.14, 18), M_JOINT.clone(), 0, 0, 0);
- 
+
 // //   const upperArm = new THREE.Group(); upperArm.position.set(0, 0.38, 0); shoulder.add(upperArm);
 // //   addM(upperArm, new THREE.BoxGeometry(0.74, 2.3, 0.65), M_BODY.clone(), 0, 1.15, 0);
 // //   for (let i = 0; i < 4; i++) addM(upperArm, new THREE.BoxGeometry(0.76, 0.075, 0.67), M_DARK.clone(), 0, 0.3 + i * 0.6, 0);
 // //   addM(upperArm, new THREE.BoxGeometry(0.12, 2.0, 0.09), M_ALUM.clone(), 0.32, 1.15, 0.30);
- 
+
 // //   const elbow = new THREE.Group(); elbow.position.set(0, 2.34, 0); upperArm.add(elbow);
 // //   addM(elbow, new THREE.SphereGeometry(0.44, 28, 18), M_JOINT.clone(), 0, 0, 0);
 // //   addM(elbow, new THREE.CylinderGeometry(0.36, 0.36, 1.14, 18), M_BODY.clone(), 0, 0, 0);
- 
+
 // //   const foreArm = new THREE.Group(); elbow.add(foreArm);
 // //   addM(foreArm, new THREE.BoxGeometry(0.6, 1.80, 0.52), M_BODY.clone(), 0, 0.90, 0);
 // //   for (let i = 0; i < 2; i++) addM(foreArm, new THREE.BoxGeometry(0.62, 0.065, 0.54), M_DARK.clone(), 0, 0.25 + i * 0.72, 0);
 // //   addM(foreArm, new THREE.BoxGeometry(0.10, 1.55, 0.08), M_ALUM.clone(), 0.26, 0.90, 0.22);
- 
+
 // //   const wrist = new THREE.Group(); wrist.position.set(0, 1.84, 0); foreArm.add(wrist);
 // //   addM(wrist, new THREE.CylinderGeometry(0.30, 0.34, 0.60, 28), M_JOINT.clone(), 0, 0, 0);
- 
+
 // //   const gripper = new THREE.Group(); gripper.position.set(0, 0.36, 0); wrist.add(gripper);
 // //   addM(gripper, new THREE.BoxGeometry(0.48, 0.40, 0.48), M_BODY.clone(), 0, 0.20, 0);
 // //   addM(gripper, new THREE.CylinderGeometry(0.22, 0.24, 0.18, 18), M_JOINT.clone(), 0, 0.40, 0);
- 
+
 // //   const bladeMat = new THREE.MeshStandardMaterial({ color: 0xd8e4ef, roughness: 0.04, metalness: 0.98 });
 // //   addM(gripper, new THREE.BoxGeometry(1.72, 0.028, 0.68), bladeMat, 0.86, 0.44, 0);
 // //   [-0.28, 0.28].forEach((tz) => addM(gripper, new THREE.BoxGeometry(0.52, 0.022, 0.08), bladeMat, 1.82, 0.44, tz));
 // //   [0.5, 1.1, 1.6].forEach((bx) => addM(gripper, new THREE.CylinderGeometry(0.055, 0.055, 0.035, 12),
 // //     new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3, metalness: 0.7 }), bx, 0.456, 0));
 // //   addM(gripper, new THREE.SphereGeometry(0.045, 8, 8), M_LED.clone(), 0, 0.44, 0.30);
- 
+
 // //   const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
 // //   statusPL.position.set(0, 2.4, 0); g.add(statusPL);
 
@@ -6805,55 +6805,55 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   const dz = tgt.z - baseWP.z;
 // //   const yaw = Math.atan2(dx, dz);
 // //   turret.rotation.set(0, yaw, 0);
-  
+
 // //   // Robot geometry constants
 // //   const L1 = 2.34;
 // //   const L2 = 1.84;
 // //   const shoulderOffset = 0.44;
 // //   const wristToGrip = 0.84;
-  
+
 // //   // Convert target to turret local space
 // //   const localTgt = turret.worldToLocal(tgt.clone());
-  
+
 // //   // Determine if this is a pick/place operation (lower height)
 // //   const isPickPlace = Math.abs(localTgt.y - 0.93) < 0.2;
 // //   const wristTargetY = localTgt.y + wristToGrip - (isPickPlace ? 0.15 : 0);
 // //   const wristR = Math.sqrt(localTgt.x * localTgt.x + localTgt.z * localTgt.z);
 // //   const sx = wristR;
 // //   const sy = wristTargetY - shoulderOffset;
-  
+
 // //   // Calculate distance from shoulder to wrist
 // //   let D = Math.sqrt(sx * sx + sy * sy);
 // //   D = Math.min(D, L1 + L2 - 0.05);
 // //   D = Math.max(D, Math.abs(L1 - L2) + 0.05);
-  
+
 // //   // Law of cosines for elbow angle
 // //   const cosElbow = (D * D - L1 * L1 - L2 * L2) / (2 * L1 * L2);
 // //   const elbowAngle = Math.acos(Math.min(1, Math.max(-1, cosElbow)));
-  
+
 // //   // Law of cosines for shoulder angle
 // //   const cosShoulder = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
 // //   const shoulderInner = Math.acos(Math.min(1, Math.max(-1, cosShoulder)));
 // //   const targetAngle = Math.atan2(sx, sy);
-  
+
 // //   // Apply joint angles
 // //   let shoulderAngle = targetAngle - shoulderInner;
 // //   shoulderAngle = Math.min(Math.max(shoulderAngle, -Math.PI / 2.5), Math.PI / 2);
 // //   shoulder.rotation.set(shoulderAngle, 0, 0);
-  
+
 // //   let elbowAngleValue = -(Math.PI - elbowAngle);
 // //   elbowAngleValue = Math.min(Math.max(elbowAngleValue, -Math.PI / 1.8), 0);
 // //   elbow.rotation.set(elbowAngleValue, 0, 0);
-  
+
 // //   // Keep blade horizontal
 // //   const cumulativePitch = shoulder.rotation.x + elbow.rotation.x;
 // //   let wristAngle = -cumulativePitch;
-  
+
 // //   // Add micro-adjustments for pick/place
 // //   if (isPickPlace) {
 // //     wristAngle += Math.sin(Date.now() * 0.008) * 0.02;
 // //   }
-  
+
 // //   wrist.rotation.set(wristAngle, 0, 0);
 // // }
 
@@ -6866,7 +6866,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   if (!rob.group.userData.smoothTarget) {
 // //     rob.group.userData.smoothTarget = tgt.clone();
 // //   }
-  
+
 // //   const smoothFactor = 0.15;
 // //   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
 // //   rob.runIK(rob.group.userData.smoothTarget);
@@ -6907,14 +6907,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   this.carrierRobot = robot;
 // //   this.scene.remove(this.mesh);
 // //   robot.gripper.add(this.mesh);
-  
+
 // //   // Position wafer ON TOP of the blade
 // //   // Blade extends in +X, surface at y=0.44 from gripper origin
 // //   // Wafer should sit at y=0.5 to be slightly above blade surface
 // //   this.mesh.position.set(0.86, 0.5, 0);
 // //   this.mesh.rotation.set(0, 0, 0);
 // //   this.onConveyor = false;
-  
+
 // //   // Visual feedback - flash the wafer
 // //   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
 // //   if (pr) {
@@ -6927,7 +6927,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //       mat.emissiveIntensity = origEmissive;
 // //     }, 200);
 // //   }
-  
+
 // //   // Also flash the robot's LED
 // //   robot.statusPL.intensity = 3.0;
 // //   setTimeout(() => {
@@ -6938,23 +6938,23 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // // // Replace detachAt in WaferStateMachine:
 // // detachAt(worldPos: THREE.Vector3) {
 // //   if (!this.carrierRobot) return;
-  
+
 // //   // Store reference to robot before detaching
 // //   const robot = this.carrierRobot;
-  
+
 // //   // Remove from robot gripper
 // //   robot.gripper.remove(this.mesh);
 // //   this.scene.add(this.mesh);
-  
+
 // //   // Position at module chuck height (y=0.93 for wafer chuck)
 // //   this.mesh.position.copy(worldPos);
 // //   this.mesh.position.y = 0.93; // Chuck surface height
-  
+
 // //   // Slight rotation for visual interest
 // //   this.mesh.rotation.y = Math.random() * Math.PI * 2;
-  
+
 // //   this.carrierRobot = null;
-  
+
 // //   // Visual feedback - impact flash
 // //   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
 // //   if (pr) {
@@ -6966,7 +6966,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //       mat.emissiveIntensity = 0.7;
 // //     }, 250);
 // //   }
-  
+
 // //   // Flash the module's LED
 // //   const modObj = (window as any).currentModule?.userData;
 // //   if (modObj?.processLight) {
@@ -6984,14 +6984,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   if (!rob.group.userData.smoothTarget) {
 // //     rob.group.userData.smoothTarget = tgt.clone();
 // //   }
-  
+
 // //   // Interpolate target for smoother motion
 // //   const smoothFactor = 0.15;
 // //   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
-  
+
 // //   // Run IK with smoothed target
 // //   rob.runIK(rob.group.userData.smoothTarget);
-  
+
 // //   // Add subtle floating motion when idle (not carrying wafer)
 // //   const carried = (rob.group.userData.carriedWafer !== undefined);
 // //   if (!carried && rob.group.userData.isIdle) {
@@ -7038,7 +7038,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   robots.forEach(({ r, phase, mult }) => {
 // //     const carried = findCarried(r);
 // //     r.group.userData.isIdle = !carried;
-    
+
 // //     const tgt = carried
 // //       ? new THREE.Vector3(
 // //           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].x,
@@ -7046,12 +7046,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].z
 // //         )
 // //       : idleTgt(r, phase);
-      
+
 // //     this._driveRobotTo(r, tgt, dt, mult);
 
 // //     // Pulsing status LED
 // //     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8 + phase);
-    
+
 // //     // Add trailing particles when moving with wafer (optional)
 // //     if (carried && !r.group.userData.trailParticles) {
 // //       // Create particle trail for moving wafer
@@ -7098,34 +7098,34 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   const startPos = sm.mesh.position.clone();
 // //   const startTime = this.simTime;
 // //   const endTime = startTime + duration;
-  
+
 // //   const animate = () => {
 // //     const now = this.simTime;
 // //     if (now >= endTime) {
 // //       // Animation complete
 // //       return;
 // //     }
-    
+
 // //     const t = (now - startTime) / duration;
 // //     // Ease in-out curve
 // //     const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    
+
 // //     // Interpolate position with arc
 // //     const currentPos = startPos.clone().lerp(targetPos, ease);
 // //     currentPos.y = startPos.y + Math.sin(Math.PI * ease) * 0.15; // Arc motion
-    
+
 // //     sm.mesh.position.copy(currentPos);
-    
+
 // //     // Slight rotation during pick/place
 // //     sm.mesh.rotation.y = ease * Math.PI * 0.5;
-    
+
 // //     requestAnimationFrame(() => animate());
 // //   };
-  
+
 // //   animate();
 // // }
 // // */
- 
+
 // //   function getJoints(): JointData {
 // //     return {
 // //       base:     { c: turret.rotation.y },
@@ -7134,7 +7134,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //       wrist:    { c: wrist.rotation.x },
 // //     };
 // //   }
- 
+
 // //   scene.add(g);
 // //   return {
 // //     group: g, turret, shoulder, upperArm, elbow, foreArm, wrist, gripper, statusPL,
@@ -8466,9 +8466,9 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   nc.width = CW; nc.height = CH;
 //   const ctx = nc.getContext("2d")!;
 //   ctx.clearRect(0, 0, CW, CH);
- 
+
 //   const col = hex2css(mod.color);
- 
+
 //   // ── pick style by module type ──────────────────────────────────────────────
 //   const styleMap: Record<string, string> = {
 //     hot:   "engraved",
@@ -8481,7 +8481,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     foup:  "carbon",
 //   };
 //   const style = styleMap[mod.type] ?? "industrial";
- 
+
 //   // ── shared rounded-rect path helper ───────────────────────────────────────
 //   function rr(x: number, y: number, w: number, h: number, r: number): void {
 //     ctx.beginPath();
@@ -8496,13 +8496,13 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     ctx.quadraticCurveTo(x, y, x + r, y);
 //     ctx.closePath();
 //   }
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   if (style === "industrial") {
 //     // ── A: INDUSTRIAL STENCIL — hazard stripes, warning corners ──────────
 //     ctx.fillStyle = "#0d1520";
 //     ctx.fillRect(0, 0, CW, CH);
- 
+
 //     // diagonal stripe bg
 //     ctx.save();
 //     ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = 0.07;
@@ -8510,31 +8510,31 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + CH, CH); ctx.stroke();
 //     }
 //     ctx.restore();
- 
+
 //     // hazard corner squares
 //     const sq = 22;
 //     [[0,0],[CW-sq,0],[0,CH-sq],[CW-sq,CH-sq]].forEach(([x,y],i) => {
 //       ctx.fillStyle = i % 2 === 0 ? "#f5c542" : "#e88800";
 //       ctx.fillRect(x, y, sq, sq);
 //     });
- 
+
 //     // double border
 //     ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.globalAlpha = 1;
 //     ctx.strokeRect(5, 5, CW - 10, CH - 10);
 //     ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 0.8;
 //     ctx.strokeRect(10, 10, CW - 20, CH - 20);
- 
+
 //     // short code
 //     ctx.fillStyle = col; ctx.font = "bold 60px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 12;
 //     ctx.fillText(mod.short, 30, CH * 0.41);
- 
+
 //     // full name
 //     ctx.shadowBlur = 0; ctx.fillStyle = "#aaccdd";
 //     ctx.font = "bold 18px Arial,sans-serif";
 //     ctx.fillText(mod.name, 30, CH * 0.74);
- 
+
 //     // temp — right
 //     if (mod.temp !== null) {
 //       ctx.fillStyle = mod.temp > 50 ? "#ff4422" : "#22aaff";
@@ -8542,14 +8542,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.textAlign = "right";
 //       ctx.fillText(mod.temp + "°C", CW - 28, CH * 0.41);
 //     }
- 
+
 //     // status dots
 //     ctx.textAlign = "left";
 //     for (let i = 0; i < 5; i++) {
 //       ctx.fillStyle = i < 2 ? col : "#1e3040";
 //       ctx.beginPath(); ctx.arc(30 + i * 15, CH - 18, 4.5, 0, Math.PI * 2); ctx.fill();
 //     }
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else if (style === "holographic") {
 //     // ── B: HOLOGRAPHIC FOIL — iridescent shimmer, foil border ────────────
@@ -8557,81 +8557,81 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.fillStyle = f; ctx.fillRect(0, i * (CH / 5), CW, CH / 5 + 2);
 //     });
 //     ctx.fillStyle = "rgba(6,12,24,0.76)"; ctx.fillRect(0, 0, CW, CH);
- 
+
 //     ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.strokeRect(3, 3, CW - 6, CH - 6);
 //     ctx.strokeStyle = "rgba(255,255,255,0.20)"; ctx.lineWidth = 0.6;
 //     ctx.strokeRect(7, 7, CW - 14, CH - 14);
- 
+
 //     [[16,16],[CW-16,16],[16,CH-16],[CW-16,CH-16]].forEach(([x,y]) => {
 //       ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4);
 //       ctx.fillStyle = col; ctx.globalAlpha = 0.55;
 //       ctx.fillRect(-5, -5, 10, 10); ctx.restore(); ctx.globalAlpha = 1;
 //     });
- 
+
 //     ctx.fillStyle = "#ffffff"; ctx.font = "bold 54px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 22;
 //     ctx.fillText(mod.short, 28, CH * 0.40);
- 
+
 //     ctx.shadowBlur = 0; ctx.fillStyle = col; ctx.globalAlpha = 0.6;
 //     ctx.fillRect(28, CH * 0.58, ctx.measureText(mod.short).width, 2);
 //     ctx.globalAlpha = 1;
- 
+
 //     ctx.fillStyle = "#c8e4f4"; ctx.font = "500 18px Arial,sans-serif";
 //     ctx.fillText(mod.name, 28, CH * 0.77);
- 
+
 //     if (mod.temp !== null) {
 //       ctx.fillStyle = mod.temp > 50 ? "#ff6644" : "#44ccff";
 //       ctx.font = "bold 17px 'Courier New',monospace";
 //       ctx.textAlign = "right";
 //       ctx.fillText(mod.temp + "°C", CW - 24, CH * 0.40);
 //     }
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else if (style === "blueprint") {
 //     // ── C: BLUEPRINT TECHNICAL — navy grid, title block, crosshairs ──────
 //     ctx.fillStyle = "#0a1a3a"; ctx.fillRect(0, 0, CW, CH);
- 
+
 //     ctx.strokeStyle = "rgba(100,160,255,0.12)"; ctx.lineWidth = 0.8;
 //     for (let x = 0; x < CW; x += 24) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CH); ctx.stroke(); }
 //     for (let y = 0; y < CH; y += 24) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
- 
+
 //     ctx.strokeStyle = "rgba(200,220,255,0.55)"; ctx.lineWidth = 1.5;
 //     ctx.strokeRect(4, 4, CW - 8, CH - 8);
- 
+
 //     const divX = CW - 140;
 //     ctx.strokeStyle = "rgba(200,220,255,0.35)"; ctx.lineWidth = 0.8;
 //     ctx.beginPath(); ctx.moveTo(divX, 4); ctx.lineTo(divX, CH - 4); ctx.stroke();
 //     ctx.beginPath(); ctx.moveTo(divX, CH / 2); ctx.lineTo(CW - 4, CH / 2); ctx.stroke();
- 
+
 //     const tk = 14;
 //     [[4,4],[CW-4,4],[4,CH-4],[CW-4,CH-4]].forEach(([x,y]) => {
 //       ctx.beginPath(); ctx.moveTo(x+tk,y); ctx.lineTo(x,y); ctx.lineTo(x,y+tk); ctx.stroke();
 //       ctx.beginPath(); ctx.moveTo(x-tk,y); ctx.lineTo(x,y); ctx.lineTo(x,y-tk); ctx.stroke();
 //     });
- 
+
 //     ctx.fillStyle = "#e8f4ff"; ctx.font = "bold 58px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 8;
 //     ctx.fillText(mod.short, 22, CH * 0.42);
- 
+
 //     ctx.shadowBlur = 0; ctx.fillStyle = "rgba(160,200,255,0.80)";
 //     ctx.font = "bold 16px 'Courier New',monospace";
 //     ctx.fillText(mod.name.toUpperCase(), 22, CH * 0.76);
- 
+
 //     ctx.fillStyle = col; ctx.font = "bold 13px 'Courier New',monospace";
 //     ctx.textAlign = "center";
 //     ctx.fillText(mod.type.toUpperCase(), divX + 70, CH * 0.28);
- 
+
 //     if (mod.temp !== null) {
 //       ctx.fillStyle = mod.temp > 50 ? "#ff8866" : "#66ccff";
 //       ctx.font = "bold 18px 'Courier New',monospace";
 //       ctx.fillText(mod.temp + "°C", divX + 70, CH * 0.74);
 //     }
- 
+
 //     ctx.fillStyle = "rgba(100,160,255,0.45)"; ctx.font = "10px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.fillText("REF: SIM-MODULE", 22, CH - 14);
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else if (style === "carbon") {
 //     // ── D: CARBON FIBER BADGE — woven texture, brushed stripe, pill badge ─
@@ -8645,26 +8645,26 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         ctx.fillRect(col2 * cell + 1, row * cell + 1, cell - 2, 2);
 //       }
 //     }
- 
+
 //     const strW = 56;
 //     ctx.fillStyle = "#1e1e1e"; ctx.fillRect(0, 0, strW, CH);
 //     ctx.strokeStyle = "rgba(255,255,255,0.07)"; ctx.lineWidth = 0.7;
 //     for (let y = 2; y < CH; y += 4) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(strW,y); ctx.stroke(); }
 //     ctx.fillStyle = col; ctx.fillRect(0, 0, 6, CH);
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 1.2;
 //     ctx.strokeRect(1, 1, CW - 2, CH - 2);
 //     ctx.strokeStyle = "rgba(0,0,0,0.6)"; ctx.lineWidth = 1;
 //     ctx.strokeRect(3, 3, CW - 6, CH - 6);
- 
+
 //     ctx.fillStyle = "#ffffff"; ctx.font = "bold 60px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 14;
 //     ctx.fillText(mod.short, strW + 18, CH * 0.40); ctx.shadowBlur = 0;
- 
+
 //     ctx.fillStyle = "rgba(200,210,220,0.85)"; ctx.font = "500 18px Arial,sans-serif";
 //     ctx.fillText(mod.name, strW + 18, CH * 0.74);
- 
+
 //     if (mod.temp !== null) {
 //       const bc = mod.temp > 50 ? "#cc2200" : "#0066bb";
 //       const bW = 68, bH = 26, bx = CW - bW - 18, by = (CH - bH) / 2;
@@ -8673,21 +8673,21 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.textAlign = "center"; ctx.textBaseline = "middle";
 //       ctx.fillText(mod.temp + "°C", bx + bW / 2, by + bH / 2);
 //     }
- 
+
 //     ctx.fillStyle = col; ctx.globalAlpha = 0.7;
 //     ctx.font = "bold 8px 'Courier New',monospace";
 //     ctx.textAlign = "center"; ctx.textBaseline = "middle";
 //     ctx.fillText(mod.type.toUpperCase(), strW / 2, CH / 2);
 //     ctx.globalAlpha = 1;
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else if (style === "neon") {
 //     // ── E: NEON GLOW SIGN — pure black, triple-glow, scanlines ───────────
 //     ctx.fillStyle = "#000000"; ctx.fillRect(0, 0, CW, CH);
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.028)"; ctx.lineWidth = 1;
 //     for (let y = 0; y < CH; y += 3) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
- 
+
 //     [14, 7, 3].forEach((blur, i) => {
 //       ctx.strokeStyle = col; ctx.lineWidth = [1, 1.5, 2][i];
 //       ctx.globalAlpha = [0.25, 0.45, 0.85][i];
@@ -8695,10 +8695,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       rr(6, 6, CW - 12, CH - 12, 10); ctx.stroke();
 //     });
 //     ctx.globalAlpha = 1; ctx.shadowBlur = 0;
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.08)"; ctx.lineWidth = 0.5;
 //     rr(12, 12, CW - 24, CH - 24, 8); ctx.stroke();
- 
+
 //     [40, 18, 6].forEach((blur, i) => {
 //       ctx.fillStyle = i === 2 ? "#ffffff" : col;
 //       ctx.font = "bold 62px 'Courier New',monospace";
@@ -8708,43 +8708,43 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.fillText(mod.short, 28, CH * 0.40);
 //     });
 //     ctx.globalAlpha = 1;
- 
+
 //     ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.globalAlpha = 0.4;
 //     ctx.shadowColor = col; ctx.shadowBlur = 6;
 //     ctx.beginPath(); ctx.moveTo(28, CH * 0.58); ctx.lineTo(CW - 28, CH * 0.58); ctx.stroke();
 //     ctx.globalAlpha = 1; ctx.shadowBlur = 0;
- 
+
 //     ctx.fillStyle = col; ctx.globalAlpha = 0.75;
 //     ctx.font = "bold 18px Arial,sans-serif";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 8;
 //     ctx.fillText(mod.name, 28, CH * 0.77);
 //     ctx.globalAlpha = 1; ctx.shadowBlur = 0;
- 
+
 //     if (mod.temp !== null) {
 //       const bc = mod.temp > 50 ? "#ff4400" : "#00aaff";
 //       ctx.fillStyle = bc; ctx.shadowColor = bc; ctx.shadowBlur = 12;
 //       ctx.font = "bold 18px 'Courier New',monospace"; ctx.textAlign = "right";
 //       ctx.fillText(mod.temp + "°C", CW - 28, CH * 0.40); ctx.shadowBlur = 0;
 //     }
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else {
 //     // ── F: ENGRAVED METAL PLATE — brushed aluminium, rivets, bevel ───────
 //     ctx.fillStyle = "#c8cdd2"; ctx.fillRect(0, 0, CW, CH);
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 0.6;
 //     for (let y = 0; y < CH; y += 2.5) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
 //     ctx.strokeStyle = "rgba(0,0,0,0.08)"; ctx.lineWidth = 0.4;
 //     for (let y = 1.2; y < CH; y += 2.5) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2; ctx.strokeRect(1,1,CW-2,CH-2);
 //     ctx.strokeStyle = "rgba(0,0,0,0.25)"; ctx.lineWidth = 2; ctx.strokeRect(4,4,CW-8,CH-8);
 //     ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 1; ctx.strokeRect(6,6,CW-12,CH-12);
- 
+
 //     ctx.fillStyle = col; ctx.globalAlpha = 0.7;
 //     ctx.fillRect(6, 6, CW - 12, 8); ctx.globalAlpha = 1;
- 
+
 //     [[16,20],[CW-16,20],[16,CH-20],[CW-16,CH-20]].forEach(([x,y]) => {
 //       ctx.fillStyle = "#a0a5aa";
 //       ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI * 2); ctx.fill();
@@ -8752,7 +8752,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.fillStyle = "rgba(255,255,255,0.5)";
 //       ctx.beginPath(); ctx.arc(x - 1.5, y - 1.5, 2, 0, Math.PI * 2); ctx.fill();
 //     });
- 
+
 //     ctx.fillStyle = "rgba(30,35,40,0.82)";
 //     ctx.font = "bold 60px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
@@ -8763,14 +8763,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     ctx.shadowOffsetX = -1; ctx.shadowOffsetY = -1;
 //     ctx.fillText(mod.short, 32, CH * 0.41);
 //     ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
- 
+
 //     ctx.fillStyle = "rgba(30,35,40,0.75)";
 //     ctx.font = "bold 17px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
 //     ctx.fillText(mod.name.toUpperCase(), 32, CH * 0.74);
 //     ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
- 
+
 //     if (mod.temp !== null) {
 //       ctx.fillStyle = mod.temp > 50 ? "rgba(160,30,10,0.75)" : "rgba(10,60,130,0.65)";
 //       ctx.font = "bold 17px 'Courier New',monospace";
@@ -8779,18 +8779,18 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.fillText(mod.temp + "°C", CW - 32, CH * 0.41);
 //       ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 //     }
- 
+
 //     ctx.fillStyle = "rgba(60,70,80,0.45)";
 //     ctx.font = "9px 'Courier New',monospace";
 //     ctx.textAlign = "right"; ctx.textBaseline = "middle";
 //     ctx.fillText("SN: " + mod.short + "-" + (Math.abs(mod.color) % 9000 + 1000), CW - 28, CH - 16);
 //   }
- 
+
 //   // ── build texture + flat floor plane ──────────────────────────────────────
 //   const tex = new THREE.CanvasTexture(nc);
 //   tex.minFilter = THREE.LinearFilter;
 //   tex.magFilter = THREE.LinearFilter;
- 
+
 //   const plane = new THREE.Mesh(
 //     new THREE.PlaneGeometry(4.5, 1.4),
 //     new THREE.MeshBasicMaterial({
@@ -8801,17 +8801,17 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       side: THREE.DoubleSide,
 //     })
 //   );
- 
+
 //   plane.rotation.x = -Math.PI / 2;          // lie flat on XZ
 //   plane.position.y  = -0.48;                 // just above floor
 //   plane.position.z  = mod.z < 0 ? -2.2 : 2.2; // beside module
 //   plane.position.x  = 0;
 //   plane.renderOrder = 2;
- 
+
 //   grp.add(plane);
 //   grp.userData.nameLabel = plane;
 // }
- 
+
 // // ── tiny helper — canvas rounded-rect path ──────────────────────────────────
 // function roundRect(
 //   ctx: CanvasRenderingContext2D,
@@ -9061,7 +9061,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     // Belts on the OUTER side of each track (away from camera centre)
 //     // this.conveyorTop = new ConveyorBelt(this.scene, -22, 27, TOP_Z + 2.6, 0x0099ff);
 //     // this.conveyorBot = new ConveyorBelt(this.scene, -22, 27, BOT_Z - 2.6, 0x00cc66);
- 
+
 //     // Robots — sit on the INNER side of each track (toward z=0), so the belt
 //     // is on one side and the robot reaches modules from the other.
 //   buildRobotGLB(this.scene, new THREE.Vector3( 2, -0.52, 0 ), 0x00d8ff, 3, (r) => {
@@ -9661,7 +9661,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   sm.timer += sDt;
 // //   const robot = this._getCarrierForStep(sm.stepIdx);
 // //   if (!robot) { sm.state = "idle"; return; }
-  
+
 // //   const railX = robot.group.userData.railX ?? robot.basePos.x;
 // //   const picked = (sm as any)._picked;
 // //   const pickupX = (sm as any)._pickupX;
@@ -10061,7 +10061,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         if (pl) pl.intensity = isActive ? 3.0 + 1.2 * Math.abs(Math.sin(this.simTime * 4)) : 0.3;
 //       };
 //       animateDIWaterRinse();
-    
+
 
 //       const animatePostBake = () => {
 //         const grp = this.modObjs['peb'];
@@ -10838,7 +10838,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   { id: "chill3",    name: "Chill Plate #3  22°C",    short: "CP-3", temp: 22,   time: 3, color: 0x22ddbb, type: "cold",  x: -6,  z: BOT_Z },
 //   { id: "hardbake",  name: "Hard Bake  130°C",        short: "HBAK", temp: 130,  time: 5, color: 0xff1100, type: "hot",   x: -11, z: BOT_Z },
 // ];
- 
+
 // const WAFER_COLORS = [0xffaa00, 0x00eeff, 0xdd44ff, 0x44ffaa];
 // const WAFER_NAMES  = ["W-001", "W-002", "W-003", "W-004"];
 // const W_CSS        = ["#ffaa00", "#00eeff", "#dd44ff", "#44ffaa"];
@@ -11089,10 +11089,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   // Bright cleanroom background — light blue-white
 //   scene.background = new THREE.Color(0xc8d8e8);
 //   scene.fog = new THREE.FogExp2(0xc8d8e8, 0.0035);
- 
+
 //   scene.add(new THREE.AmbientLight(0xffffff, 2.2));
 //   scene.add(new THREE.HemisphereLight(0xffffff, 0xa8b8c8, 1.8));
- 
+
 //   const key = new THREE.DirectionalLight(0xffffff, 4.5);
 //   key.position.set(-4, 35, 12);
 //   key.castShadow = true;
@@ -11102,11 +11102,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   key.shadow.camera.top = 35;  key.shadow.camera.bottom = -35;
 //   key.shadow.bias = -0.0002;   key.shadow.normalBias = 0.015;
 //   scene.add(key);
- 
+
 //   const fill1 = new THREE.DirectionalLight(0xeef4ff, 2.0); fill1.position.set(12, 20, -8);   scene.add(fill1);
 //   const fill2 = new THREE.DirectionalLight(0xddeeff, 1.4); fill2.position.set(32, 14, -18);  scene.add(fill2);
 //   const rim   = new THREE.DirectionalLight(0x88aacc, 0.6); rim.position.set(-12, 5, -30);    scene.add(rim);
- 
+
 //   // Soft floor accent lights along the belts
 //   const TOP_Z = -5.5, BOT_Z = 5.5;
 //   [TOP_Z, BOT_Z].forEach((z) => {
@@ -11117,10 +11117,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     }
 //   });
 // }
- 
- 
+
+
 // // ─── 2. ENVIRONMENT — clean light floor with subtle grid (replaces buildEnv) ─
- 
+
 // function buildEnv(scene: THREE.Scene) {
 //   // CLEAN LIGHT BLUE FLOOR — like reference image
 //   const flMat = new THREE.MeshStandardMaterial({
@@ -11134,7 +11134,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   fl.position.y = -0.52;
 //   fl.receiveShadow = true;
 //   scene.add(fl);
- 
+
 //   // SUBTLE LIGHT GRID — thin lines, low contrast, matches image
 //   const gridCanvas = document.createElement("canvas");
 //   gridCanvas.width = 1024;
@@ -11158,12 +11158,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     gCtx.lineTo(1024, y);
 //     gCtx.stroke();
 //   }
- 
+
 //   const gridTex = new THREE.CanvasTexture(gridCanvas);
 //   gridTex.wrapS = THREE.RepeatWrapping;
 //   gridTex.wrapT = THREE.RepeatWrapping;
 //   gridTex.repeat.set(6, 3);
- 
+
 //   const grid = new THREE.Mesh(
 //     new THREE.PlaneGeometry(180, 90),
 //     new THREE.MeshBasicMaterial({
@@ -11176,7 +11176,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   grid.rotation.x = -Math.PI / 2;
 //   grid.position.y = -0.5;
 //   scene.add(grid);
- 
+
 //   // Subtle floor highlights (the bright spots in image)
 //   for (let i = 0; i < 8; i++) {
 //     const spot = new THREE.Mesh(
@@ -11196,7 +11196,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     );
 //     scene.add(spot);
 //   }
- 
+
 //   // Dark navy back wall (matches reference top strip)
 //   const wallMat = new THREE.MeshStandardMaterial({
 //     color: 0x1a2838,
@@ -11206,7 +11206,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   const wall = new THREE.Mesh(new THREE.PlaneGeometry(180, 8), wallMat);
 //   wall.position.set(6, 4, -32);
 //   scene.add(wall);
- 
+
 //   // Lighter blue wall above the dark strip
 //   const wallUpper = new THREE.Mesh(
 //     new THREE.PlaneGeometry(180, 22),
@@ -11214,10 +11214,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   );
 //   wallUpper.position.set(6, 19, -32);
 //   scene.add(wallUpper);
- 
+
 //   // ── NO ceiling, NO hex panels — keeps the open clean look ──
 // }
- 
+
 
 // // ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 
@@ -11239,15 +11239,15 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   rollers: THREE.Mesh[] = [];
 //   beltOffset = 0;
 //   beltLength: number;
- 
+
 //   constructor(scene: THREE.Scene, startX: number, endX: number, z: number, color: number) {
 //     this.beltLength = Math.abs(endX - startX);
 //     const centerX = (startX + endX) / 2;
- 
+
 //     // ── LOW BELT, sits at floor-ish level, BESIDE modules ──
 //     const LEG_H  = 0.18;             // very short legs
 //     const BELT_Y = LEG_H + 0.04;     // surface around y=0.22 — well below module chuck (~0.93)
- 
+
 //     // Short legs
 //     const legMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.3, metalness: 0.85 });
 //     const legSpacing = this.beltLength / 5;
@@ -11259,7 +11259,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         scene.add(leg);
 //       });
 //     }
- 
+
 //     // Side rails — clean white/grey to match reference
 //     const railMat = new THREE.MeshStandardMaterial({
 //       color: 0xc8d4e0,
@@ -11273,7 +11273,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       rail.position.set(centerX, BELT_Y + 0.03, z + zOff);
 //       scene.add(rail);
 //     });
- 
+
 //     // Belt surface — light coloured, animated stripe texture
 //     const beltCanvas = document.createElement("canvas");
 //     beltCanvas.width = 512; beltCanvas.height = 64;
@@ -11282,7 +11282,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     const beltTex = new THREE.CanvasTexture(beltCanvas);
 //     beltTex.wrapS = THREE.RepeatWrapping; beltTex.wrapT = THREE.RepeatWrapping;
 //     beltTex.repeat.set(this.beltLength / 2, 1);
- 
+
 //     const beltMesh = new THREE.Mesh(
 //       new THREE.BoxGeometry(this.beltLength, 0.04, 0.95),
 //       new THREE.MeshStandardMaterial({
@@ -11302,7 +11302,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     beltMesh.receiveShadow = true;
 //     scene.add(beltMesh);
 //     this.beltSegments.push(beltMesh);
- 
+
 //     // Bright glow strip BELOW belt — gives the neon-line look from reference
 //     const glowStrip = new THREE.Mesh(
 //       new THREE.BoxGeometry(this.beltLength, 0.025, 0.18),
@@ -11317,7 +11317,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     );
 //     glowStrip.position.set(centerX, BELT_Y - 0.03, z);
 //     scene.add(glowStrip);
- 
+
 //     // Animated stripe markers (sliding along belt)
 //     const stripeMat = new THREE.MeshStandardMaterial({
 //       color,
@@ -11337,7 +11337,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       scene.add(stripe);
 //       this.rollers.push(stripe);
 //     }
- 
+
 //     // End rollers
 //     const rollerMat = new THREE.MeshStandardMaterial({
 //       color: 0xb0c0d0,
@@ -11351,7 +11351,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       scene.add(roller);
 //     });
 //   }
- 
+
 //   private _drawBelt(ctx: CanvasRenderingContext2D, offset: number, color: number) {
 //     ctx.clearRect(0, 0, 512, 64);
 //     // Lighter belt base — matches clean cleanroom feel
@@ -11361,7 +11361,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     grad.addColorStop(1, "#dde6f0");
 //     ctx.fillStyle = grad;
 //     ctx.fillRect(0, 0, 512, 64);
- 
+
 //     const css = `#${color.toString(16).padStart(6, "0")}`;
 //     ctx.strokeStyle = css; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.55;
 //     const spacing = 56;
@@ -11369,14 +11369,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 18, 64); ctx.stroke();
 //     }
 //     ctx.globalAlpha = 1;
- 
+
 //     // Edge accents
 //     ctx.strokeStyle = css; ctx.lineWidth = 2; ctx.globalAlpha = 0.7;
 //     ctx.beginPath(); ctx.moveTo(0, 4); ctx.lineTo(512, 4); ctx.stroke();
 //     ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(512, 60); ctx.stroke();
 //     ctx.globalAlpha = 1;
 //   }
- 
+
 //   tick(dt: number, speed: number, direction = 1) {
 //     this.beltOffset += dt * speed * direction * 32;
 //     this.rollers.forEach((stripe) => {
@@ -11406,28 +11406,28 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   vel: { vx: number; vy: number; vz: number; life: number }[];
 //   colors: Float32Array;
 //   baseColor: THREE.Color;
-  
+
 //   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n: number, sz = 0.07) {
 //     this.n = n; 
 //     this.origin = pos.clone(); 
 //     this.active = false;
 //     this.baseColor = new THREE.Color(color);
-    
+
 //     const pa = new Float32Array(n * 3); 
 //     this.colors = new Float32Array(n * 3);
 //     this.vel = [];
-    
+
 //     for (let i = 0; i < n; i++) {
 //       pa[i * 3]     = pos.x + (Math.random() - 0.5) * 0.9;
 //       pa[i * 3 + 1] = pos.y + 0.5;
 //       pa[i * 3 + 2] = pos.z + (Math.random() - 0.5) * 0.9;
-      
+
 //       // Color variation
 //       const shade = 0.7 + Math.random() * 0.3;
 //       this.colors[i * 3] = this.baseColor.r * shade;
 //       this.colors[i * 3 + 1] = this.baseColor.g * shade;
 //       this.colors[i * 3 + 2] = this.baseColor.b * shade;
-      
+
 //       this.vel.push({ 
 //         vx: (Math.random() - 0.5) * 0.55, 
 //         vy: 0.6 + Math.random() * 1.2, 
@@ -11435,11 +11435,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         life: Math.random() 
 //       });
 //     }
-    
+
 //     this.geo = new THREE.BufferGeometry();
 //     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
 //     this.geo.setAttribute("color", new THREE.BufferAttribute(this.colors, 3));
-    
+
 //     this.mat = new THREE.PointsMaterial({ 
 //       size: sz, 
 //       transparent: true, 
@@ -11449,7 +11449,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       depthWrite: false,
 //       vertexColors: true,
 //     });
-    
+
 //     this.pts = new THREE.Points(this.geo, this.mat);
 //     this.pts.visible = false; 
 //     scene.add(this.pts);
@@ -11460,7 +11460,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.active = true; 
 //     this.pts.visible = true; 
 //   }
-  
+
 //   off() { 
 //     this.active = false; 
 //     this.pts.visible = false; 
@@ -11471,17 +11471,17 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     if (!this.active) return;
 //     const pa = this.geo.attributes.position.array as Float32Array;
 //     const ca = this.geo.attributes.color.array as Float32Array;
-    
+
 //     for (let i = 0; i < this.n; i++) {
 //       const v = this.vel[i]; 
 //       v.life += dt * spd * 0.6;
-      
+
 //       // Color pulsing
 //       const pulse = 0.5 + 0.5 * Math.sin(v.life * 8);
 //       ca[i * 3] = this.baseColor.r * (0.5 + pulse * 0.5);
 //       ca[i * 3 + 1] = this.baseColor.g * (0.3 + pulse * 0.7);
 //       ca[i * 3 + 2] = this.baseColor.b * (0.7 + pulse * 0.3);
-      
+
 //       if (v.life > 1.2) {
 //         v.life = 0;
 //         pa[i * 3]     = this.origin.x + (Math.random() - 0.5) * 0.9;
@@ -11497,7 +11497,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         v.vy -= 0.15 * dt * spd;
 //       }
 //     }
-    
+
 //     this.geo.attributes.position.needsUpdate = true;
 //     this.geo.attributes.color.needsUpdate = true;
 //   }
@@ -11513,13 +11513,13 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   active = false;
 //   vel: { vy: number; life: number; ox: number; oz: number; size: number }[] = [];
 //   sizes: Float32Array;
- 
+
 //   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n = 80) {
 //     this.n = n;
 //     this.origin = pos.clone();
 //     const pa = new Float32Array(n * 3);
 //     this.sizes = new Float32Array(n);
- 
+
 //   for (let i = 0; i < n; i++) {
 //   pa[i * 3] = pos.x;
 //   pa[i * 3 + 1] = pos.y;
@@ -11533,10 +11533,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     size: 0.06 + Math.random() * 0.04,
 //   });
 // }
- 
+
 //     this.geo = new THREE.BufferGeometry();
 //     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
- 
+
 //     const mat = new THREE.PointsMaterial({
 //     color,
 //     size: 0.10,                              // smaller particles (was 0.22)
@@ -11550,18 +11550,18 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.pts.visible = false;
 //     scene.add(this.pts);
 //   }
- 
+
 //   on()  { this.active = true;  this.pts.visible = true;  }
 //   off() { this.active = false; this.pts.visible = false; }
- 
+
 //   tick(dt: number, spd: number) {
 //     if (!this.active) return;
 //     const pa = this.geo.attributes.position.array as Float32Array;
- 
+
 //     for (let i = 0; i < this.n; i++) {
 //       const v = this.vel[i];
 //       v.life += dt * spd * 0.55;
- 
+
 //       if (v.life > 1.8) {
 //         // Respawn AT the module top
 //         v.life = 0;
@@ -11578,7 +11578,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.geo.attributes.position.needsUpdate = true;
 //   }
 // }
- 
+
 // // ─── HMDS VAPOR (swirling fog inside chamber) ────────────────────────────────
 
 // class HMDSFog {
@@ -11615,7 +11615,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.active = true; 
 //     this.group.visible = true; 
 //   }
-  
+
 //   off() { 
 //     this.active = false; 
 //     this.group.visible = false; 
@@ -11712,12 +11712,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //     gCtx.lineTo(1024, y); 
 // //     gCtx.stroke();
 // //   }
-  
+
 // //   const gridTex = new THREE.CanvasTexture(gridCanvas);
 // //   gridTex.wrapS = THREE.RepeatWrapping;
 // //   gridTex.wrapT = THREE.RepeatWrapping;
 // //   gridTex.repeat.set(3, 3);
-  
+
 // //   const grid = new THREE.Mesh(
 // //     new THREE.PlaneGeometry(180, 90),
 // //     new THREE.MeshStandardMaterial({ 
@@ -12086,12 +12086,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   phase: "idle" | "descend" | "spray" | "puddle" | "rinse" | "retract" | "done" = "idle";
 //   phaseT = 0;
 //   phaseDur = 1;
- 
+
 //   constructor(scene: THREE.Scene) {
 //     this.group = new THREE.Group();
 //     scene.add(this.group);
 //     this.group.visible = false;
- 
+
 //     // ── ARM + NOZZLE HEAD ──
 //     // ── Overhead cross rail (left wall to right wall) ──
 // const crossRail = new THREE.Mesh(
@@ -12194,12 +12194,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // devTipGlow.position.set(0, -1.90, 0);
 // this.nozzle.add(devTipGlow);
 // this.group.userData.devTipGlow = devTipGlow;
- 
+
 //     // ── SPRAY CONES (visible fan-shaped sprays) ──
 //  this.spraySources = new THREE.Group();
 // this.spraySources.position.set(0, -1.92, 0); // at tip height relative to nozzle
 // this.nozzle.add(this.spraySources); // moves with nozzle arm // child of nozzle so it moves with arm
- 
+
 //     [-0.10, 0, 0.10].forEach((ox) => {
 //       // Cone geometry pointing down — wide at bottom, narrow at top
 //       const coneGeo = new THREE.ConeGeometry(0.28, 1.4, 18, 1, true);
@@ -12219,7 +12219,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // this.spraySources.add(cone);
 //       this.sprayCones.push(cone);
 //     });
- 
+
 //     // ── LIQUID POOL ON WAFER ──
 //     this.liquidPool = new THREE.Mesh(
 //       new THREE.CylinderGeometry(0.86, 0.86, 0.012, 64),
@@ -12236,7 +12236,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.liquidPool.position.y = 0.41;
 //     this.group.add(this.liquidPool);
 //   }
- 
+
 //   startDev(wx: number, wz: number) {
 //  this.group.position.set(wx, 0, wz);
 // this.group.visible = true;
@@ -12254,7 +12254,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       (c.material as THREE.MeshStandardMaterial).opacity = 0;
 //     });
 //   }
- 
+
 //   stopDev() {
 //     this.group.visible = false;
 //     this.active = false;
@@ -12265,16 +12265,16 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.splashes.forEach((s) => this.group.remove(s));
 //     this.splashes = [];
 //   }
- 
+
 //   tick(dt: number, speed: number) {
 //     if (!this.active) return;
 //     const sDt = dt * speed;
 //     this.phaseT += sDt;
 //     const t = Math.min(this.phaseT / this.phaseDur, 1);
 //     const poolMat = this.liquidPool.material as THREE.MeshStandardMaterial;
- 
+
 //     switch (this.phase) {
- 
+
 //   case "descend": {
 //   // Phase A (0→0.5): slide along rail from right to center
 //   // Phase B (0.5→1): lower arm down to spray height
@@ -12306,7 +12306,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //       case "spray": {
 //         // Animate spray cone opacity (pulsing)
 //         const pulse = 0.4 + 0.5 * Math.abs(Math.sin(this.phaseT * 14));
@@ -12320,10 +12320,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //             0.85 + 0.2 * Math.cos(this.phaseT * 9 + i)
 //           );
 //         });
- 
+
 //         // Build up liquid pool on wafer
 //         poolMat.opacity = Math.min(t * 0.85, 0.85);
- 
+
 //         // Spawn flying droplets
 //         if (Math.random() < sDt * 60) {
 //           const sourceIdx = Math.floor(Math.random() * 3);
@@ -12350,7 +12350,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           this.group.add(drop);
 //           this.droplets.push(drop);
 //         }
- 
+
 //         // Update droplets
 //         this.droplets.forEach((d) => {
 //           d.position.x += d.userData.vx * sDt;
@@ -12379,7 +12379,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           }
 //         });
 //         this.droplets = this.droplets.filter((d) => d.parent === this.group);
- 
+
 //         // Update splashes (expand and fade)
 //         this.splashes.forEach((s) => {
 //           s.userData.life += sDt;
@@ -12389,7 +12389,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           if (lt > 0.35) this.group.remove(s);
 //         });
 //         this.splashes = this.splashes.filter((s) => s.parent === this.group);
- 
+
 //         if (t >= 1) {
 //           this.phase = "puddle";
 //           this.phaseT = 0;
@@ -12400,7 +12400,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //       case "puddle": {
 //         // Sit and develop — pool changes color (green → darker)
 //         poolMat.color.lerp(new THREE.Color(0x22aa66), sDt * 0.6);
@@ -12411,7 +12411,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //       case "rinse": {
 //         // Switch to blue rinse spray
 //         const pulse = 0.5 + 0.5 * Math.abs(Math.sin(this.phaseT * 14));
@@ -12421,11 +12421,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           m.emissive.setHex(0x3399ff);
 //           m.opacity = 0.3 + pulse * 0.4;
 //         });
- 
+
 //         // Pool drains
 //         poolMat.color.lerp(new THREE.Color(0x66bbff), sDt * 1.2);
 //         poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 0.6);
- 
+
 //         if (t >= 1) {
 //           this.phase = "retract";
 //           this.phaseT = 0;
@@ -12433,7 +12433,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //   case "retract": {
 //   // Phase A (0→0.5): lift back to rail
 //   // Phase B (0.5→1): slide back right to park
@@ -12460,12 +12460,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //       case "done": break;
 //     }
 //   }
 // }
- 
+
 
 // // ─── MODULE BUILDER ───────────────────────────────────────────────────────────
 
@@ -12793,60 +12793,60 @@ import { ProfileMenu } from '../components/ProfileMenu';
 
 // // function buildRobot(scene: THREE.Scene, basePos: THREE.Vector3, robotColor = 0x445566, ledColor = 0x00ff88): RobotObject {
 // //   const g = new THREE.Group(); g.position.copy(basePos);
- 
+
 // //   const M_BODY  = new THREE.MeshStandardMaterial({ color: robotColor, roughness: 0.22, metalness: 0.88 });
 // //   const M_JOINT = new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.16, metalness: 0.92 });
 // //   const M_LED   = matEmissive(ledColor, 2.5);
 // //   const M_ALUM  = new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 });
 // //   const M_DARK  = matPBR(0x151820, 0.35, 0.88);
- 
+
 // //   const addM = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0): THREE.Mesh => {
 // //     const m = new THREE.Mesh(geo, mat);
 // //     m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
 // //     parent.add(m); return m;
 // //   };
- 
+
 // //   addM(g, new THREE.CylinderGeometry(0.65, 0.82, 0.22, 32), M_ALUM.clone(), 0, 0.11, 0);
 // //   addM(g, new THREE.CylinderGeometry(0.55, 0.65, 0.62, 32), M_BODY.clone(), 0, 0.52, 0);
 // //   const ledRing = addM(g, new THREE.TorusGeometry(0.53, 0.028, 8, 48), M_LED.clone(), 0, 0.8, 0);
 // //   ledRing.rotation.x = Math.PI / 2;
- 
+
 // //   const turret = new THREE.Group(); turret.position.set(0, 0.8, 0); g.add(turret);
 // //   addM(turret, new THREE.CylinderGeometry(0.42, 0.46, 0.40, 24), M_BODY.clone(), 0, 0.20, 0);
 // //   addM(turret, new THREE.CylinderGeometry(0.30, 0.30, 0.24, 18), M_JOINT.clone(), 0, 0.42, 0);
- 
+
 // //   const shoulder = new THREE.Group(); shoulder.position.set(0, 0.44, 0); turret.add(shoulder);
 // //   addM(shoulder, new THREE.BoxGeometry(1.28, 0.70, 1.08), M_BODY.clone(), 0, 0, 0);
 // //   addM(shoulder, new THREE.CylinderGeometry(0.44, 0.44, 1.14, 18), M_JOINT.clone(), 0, 0, 0);
- 
+
 // //   const upperArm = new THREE.Group(); upperArm.position.set(0, 0.38, 0); shoulder.add(upperArm);
 // //   addM(upperArm, new THREE.BoxGeometry(0.74, 2.3, 0.65), M_BODY.clone(), 0, 1.15, 0);
 // //   for (let i = 0; i < 4; i++) addM(upperArm, new THREE.BoxGeometry(0.76, 0.075, 0.67), M_DARK.clone(), 0, 0.3 + i * 0.6, 0);
 // //   addM(upperArm, new THREE.BoxGeometry(0.12, 2.0, 0.09), M_ALUM.clone(), 0.32, 1.15, 0.30);
- 
+
 // //   const elbow = new THREE.Group(); elbow.position.set(0, 2.34, 0); upperArm.add(elbow);
 // //   addM(elbow, new THREE.SphereGeometry(0.44, 28, 18), M_JOINT.clone(), 0, 0, 0);
 // //   addM(elbow, new THREE.CylinderGeometry(0.36, 0.36, 1.14, 18), M_BODY.clone(), 0, 0, 0);
- 
+
 // //   const foreArm = new THREE.Group(); elbow.add(foreArm);
 // //   addM(foreArm, new THREE.BoxGeometry(0.6, 1.80, 0.52), M_BODY.clone(), 0, 0.90, 0);
 // //   for (let i = 0; i < 2; i++) addM(foreArm, new THREE.BoxGeometry(0.62, 0.065, 0.54), M_DARK.clone(), 0, 0.25 + i * 0.72, 0);
 // //   addM(foreArm, new THREE.BoxGeometry(0.10, 1.55, 0.08), M_ALUM.clone(), 0.26, 0.90, 0.22);
- 
+
 // //   const wrist = new THREE.Group(); wrist.position.set(0, 1.84, 0); foreArm.add(wrist);
 // //   addM(wrist, new THREE.CylinderGeometry(0.30, 0.34, 0.60, 28), M_JOINT.clone(), 0, 0, 0);
- 
+
 // //   const gripper = new THREE.Group(); gripper.position.set(0, 0.36, 0); wrist.add(gripper);
 // //   addM(gripper, new THREE.BoxGeometry(0.48, 0.40, 0.48), M_BODY.clone(), 0, 0.20, 0);
 // //   addM(gripper, new THREE.CylinderGeometry(0.22, 0.24, 0.18, 18), M_JOINT.clone(), 0, 0.40, 0);
- 
+
 // //   const bladeMat = new THREE.MeshStandardMaterial({ color: 0xd8e4ef, roughness: 0.04, metalness: 0.98 });
 // //   addM(gripper, new THREE.BoxGeometry(1.72, 0.028, 0.68), bladeMat, 0.86, 0.44, 0);
 // //   [-0.28, 0.28].forEach((tz) => addM(gripper, new THREE.BoxGeometry(0.52, 0.022, 0.08), bladeMat, 1.82, 0.44, tz));
 // //   [0.5, 1.1, 1.6].forEach((bx) => addM(gripper, new THREE.CylinderGeometry(0.055, 0.055, 0.035, 12),
 // //     new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3, metalness: 0.7 }), bx, 0.456, 0));
 // //   addM(gripper, new THREE.SphereGeometry(0.045, 8, 8), M_LED.clone(), 0, 0.44, 0.30);
- 
+
 // //   const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
 // //   statusPL.position.set(0, 2.4, 0); g.add(statusPL);
 
@@ -12863,55 +12863,55 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   const dz = tgt.z - baseWP.z;
 // //   const yaw = Math.atan2(dx, dz);
 // //   turret.rotation.set(0, yaw, 0);
-  
+
 // //   // Robot geometry constants
 // //   const L1 = 2.34;
 // //   const L2 = 1.84;
 // //   const shoulderOffset = 0.44;
 // //   const wristToGrip = 0.84;
-  
+
 // //   // Convert target to turret local space
 // //   const localTgt = turret.worldToLocal(tgt.clone());
-  
+
 // //   // Determine if this is a pick/place operation (lower height)
 // //   const isPickPlace = Math.abs(localTgt.y - 0.93) < 0.2;
 // //   const wristTargetY = localTgt.y + wristToGrip - (isPickPlace ? 0.15 : 0);
 // //   const wristR = Math.sqrt(localTgt.x * localTgt.x + localTgt.z * localTgt.z);
 // //   const sx = wristR;
 // //   const sy = wristTargetY - shoulderOffset;
-  
+
 // //   // Calculate distance from shoulder to wrist
 // //   let D = Math.sqrt(sx * sx + sy * sy);
 // //   D = Math.min(D, L1 + L2 - 0.05);
 // //   D = Math.max(D, Math.abs(L1 - L2) + 0.05);
-  
+
 // //   // Law of cosines for elbow angle
 // //   const cosElbow = (D * D - L1 * L1 - L2 * L2) / (2 * L1 * L2);
 // //   const elbowAngle = Math.acos(Math.min(1, Math.max(-1, cosElbow)));
-  
+
 // //   // Law of cosines for shoulder angle
 // //   const cosShoulder = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
 // //   const shoulderInner = Math.acos(Math.min(1, Math.max(-1, cosShoulder)));
 // //   const targetAngle = Math.atan2(sx, sy);
-  
+
 // //   // Apply joint angles
 // //   let shoulderAngle = targetAngle - shoulderInner;
 // //   shoulderAngle = Math.min(Math.max(shoulderAngle, -Math.PI / 2.5), Math.PI / 2);
 // //   shoulder.rotation.set(shoulderAngle, 0, 0);
-  
+
 // //   let elbowAngleValue = -(Math.PI - elbowAngle);
 // //   elbowAngleValue = Math.min(Math.max(elbowAngleValue, -Math.PI / 1.8), 0);
 // //   elbow.rotation.set(elbowAngleValue, 0, 0);
-  
+
 // //   // Keep blade horizontal
 // //   const cumulativePitch = shoulder.rotation.x + elbow.rotation.x;
 // //   let wristAngle = -cumulativePitch;
-  
+
 // //   // Add micro-adjustments for pick/place
 // //   if (isPickPlace) {
 // //     wristAngle += Math.sin(Date.now() * 0.008) * 0.02;
 // //   }
-  
+
 // //   wrist.rotation.set(wristAngle, 0, 0);
 // // }
 
@@ -12924,7 +12924,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   if (!rob.group.userData.smoothTarget) {
 // //     rob.group.userData.smoothTarget = tgt.clone();
 // //   }
-  
+
 // //   const smoothFactor = 0.15;
 // //   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
 // //   rob.runIK(rob.group.userData.smoothTarget);
@@ -12965,14 +12965,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   this.carrierRobot = robot;
 // //   this.scene.remove(this.mesh);
 // //   robot.gripper.add(this.mesh);
-  
+
 // //   // Position wafer ON TOP of the blade
 // //   // Blade extends in +X, surface at y=0.44 from gripper origin
 // //   // Wafer should sit at y=0.5 to be slightly above blade surface
 // //   this.mesh.position.set(0.86, 0.5, 0);
 // //   this.mesh.rotation.set(0, 0, 0);
 // //   this.onConveyor = false;
-  
+
 // //   // Visual feedback - flash the wafer
 // //   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
 // //   if (pr) {
@@ -12985,7 +12985,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //       mat.emissiveIntensity = origEmissive;
 // //     }, 200);
 // //   }
-  
+
 // //   // Also flash the robot's LED
 // //   robot.statusPL.intensity = 3.0;
 // //   setTimeout(() => {
@@ -12996,23 +12996,23 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // // // Replace detachAt in WaferStateMachine:
 // // detachAt(worldPos: THREE.Vector3) {
 // //   if (!this.carrierRobot) return;
-  
+
 // //   // Store reference to robot before detaching
 // //   const robot = this.carrierRobot;
-  
+
 // //   // Remove from robot gripper
 // //   robot.gripper.remove(this.mesh);
 // //   this.scene.add(this.mesh);
-  
+
 // //   // Position at module chuck height (y=0.93 for wafer chuck)
 // //   this.mesh.position.copy(worldPos);
 // //   this.mesh.position.y = 0.93; // Chuck surface height
-  
+
 // //   // Slight rotation for visual interest
 // //   this.mesh.rotation.y = Math.random() * Math.PI * 2;
-  
+
 // //   this.carrierRobot = null;
-  
+
 // //   // Visual feedback - impact flash
 // //   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
 // //   if (pr) {
@@ -13024,7 +13024,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //       mat.emissiveIntensity = 0.7;
 // //     }, 250);
 // //   }
-  
+
 // //   // Flash the module's LED
 // //   const modObj = (window as any).currentModule?.userData;
 // //   if (modObj?.processLight) {
@@ -13042,14 +13042,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   if (!rob.group.userData.smoothTarget) {
 // //     rob.group.userData.smoothTarget = tgt.clone();
 // //   }
-  
+
 // //   // Interpolate target for smoother motion
 // //   const smoothFactor = 0.15;
 // //   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
-  
+
 // //   // Run IK with smoothed target
 // //   rob.runIK(rob.group.userData.smoothTarget);
-  
+
 // //   // Add subtle floating motion when idle (not carrying wafer)
 // //   const carried = (rob.group.userData.carriedWafer !== undefined);
 // //   if (!carried && rob.group.userData.isIdle) {
@@ -13096,7 +13096,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   robots.forEach(({ r, phase, mult }) => {
 // //     const carried = findCarried(r);
 // //     r.group.userData.isIdle = !carried;
-    
+
 // //     const tgt = carried
 // //       ? new THREE.Vector3(
 // //           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].x,
@@ -13104,12 +13104,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].z
 // //         )
 // //       : idleTgt(r, phase);
-      
+
 // //     this._driveRobotTo(r, tgt, dt, mult);
 
 // //     // Pulsing status LED
 // //     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8 + phase);
-    
+
 // //     // Add trailing particles when moving with wafer (optional)
 // //     if (carried && !r.group.userData.trailParticles) {
 // //       // Create particle trail for moving wafer
@@ -13156,34 +13156,34 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   const startPos = sm.mesh.position.clone();
 // //   const startTime = this.simTime;
 // //   const endTime = startTime + duration;
-  
+
 // //   const animate = () => {
 // //     const now = this.simTime;
 // //     if (now >= endTime) {
 // //       // Animation complete
 // //       return;
 // //     }
-    
+
 // //     const t = (now - startTime) / duration;
 // //     // Ease in-out curve
 // //     const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    
+
 // //     // Interpolate position with arc
 // //     const currentPos = startPos.clone().lerp(targetPos, ease);
 // //     currentPos.y = startPos.y + Math.sin(Math.PI * ease) * 0.15; // Arc motion
-    
+
 // //     sm.mesh.position.copy(currentPos);
-    
+
 // //     // Slight rotation during pick/place
 // //     sm.mesh.rotation.y = ease * Math.PI * 0.5;
-    
+
 // //     requestAnimationFrame(() => animate());
 // //   };
-  
+
 // //   animate();
 // // }
 // // */
- 
+
 // //   function getJoints(): JointData {
 // //     return {
 // //       base:     { c: turret.rotation.y },
@@ -13192,7 +13192,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //       wrist:    { c: wrist.rotation.x },
 // //     };
 // //   }
- 
+
 // //   scene.add(g);
 // //   return {
 // //     group: g, turret, shoulder, upperArm, elbow, foreArm, wrist, gripper, statusPL,
@@ -15083,9 +15083,9 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   nc.width = CW; nc.height = CH;
 //   const ctx = nc.getContext("2d")!;
 //   ctx.clearRect(0, 0, CW, CH);
- 
+
 //   const col = hex2css(mod.color);
- 
+
 //   // ── pick style by module type ──────────────────────────────────────────────
 //   const styleMap: Record<string, string> = {
 //     hot:   "engraved",
@@ -15098,7 +15098,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     foup:  "carbon",
 //   };
 //   const style = styleMap[mod.type] ?? "industrial";
- 
+
 //   // ── shared rounded-rect path helper ───────────────────────────────────────
 //   function rr(x: number, y: number, w: number, h: number, r: number): void {
 //     ctx.beginPath();
@@ -15113,13 +15113,13 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     ctx.quadraticCurveTo(x, y, x + r, y);
 //     ctx.closePath();
 //   }
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   if (style === "industrial") {
 //     // ── A: INDUSTRIAL STENCIL — hazard stripes, warning corners ──────────
 //     ctx.fillStyle = "#0d1520";
 //     ctx.fillRect(0, 0, CW, CH);
- 
+
 //     // diagonal stripe bg
 //     ctx.save();
 //     ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = 0.07;
@@ -15127,31 +15127,31 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + CH, CH); ctx.stroke();
 //     }
 //     ctx.restore();
- 
+
 //     // hazard corner squares
 //     const sq = 22;
 //     [[0,0],[CW-sq,0],[0,CH-sq],[CW-sq,CH-sq]].forEach(([x,y],i) => {
 //       ctx.fillStyle = i % 2 === 0 ? "#f5c542" : "#e88800";
 //       ctx.fillRect(x, y, sq, sq);
 //     });
- 
+
 //     // double border
 //     ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.globalAlpha = 1;
 //     ctx.strokeRect(5, 5, CW - 10, CH - 10);
 //     ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 0.8;
 //     ctx.strokeRect(10, 10, CW - 20, CH - 20);
- 
+
 //     // short code
 //     ctx.fillStyle = col; ctx.font = "bold 60px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 12;
 //     ctx.fillText(mod.short, 30, CH * 0.41);
- 
+
 //     // full name
 //     ctx.shadowBlur = 0; ctx.fillStyle = "#aaccdd";
 //     ctx.font = "bold 18px Arial,sans-serif";
 //     ctx.fillText(mod.name, 30, CH * 0.74);
- 
+
 //     // temp — right
 //     if (mod.temp !== null) {
 //       ctx.fillStyle = mod.temp > 50 ? "#ff4422" : "#22aaff";
@@ -15159,14 +15159,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.textAlign = "right";
 //       ctx.fillText(mod.temp + "°C", CW - 28, CH * 0.41);
 //     }
- 
+
 //     // status dots
 //     ctx.textAlign = "left";
 //     for (let i = 0; i < 5; i++) {
 //       ctx.fillStyle = i < 2 ? col : "#1e3040";
 //       ctx.beginPath(); ctx.arc(30 + i * 15, CH - 18, 4.5, 0, Math.PI * 2); ctx.fill();
 //     }
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else if (style === "holographic") {
 //     // ── B: HOLOGRAPHIC FOIL — iridescent shimmer, foil border ────────────
@@ -15174,81 +15174,81 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.fillStyle = f; ctx.fillRect(0, i * (CH / 5), CW, CH / 5 + 2);
 //     });
 //     ctx.fillStyle = "rgba(6,12,24,0.76)"; ctx.fillRect(0, 0, CW, CH);
- 
+
 //     ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.strokeRect(3, 3, CW - 6, CH - 6);
 //     ctx.strokeStyle = "rgba(255,255,255,0.20)"; ctx.lineWidth = 0.6;
 //     ctx.strokeRect(7, 7, CW - 14, CH - 14);
- 
+
 //     [[16,16],[CW-16,16],[16,CH-16],[CW-16,CH-16]].forEach(([x,y]) => {
 //       ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4);
 //       ctx.fillStyle = col; ctx.globalAlpha = 0.55;
 //       ctx.fillRect(-5, -5, 10, 10); ctx.restore(); ctx.globalAlpha = 1;
 //     });
- 
+
 //     ctx.fillStyle = "#ffffff"; ctx.font = "bold 54px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 22;
 //     ctx.fillText(mod.short, 28, CH * 0.40);
- 
+
 //     ctx.shadowBlur = 0; ctx.fillStyle = col; ctx.globalAlpha = 0.6;
 //     ctx.fillRect(28, CH * 0.58, ctx.measureText(mod.short).width, 2);
 //     ctx.globalAlpha = 1;
- 
+
 //     ctx.fillStyle = "#c8e4f4"; ctx.font = "500 18px Arial,sans-serif";
 //     ctx.fillText(mod.name, 28, CH * 0.77);
- 
+
 //     if (mod.temp !== null) {
 //       ctx.fillStyle = mod.temp > 50 ? "#ff6644" : "#44ccff";
 //       ctx.font = "bold 17px 'Courier New',monospace";
 //       ctx.textAlign = "right";
 //       ctx.fillText(mod.temp + "°C", CW - 24, CH * 0.40);
 //     }
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else if (style === "blueprint") {
 //     // ── C: BLUEPRINT TECHNICAL — navy grid, title block, crosshairs ──────
 //     ctx.fillStyle = "#0a1a3a"; ctx.fillRect(0, 0, CW, CH);
- 
+
 //     ctx.strokeStyle = "rgba(100,160,255,0.12)"; ctx.lineWidth = 0.8;
 //     for (let x = 0; x < CW; x += 24) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CH); ctx.stroke(); }
 //     for (let y = 0; y < CH; y += 24) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
- 
+
 //     ctx.strokeStyle = "rgba(200,220,255,0.55)"; ctx.lineWidth = 1.5;
 //     ctx.strokeRect(4, 4, CW - 8, CH - 8);
- 
+
 //     const divX = CW - 140;
 //     ctx.strokeStyle = "rgba(200,220,255,0.35)"; ctx.lineWidth = 0.8;
 //     ctx.beginPath(); ctx.moveTo(divX, 4); ctx.lineTo(divX, CH - 4); ctx.stroke();
 //     ctx.beginPath(); ctx.moveTo(divX, CH / 2); ctx.lineTo(CW - 4, CH / 2); ctx.stroke();
- 
+
 //     const tk = 14;
 //     [[4,4],[CW-4,4],[4,CH-4],[CW-4,CH-4]].forEach(([x,y]) => {
 //       ctx.beginPath(); ctx.moveTo(x+tk,y); ctx.lineTo(x,y); ctx.lineTo(x,y+tk); ctx.stroke();
 //       ctx.beginPath(); ctx.moveTo(x-tk,y); ctx.lineTo(x,y); ctx.lineTo(x,y-tk); ctx.stroke();
 //     });
- 
+
 //     ctx.fillStyle = "#e8f4ff"; ctx.font = "bold 58px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 8;
 //     ctx.fillText(mod.short, 22, CH * 0.42);
- 
+
 //     ctx.shadowBlur = 0; ctx.fillStyle = "rgba(160,200,255,0.80)";
 //     ctx.font = "bold 16px 'Courier New',monospace";
 //     ctx.fillText(mod.name.toUpperCase(), 22, CH * 0.76);
- 
+
 //     ctx.fillStyle = col; ctx.font = "bold 13px 'Courier New',monospace";
 //     ctx.textAlign = "center";
 //     ctx.fillText(mod.type.toUpperCase(), divX + 70, CH * 0.28);
- 
+
 //     if (mod.temp !== null) {
 //       ctx.fillStyle = mod.temp > 50 ? "#ff8866" : "#66ccff";
 //       ctx.font = "bold 18px 'Courier New',monospace";
 //       ctx.fillText(mod.temp + "°C", divX + 70, CH * 0.74);
 //     }
- 
+
 //     ctx.fillStyle = "rgba(100,160,255,0.45)"; ctx.font = "10px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.fillText("REF: SIM-MODULE", 22, CH - 14);
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else if (style === "carbon") {
 //     // ── D: CARBON FIBER BADGE — woven texture, brushed stripe, pill badge ─
@@ -15262,26 +15262,26 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         ctx.fillRect(col2 * cell + 1, row * cell + 1, cell - 2, 2);
 //       }
 //     }
- 
+
 //     const strW = 56;
 //     ctx.fillStyle = "#1e1e1e"; ctx.fillRect(0, 0, strW, CH);
 //     ctx.strokeStyle = "rgba(255,255,255,0.07)"; ctx.lineWidth = 0.7;
 //     for (let y = 2; y < CH; y += 4) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(strW,y); ctx.stroke(); }
 //     ctx.fillStyle = col; ctx.fillRect(0, 0, 6, CH);
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 1.2;
 //     ctx.strokeRect(1, 1, CW - 2, CH - 2);
 //     ctx.strokeStyle = "rgba(0,0,0,0.6)"; ctx.lineWidth = 1;
 //     ctx.strokeRect(3, 3, CW - 6, CH - 6);
- 
+
 //     ctx.fillStyle = "#ffffff"; ctx.font = "bold 60px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 14;
 //     ctx.fillText(mod.short, strW + 18, CH * 0.40); ctx.shadowBlur = 0;
- 
+
 //     ctx.fillStyle = "rgba(200,210,220,0.85)"; ctx.font = "500 18px Arial,sans-serif";
 //     ctx.fillText(mod.name, strW + 18, CH * 0.74);
- 
+
 //     if (mod.temp !== null) {
 //       const bc = mod.temp > 50 ? "#cc2200" : "#0066bb";
 //       const bW = 68, bH = 26, bx = CW - bW - 18, by = (CH - bH) / 2;
@@ -15290,21 +15290,21 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.textAlign = "center"; ctx.textBaseline = "middle";
 //       ctx.fillText(mod.temp + "°C", bx + bW / 2, by + bH / 2);
 //     }
- 
+
 //     ctx.fillStyle = col; ctx.globalAlpha = 0.7;
 //     ctx.font = "bold 8px 'Courier New',monospace";
 //     ctx.textAlign = "center"; ctx.textBaseline = "middle";
 //     ctx.fillText(mod.type.toUpperCase(), strW / 2, CH / 2);
 //     ctx.globalAlpha = 1;
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else if (style === "neon") {
 //     // ── E: NEON GLOW SIGN — pure black, triple-glow, scanlines ───────────
 //     ctx.fillStyle = "#000000"; ctx.fillRect(0, 0, CW, CH);
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.028)"; ctx.lineWidth = 1;
 //     for (let y = 0; y < CH; y += 3) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
- 
+
 //     [14, 7, 3].forEach((blur, i) => {
 //       ctx.strokeStyle = col; ctx.lineWidth = [1, 1.5, 2][i];
 //       ctx.globalAlpha = [0.25, 0.45, 0.85][i];
@@ -15312,10 +15312,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       rr(6, 6, CW - 12, CH - 12, 10); ctx.stroke();
 //     });
 //     ctx.globalAlpha = 1; ctx.shadowBlur = 0;
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.08)"; ctx.lineWidth = 0.5;
 //     rr(12, 12, CW - 24, CH - 24, 8); ctx.stroke();
- 
+
 //     [40, 18, 6].forEach((blur, i) => {
 //       ctx.fillStyle = i === 2 ? "#ffffff" : col;
 //       ctx.font = "bold 62px 'Courier New',monospace";
@@ -15325,43 +15325,43 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.fillText(mod.short, 28, CH * 0.40);
 //     });
 //     ctx.globalAlpha = 1;
- 
+
 //     ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.globalAlpha = 0.4;
 //     ctx.shadowColor = col; ctx.shadowBlur = 6;
 //     ctx.beginPath(); ctx.moveTo(28, CH * 0.58); ctx.lineTo(CW - 28, CH * 0.58); ctx.stroke();
 //     ctx.globalAlpha = 1; ctx.shadowBlur = 0;
- 
+
 //     ctx.fillStyle = col; ctx.globalAlpha = 0.75;
 //     ctx.font = "bold 18px Arial,sans-serif";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowColor = col; ctx.shadowBlur = 8;
 //     ctx.fillText(mod.name, 28, CH * 0.77);
 //     ctx.globalAlpha = 1; ctx.shadowBlur = 0;
- 
+
 //     if (mod.temp !== null) {
 //       const bc = mod.temp > 50 ? "#ff4400" : "#00aaff";
 //       ctx.fillStyle = bc; ctx.shadowColor = bc; ctx.shadowBlur = 12;
 //       ctx.font = "bold 18px 'Courier New',monospace"; ctx.textAlign = "right";
 //       ctx.fillText(mod.temp + "°C", CW - 28, CH * 0.40); ctx.shadowBlur = 0;
 //     }
- 
+
 //   // ══════════════════════════════════════════════════════════════════════════
 //   } else {
 //     // ── F: ENGRAVED METAL PLATE — brushed aluminium, rivets, bevel ───────
 //     ctx.fillStyle = "#c8cdd2"; ctx.fillRect(0, 0, CW, CH);
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 0.6;
 //     for (let y = 0; y < CH; y += 2.5) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
 //     ctx.strokeStyle = "rgba(0,0,0,0.08)"; ctx.lineWidth = 0.4;
 //     for (let y = 1.2; y < CH; y += 2.5) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
- 
+
 //     ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2; ctx.strokeRect(1,1,CW-2,CH-2);
 //     ctx.strokeStyle = "rgba(0,0,0,0.25)"; ctx.lineWidth = 2; ctx.strokeRect(4,4,CW-8,CH-8);
 //     ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 1; ctx.strokeRect(6,6,CW-12,CH-12);
- 
+
 //     ctx.fillStyle = col; ctx.globalAlpha = 0.7;
 //     ctx.fillRect(6, 6, CW - 12, 8); ctx.globalAlpha = 1;
- 
+
 //     [[16,20],[CW-16,20],[16,CH-20],[CW-16,CH-20]].forEach(([x,y]) => {
 //       ctx.fillStyle = "#a0a5aa";
 //       ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI * 2); ctx.fill();
@@ -15369,7 +15369,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.fillStyle = "rgba(255,255,255,0.5)";
 //       ctx.beginPath(); ctx.arc(x - 1.5, y - 1.5, 2, 0, Math.PI * 2); ctx.fill();
 //     });
- 
+
 //     ctx.fillStyle = "rgba(30,35,40,0.82)";
 //     ctx.font = "bold 60px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
@@ -15380,14 +15380,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     ctx.shadowOffsetX = -1; ctx.shadowOffsetY = -1;
 //     ctx.fillText(mod.short, 32, CH * 0.41);
 //     ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
- 
+
 //     ctx.fillStyle = "rgba(30,35,40,0.75)";
 //     ctx.font = "bold 17px 'Courier New',monospace";
 //     ctx.textAlign = "left"; ctx.textBaseline = "middle";
 //     ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
 //     ctx.fillText(mod.name.toUpperCase(), 32, CH * 0.74);
 //     ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
- 
+
 //     if (mod.temp !== null) {
 //       ctx.fillStyle = mod.temp > 50 ? "rgba(160,30,10,0.75)" : "rgba(10,60,130,0.65)";
 //       ctx.font = "bold 17px 'Courier New',monospace";
@@ -15396,18 +15396,18 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.fillText(mod.temp + "°C", CW - 32, CH * 0.41);
 //       ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 //     }
- 
+
 //     ctx.fillStyle = "rgba(60,70,80,0.45)";
 //     ctx.font = "9px 'Courier New',monospace";
 //     ctx.textAlign = "right"; ctx.textBaseline = "middle";
 //     ctx.fillText("SN: " + mod.short + "-" + (Math.abs(mod.color) % 9000 + 1000), CW - 28, CH - 16);
 //   }
- 
+
 //   // ── build texture + flat floor plane ──────────────────────────────────────
 //   const tex = new THREE.CanvasTexture(nc);
 //   tex.minFilter = THREE.LinearFilter;
 //   tex.magFilter = THREE.LinearFilter;
- 
+
 //   const plane = new THREE.Mesh(
 //     new THREE.PlaneGeometry(4.5, 1.4),
 //     new THREE.MeshBasicMaterial({
@@ -15418,17 +15418,17 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       side: THREE.DoubleSide,
 //     })
 //   );
- 
+
 //   plane.rotation.x = -Math.PI / 2;          // lie flat on XZ
 //   plane.position.y  = -0.48;                 // just above floor
 //   plane.position.z  = mod.z < 0 ? -2.2 : 2.2; // beside module
 //   plane.position.x  = 0;
 //   plane.renderOrder = 2;
- 
+
 //   grp.add(plane);
 //   grp.userData.nameLabel = plane;
 // }
- 
+
 // // ── tiny helper — canvas rounded-rect path ──────────────────────────────────
 // function roundRect(
 //   ctx: CanvasRenderingContext2D,
@@ -15731,7 +15731,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     // Belts on the OUTER side of each track (away from camera centre)
 //     // this.conveyorTop = new ConveyorBelt(this.scene, -22, 27, TOP_Z + 2.6, 0x0099ff);
 //     // this.conveyorBot = new ConveyorBelt(this.scene, -22, 27, BOT_Z - 2.6, 0x00cc66);
- 
+
 //     // Robots — sit on the INNER side of each track (toward z=0), so the belt
 //     // is on one side and the robot reaches modules from the other.
 //   buildRobotGLB(this.scene, new THREE.Vector3( 2, -0.52, 0 ), 0x00d8ff, 3, (r) => {
@@ -16470,7 +16470,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   sm.timer += sDt;
 // //   const robot = this._getCarrierForStep(sm.stepIdx);
 // //   if (!robot) { sm.state = "idle"; return; }
-  
+
 // //   const railX = robot.group.userData.railX ?? robot.basePos.x;
 // //   const picked = (sm as any)._picked;
 // //   const pickupX = (sm as any)._pickupX;
@@ -16906,7 +16906,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         if (pl) pl.intensity = isActive ? 3.0 + 1.2 * Math.abs(Math.sin(this.simTime * 4)) : 0.3;
 //       };
 //       animateDIWaterRinse();
-    
+
 
 //       const animatePostBake = () => {
 //         const grp = this.modObjs['peb'];
@@ -17668,7 +17668,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   { id: "chill3",    name: "Chill Plate #3  22°C",    short: "CP-3", temp: 22,   time: 3, color: 0x22ddbb, type: "cold",  x: -6,  z: BOT_Z },
 //   { id: "hardbake",  name: "Hard Bake  130°C",        short: "HBAK", temp: 130,  time: 5, color: 0xff1100, type: "hot",   x: -11, z: BOT_Z },
 // ];
- 
+
 // const WAFER_COLORS = [0xc9a574, 0xc9a574, 0xc9a574, 0xc9a574];
 // const WAFER_NAMES  = ["W-001", "W-002", "W-003", "W-004"];
 // const W_CSS = ["#c9a574", "#c9a574", "#c9a574", "#c9a574"];
@@ -17811,12 +17811,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // // }
 // function buildWafer(prTint: number): THREE.Group {
 //   const g = new THREE.Group();
- 
+
 //   const R = 0.75;
 //   const H = 0.035;
 //   const PR_R = 0.73;
 //   const PR_H = 0.018;
- 
+
 //   // ── Polished silicon disk (NEUTRAL GREY — semiconductor realistic) ──
 //   const disk = new THREE.Mesh(
 //     new THREE.CylinderGeometry(R, R, H, 96),
@@ -17831,11 +17831,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   );
 //   disk.castShadow = true;
 //   g.add(disk);
- 
+
 //   // ── Photoresist layer — light brown (tint slightly per wafer for ID only) ──
 //   const baseResist = new THREE.Color(0xc9a574); // light photoresist brown
 //   const tintColor = new THREE.Color(prTint).multiplyScalar(0.15).add(baseResist);
- 
+
 //   const pr = new THREE.Mesh(
 //     new THREE.CylinderGeometry(PR_R, PR_R, PR_H, 80),
 //     new THREE.MeshPhysicalMaterial({
@@ -17853,7 +17853,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   g.add(pr);
 //   g.userData.prLayer = pr;
 //   g.userData.prVisible = false;
- 
+
 //   // ── Subtle die grid (very faint) ──
 //   for (let dx = -2; dx <= 2; dx++) {
 //     for (let dz = -2; dz <= 2; dz++) {
@@ -17870,7 +17870,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       g.add(die);
 //     }
 //   }
- 
+
 //   // ── Edge ring (thin, subtle) ──
 //   const edge = new THREE.Mesh(
 //     new THREE.TorusGeometry(R, 0.018, 12, 96),
@@ -17882,7 +17882,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   );
 //   edge.rotation.x = Math.PI / 2;
 //   g.add(edge);
- 
+
 //   // ── Notch (alignment flat) ──
 //   const notch = new THREE.Mesh(
 //     new THREE.BoxGeometry(0.04, 0.025, 0.018),
@@ -17894,10 +17894,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   );
 //   notch.position.set(R, 0, 0);
 //   g.add(notch);
- 
+
 //   return g;
 // }
- 
+
 // // Helper to enable PR layer after coating step
 // function showPRLayer(waferGroup: THREE.Group, visible: boolean) {
 //   const pr = waferGroup.userData.prLayer as THREE.Mesh | undefined;
@@ -18041,10 +18041,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   // Bright cleanroom background — light blue-white
 //   scene.background = new THREE.Color(0xc8d8e8);
 //   scene.fog = new THREE.FogExp2(0xc8d8e8, 0.0035);
- 
+
 //   scene.add(new THREE.AmbientLight(0xffffff, 2.2));
 //   scene.add(new THREE.HemisphereLight(0xffffff, 0xa8b8c8, 1.8));
- 
+
 //   const key = new THREE.DirectionalLight(0xffffff, 4.5);
 //   key.position.set(-4, 35, 12);
 //   key.castShadow = true;
@@ -18054,11 +18054,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   key.shadow.camera.top = 35;  key.shadow.camera.bottom = -35;
 //   key.shadow.bias = -0.0002;   key.shadow.normalBias = 0.015;
 //   scene.add(key);
- 
+
 //   const fill1 = new THREE.DirectionalLight(0xeef4ff, 2.0); fill1.position.set(12, 20, -8);   scene.add(fill1);
 //   const fill2 = new THREE.DirectionalLight(0xddeeff, 1.4); fill2.position.set(32, 14, -18);  scene.add(fill2);
 //   const rim   = new THREE.DirectionalLight(0x88aacc, 0.6); rim.position.set(-12, 5, -30);    scene.add(rim);
- 
+
 //   // Soft floor accent lights along the belts
 //   const TOP_Z = -5.5, BOT_Z = 5.5;
 //   [TOP_Z, BOT_Z].forEach((z) => {
@@ -18069,10 +18069,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     }
 //   });
 // }
- 
- 
+
+
 // // ─── 2. ENVIRONMENT — clean light floor with subtle grid (replaces buildEnv) ─
- 
+
 // function buildEnv(scene: THREE.Scene) {
 //   // CLEAN LIGHT BLUE FLOOR — like reference image
 //   const flMat = new THREE.MeshStandardMaterial({
@@ -18086,7 +18086,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   fl.position.y = -0.52;
 //   fl.receiveShadow = true;
 //   scene.add(fl);
- 
+
 //   // SUBTLE LIGHT GRID — thin lines, low contrast, matches image
 //   const gridCanvas = document.createElement("canvas");
 //   gridCanvas.width = 1024;
@@ -18110,12 +18110,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     gCtx.lineTo(1024, y);
 //     gCtx.stroke();
 //   }
- 
+
 //   const gridTex = new THREE.CanvasTexture(gridCanvas);
 //   gridTex.wrapS = THREE.RepeatWrapping;
 //   gridTex.wrapT = THREE.RepeatWrapping;
 //   gridTex.repeat.set(6, 3);
- 
+
 //   const grid = new THREE.Mesh(
 //     new THREE.PlaneGeometry(180, 90),
 //     new THREE.MeshBasicMaterial({
@@ -18128,7 +18128,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   grid.rotation.x = -Math.PI / 2;
 //   grid.position.y = -0.5;
 //   scene.add(grid);
- 
+
 //   // Subtle floor highlights (the bright spots in image)
 //   for (let i = 0; i < 8; i++) {
 //     const spot = new THREE.Mesh(
@@ -18148,7 +18148,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     );
 //     scene.add(spot);
 //   }
- 
+
 //   // Dark navy back wall (matches reference top strip)
 //   const wallMat = new THREE.MeshStandardMaterial({
 //     color: 0x1a2838,
@@ -18158,7 +18158,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   const wall = new THREE.Mesh(new THREE.PlaneGeometry(180, 8), wallMat);
 //   wall.position.set(6, 4, -32);
 //   scene.add(wall);
- 
+
 //   // Lighter blue wall above the dark strip
 //   const wallUpper = new THREE.Mesh(
 //     new THREE.PlaneGeometry(180, 22),
@@ -18166,10 +18166,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   );
 //   wallUpper.position.set(6, 19, -32);
 //   scene.add(wallUpper);
- 
+
 //   // ── NO ceiling, NO hex panels — keeps the open clean look ──
 // }
- 
+
 
 // // ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 
@@ -18191,15 +18191,15 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   rollers: THREE.Mesh[] = [];
 //   beltOffset = 0;
 //   beltLength: number;
- 
+
 //   constructor(scene: THREE.Scene, startX: number, endX: number, z: number, color: number) {
 //     this.beltLength = Math.abs(endX - startX);
 //     const centerX = (startX + endX) / 2;
- 
+
 //     // ── LOW BELT, sits at floor-ish level, BESIDE modules ──
 //     const LEG_H  = 0.18;             // very short legs
 //     const BELT_Y = LEG_H + 0.04;     // surface around y=0.22 — well below module chuck (~0.93)
- 
+
 //     // Short legs
 //     const legMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.3, metalness: 0.85 });
 //     const legSpacing = this.beltLength / 5;
@@ -18211,7 +18211,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         scene.add(leg);
 //       });
 //     }
- 
+
 //     // Side rails — clean white/grey to match reference
 //     const railMat = new THREE.MeshStandardMaterial({
 //       color: 0xc8d4e0,
@@ -18225,7 +18225,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       rail.position.set(centerX, BELT_Y + 0.03, z + zOff);
 //       scene.add(rail);
 //     });
- 
+
 //     // Belt surface — light coloured, animated stripe texture
 //     const beltCanvas = document.createElement("canvas");
 //     beltCanvas.width = 512; beltCanvas.height = 64;
@@ -18234,7 +18234,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     const beltTex = new THREE.CanvasTexture(beltCanvas);
 //     beltTex.wrapS = THREE.RepeatWrapping; beltTex.wrapT = THREE.RepeatWrapping;
 //     beltTex.repeat.set(this.beltLength / 2, 1);
- 
+
 //     const beltMesh = new THREE.Mesh(
 //       new THREE.BoxGeometry(this.beltLength, 0.04, 0.95),
 //       new THREE.MeshStandardMaterial({
@@ -18254,7 +18254,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     beltMesh.receiveShadow = true;
 //     scene.add(beltMesh);
 //     this.beltSegments.push(beltMesh);
- 
+
 //     // Bright glow strip BELOW belt — gives the neon-line look from reference
 //     const glowStrip = new THREE.Mesh(
 //       new THREE.BoxGeometry(this.beltLength, 0.025, 0.18),
@@ -18269,7 +18269,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     );
 //     glowStrip.position.set(centerX, BELT_Y - 0.03, z);
 //     scene.add(glowStrip);
- 
+
 //     // Animated stripe markers (sliding along belt)
 //     const stripeMat = new THREE.MeshStandardMaterial({
 //       color,
@@ -18289,7 +18289,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       scene.add(stripe);
 //       this.rollers.push(stripe);
 //     }
- 
+
 //     // End rollers
 //     const rollerMat = new THREE.MeshStandardMaterial({
 //       color: 0xb0c0d0,
@@ -18303,7 +18303,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       scene.add(roller);
 //     });
 //   }
- 
+
 //   private _drawBelt(ctx: CanvasRenderingContext2D, offset: number, color: number) {
 //     ctx.clearRect(0, 0, 512, 64);
 //     // Lighter belt base — matches clean cleanroom feel
@@ -18313,7 +18313,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     grad.addColorStop(1, "#dde6f0");
 //     ctx.fillStyle = grad;
 //     ctx.fillRect(0, 0, 512, 64);
- 
+
 //     const css = `#${color.toString(16).padStart(6, "0")}`;
 //     ctx.strokeStyle = css; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.55;
 //     const spacing = 56;
@@ -18321,14 +18321,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 18, 64); ctx.stroke();
 //     }
 //     ctx.globalAlpha = 1;
- 
+
 //     // Edge accents
 //     ctx.strokeStyle = css; ctx.lineWidth = 2; ctx.globalAlpha = 0.7;
 //     ctx.beginPath(); ctx.moveTo(0, 4); ctx.lineTo(512, 4); ctx.stroke();
 //     ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(512, 60); ctx.stroke();
 //     ctx.globalAlpha = 1;
 //   }
- 
+
 //   tick(dt: number, speed: number, direction = 1) {
 //     this.beltOffset += dt * speed * direction * 32;
 //     this.rollers.forEach((stripe) => {
@@ -18358,28 +18358,28 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   vel: { vx: number; vy: number; vz: number; life: number }[];
 //   colors: Float32Array;
 //   baseColor: THREE.Color;
-  
+
 //   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n: number, sz = 0.07) {
 //     this.n = n; 
 //     this.origin = pos.clone(); 
 //     this.active = false;
 //     this.baseColor = new THREE.Color(color);
-    
+
 //     const pa = new Float32Array(n * 3); 
 //     this.colors = new Float32Array(n * 3);
 //     this.vel = [];
-    
+
 //     for (let i = 0; i < n; i++) {
 //       pa[i * 3]     = pos.x + (Math.random() - 0.5) * 0.9;
 //       pa[i * 3 + 1] = pos.y + 0.5;
 //       pa[i * 3 + 2] = pos.z + (Math.random() - 0.5) * 0.9;
-      
+
 //       // Color variation
 //       const shade = 0.7 + Math.random() * 0.3;
 //       this.colors[i * 3] = this.baseColor.r * shade;
 //       this.colors[i * 3 + 1] = this.baseColor.g * shade;
 //       this.colors[i * 3 + 2] = this.baseColor.b * shade;
-      
+
 //       this.vel.push({ 
 //         vx: (Math.random() - 0.5) * 0.55, 
 //         vy: 0.6 + Math.random() * 1.2, 
@@ -18387,11 +18387,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         life: Math.random() 
 //       });
 //     }
-    
+
 //     this.geo = new THREE.BufferGeometry();
 //     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
 //     this.geo.setAttribute("color", new THREE.BufferAttribute(this.colors, 3));
-    
+
 //     this.mat = new THREE.PointsMaterial({ 
 //       size: sz, 
 //       transparent: true, 
@@ -18401,7 +18401,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       depthWrite: false,
 //       vertexColors: true,
 //     });
-    
+
 //     this.pts = new THREE.Points(this.geo, this.mat);
 //     this.pts.visible = false; 
 //     scene.add(this.pts);
@@ -18412,7 +18412,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.active = true; 
 //     this.pts.visible = true; 
 //   }
-  
+
 //   off() { 
 //     this.active = false; 
 //     this.pts.visible = false; 
@@ -18423,17 +18423,17 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     if (!this.active) return;
 //     const pa = this.geo.attributes.position.array as Float32Array;
 //     const ca = this.geo.attributes.color.array as Float32Array;
-    
+
 //     for (let i = 0; i < this.n; i++) {
 //       const v = this.vel[i]; 
 //       v.life += dt * spd * 0.6;
-      
+
 //       // Color pulsing
 //       const pulse = 0.5 + 0.5 * Math.sin(v.life * 8);
 //       ca[i * 3] = this.baseColor.r * (0.5 + pulse * 0.5);
 //       ca[i * 3 + 1] = this.baseColor.g * (0.3 + pulse * 0.7);
 //       ca[i * 3 + 2] = this.baseColor.b * (0.7 + pulse * 0.3);
-      
+
 //       if (v.life > 1.2) {
 //         v.life = 0;
 //         pa[i * 3]     = this.origin.x + (Math.random() - 0.5) * 0.9;
@@ -18449,7 +18449,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         v.vy -= 0.15 * dt * spd;
 //       }
 //     }
-    
+
 //     this.geo.attributes.position.needsUpdate = true;
 //     this.geo.attributes.color.needsUpdate = true;
 //   }
@@ -18465,13 +18465,13 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   active = false;
 //   vel: { vy: number; life: number; ox: number; oz: number; size: number }[] = [];
 //   sizes: Float32Array;
- 
+
 //   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n = 80) {
 //     this.n = n;
 //     this.origin = pos.clone();
 //     const pa = new Float32Array(n * 3);
 //     this.sizes = new Float32Array(n);
- 
+
 //   for (let i = 0; i < n; i++) {
 //   pa[i * 3] = pos.x;
 //   pa[i * 3 + 1] = pos.y;
@@ -18485,10 +18485,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     size: 0.06 + Math.random() * 0.04,
 //   });
 // }
- 
+
 //     this.geo = new THREE.BufferGeometry();
 //     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
- 
+
 //     const mat = new THREE.PointsMaterial({
 //     color,
 //     size: 0.10,                              // smaller particles (was 0.22)
@@ -18502,18 +18502,18 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.pts.visible = false;
 //     scene.add(this.pts);
 //   }
- 
+
 //   on()  { this.active = true;  this.pts.visible = true;  }
 //   off() { this.active = false; this.pts.visible = false; }
- 
+
 //   tick(dt: number, spd: number) {
 //     if (!this.active) return;
 //     const pa = this.geo.attributes.position.array as Float32Array;
- 
+
 //     for (let i = 0; i < this.n; i++) {
 //       const v = this.vel[i];
 //       v.life += dt * spd * 0.55;
- 
+
 //       if (v.life > 1.8) {
 //         // Respawn AT the module top
 //         v.life = 0;
@@ -18530,7 +18530,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.geo.attributes.position.needsUpdate = true;
 //   }
 // }
- 
+
 // // ─── HMDS VAPOR (swirling fog inside chamber) ────────────────────────────────
 
 // class HMDSFog {
@@ -18567,7 +18567,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.active = true; 
 //     this.group.visible = true; 
 //   }
-  
+
 //   off() { 
 //     this.active = false; 
 //     this.group.visible = false; 
@@ -18664,12 +18664,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //     gCtx.lineTo(1024, y); 
 // //     gCtx.stroke();
 // //   }
-  
+
 // //   const gridTex = new THREE.CanvasTexture(gridCanvas);
 // //   gridTex.wrapS = THREE.RepeatWrapping;
 // //   gridTex.wrapT = THREE.RepeatWrapping;
 // //   gridTex.repeat.set(3, 3);
-  
+
 // //   const grid = new THREE.Mesh(
 // //     new THREE.PlaneGeometry(180, 90),
 // //     new THREE.MeshStandardMaterial({ 
@@ -19038,12 +19038,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   phase: "idle" | "descend" | "spray" | "puddle" | "rinse" | "retract" | "done" = "idle";
 //   phaseT = 0;
 //   phaseDur = 1;
- 
+
 //   constructor(scene: THREE.Scene) {
 //     this.group = new THREE.Group();
 //     scene.add(this.group);
 //     this.group.visible = false;
- 
+
 //     // ── ARM + NOZZLE HEAD ──
 //     // ── Overhead cross rail (left wall to right wall) ──
 // const crossRail = new THREE.Mesh(
@@ -19146,12 +19146,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // devTipGlow.position.set(0, -1.90, 0);
 // this.nozzle.add(devTipGlow);
 // this.group.userData.devTipGlow = devTipGlow;
- 
+
 //     // ── SPRAY CONES (visible fan-shaped sprays) ──
 //  this.spraySources = new THREE.Group();
 // this.spraySources.position.set(0, -1.92, 0); // at tip height relative to nozzle
 // this.nozzle.add(this.spraySources); // moves with nozzle arm // child of nozzle so it moves with arm
- 
+
 //     [-0.10, 0, 0.10].forEach((ox) => {
 //       // Cone geometry pointing down — wide at bottom, narrow at top
 //       const coneGeo = new THREE.ConeGeometry(0.28, 1.4, 18, 1, true);
@@ -19171,7 +19171,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // this.spraySources.add(cone);
 //       this.sprayCones.push(cone);
 //     });
- 
+
 //     // ── LIQUID POOL ON WAFER ──
 //     this.liquidPool = new THREE.Mesh(
 //       new THREE.CylinderGeometry(0.86, 0.86, 0.012, 64),
@@ -19188,7 +19188,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.liquidPool.position.y = 0.41;
 //     this.group.add(this.liquidPool);
 //   }
- 
+
 //   startDev(wx: number, wz: number) {
 //  this.group.position.set(wx, 0, wz);
 // this.group.visible = true;
@@ -19206,7 +19206,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       (c.material as THREE.MeshStandardMaterial).opacity = 0;
 //     });
 //   }
- 
+
 //   stopDev() {
 //     this.group.visible = false;
 //     this.active = false;
@@ -19217,16 +19217,16 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     this.splashes.forEach((s) => this.group.remove(s));
 //     this.splashes = [];
 //   }
- 
+
 //   tick(dt: number, speed: number) {
 //     if (!this.active) return;
 //     const sDt = dt * speed;
 //     this.phaseT += sDt;
 //     const t = Math.min(this.phaseT / this.phaseDur, 1);
 //     const poolMat = this.liquidPool.material as THREE.MeshStandardMaterial;
- 
+
 //     switch (this.phase) {
- 
+
 //   case "descend": {
 //   // Phase A (0→0.5): slide along rail from right to center
 //   // Phase B (0.5→1): lower arm down to spray height
@@ -19258,7 +19258,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //       case "spray": {
 //         // Animate spray cone opacity (pulsing)
 //         const pulse = 0.4 + 0.5 * Math.abs(Math.sin(this.phaseT * 14));
@@ -19272,10 +19272,10 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //             0.85 + 0.2 * Math.cos(this.phaseT * 9 + i)
 //           );
 //         });
- 
+
 //         // Build up liquid pool on wafer
 //         poolMat.opacity = Math.min(t * 0.85, 0.85);
- 
+
 //         // Spawn flying droplets
 //         if (Math.random() < sDt * 60) {
 //           const sourceIdx = Math.floor(Math.random() * 3);
@@ -19302,7 +19302,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           this.group.add(drop);
 //           this.droplets.push(drop);
 //         }
- 
+
 //         // Update droplets
 //         this.droplets.forEach((d) => {
 //           d.position.x += d.userData.vx * sDt;
@@ -19331,7 +19331,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           }
 //         });
 //         this.droplets = this.droplets.filter((d) => d.parent === this.group);
- 
+
 //         // Update splashes (expand and fade)
 //         this.splashes.forEach((s) => {
 //           s.userData.life += sDt;
@@ -19341,7 +19341,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           if (lt > 0.35) this.group.remove(s);
 //         });
 //         this.splashes = this.splashes.filter((s) => s.parent === this.group);
- 
+
 //         if (t >= 1) {
 //           this.phase = "puddle";
 //           this.phaseT = 0;
@@ -19352,7 +19352,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //       case "puddle": {
 //         // Sit and develop — pool changes color (green → darker)
 //         poolMat.color.lerp(new THREE.Color(0x22aa66), sDt * 0.6);
@@ -19363,7 +19363,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //       case "rinse": {
 //         // Switch to blue rinse spray
 //         const pulse = 0.5 + 0.5 * Math.abs(Math.sin(this.phaseT * 14));
@@ -19373,11 +19373,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           m.emissive.setHex(0x3399ff);
 //           m.opacity = 0.3 + pulse * 0.4;
 //         });
- 
+
 //         // Pool drains
 //         poolMat.color.lerp(new THREE.Color(0x66bbff), sDt * 1.2);
 //         poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 0.6);
- 
+
 //         if (t >= 1) {
 //           this.phase = "retract";
 //           this.phaseT = 0;
@@ -19385,7 +19385,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //   case "retract": {
 //   // Phase A (0→0.5): lift back to rail
 //   // Phase B (0.5→1): slide back right to park
@@ -19412,12 +19412,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         }
 //         break;
 //       }
- 
+
 //       case "done": break;
 //     }
 //   }
 // }
- 
+
 
 // // ─── MODULE BUILDER ───────────────────────────────────────────────────────────
 
@@ -19590,60 +19590,60 @@ import { ProfileMenu } from '../components/ProfileMenu';
 
 // // function buildRobot(scene: THREE.Scene, basePos: THREE.Vector3, robotColor = 0x445566, ledColor = 0x00ff88): RobotObject {
 // //   const g = new THREE.Group(); g.position.copy(basePos);
- 
+
 // //   const M_BODY  = new THREE.MeshStandardMaterial({ color: robotColor, roughness: 0.22, metalness: 0.88 });
 // //   const M_JOINT = new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.16, metalness: 0.92 });
 // //   const M_LED   = matEmissive(ledColor, 2.5);
 // //   const M_ALUM  = new THREE.MeshStandardMaterial({ color: 0xd0dde8, roughness: 0.08, metalness: 0.96 });
 // //   const M_DARK  = matPBR(0x151820, 0.35, 0.88);
- 
+
 // //   const addM = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0): THREE.Mesh => {
 // //     const m = new THREE.Mesh(geo, mat);
 // //     m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
 // //     parent.add(m); return m;
 // //   };
- 
+
 // //   addM(g, new THREE.CylinderGeometry(0.65, 0.82, 0.22, 32), M_ALUM.clone(), 0, 0.11, 0);
 // //   addM(g, new THREE.CylinderGeometry(0.55, 0.65, 0.62, 32), M_BODY.clone(), 0, 0.52, 0);
 // //   const ledRing = addM(g, new THREE.TorusGeometry(0.53, 0.028, 8, 48), M_LED.clone(), 0, 0.8, 0);
 // //   ledRing.rotation.x = Math.PI / 2;
- 
+
 // //   const turret = new THREE.Group(); turret.position.set(0, 0.8, 0); g.add(turret);
 // //   addM(turret, new THREE.CylinderGeometry(0.42, 0.46, 0.40, 24), M_BODY.clone(), 0, 0.20, 0);
 // //   addM(turret, new THREE.CylinderGeometry(0.30, 0.30, 0.24, 18), M_JOINT.clone(), 0, 0.42, 0);
- 
+
 // //   const shoulder = new THREE.Group(); shoulder.position.set(0, 0.44, 0); turret.add(shoulder);
 // //   addM(shoulder, new THREE.BoxGeometry(1.28, 0.70, 1.08), M_BODY.clone(), 0, 0, 0);
 // //   addM(shoulder, new THREE.CylinderGeometry(0.44, 0.44, 1.14, 18), M_JOINT.clone(), 0, 0, 0);
- 
+
 // //   const upperArm = new THREE.Group(); upperArm.position.set(0, 0.38, 0); shoulder.add(upperArm);
 // //   addM(upperArm, new THREE.BoxGeometry(0.74, 2.3, 0.65), M_BODY.clone(), 0, 1.15, 0);
 // //   for (let i = 0; i < 4; i++) addM(upperArm, new THREE.BoxGeometry(0.76, 0.075, 0.67), M_DARK.clone(), 0, 0.3 + i * 0.6, 0);
 // //   addM(upperArm, new THREE.BoxGeometry(0.12, 2.0, 0.09), M_ALUM.clone(), 0.32, 1.15, 0.30);
- 
+
 // //   const elbow = new THREE.Group(); elbow.position.set(0, 2.34, 0); upperArm.add(elbow);
 // //   addM(elbow, new THREE.SphereGeometry(0.44, 28, 18), M_JOINT.clone(), 0, 0, 0);
 // //   addM(elbow, new THREE.CylinderGeometry(0.36, 0.36, 1.14, 18), M_BODY.clone(), 0, 0, 0);
- 
+
 // //   const foreArm = new THREE.Group(); elbow.add(foreArm);
 // //   addM(foreArm, new THREE.BoxGeometry(0.6, 1.80, 0.52), M_BODY.clone(), 0, 0.90, 0);
 // //   for (let i = 0; i < 2; i++) addM(foreArm, new THREE.BoxGeometry(0.62, 0.065, 0.54), M_DARK.clone(), 0, 0.25 + i * 0.72, 0);
 // //   addM(foreArm, new THREE.BoxGeometry(0.10, 1.55, 0.08), M_ALUM.clone(), 0.26, 0.90, 0.22);
- 
+
 // //   const wrist = new THREE.Group(); wrist.position.set(0, 1.84, 0); foreArm.add(wrist);
 // //   addM(wrist, new THREE.CylinderGeometry(0.30, 0.34, 0.60, 28), M_JOINT.clone(), 0, 0, 0);
- 
+
 // //   const gripper = new THREE.Group(); gripper.position.set(0, 0.36, 0); wrist.add(gripper);
 // //   addM(gripper, new THREE.BoxGeometry(0.48, 0.40, 0.48), M_BODY.clone(), 0, 0.20, 0);
 // //   addM(gripper, new THREE.CylinderGeometry(0.22, 0.24, 0.18, 18), M_JOINT.clone(), 0, 0.40, 0);
- 
+
 // //   const bladeMat = new THREE.MeshStandardMaterial({ color: 0xd8e4ef, roughness: 0.04, metalness: 0.98 });
 // //   addM(gripper, new THREE.BoxGeometry(1.72, 0.028, 0.68), bladeMat, 0.86, 0.44, 0);
 // //   [-0.28, 0.28].forEach((tz) => addM(gripper, new THREE.BoxGeometry(0.52, 0.022, 0.08), bladeMat, 1.82, 0.44, tz));
 // //   [0.5, 1.1, 1.6].forEach((bx) => addM(gripper, new THREE.CylinderGeometry(0.055, 0.055, 0.035, 12),
 // //     new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.3, metalness: 0.7 }), bx, 0.456, 0));
 // //   addM(gripper, new THREE.SphereGeometry(0.045, 8, 8), M_LED.clone(), 0, 0.44, 0.30);
- 
+
 // //   const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
 // //   statusPL.position.set(0, 2.4, 0); g.add(statusPL);
 
@@ -19660,55 +19660,55 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   const dz = tgt.z - baseWP.z;
 // //   const yaw = Math.atan2(dx, dz);
 // //   turret.rotation.set(0, yaw, 0);
-  
+
 // //   // Robot geometry constants
 // //   const L1 = 2.34;
 // //   const L2 = 1.84;
 // //   const shoulderOffset = 0.44;
 // //   const wristToGrip = 0.84;
-  
+
 // //   // Convert target to turret local space
 // //   const localTgt = turret.worldToLocal(tgt.clone());
-  
+
 // //   // Determine if this is a pick/place operation (lower height)
 // //   const isPickPlace = Math.abs(localTgt.y - 0.93) < 0.2;
 // //   const wristTargetY = localTgt.y + wristToGrip - (isPickPlace ? 0.15 : 0);
 // //   const wristR = Math.sqrt(localTgt.x * localTgt.x + localTgt.z * localTgt.z);
 // //   const sx = wristR;
 // //   const sy = wristTargetY - shoulderOffset;
-  
+
 // //   // Calculate distance from shoulder to wrist
 // //   let D = Math.sqrt(sx * sx + sy * sy);
 // //   D = Math.min(D, L1 + L2 - 0.05);
 // //   D = Math.max(D, Math.abs(L1 - L2) + 0.05);
-  
+
 // //   // Law of cosines for elbow angle
 // //   const cosElbow = (D * D - L1 * L1 - L2 * L2) / (2 * L1 * L2);
 // //   const elbowAngle = Math.acos(Math.min(1, Math.max(-1, cosElbow)));
-  
+
 // //   // Law of cosines for shoulder angle
 // //   const cosShoulder = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
 // //   const shoulderInner = Math.acos(Math.min(1, Math.max(-1, cosShoulder)));
 // //   const targetAngle = Math.atan2(sx, sy);
-  
+
 // //   // Apply joint angles
 // //   let shoulderAngle = targetAngle - shoulderInner;
 // //   shoulderAngle = Math.min(Math.max(shoulderAngle, -Math.PI / 2.5), Math.PI / 2);
 // //   shoulder.rotation.set(shoulderAngle, 0, 0);
-  
+
 // //   let elbowAngleValue = -(Math.PI - elbowAngle);
 // //   elbowAngleValue = Math.min(Math.max(elbowAngleValue, -Math.PI / 1.8), 0);
 // //   elbow.rotation.set(elbowAngleValue, 0, 0);
-  
+
 // //   // Keep blade horizontal
 // //   const cumulativePitch = shoulder.rotation.x + elbow.rotation.x;
 // //   let wristAngle = -cumulativePitch;
-  
+
 // //   // Add micro-adjustments for pick/place
 // //   if (isPickPlace) {
 // //     wristAngle += Math.sin(Date.now() * 0.008) * 0.02;
 // //   }
-  
+
 // //   wrist.rotation.set(wristAngle, 0, 0);
 // // }
 
@@ -19721,7 +19721,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   if (!rob.group.userData.smoothTarget) {
 // //     rob.group.userData.smoothTarget = tgt.clone();
 // //   }
-  
+
 // //   const smoothFactor = 0.15;
 // //   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
 // //   rob.runIK(rob.group.userData.smoothTarget);
@@ -19762,14 +19762,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   this.carrierRobot = robot;
 // //   this.scene.remove(this.mesh);
 // //   robot.gripper.add(this.mesh);
-  
+
 // //   // Position wafer ON TOP of the blade
 // //   // Blade extends in +X, surface at y=0.44 from gripper origin
 // //   // Wafer should sit at y=0.5 to be slightly above blade surface
 // //   this.mesh.position.set(0.86, 0.5, 0);
 // //   this.mesh.rotation.set(0, 0, 0);
 // //   this.onConveyor = false;
-  
+
 // //   // Visual feedback - flash the wafer
 // //   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
 // //   if (pr) {
@@ -19782,7 +19782,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //       mat.emissiveIntensity = origEmissive;
 // //     }, 200);
 // //   }
-  
+
 // //   // Also flash the robot's LED
 // //   robot.statusPL.intensity = 3.0;
 // //   setTimeout(() => {
@@ -19793,23 +19793,23 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // // // Replace detachAt in WaferStateMachine:
 // // detachAt(worldPos: THREE.Vector3) {
 // //   if (!this.carrierRobot) return;
-  
+
 // //   // Store reference to robot before detaching
 // //   const robot = this.carrierRobot;
-  
+
 // //   // Remove from robot gripper
 // //   robot.gripper.remove(this.mesh);
 // //   this.scene.add(this.mesh);
-  
+
 // //   // Position at module chuck height (y=0.93 for wafer chuck)
 // //   this.mesh.position.copy(worldPos);
 // //   this.mesh.position.y = 0.93; // Chuck surface height
-  
+
 // //   // Slight rotation for visual interest
 // //   this.mesh.rotation.y = Math.random() * Math.PI * 2;
-  
+
 // //   this.carrierRobot = null;
-  
+
 // //   // Visual feedback - impact flash
 // //   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
 // //   if (pr) {
@@ -19821,7 +19821,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //       mat.emissiveIntensity = 0.7;
 // //     }, 250);
 // //   }
-  
+
 // //   // Flash the module's LED
 // //   const modObj = (window as any).currentModule?.userData;
 // //   if (modObj?.processLight) {
@@ -19839,14 +19839,14 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   if (!rob.group.userData.smoothTarget) {
 // //     rob.group.userData.smoothTarget = tgt.clone();
 // //   }
-  
+
 // //   // Interpolate target for smoother motion
 // //   const smoothFactor = 0.15;
 // //   rob.group.userData.smoothTarget.lerp(tgt, smoothFactor);
-  
+
 // //   // Run IK with smoothed target
 // //   rob.runIK(rob.group.userData.smoothTarget);
-  
+
 // //   // Add subtle floating motion when idle (not carrying wafer)
 // //   const carried = (rob.group.userData.carriedWafer !== undefined);
 // //   if (!carried && rob.group.userData.isIdle) {
@@ -19893,7 +19893,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   robots.forEach(({ r, phase, mult }) => {
 // //     const carried = findCarried(r);
 // //     r.group.userData.isIdle = !carried;
-    
+
 // //     const tgt = carried
 // //       ? new THREE.Vector3(
 // //           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].x,
@@ -19901,12 +19901,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //           ALL_STEPS[Math.min(carried.stepIdx, ALL_STEPS.length - 1)].z
 // //         )
 // //       : idleTgt(r, phase);
-      
+
 // //     this._driveRobotTo(r, tgt, dt, mult);
 
 // //     // Pulsing status LED
 // //     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8 + phase);
-    
+
 // //     // Add trailing particles when moving with wafer (optional)
 // //     if (carried && !r.group.userData.trailParticles) {
 // //       // Create particle trail for moving wafer
@@ -19953,34 +19953,34 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   const startPos = sm.mesh.position.clone();
 // //   const startTime = this.simTime;
 // //   const endTime = startTime + duration;
-  
+
 // //   const animate = () => {
 // //     const now = this.simTime;
 // //     if (now >= endTime) {
 // //       // Animation complete
 // //       return;
 // //     }
-    
+
 // //     const t = (now - startTime) / duration;
 // //     // Ease in-out curve
 // //     const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    
+
 // //     // Interpolate position with arc
 // //     const currentPos = startPos.clone().lerp(targetPos, ease);
 // //     currentPos.y = startPos.y + Math.sin(Math.PI * ease) * 0.15; // Arc motion
-    
+
 // //     sm.mesh.position.copy(currentPos);
-    
+
 // //     // Slight rotation during pick/place
 // //     sm.mesh.rotation.y = ease * Math.PI * 0.5;
-    
+
 // //     requestAnimationFrame(() => animate());
 // //   };
-  
+
 // //   animate();
 // // }
 // // */
- 
+
 // //   function getJoints(): JointData {
 // //     return {
 // //       base:     { c: turret.rotation.y },
@@ -19989,7 +19989,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //       wrist:    { c: wrist.rotation.x },
 // //     };
 // //   }
- 
+
 // //   scene.add(g);
 // //   return {
 // //     group: g, turret, shoulder, upperArm, elbow, foreArm, wrist, gripper, statusPL,
@@ -22008,7 +22008,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   grp.add(sp);
 //   grp.userData.nameLabel = sp;
 // }
- 
+
 // // ── tiny helper — canvas rounded-rect path ──────────────────────────────────
 // function roundRect(
 //   ctx: CanvasRenderingContext2D,
@@ -22311,7 +22311,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     // Belts on the OUTER side of each track (away from camera centre)
 //     // this.conveyorTop = new ConveyorBelt(this.scene, -22, 27, TOP_Z + 2.6, 0x0099ff);
 //     // this.conveyorBot = new ConveyorBelt(this.scene, -22, 27, BOT_Z - 2.6, 0x00cc66);
- 
+
 //     // Robots — sit on the INNER side of each track (toward z=0), so the belt
 //     // is on one side and the robot reaches modules from the other.
 //   // Robot positioned BEHIND modules (negative Z = away from camera, behind the scanner row)
@@ -22440,7 +22440,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   const t   = this.simTime;
 //   const r   = this.robotEFEM;
 //   if (!r?.runIK) return;
- 
+
 //   // ── One-time init ──
 //   const ud = r.group.userData;
 //   if (!ud.railInit) {
@@ -22457,13 +22457,13 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     ud.bezierCP1    = new THREE.Vector3();
 //     ud.bezierCP2    = new THREE.Vector3();
 //   }
- 
+
 //   // ── Smooth-step easing ──
 //   const ss = (x: number) => {
 //     x = Math.max(0, Math.min(1, x));
 //     return x * x * (3 - 2 * x);
 //   };
- 
+
 //   // ── Cubic Bezier evaluator ──
 //   const evalBez = (out: THREE.Vector3, u: number) => {
 //     const p0 = ud.bezierStart as THREE.Vector3;
@@ -22478,7 +22478,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //       v3*p0.z + 3*v2*u*p1.z + 3*v*u2*p2.z + u3*p3.z,
 //     );
 //   };
- 
+
 //   // ── Find active wafer for this robot ──
 //   const carried = this.wSMs.find(
 //     w => w.launched && !w.done && w.carrierRobot === r
@@ -22488,7 +22488,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //          w.state === 'track_approach' && !(w as any)._picked
 //   );
 //   const target = carried ?? waiting ?? null;
- 
+
 //   // ── Carried wafer follows finger midpoint every frame ──
 //   this.wSMs.forEach(sm => {
 //     if (!sm.carrierRobot || !sm.launched || sm.done) return;
@@ -22500,12 +22500,12 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     sm.mesh.scale.setScalar(1);
 //     sm.mesh.visible = true;
 //   });
- 
+
 //   let railTargetX = r.basePos.x;
 //   const SAFE_H    = 2.5;   // transport altitude
 //   const APPROACH  = 0.45;  // hover above chuck
 //   const LIFT_BUMP = 0.06;  // wafer sits just above chuck surface
- 
+
 //   if (!target) {
 //     // ── IDLE: gentle patrol hover ──
 //     ud.armPhase = 'idle';
@@ -22518,28 +22518,28 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     );
 //     r.runIK(idleTgt);
 //     this._setGripperState(r, 0, dt);
- 
+
 //   } else {
 //     const dropStep   = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
 //     const prevIdx    = Math.max(target.stepIdx - 1, 0);
 //     const prevStep   = ALL_STEPS[prevIdx];
- 
+
 //     const pickupX = (target as any)._pickupX as number ?? prevStep.x;
 //     const pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
 //     const isPicked = !!(target as any)._picked;
- 
+
 //     // FOUP slot height varies per wafer index
 //     const foupSlotY = 0.7 + target.wi * 0.4;
 //     const pickH  = prevStep.type === 'foup' ? foupSlotY : 0.93;
 //     const dropH  = dropStep.type === 'foup' ? foupSlotY : 0.93;
- 
+
 //     railTargetX = clamp(isPicked ? dropStep.x : pickupX, RAIL_START + 1, RAIL_END - 1);
- 
+
 //     ud.phaseT = (ud.phaseT as number) + dt * this.speed;
 //     const phaseT = ud.phaseT as number;
 //     const phase  = ud.armPhase as string;
 //     const railX  = ud.railX as number;
- 
+
 //     // IK target positions in world space
 //     const above    = new THREE.Vector3(pickupX, pickH + APPROACH + 0.4, pickupZ);
 //     const insert   = new THREE.Vector3(pickupX, pickH + APPROACH,       pickupZ);
@@ -22547,7 +22547,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     const aboveDrop = new THREE.Vector3(dropStep.x, dropH + APPROACH + 0.4, dropStep.z);
 //     const insertDrop = new THREE.Vector3(dropStep.x, dropH + APPROACH,      dropStep.z);
 //     const placePos   = new THREE.Vector3(dropStep.x, dropH + LIFT_BUMP,     dropStep.z);
- 
+
 //     if (!isPicked) {
 //       // ═══════ PICK SEQUENCE ═══════
 //       switch (phase) {
@@ -22555,7 +22555,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         case 'retract':
 //           ud.armPhase = 'approach'; ud.phaseT = 0;
 //           break;
- 
+
 //         case 'approach':
 //           r.runIK(above);
 //           this._setGripperState(r, 0, dt);
@@ -22563,7 +22563,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //             ud.armPhase = 'insert'; ud.phaseT = 0;
 //           }
 //           break;
- 
+
 //         case 'insert': {
 //           const p = ss(Math.min(phaseT / 0.8, 1));
 //           r.runIK(new THREE.Vector3().lerpVectors(above, insert, p));
@@ -22571,7 +22571,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           if (p >= 1) { ud.armPhase = 'contact'; ud.phaseT = 0; }
 //           break;
 //         }
- 
+
 //         case 'contact': {
 //           const p = ss(Math.min(phaseT / 0.5, 1));
 //           r.runIK(new THREE.Vector3().lerpVectors(insert, contact, p));
@@ -22579,7 +22579,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           if (p >= 1) { ud.armPhase = 'vacuum_dwell'; ud.phaseT = 0; ud.dwellTimer = 0; }
 //           break;
 //         }
- 
+
 //         case 'vacuum_dwell': {
 //           ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
 //           r.runIK(contact);
@@ -22591,7 +22591,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //             target.attachTo(r);
 //             (target as any)._picked = true;
 //             this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED @ ${prevStep.short}`, 'pick');
- 
+
 //             // Build Bezier arc for transport
 //             (ud.bezierStart as THREE.Vector3).copy(contact);
 //             (ud.bezierEnd   as THREE.Vector3).copy(aboveDrop);
@@ -22603,7 +22603,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           }
 //           break;
 //         }
- 
+
 //         case 'lift': {
 //           const liftTgt = new THREE.Vector3(pickupX, SAFE_H, pickupZ);
 //           const p = ss(Math.min(phaseT / 0.6, 1));
@@ -22612,11 +22612,11 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           if (p >= 1) { ud.armPhase = 'transport'; ud.phaseT = 0; ud.bezierT = 0; }
 //           break;
 //         }
- 
+
 //         default:
 //           ud.armPhase = 'approach'; ud.phaseT = 0;
 //       }
- 
+
 //     } else {
 //       // ═══════ PLACE SEQUENCE ═══════
 //       switch (phase) {
@@ -22633,7 +22633,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           if ((ud.bezierT as number) >= 1) { ud.armPhase = 'lower'; ud.phaseT = 0; }
 //           break;
 //         }
- 
+
 //         case 'lower': {
 //           const p = ss(Math.min(phaseT / 0.75, 1));
 //           r.runIK(new THREE.Vector3().lerpVectors(aboveDrop, insertDrop, p));
@@ -22641,7 +22641,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           if (p >= 1) { ud.armPhase = 'place_contact'; ud.phaseT = 0; }
 //           break;
 //         }
- 
+
 //         case 'place_contact': {
 //           const p = ss(Math.min(phaseT / 0.5, 1));
 //           r.runIK(new THREE.Vector3().lerpVectors(insertDrop, placePos, p));
@@ -22649,7 +22649,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           if (p >= 1) { ud.armPhase = 'release'; ud.phaseT = 0; }
 //           break;
 //         }
- 
+
 //         case 'release': {
 //           r.runIK(placePos);
 //           this._setGripperState(r, 0, dt);
@@ -22659,7 +22659,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           const dropTgt = new THREE.Vector3(dropStep.x, dropH, dropStep.z);
 //           const posErr  = fp.distanceTo(dropTgt);
 //           const timeout = phaseT > 1.8;
- 
+
 //           if ((posErr < 0.45 && phaseT > 0.35) || timeout) {
 //             target.detachAt(dropTgt);
 //             this._addLog(`[${WAFER_NAMES[target.wi]}] PLACED @ ${dropStep.short}`, 'place');
@@ -22675,7 +22675,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           }
 //           break;
 //         }
- 
+
 //         case 'retractUp': {
 //           const p = ss(Math.min(phaseT / 0.55, 1));
 //           r.runIK(new THREE.Vector3().lerpVectors(placePos, aboveDrop, p));
@@ -22683,19 +22683,19 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           if (p >= 1) { ud.armPhase = 'retract'; ud.phaseT = 0; }
 //           break;
 //         }
- 
+
 //         case 'retract':
 //           r.runIK(aboveDrop);
 //           this._setGripperState(r, 0, dt);
 //           if (phaseT > 0.45) { ud.armPhase = 'idle'; ud.phaseT = 0; }
 //           break;
- 
+
 //         default:
 //           ud.armPhase = 'transport'; ud.phaseT = 0;
 //       }
 //     }
 //   }
- 
+
 //   // ── Rail slide with decel zone ──
 //   const curRailX  = ud.railX as number;
 //   const dist      = Math.abs(railTargetX - curRailX);
@@ -22704,7 +22704,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //   const dx        = railTargetX - curRailX;
 //   ud.railX        = Math.abs(dx) > maxStep ? curRailX + Math.sign(dx) * maxStep : railTargetX;
 //   r.group.position.x = ud.railX as number;
- 
+
 //   // ── LED color based on state ──
 //   const g = (ud.gripperState as number) ?? 0;
 //   if (g > 0.7) {
@@ -22718,7 +22718,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
 //   }
 // }
- 
+
 //   private _getCarrierForStep(si: number): RobotObject | null {
 //     return this.robotEFEM ?? null; // single robot handles all steps
 //   }
@@ -22938,7 +22938,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 // //   sm.timer += sDt;
 // //   const robot = this._getCarrierForStep(sm.stepIdx);
 // //   if (!robot) { sm.state = "idle"; return; }
-  
+
 // //   const railX = robot.group.userData.railX ?? robot.basePos.x;
 // //   const picked = (sm as any)._picked;
 // //   const pickupX = (sm as any)._pickupX;
@@ -23378,7 +23378,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //         if (pl) pl.intensity = isActive ? 3.0 + 1.2 * Math.abs(Math.sin(this.simTime * 4)) : 0.3;
 //       };
 //       animateDIWaterRinse();
-    
+
 
 //       const animatePostBake = () => {
 //         const grp = this.modObjs['peb'];
@@ -23759,7 +23759,7 @@ import { ProfileMenu } from '../components/ProfileMenu';
 //           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 52, background: "rgba(255,255,255,0.95)", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 12, padding: "0 18px", backdropFilter: "blur(20px)", pointerEvents: "auto", boxShadow: "0 2px 12px rgba(0,80,180,0.08)" }}>
 //             <span style={{ fontSize: 20, letterSpacing: 10, color: "#0055cc", fontWeight: "bold" }}>SEMATI</span>
 //             <div style={{ width: 1, height: 22, background: T.border }} />
-            
+
 //             <span style={{ fontSize: 8, color: "#3a5588", letterSpacing: 1.5, maxWidth: 380 }}>Genesis — Educational visualization of 300mm wafer Photoresist Coater Developer Track for graduate engineering students</span>
 //             <div style={{ flex: 1 }} />
 
@@ -24153,50 +24153,50 @@ const TOP_TRACK_BELT_Z = TOP_Z - 0.75;
 const BOT_TRACK_BELT_Z = BOT_Z + 0.75;
 const IFACE_LOCAL_Z: Record<string, number> = {
   iface_out: 0,
-  iface_in:  -0.4,
+  iface_in: -0.4,
 };
 // Per-module fine offset along Z to seat the GLB inside its plinth.
 // Positive = push toward +Z (front), negative = pull back into the box.
 const IFACE_GLB_Z_OFFSET: Record<string, number> = {
   iface_out: -1.0,
-  iface_in:  + 1.4,   // ← tune this (e.g. -0.6) if iface_in still pokes forward
+  iface_in: + 1.4,   // ← tune this (e.g. -0.6) if iface_in still pokes forward
 };
 const DEG = Math.PI / 180;
 const NUM_WAFERS = 1;
 const PLACE_DELAY = 0.3;
 // ─── PICK ALIGNMENT THRESHOLDS ───────────────────────────────────────────────
-const PICK_APPROACH_DIST    = 2.5;    // realistic for your scale
-const PICK_SNAP_DIST        = 1.5;    // begin snap when within 1.5 units
-const PICK_ATTACH_DIST      = 0.8;    // attach when reasonably close
-const PICK_ANGULAR_TOL_DEG  = 45.0;   // loose tolerance — IK isn't precise yet
-const PICK_SOFT_IK_BLEND    = 0.18;
-const PICK_POS_SNAP_BLEND   = 0.25;
-const GRIPPER_OFFSET_EULER  = new THREE.Euler(0, 0, 0);  // no offset — bones are skinned // blade faces down
+const PICK_APPROACH_DIST = 2.5;    // realistic for your scale
+const PICK_SNAP_DIST = 1.5;    // begin snap when within 1.5 units
+const PICK_ATTACH_DIST = 0.8;    // attach when reasonably close
+const PICK_ANGULAR_TOL_DEG = 45.0;   // loose tolerance — IK isn't precise yet
+const PICK_SOFT_IK_BLEND = 0.18;
+const PICK_POS_SNAP_BLEND = 0.25;
+const GRIPPER_OFFSET_EULER = new THREE.Euler(0, 0, 0);  // no offset — bones are skinned // blade faces down
 
 const EFEM_X = -15;
 const EFEM_Z = 0;
 const ALL_STEPS: ProcessStep[] = [
-  { id: "foup",      name: "FOUP Input",              short: "FOUP", temp: null, time: 1, color: 0x4488ff, type: "foup",  x: -20, z: 0     },
-  { id: "dehy",      name: "Dehydration Bake 150°C",  short: "DEHY", temp: 150,  time: 8, color: 0xff2200, type: "hot",   x: -11, z: TOP_Z },
-  { id: "hmds",      name: "HMDS Vapor Prime",        short: "HMDS", temp: 110,  time: 2, color: 0xff8800, type: "hot",   x: -6,  z: TOP_Z },
-  { id: "chill1",    name: "Chill Plate #1  22°C",    short: "CP-1", temp: 22,   time: 3, color: 0x00ccff, type: "cold",  x: -1,  z: TOP_Z },
-  { id: "prcoat",    name: "PR Coat (COT)",           short: "COT",  temp: null, time: 5, color: 0xcc00ff, type: "coat",  x: 4,   z: TOP_Z },
-  { id: "pab",       name: "Post-Apply Bake 118°C",   short: "PAB",  temp: 118,  time: 3, color: 0xff5500, type: "hot",   x: 9,   z: TOP_Z },
-  { id: "chill2",    name: "Chill Plate #2  22°C",    short: "CP-2", temp: 22,   time: 2, color: 0x00aaee, type: "cold",  x: 14,  z: TOP_Z },
-  { id: "iface_out", name: "Interface → Scanner",     short: "IF→",  temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19,  z: -3 },
-  { id: "scanner",   name: "Scanner 193nm Exposure",  short: "SCAN", temp: null, time: 5, color: 0xee00cc, type: "scan",  x: 38,  z: 0     },
-  { id: "iface_in",  name: "Interface ← Scanner",     short: "IF←",  temp: null, time: 2, color: 0xffaa00, type: "iface", x: 19,  z: 3},
-  { id: "peb",       name: "Post-Exposure Bake 120°C",short: "PEB",  temp: 120,  time: 3, color: 0xff3300, type: "hot",   x: 14,  z: BOT_Z },
-  { id: "develop",   name: "Developer Module (DEV)",  short: "DEV",  temp: null, time: 4, color: 0x00ff88, type: "wet",   x: 9,   z: BOT_Z },
-  { id: "rinse",     name: "DI Water Rinse",          short: "RINSE",temp: null, time: 3, color: 0x0088ff, type: "wet",   x: 4,   z: BOT_Z },
-  { id: "spindry",   name: "Spin Dry + N₂ Purge",     short: "DRY",  temp: null, time: 3, color: 0x00eeff, type: "dry",   x: -1,  z: BOT_Z },
-  { id: "chill3",    name: "Chill Plate #3  22°C",    short: "CP-3", temp: 22,   time: 2, color: 0x22ddbb, type: "cold",  x: -6,  z: BOT_Z },
-  { id: "hardbake",  name: "Hard Bake  130°C",        short: "HBAK", temp: 130,  time: 3, color: 0xff1100, type: "hot",   x: -11, z: BOT_Z },
+  { id: "foup", name: "FOUP Input", short: "FOUP", temp: null, time: 1, color: 0x4488ff, type: "foup", x: -20, z: 0 },
+  { id: "dehy", name: "Dehydration Bake 150°C", short: "DEHY", temp: 150, time: 8, color: 0xff2200, type: "hot", x: -11, z: TOP_Z },
+  { id: "hmds", name: "HMDS Vapor Prime", short: "HMDS", temp: 110, time: 2, color: 0xff8800, type: "hot", x: -6, z: TOP_Z },
+  { id: "chill1", name: "Chill Plate #1  22°C", short: "CP-1", temp: 22, time: 3, color: 0x00ccff, type: "cold", x: -1, z: TOP_Z },
+  { id: "prcoat", name: "PR Coat (COT)", short: "COT", temp: null, time: 5, color: 0xcc00ff, type: "coat", x: 4, z: TOP_Z },
+  { id: "pab", name: "Post-Apply Bake 90°C", short: "PAB", temp: 90, time: 3, color: 0xff5500, type: "hot", x: 9, z: TOP_Z },
+  { id: "chill2", name: "Chill Plate #2  22°C", short: "CP-2", temp: 22, time: 2, color: 0x00aaee, type: "cold", x: 14, z: TOP_Z },
+  { id: "iface_out", name: "Interface → Scanner", short: "IF→", temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19, z: -3 },
+  { id: "scanner", name: "Scanner 193nm Exposure", short: "SCAN", temp: null, time: 5, color: 0xee00cc, type: "scan", x: 38, z: 0 },
+  { id: "iface_in", name: "Interface ← Scanner", short: "IF←", temp: null, time: 2, color: 0xffaa00, type: "iface", x: 19, z: 3 },
+  { id: "peb", name: "Post-Exposure Bake 120°C", short: "PEB", temp: 120, time: 3, color: 0xff3300, type: "hot", x: 14, z: BOT_Z },
+  { id: "develop", name: "Developer Module (DEV)", short: "DEV", temp: null, time: 4, color: 0x00ff88, type: "wet", x: 9, z: BOT_Z },
+  { id: "rinse", name: "DI Water Rinse", short: "RINSE", temp: null, time: 3, color: 0x0088ff, type: "wet", x: 4, z: BOT_Z },
+  { id: "spindry", name: "Spin Dry + N₂ Purge", short: "DRY", temp: null, time: 3, color: 0x00eeff, type: "dry", x: -1, z: BOT_Z },
+  { id: "chill3", name: "Chill Plate #3  22°C", short: "CP-3", temp: 22, time: 2, color: 0x22ddbb, type: "cold", x: -6, z: BOT_Z },
+  { id: "hardbake", name: "Hard Bake  130°C", short: "HBAK", temp: 130, time: 3, color: 0xff1100, type: "hot", x: -11, z: BOT_Z },
 ];
 
 const WAFER_COLORS = [0xffaa00, 0x00eeff, 0xdd44ff, 0x44ffaa];
-const WAFER_NAMES  = ["W-001", "W-002", "W-003", "W-004"];
-const W_CSS        = ["#ffaa00", "#00eeff", "#dd44ff", "#44ffaa"];
+const WAFER_NAMES = ["W-001", "W-002", "W-003", "W-004"];
+const W_CSS = ["#ffaa00", "#00eeff", "#dd44ff", "#44ffaa"];
 
 // ── PERFORMANCE: global geometry detail multiplier ──
 const PERF_DETAIL = 0.5;  // 0.5 = half segments everywhere (50% faster)
@@ -24323,47 +24323,47 @@ function buildWafer(color: number): THREE.Group {
   g.userData.glowRing = glow;
 
   // ← PASTE HERE
-  
+
 
   return g;
 }
 
 const CAMERA_PRESETS: Record<string, CameraPreset> = {
-  "OVERVIEW":  { theta: Math.PI * 0.13, phi: 0.34, radius: 24, cx: 2,   cy: 0, cz: 0     },
-  "TOP DOWN":  { theta: Math.PI * 0.13, phi: 0.03, radius: 28, cx: 2,   cy: 0, cz: 0     },
-  "EFEM":      { theta: Math.PI * 0.62, phi: 0.30, radius: 10, cx: -8,  cy: 0, cz: 0     },
-  "TOP TRACK": { theta: Math.PI * 0.03, phi: 0.28, radius: 14, cx: 2,   cy: 0, cz: TOP_Z },
-  "BOT TRACK": { theta: Math.PI * 1.0,  phi: 0.28, radius: 14, cx: 2,   cy: 0, cz: BOT_Z },
-  "SCANNER":   { theta: Math.PI * 0.88, phi: 0.28, radius: 9,  cx: 16,  cy: 0, cz: 0     },
-  "PR COAT":   { theta: Math.PI * 0.55, phi: 0.32, radius: 8,  cx: 4,   cy: 0, cz: TOP_Z },
+  "OVERVIEW": { theta: Math.PI * 0.13, phi: 0.34, radius: 24, cx: 2, cy: 0, cz: 0 },
+  "TOP DOWN": { theta: Math.PI * 0.13, phi: 0.03, radius: 28, cx: 2, cy: 0, cz: 0 },
+  "EFEM": { theta: Math.PI * 0.62, phi: 0.30, radius: 10, cx: -8, cy: 0, cz: 0 },
+  "TOP TRACK": { theta: Math.PI * 0.03, phi: 0.28, radius: 14, cx: 2, cy: 0, cz: TOP_Z },
+  "BOT TRACK": { theta: Math.PI * 1.0, phi: 0.28, radius: 14, cx: 2, cy: 0, cz: BOT_Z },
+  "SCANNER": { theta: Math.PI * 0.88, phi: 0.28, radius: 9, cx: 16, cy: 0, cz: 0 },
+  "PR COAT": { theta: Math.PI * 0.55, phi: 0.32, radius: 8, cx: 4, cy: 0, cz: TOP_Z },
 };
 
 const COMPONENT_INFO: Record<string, {
   section: string; hardware: string; process: string; specs: Record<string, string>
 }> = {
-  "foup":      { section: "EFEM / Loading", hardware: "Polycarbonate/PEEK enclosure with precision-machined door interface. SEMI-standard kinematic coupling. N₂-purged micro-atmosphere.", process: "Mini-environment isolating 300mm wafers. Maintains N₂-purged atmosphere preventing native oxide growth and AMC during transport.", specs: { "Purge Gas": "N₂, 5–10 LPM", "Environment": "ISO Class 1", "Coupling": "SEMI-standard kinematic" } },
-  "dehy":      { section: "Main Process Track", hardware: "Proximity hotplate with programmable lift pins 0.1mm–1.0mm. Multi-zone heating, thermal uniformity <±0.5%.", process: "Thermally desorbs adsorbed H₂O molecules from wafer surface. Critical prerequisite for primer bonding.", specs: { "Temperature": "150°C", "Time": "60s", "Proximity Gap": "0.1mm", "Uniformity": "<±0.5%" } },
-  "hmds":      { section: "Main Process Track", hardware: "Vacuum-sealed chamber with HMDS bubbler and N₂ carrier gas. Heated walls prevent condensation.", process: "Silylation: HMDS replaces –OH groups with –Si(CH₃)₃. Converts hydrophilic to hydrophobic, prevents resist peeling.", specs: { "Temperature": "110°C", "Vacuum": "<1 Torr", "Time": "30s", "Contact Angle": ">70° post-prime" } },
-  "chill1":    { section: "Main Process Track", hardware: "Water-cooled or Peltier aluminium plate with helium-backside gas for thermal conduction.", process: "Rapidly quenches thermal energy. Normalizes wafer temperature for consistent resist viscosity.", specs: { "Target Temp": "22.0°C ±0.1°C", "Time": "45s", "Cooling": "Water/Peltier + He backside" } },
-  "prcoat":    { section: "Main Process Track", hardware: "High-speed spindle up to 6000 RPM. Programmable dispense arm, suck-back valves, EBR nozzle.", process: "Centrifugal force spreads viscous polymer. h ∝ 1/√ω. EBR removes edge bead.", specs: { "Spin Speed": "1500–3000 RPM", "Acceleration": "20,000 RPM/s", "Dispense": "Dynamic 2.0cc", "EBR Solvent": "PGMEA" } },
-  "pab":       { section: "Main Process Track", hardware: "Isobaric hotplate with exhaust system for solvent vapor removal.", process: "Evaporates PGMEA solvent. Reduces dark-reactivity, stabilizes thickness.", specs: { "Temperature": "100–120°C", "Time": "60–90s", "Solvent Removed": "~90% PGMEA" } },
-  "chill2":    { section: "Main Process Track", hardware: "Water-cooled aluminium plate with helium-backside gas.", process: "Stabilizes film before scanner transfer. Ensures identical thermal budget.", specs: { "Target Temp": "22.0°C", "Time": "30s", "Cooling": "Water/Peltier + He backside" } },
+  "foup": { section: "EFEM / Loading", hardware: "Polycarbonate/PEEK enclosure with precision-machined door interface. SEMI-standard kinematic coupling. N₂-purged micro-atmosphere.", process: "Mini-environment isolating 300mm wafers. Maintains N₂-purged atmosphere preventing native oxide growth and AMC during transport.", specs: { "Purge Gas": "N₂, 5–10 LPM", "Environment": "ISO Class 1", "Coupling": "SEMI-standard kinematic" } },
+  "dehy": { section: "Main Process Track", hardware: "Proximity hotplate with programmable lift pins 0.1mm–1.0mm. Multi-zone heating, thermal uniformity <±0.5%.", process: "Thermally desorbs adsorbed H₂O molecules from wafer surface. Critical prerequisite for primer bonding.", specs: { "Temperature": "150°C", "Time": "60s", "Proximity Gap": "0.1mm", "Uniformity": "<±0.5%" } },
+  "hmds": { section: "Main Process Track", hardware: "Vacuum-sealed chamber with HMDS bubbler and N₂ carrier gas. Heated walls prevent condensation.", process: "Silylation: HMDS replaces –OH groups with –Si(CH₃)₃. Converts hydrophilic to hydrophobic, prevents resist peeling.", specs: { "Temperature": "110°C", "Vacuum": "<1 Torr", "Time": "30s", "Contact Angle": ">70° post-prime" } },
+  "chill1": { section: "Main Process Track", hardware: "Water-cooled or Peltier aluminium plate with helium-backside gas for thermal conduction.", process: "Rapidly quenches thermal energy. Normalizes wafer temperature for consistent resist viscosity.", specs: { "Target Temp": "22.0°C ±0.1°C", "Time": "45s", "Cooling": "Water/Peltier + He backside" } },
+  "prcoat": { section: "Main Process Track", hardware: "High-speed spindle up to 6000 RPM. Programmable dispense arm, suck-back valves, EBR nozzle.", process: "Centrifugal force spreads viscous polymer. h ∝ 1/√ω. EBR removes edge bead.", specs: { "Spin Speed": "1500–3000 RPM", "Acceleration": "20,000 RPM/s", "Dispense": "Dynamic 2.0cc", "EBR Solvent": "PGMEA" } },
+  "pab": { section: "Main Process Track", hardware: "Isobaric hotplate with exhaust system for solvent vapor removal.", process: "Evaporates PGMEA solvent. Reduces dark-reactivity, stabilizes thickness.", specs: { "Temperature": "100–120°C", "Time": "60–90s", "Solvent Removed": "~90% PGMEA" } },
+  "chill2": { section: "Main Process Track", hardware: "Water-cooled aluminium plate with helium-backside gas.", process: "Stabilizes film before scanner transfer. Ensures identical thermal budget.", specs: { "Target Temp": "22.0°C", "Time": "30s", "Cooling": "Water/Peltier + He backside" } },
   "iface_out": { section: "Interface / Scanner", hardware: "High-precision bridge between track and scanner. Centering unit, cooling station.", process: "Sync hub managing timing between asynchronous track and scanner. Ensures consistent Time-to-Exposure (TTE).", specs: { "Function": "Buffer / Sync", "Key Metric": "TTE consistency" } },
-  "scanner":   { section: "Interface / Scanner", hardware: "193nm ArF excimer laser scanner. High-precision wafer stage. Reticle stage and projection optics.", process: "Generates Photo-Acid Generators via latent image formation at 193nm wavelength.", specs: { "Wavelength": "193nm (ArF)", "Dose": "20–50 mJ/cm²", "NA": "0.93 (dry)" } },
-  "iface_in":  { section: "Interface / Scanner", hardware: "Return bridge from scanner back to process track.", process: "Returns exposed wafer to track for post-exposure processing.", specs: { "Function": "Scanner → Track handoff" } },
-  "peb":       { section: "Post-Exposure Sequence", hardware: "High-uniformity hotplate with multi-zone thermal control.", process: "Acid-catalyzed deprotection in CAR resists. 1°C error → 1.5–2.0nm CD shift.", specs: { "Temperature": "110–120°C (critical)", "Time": "60s", "CD Sensitivity": "1.5–2.0 nm/°C" } },
-  "develop":   { section: "Post-Exposure Sequence", hardware: "Multi-nozzle dispense (stream/spray/puddle) with rotating chuck. Temperature-controlled developer lines.", process: "Selective dissolution of exposed resist in alkaline TMAH. Defines final relief pattern.", specs: { "Developer": "2.38% TMAH", "Puddle Time": "30–60s", "Temperature": "23°C" } },
-  "rinse":     { section: "Post-Exposure Sequence", hardware: "DI water manifold with rotating chuck and N₂ blow-off.", process: "Removes dissolved resist and developer salts. Prevents water mark defects.", specs: { "Fluid": "DIW + N₂ purge", "Purpose": "Remove developer salts" } },
-  "spindry":   { section: "Post-Exposure Sequence", hardware: "High-speed spin chuck with N₂ purge nozzle.", process: "Centrifugal drying removes residual rinse water. N₂ purge prevents redeposition.", specs: { "Spin Speed": "4000 RPM", "Gas": "N₂ purge" } },
-  "chill3":    { section: "Post-Exposure Sequence", hardware: "Water-cooled aluminium plate with helium-backside gas.", process: "Quenches hard bake thermal energy before unloading.", specs: { "Target Temp": "22.0°C", "Time": "45s" } },
-  "hardbake":  { section: "Post-Exposure Sequence", hardware: "High-temperature hotplate, typically 10–20°C above PAB.", process: "Removes remaining solvent. Thermally cross-links resist for improved etch resistance.", specs: { "Temperature": "130°C", "Time": "60s", "Purpose": "Cross-link polymer" } },
-  "output":    { section: "EFEM / Loading", hardware: "Output FOUP with N₂ purge. Same mechanical interface as input FOUP.", process: "Stores processed wafers in purged environment pending inspection and metrology.", specs: { "Purge Gas": "N₂", "Capacity": "25 wafers", "Environment": "ISO Class 1" } },
+  "scanner": { section: "Interface / Scanner", hardware: "193nm ArF excimer laser scanner. High-precision wafer stage. Reticle stage and projection optics.", process: "Generates Photo-Acid Generators via latent image formation at 193nm wavelength.", specs: { "Wavelength": "193nm (ArF)", "Dose": "20–50 mJ/cm²", "NA": "0.93 (dry)" } },
+  "iface_in": { section: "Interface / Scanner", hardware: "Return bridge from scanner back to process track.", process: "Returns exposed wafer to track for post-exposure processing.", specs: { "Function": "Scanner → Track handoff" } },
+  "peb": { section: "Post-Exposure Sequence", hardware: "High-uniformity hotplate with multi-zone thermal control.", process: "Acid-catalyzed deprotection in CAR resists. 1°C error → 1.5–2.0nm CD shift.", specs: { "Temperature": "110–120°C (critical)", "Time": "60s", "CD Sensitivity": "1.5–2.0 nm/°C" } },
+  "develop": { section: "Post-Exposure Sequence", hardware: "Multi-nozzle dispense (stream/spray/puddle) with rotating chuck. Temperature-controlled developer lines.", process: "Selective dissolution of exposed resist in alkaline TMAH. Defines final relief pattern.", specs: { "Developer": "2.38% TMAH", "Puddle Time": "30–60s", "Temperature": "23°C" } },
+  "rinse": { section: "Post-Exposure Sequence", hardware: "DI water manifold with rotating chuck and N₂ blow-off.", process: "Removes dissolved resist and developer salts. Prevents water mark defects.", specs: { "Fluid": "DIW + N₂ purge", "Purpose": "Remove developer salts" } },
+  "spindry": { section: "Post-Exposure Sequence", hardware: "High-speed spin chuck with N₂ purge nozzle.", process: "Centrifugal drying removes residual rinse water. N₂ purge prevents redeposition.", specs: { "Spin Speed": "4000 RPM", "Gas": "N₂ purge" } },
+  "chill3": { section: "Post-Exposure Sequence", hardware: "Water-cooled aluminium plate with helium-backside gas.", process: "Quenches hard bake thermal energy before unloading.", specs: { "Target Temp": "22.0°C", "Time": "45s" } },
+  "hardbake": { section: "Post-Exposure Sequence", hardware: "High-temperature hotplate, typically 10–20°C above PAB.", process: "Removes remaining solvent. Thermally cross-links resist for improved etch resistance.", specs: { "Temperature": "130°C", "Time": "60s", "Purpose": "Cross-link polymer" } },
+  "output": { section: "EFEM / Loading", hardware: "Output FOUP with N₂ purge. Same mechanical interface as input FOUP.", process: "Stores processed wafers in purged environment pending inspection and metrology.", specs: { "Purge Gas": "N₂", "Capacity": "25 wafers", "Environment": "ISO Class 1" } },
 };
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
-const lerp  = (a: number, b: number, t: number) => a + (b - a) * t;
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const hex2css = (h: number) => `#${h.toString(16).padStart(6, "0")}`;
 const fmtClock = (s: number) =>
   [s / 3600, (s % 3600) / 60, s % 60]
@@ -24381,226 +24381,237 @@ function showInlineVideo(videoPath: string, title: string, simRef: any): void {
 
   const wasPaused = simRef?.paused ?? false;
   if (simRef && !wasPaused) simRef.paused = true;
+  if (simRef?.setVideoOpen) simRef.setVideoOpen(true);
 
   const canvas = document.querySelector('canvas') as HTMLCanvasElement | null;
-  if (!canvas) {
-    console.error('[INLINE VIDEO] Canvas not found');
-    return;
-  }
+  if (!canvas) { console.error('[INLINE VIDEO] Canvas not found'); return; }
   const prevVis = canvas.style.visibility;
   canvas.style.visibility = 'hidden';
 
   const parent = canvas.parentElement;
-  if (!parent) {
-    canvas.style.visibility = prevVis;
-    return;
-  }
+  if (!parent) { canvas.style.visibility = prevVis; return; }
   const prevPos = window.getComputedStyle(parent).position;
   if (prevPos === 'static') parent.style.position = 'relative';
 
-  // ── Outer wrapper: fills canvas area with dark background ──
+  // ── Inject shared styles once ──
+  if (!document.getElementById('smart-video-styles')) {
+    const s = document.createElement('style');
+    s.id = 'smart-video-styles';
+    s.textContent = `
+      @keyframes smartFadeIn  { from { opacity:0 } to { opacity:1 } }
+      @keyframes smartSlideUp { from { transform:translateY(16px);opacity:0 } to { transform:translateY(0);opacity:1 } }
+      .smart-speed-btn {
+        padding:4px 10px; border-radius:4px; font-size:11px; font-weight:700;
+        cursor:pointer; border:1px solid rgba(51,221,255,0.3);
+        background:rgba(51,221,255,0.08); color:#66ddff;
+        transition:background 0.15s,border-color 0.15s; font-family:'Inter',sans-serif;
+      }
+      .smart-speed-btn:hover  { background:rgba(51,221,255,0.22); border-color:#33ddff; }
+      .smart-speed-btn.active { background:rgba(51,221,255,0.30); border-color:#33ddff; color:#fff; }
+      .smart-scrubber {
+        -webkit-appearance:none; appearance:none; width:100%; height:3px;
+        background:rgba(255,255,255,0.15); border-radius:2px; outline:none; cursor:pointer;
+      }
+      .smart-scrubber::-webkit-slider-thumb {
+        -webkit-appearance:none; width:12px; height:12px; border-radius:50%;
+        background:#33ddff; cursor:pointer; margin-top:-4px;
+      }
+      .smart-scrubber::-webkit-slider-runnable-track { height:3px; border-radius:2px; }
+    `;
+    document.head.appendChild(s);
+  }
+
+  // ── Accent color per video ──
+  const isPR = videoPath.includes('pr_coat');
+  const accent = isPR ? '#ff44aa' : '#33ddff';
+  const caption = isPR
+    ? 'PR Coat — resist dispense, spin-up, edge bead removal'
+    : 'Developer — puddle dispense, develop reaction, DI rinse & spin-dry';
+
+  // ── Outer backdrop ──
   const container = document.createElement('div');
   container.id = 'inline-video-container';
   container.style.cssText = `
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(5, 8, 14, 0.95);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    animation: fadeIn 0.3s ease-out;
-    padding: 20px;
-    box-sizing: border-box;
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    background:rgba(4,7,12,0.96);
+    display:flex; align-items:center; justify-content:center;
+    z-index:10; padding:16px; box-sizing:border-box;
+    animation:smartFadeIn 0.22s ease-out;
   `;
 
-  // Inject keyframes
-  if (!document.getElementById('inline-video-keyframes')) {
-    const style = document.createElement('style');
-    style.id = 'inline-video-keyframes';
-    style.textContent = `
-      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    `;
-    document.head.appendChild(style);
-  }
-
-  // ── Inner card: COMPACT size so full video fits with breathing room ──
+  // ── Card ──
   const card = document.createElement('div');
   card.style.cssText = `
-    width: min(65%, 720px);
-    max-height: 85%;
-    background: #0a0e14;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    width:min(68%,740px); max-height:92%;
+    background:#080c12; border-radius:10px;
+    border:1.5px solid ${accent};
+    box-shadow:0 0 40px ${accent}44, 0 20px 60px rgba(0,0,0,0.8);
+    overflow:hidden; display:flex; flex-direction:column;
+    animation:smartSlideUp 0.25s ease-out;
   `;
 
-  // ── Slim header bar ──
+  // ── Header ──
   const header = document.createElement('div');
   header.style.cssText = `
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 14px;
-    background: linear-gradient(180deg, #131820 0%, #0a0e14 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    flex-shrink: 0;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 14px; background:rgba(0,0,0,0.5);
+    border-bottom:1px solid ${accent}55; flex-shrink:0; gap:8px;
   `;
 
   const titleEl = document.createElement('div');
   titleEl.style.cssText = `
-    color: #e8eef5;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.4px;
-    text-transform: uppercase;
+    color:${accent}; font-family:'Inter',system-ui,sans-serif;
+    font-size:11px; font-weight:700; letter-spacing:1.5px;
+    text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   `;
   titleEl.textContent = title;
 
+  // Speed controls
+  const speedGroup = document.createElement('div');
+  speedGroup.style.cssText = 'display:flex; gap:4px; align-items:center; flex-shrink:0;';
+  const speeds = [1, 1.5, 2];
+  speeds.forEach(spd => {
+    const btn = document.createElement('button');
+    btn.className = 'smart-speed-btn' + (spd === 1 ? ' active' : '');
+    btn.textContent = spd + '×';
+    btn.onclick = () => {
+      video.playbackRate = spd;
+      speedGroup.querySelectorAll('.smart-speed-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    speedGroup.appendChild(btn);
+  });
+
   const headerRight = document.createElement('div');
-  headerRight.style.cssText = `
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  `;
+  headerRight.style.cssText = 'display:flex; align-items:center; gap:6px; flex-shrink:0;';
 
-  // Play/Pause button
   const playPauseBtn = document.createElement('button');
-  playPauseBtn.innerHTML = '❚❚ Pause';
-  playPauseBtn.style.cssText = `
-    padding: 5px 12px;
-    border: none;
-    border-radius: 5px;
-    background: rgba(51, 204, 238, 0.20);
-    color: #66ddff;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-    font-family: 'Inter', sans-serif;
-    letter-spacing: 0.3px;
-    min-width: 70px;
-  `;
-  playPauseBtn.onmouseenter = () => { playPauseBtn.style.background = 'rgba(51, 204, 238, 0.35)'; };
-  playPauseBtn.onmouseleave = () => { playPauseBtn.style.background = 'rgba(51, 204, 238, 0.20)'; };
+  playPauseBtn.className = 'smart-speed-btn';
+  playPauseBtn.style.minWidth = '66px';
+  playPauseBtn.textContent = '❚❚ Pause';
 
-  // Close button
   const closeBtn = document.createElement('button');
-  closeBtn.innerHTML = '✕';
   closeBtn.style.cssText = `
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #e8eef5;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width:26px; height:26px; border-radius:5px; border:none;
+    background:rgba(255,255,255,0.07); color:#ccc; font-size:14px;
+    font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background 0.15s;
   `;
-  closeBtn.onmouseenter = () => { closeBtn.style.background = 'rgba(255, 80, 80, 0.30)'; };
-  closeBtn.onmouseleave = () => { closeBtn.style.background = 'rgba(255, 255, 255, 0.08)'; };
+  closeBtn.textContent = '✕';
+  closeBtn.onmouseenter = () => { closeBtn.style.background = 'rgba(255,60,60,0.35)'; };
+  closeBtn.onmouseleave = () => { closeBtn.style.background = 'rgba(255,255,255,0.07)'; };
 
-  headerRight.appendChild(playPauseBtn);
-  headerRight.appendChild(closeBtn);
-  header.appendChild(titleEl);
-  header.appendChild(headerRight);
+  headerRight.append(speedGroup, playPauseBtn, closeBtn);
+  header.append(titleEl, headerRight);
 
-  // ── Video element ──
-  const video = document.createElement('video');
-  video.src = videoPath;
+  // ── Video ──
+  // Reuse preloaded element if available
+  const preloadKey = '_preloaded_' + videoPath;
+  const preloaded = simRef?.[preloadKey] as HTMLVideoElement | undefined;
+  const video = (preloaded && preloaded.readyState >= 2) ? preloaded : document.createElement('video');
+  if (!preloaded || preloaded.readyState < 2) {
+    (video as HTMLVideoElement).src = videoPath;
+  }
   video.controls = false;
   video.autoplay = true;
   video.loop = true;
   video.playsInline = true;
+  video.playbackRate = 1;
   video.setAttribute('controlslist', 'nodownload nofullscreen noremoteplayback');
   video.setAttribute('disablepictureinpicture', '');
   video.oncontextmenu = (e) => { e.preventDefault(); return false; };
   video.style.cssText = `
-    width: 100%;
-    height: auto;
-    max-height: 100%;
-    background: #000;
-    object-fit: contain;
-    display: block;
+    width:100%; height:auto; max-height:65vh; background:#000;
+    object-fit:contain; display:block;
   `;
 
-  video.onerror = () => {
-    video.style.display = 'none';
-    const errorMsg = document.createElement('div');
-    errorMsg.style.cssText = `
-      padding: 40px;
-      text-align: center;
-      color: #ff6b6b;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-    `;
-    errorMsg.textContent = `Failed to load video: ${videoPath}`;
-    card.appendChild(errorMsg);
-  };
+  // First-frame poster: seek to 0 immediately so no black box
+  video.addEventListener('loadedmetadata', () => { video.currentTime = 0; }, { once: true });
+  video.addEventListener('loadeddata', () => {
+    video.play().catch(e => console.warn('[VIDEO] Autoplay blocked:', e));
+  }, { once: true });
 
-  card.appendChild(header);
-  card.appendChild(video);
+  // ── Caption ──
+  const captionEl = document.createElement('div');
+  captionEl.style.cssText = `
+    padding:5px 14px; font-size:10px; color:rgba(255,255,255,0.45);
+    font-family:'Inter',sans-serif; letter-spacing:0.3px; flex-shrink:0;
+    border-top:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.3);
+  `;
+  captionEl.textContent = caption;
+
+  // ── Scrubber bar ──
+  const scrubWrap = document.createElement('div');
+  scrubWrap.style.cssText = `
+    padding:6px 14px 4px; background:rgba(0,0,0,0.3);
+    border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0;
+    display:flex; align-items:center; gap:8px;
+  `;
+  const timeLbl = document.createElement('span');
+  timeLbl.style.cssText = 'color:rgba(255,255,255,0.4); font-size:10px; font-family:monospace; min-width:36px;';
+  timeLbl.textContent = '0:00';
+  const scrubber = document.createElement('input');
+  scrubber.type = 'range'; scrubber.className = 'smart-scrubber';
+  scrubber.min = '0'; scrubber.max = '100'; scrubber.value = '0';
+  scrubber.oninput = () => {
+    if (video.duration) video.currentTime = (parseFloat(scrubber.value) / 100) * video.duration;
+  };
+  video.ontimeupdate = () => {
+    if (!video.duration) return;
+    const pct = (video.currentTime / video.duration) * 100;
+    scrubber.value = String(pct);
+    const s = Math.floor(video.currentTime);
+    timeLbl.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    // Color the filled portion
+    scrubber.style.background =
+      `linear-gradient(to right, ${accent} ${pct}%, rgba(255,255,255,0.15) ${pct}%)`;
+  };
+  scrubWrap.append(scrubber, timeLbl);
+
+  // ── Assemble ──
+  card.append(header, video, captionEl, scrubWrap);
   container.appendChild(card);
   parent.appendChild(container);
 
-  // ── Play/Pause logic ──
-  const updatePlayPauseUI = () => {
-    playPauseBtn.innerHTML = video.paused ? '▶ Play' : '❚❚ Pause';
-  };
-  playPauseBtn.onclick = () => {
-    if (video.paused) video.play();
-    else video.pause();
-    updatePlayPauseUI();
-  };
-  video.onplay = updatePlayPauseUI;
-  video.onpause = updatePlayPauseUI;
+  // ── Play/Pause ──
+  const updatePPBtn = () => { playPauseBtn.textContent = video.paused ? '▶ Play' : '❚❚ Pause'; };
+  playPauseBtn.onclick = () => { video.paused ? video.play() : video.pause(); updatePPBtn(); };
+  video.onplay = updatePPBtn;
+  video.onpause = updatePPBtn;
 
-  // ── Close handler ──
+  // ── Close ──
   const closeInlineVideo = () => {
     video.pause();
-    video.src = '';
-    container.style.animation = 'fadeIn 0.2s ease-in reverse';
+    if (!preloaded || video === preloaded) { /* keep preloaded src intact */ }
+    else { video.src = ''; }
+    container.style.animation = 'smartFadeIn 0.18s ease-in reverse';
     setTimeout(() => {
       container.remove();
       canvas.style.visibility = prevVis;
       if (prevPos === 'static') parent.style.position = '';
       if (simRef && !wasPaused) simRef.paused = false;
-    }, 200);
+      if (simRef?.setVideoOpen) simRef.setVideoOpen(false);
+    }, 180);
   };
 
   closeBtn.onclick = closeInlineVideo;
-
-  // Click on dark backdrop closes
-  container.onclick = (e) => {
-    if (e.target === container) closeInlineVideo();
-  };
-
-  // ESC key closes
+  container.onclick = (e) => { if (e.target === container) closeInlineVideo(); };
   const escHandler = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      closeInlineVideo();
-      document.removeEventListener('keydown', escHandler);
-    }
+    if (e.key === 'Escape') { closeInlineVideo(); document.removeEventListener('keydown', escHandler); }
   };
   document.addEventListener('keydown', escHandler);
+
+  // Auto-play
+  video.play().catch(() => {/* blocked — user will hit play */ });
 }
 
-    // ─── QUATERNION ALIGNMENT MATH ───────────────────────────────────────────────
+// ─── QUATERNION ALIGNMENT MATH ───────────────────────────────────────────────
 
 const _tmpV1 = new THREE.Vector3();
 const _tmpV2 = new THREE.Vector3();
 const _tmpQ1 = new THREE.Quaternion();
 const _tmpQ2 = new THREE.Quaternion();
-const _tmpM  = new THREE.Matrix4();
+const _tmpM = new THREE.Matrix4();
 
 /** Get world quaternion of any object, including nested GLB hierarchies */
 function getWorldQuaternion(obj: THREE.Object3D, out: THREE.Quaternion): THREE.Quaternion {
@@ -24953,7 +24964,7 @@ function setupLighting(scene: THREE.Scene) {
   // ── DARK AMBER PHOTOLITHOGRAPHY CLEANROOM ──
   // Target color: RGB(180, 140, 0) = #b48c00 — deep dark amber-gold
   // Authentic vintage fab look with sodium-vapor lamp atmosphere.
-  
+
   const YELLOW = 0xffee00;
   const YELLOW_DEEP = 0xddbb00;
   const YELLOW_GLOW = 0xfff033;
@@ -24965,7 +24976,7 @@ function setupLighting(scene: THREE.Scene) {
 
   // ── AMBIENT: stronger yellow fill light ──
   scene.add(new THREE.AmbientLight(YELLOW, 1.3));
-  
+
   // ── HEMISPHERE: yellow sky and warm floor bounce ──
   scene.add(new THREE.HemisphereLight(YELLOW, 0x665500, 1.0));
 
@@ -24993,17 +25004,17 @@ function setupLighting(scene: THREE.Scene) {
   scene.add(rim);
 }
 
- 
 
- 
+
+
 
 function buildEnv(scene: THREE.Scene) {
   // ============================================================
   // 1. SOFT STERILE BACKGROUND + FOG
   // ============================================================
   //scene.background = new THREE.Color(0xeaf0f5);
- // scene.fog = new THREE.FogExp2(0xeaf0f5, 0.0028);
- 
+  // scene.fog = new THREE.FogExp2(0xeaf0f5, 0.0028);
+
   // ============================================================
   // 2. PERFORATED FLOOR PANEL TEXTURE (procedural canvas)
   //    - 600mm × 600mm panel = one texture tile
@@ -25014,12 +25025,12 @@ function buildEnv(scene: THREE.Scene) {
   const HOLES_PER_SIDE = 10;            // 10 × 10 holes per 600mm panel
   const HOLE_RADIUS_PX = 14;            // hole visible radius
   const BEVEL_PX = 6;                   // recessed shading width
- 
+
   const panelCanvas = document.createElement("canvas");
   panelCanvas.width = PANEL_PX;
   panelCanvas.height = PANEL_PX;
   const pctx = panelCanvas.getContext("2d")!;
- 
+
   // ── 2a. Base panel: soft white anti-static powder-coat ──
   const baseGrad = pctx.createLinearGradient(0, 0, PANEL_PX, PANEL_PX);
   baseGrad.addColorStop(0, "#fff9d0");
@@ -25027,7 +25038,7 @@ function buildEnv(scene: THREE.Scene) {
   baseGrad.addColorStop(1, "#ffeb88");
   pctx.fillStyle = baseGrad;
   pctx.fillRect(0, 0, PANEL_PX, PANEL_PX);
- 
+
   // ── 2b. Very faint brushed-metal noise ──
   pctx.globalAlpha = 0.04;
   for (let i = 0; i < 2000; i++) {
@@ -25035,7 +25046,7 @@ function buildEnv(scene: THREE.Scene) {
     pctx.fillRect(Math.random() * PANEL_PX, Math.random() * PANEL_PX, 1, 1);
   }
   pctx.globalAlpha = 1;
- 
+
   // ── 2c. Tile edge bevel — thin dark seam around panel border ──
   pctx.strokeStyle = "rgba(60,70,80,0.55)";
   pctx.lineWidth = 4;
@@ -25043,7 +25054,7 @@ function buildEnv(scene: THREE.Scene) {
   pctx.strokeStyle = "rgba(255,255,255,0.7)";
   pctx.lineWidth = 1;
   pctx.strokeRect(6, 6, PANEL_PX - 12, PANEL_PX - 12);
- 
+
   // ── 2d. Recessed mounting screws (4 corners) ──
   const drawScrew = (cx: number, cy: number) => {
     // dark recess
@@ -25073,17 +25084,17 @@ function buildEnv(scene: THREE.Scene) {
   drawScrew(PANEL_PX - 30, 30);
   drawScrew(30, PANEL_PX - 30);
   drawScrew(PANEL_PX - 30, PANEL_PX - 30);
- 
+
   // ── 2e. PERFORATION HOLE GRID — this is the dominant feature ──
   const margin = 70;
   const usable = PANEL_PX - margin * 2;
   const spacing = usable / (HOLES_PER_SIDE - 1);
- 
+
   for (let row = 0; row < HOLES_PER_SIDE; row++) {
     for (let col = 0; col < HOLES_PER_SIDE; col++) {
       const cx = margin + col * spacing;
       const cy = margin + row * spacing;
- 
+
       // Outer recessed ring (gives depth illusion)
       const ringGrad = pctx.createRadialGradient(
         cx - 2, cy - 2, 0,
@@ -25096,7 +25107,7 @@ function buildEnv(scene: THREE.Scene) {
       pctx.beginPath();
       pctx.arc(cx, cy, HOLE_RADIUS_PX + BEVEL_PX, 0, Math.PI * 2);
       pctx.fill();
- 
+
       // Dark hole interior (deep recess)
       const holeGrad = pctx.createRadialGradient(
         cx + 1.5, cy + 1.5, 0,
@@ -25109,14 +25120,14 @@ function buildEnv(scene: THREE.Scene) {
       pctx.beginPath();
       pctx.arc(cx, cy, HOLE_RADIUS_PX, 0, Math.PI * 2);
       pctx.fill();
- 
+
       // Subtle top-left highlight on rim (catches overhead light)
       pctx.strokeStyle = "rgba(255,255,255,0.45)";
       pctx.lineWidth = 1.2;
       pctx.beginPath();
       pctx.arc(cx, cy, HOLE_RADIUS_PX + 0.5, Math.PI * 1.1, Math.PI * 1.7);
       pctx.stroke();
- 
+
       // Bottom-right shadow on rim
       pctx.strokeStyle = "rgba(0,0,0,0.35)";
       pctx.lineWidth = 1;
@@ -25125,18 +25136,18 @@ function buildEnv(scene: THREE.Scene) {
       pctx.stroke();
     }
   }
- 
+
   const panelTex = new THREE.CanvasTexture(panelCanvas);
   panelTex.wrapS = THREE.RepeatWrapping;
   panelTex.wrapT = THREE.RepeatWrapping;
   panelTex.anisotropy = 16;
   panelTex.magFilter = THREE.LinearFilter;
   panelTex.minFilter = THREE.LinearMipmapLinearFilter;
- 
+
   // Floor is 180 × 90 units. One panel = 3 units (≈ 600mm scaled).
   // → repeat 60 × 30 across the floor.
   panelTex.repeat.set(60, 30);
- 
+
   // ============================================================
   // 3. MAIN FLOOR MESH (perforated panels)
   // ============================================================
@@ -25155,7 +25166,7 @@ function buildEnv(scene: THREE.Scene) {
   floor.receiveShadow = false;
   floor.castShadow = false;
   scene.add(floor);
- 
+
   // ============================================================
   // 4. TILE SEAM OVERLAY — sharp dark grid lines between panels
   //    Gives that crisp "modular raised floor" look on top of texture.
@@ -25179,12 +25190,12 @@ function buildEnv(scene: THREE.Scene) {
   sctx.moveTo(0, 2); sctx.lineTo(512, 2);
   sctx.moveTo(2, 0); sctx.lineTo(2, 512);
   sctx.stroke();
- 
+
   const seamTex = new THREE.CanvasTexture(seamCanvas);
   seamTex.wrapS = THREE.RepeatWrapping;
   seamTex.wrapT = THREE.RepeatWrapping;
   seamTex.repeat.set(60, 30);     // match panel count
- 
+
   const seamOverlay = new THREE.Mesh(
     new THREE.PlaneGeometry(180, 90),
     new THREE.MeshBasicMaterial({
@@ -25198,7 +25209,7 @@ function buildEnv(scene: THREE.Scene) {
   seamOverlay.position.y = -0.515;     // 5mm above floor to avoid z-fight
   seamOverlay.renderOrder = 1;
   scene.add(seamOverlay);
- 
+
   // ============================================================
   // 5. RECESSED ROBOT TRANSPORT RAIL (centered, runs along +X)
   //    - Dark anodized channel embedded in floor
@@ -25210,7 +25221,7 @@ function buildEnv(scene: THREE.Scene) {
   const RAIL_Y = -0.50;            // just above floor surface
   const RAIL_CENTER_X = 4;
   const RAIL_Z = 0;                // dead center
- 
+
   // Rail recess (dark channel)
   const railChannel = new THREE.Mesh(
     new THREE.BoxGeometry(RAIL_LEN, 0.06, RAIL_WIDTH),
@@ -25223,7 +25234,7 @@ function buildEnv(scene: THREE.Scene) {
   railChannel.position.set(RAIL_CENTER_X, RAIL_Y - 0.01, RAIL_Z);
   railChannel.receiveShadow = true;
   scene.add(railChannel);
- 
+
   // Stainless trim strips (both sides of the channel)
   const trimMat = new THREE.MeshStandardMaterial({
     color: 0xc8cfd6,
@@ -25238,7 +25249,7 @@ function buildEnv(scene: THREE.Scene) {
     trim.position.set(RAIL_CENTER_X, RAIL_Y, RAIL_Z + zOff);
     scene.add(trim);
   });
- 
+
   // Twin guidance rails (raised metal strips inside the channel)
   const guideMat = new THREE.MeshStandardMaterial({
     color: 0x4a5058,
@@ -25253,7 +25264,7 @@ function buildEnv(scene: THREE.Scene) {
     guide.position.set(RAIL_CENTER_X, RAIL_Y + 0.02, RAIL_Z + zOff);
     scene.add(guide);
   });
- 
+
   // Periodic sensor / alignment plates along the rail
   const sensorMat = new THREE.MeshStandardMaterial({
     color: 0x2a3038,
@@ -25269,7 +25280,7 @@ function buildEnv(scene: THREE.Scene) {
     );
     plate.position.set(RAIL_CENTER_X + x, RAIL_Y + 0.025, RAIL_Z);
     scene.add(plate);
- 
+
     // small green LED dot on each plate
     const led = new THREE.Mesh(
       new THREE.CylinderGeometry(0.025, 0.025, 0.01, 12),
@@ -25282,7 +25293,7 @@ function buildEnv(scene: THREE.Scene) {
     led.position.set(RAIL_CENTER_X + x, RAIL_Y + 0.035, RAIL_Z + 0.55);
     scene.add(led);
   }
- 
+
   // ============================================================
   // 6. SUBTLE OVERHEAD HIGHLIGHT POOLS (HEPA downflow spots)
   // ============================================================
@@ -25304,7 +25315,7 @@ function buildEnv(scene: THREE.Scene) {
     );
     scene.add(spot);
   }
- 
+
   // ============================================================
   // 7. CLEAN BACK WALL (minimal, neutral, slight blue tint)
   // ============================================================
@@ -25320,7 +25331,7 @@ function buildEnv(scene: THREE.Scene) {
   wall.receiveShadow = false;
   wall.castShadow = false;
   scene.add(wall);
- 
+
   // Lower wall accent (darker base strip)
   const wallBase = new THREE.Mesh(
     new THREE.PlaneGeometry(180, 4),
@@ -25334,7 +25345,7 @@ function buildEnv(scene: THREE.Scene) {
   wallBase.receiveShadow = false;
   wallBase.castShadow = false;
   scene.add(wallBase);
- 
+
   // Thin dark seam between wall and floor
   const wallSeam = new THREE.Mesh(
     new THREE.BoxGeometry(180, 0.04, 0.04),
@@ -25364,16 +25375,16 @@ class ConveyorBelt {
   rollers: THREE.Mesh[] = [];
   beltOffset = 0;
   beltLength: number;
- 
+
   constructor(scene: THREE.Scene, startX: number, endX: number, z: number, color: number, surfaceY?: number) {
     this.beltLength = Math.abs(endX - startX);
     const centerX = (startX + endX) / 2;
- 
+
     // ── LOW BELT: default legacy height, or explicit fab floor (under module plane) ──
     const LEG_H = 0.16;
     const BELT_Y = surfaceY !== undefined ? surfaceY : LEG_H + 0.04;
     const legH = Math.max(0.1, Math.min(BELT_Y - 0.015, 0.28));
- 
+
     const legMat = new THREE.MeshStandardMaterial({ color: 0x3a4450, roughness: 0.35, metalness: 0.88 });
     const legSpacing = this.beltLength / 5;
     for (let i = 1; i <= 4; i++) {
@@ -25384,7 +25395,7 @@ class ConveyorBelt {
         scene.add(leg);
       });
     }
- 
+
     // Side rails — clean white/grey to match reference
     const railMat = new THREE.MeshStandardMaterial({
       color: 0xc8d4e0,
@@ -25398,7 +25409,7 @@ class ConveyorBelt {
       rail.position.set(centerX, BELT_Y + 0.03, z + zOff);
       scene.add(rail);
     });
- 
+
     // Belt surface — light coloured, animated stripe texture
     const beltCanvas = document.createElement("canvas");
     beltCanvas.width = 512; beltCanvas.height = 64;
@@ -25407,7 +25418,7 @@ class ConveyorBelt {
     const beltTex = new THREE.CanvasTexture(beltCanvas);
     beltTex.wrapS = THREE.RepeatWrapping; beltTex.wrapT = THREE.RepeatWrapping;
     beltTex.repeat.set(this.beltLength / 2, 1);
- 
+
     const beltMesh = new THREE.Mesh(
       new THREE.BoxGeometry(this.beltLength, 0.04, 0.95),
       new THREE.MeshStandardMaterial({
@@ -25427,7 +25438,7 @@ class ConveyorBelt {
     beltMesh.receiveShadow = true;
     scene.add(beltMesh);
     this.beltSegments.push(beltMesh);
- 
+
     // Bright glow strip BELOW belt — gives the neon-line look from reference
     const glowStrip = new THREE.Mesh(
       new THREE.BoxGeometry(this.beltLength, 0.022, 0.14),
@@ -25442,7 +25453,7 @@ class ConveyorBelt {
     );
     glowStrip.position.set(centerX, BELT_Y - 0.028, z);
     scene.add(glowStrip);
- 
+
     // Animated stripe markers (sliding along belt)
     const stripeMat = new THREE.MeshStandardMaterial({
       color,
@@ -25462,7 +25473,7 @@ class ConveyorBelt {
       scene.add(stripe);
       this.rollers.push(stripe);
     }
- 
+
     // End rollers
     const rollerMat = new THREE.MeshStandardMaterial({
       color: 0xb0c0d0,
@@ -25476,7 +25487,7 @@ class ConveyorBelt {
       scene.add(roller);
     });
   }
- 
+
   private _drawBelt(ctx: CanvasRenderingContext2D, offset: number, color: number) {
     ctx.clearRect(0, 0, 512, 64);
     // Lighter belt base — matches clean cleanroom feel
@@ -25486,7 +25497,7 @@ class ConveyorBelt {
     grad.addColorStop(1, "#dde6f0");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 512, 64);
- 
+
     const css = `#${color.toString(16).padStart(6, "0")}`;
     ctx.strokeStyle = css; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.55;
     const spacing = 56;
@@ -25494,14 +25505,14 @@ class ConveyorBelt {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 18, 64); ctx.stroke();
     }
     ctx.globalAlpha = 1;
- 
+
     // Edge accents
     ctx.strokeStyle = css; ctx.lineWidth = 2; ctx.globalAlpha = 0.7;
     ctx.beginPath(); ctx.moveTo(0, 4); ctx.lineTo(512, 4); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(512, 60); ctx.stroke();
     ctx.globalAlpha = 1;
   }
- 
+
   tick(dt: number, speed: number, direction = 1) {
     this.beltOffset += dt * speed * direction * 32;
     this.rollers.forEach((stripe) => {
@@ -25522,73 +25533,73 @@ class ConveyorBelt {
 }
 // ─── PARTICLES (from code 2) ──────────────────────────────────────────────────
 class Particles {
-  n: number; 
-  origin: THREE.Vector3; 
+  n: number;
+  origin: THREE.Vector3;
   active: boolean;
-  mat: THREE.PointsMaterial; 
-  pts: THREE.Points; 
+  mat: THREE.PointsMaterial;
+  pts: THREE.Points;
   geo: THREE.BufferGeometry;
   vel: { vx: number; vy: number; vz: number; life: number }[];
   colors: Float32Array;
   baseColor: THREE.Color;
-  
+
   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n: number, sz = 0.07) {
-    this.n = n; 
-    this.origin = pos.clone(); 
+    this.n = n;
+    this.origin = pos.clone();
     this.active = false;
     this.baseColor = new THREE.Color(color);
-    
-    const pa = new Float32Array(n * 3); 
+
+    const pa = new Float32Array(n * 3);
     this.colors = new Float32Array(n * 3);
     this.vel = [];
-    
+
     for (let i = 0; i < n; i++) {
-      pa[i * 3]     = pos.x + (Math.random() - 0.5) * 0.9;
+      pa[i * 3] = pos.x + (Math.random() - 0.5) * 0.9;
       pa[i * 3 + 1] = pos.y + 0.5;
       pa[i * 3 + 2] = pos.z + (Math.random() - 0.5) * 0.9;
-      
+
       // Color variation
       const shade = 0.7 + Math.random() * 0.3;
       this.colors[i * 3] = this.baseColor.r * shade;
       this.colors[i * 3 + 1] = this.baseColor.g * shade;
       this.colors[i * 3 + 2] = this.baseColor.b * shade;
-      
-      this.vel.push({ 
-        vx: (Math.random() - 0.5) * 0.55, 
-        vy: 0.6 + Math.random() * 1.2, 
-        vz: (Math.random() - 0.5) * 0.55, 
-        life: Math.random() 
+
+      this.vel.push({
+        vx: (Math.random() - 0.5) * 0.55,
+        vy: 0.6 + Math.random() * 1.2,
+        vz: (Math.random() - 0.5) * 0.55,
+        life: Math.random()
       });
     }
-    
+
     this.geo = new THREE.BufferGeometry();
     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
     this.geo.setAttribute("color", new THREE.BufferAttribute(this.colors, 3));
-    
-    this.mat = new THREE.PointsMaterial({ 
-      size: sz, 
-      transparent: true, 
-      opacity: 0.85, 
+
+    this.mat = new THREE.PointsMaterial({
+      size: sz,
+      transparent: true,
+      opacity: 0.85,
       sizeAttenuation: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       vertexColors: true,
     });
-    
+
     this.pts = new THREE.Points(this.geo, this.mat);
-    this.pts.visible = false; 
+    this.pts.visible = false;
     scene.add(this.pts);
   }
 
   // ⬇️ ADD THESE TWO METHODS ⬇️
-  on() { 
-    this.active = true; 
-    this.pts.visible = true; 
+  on() {
+    this.active = true;
+    this.pts.visible = true;
   }
-  
-  off() { 
-    this.active = false; 
-    this.pts.visible = false; 
+
+  off() {
+    this.active = false;
+    this.pts.visible = false;
   }
   // ⬆️ ADD THESE TWO METHODS ⬆️
 
@@ -25596,33 +25607,33 @@ class Particles {
     if (!this.active) return;
     const pa = this.geo.attributes.position.array as Float32Array;
     const ca = this.geo.attributes.color.array as Float32Array;
-    
+
     for (let i = 0; i < this.n; i++) {
-      const v = this.vel[i]; 
+      const v = this.vel[i];
       v.life += dt * spd * 0.6;
-      
+
       // Color pulsing
       const pulse = 0.5 + 0.5 * Math.sin(v.life * 8);
       ca[i * 3] = this.baseColor.r * (0.5 + pulse * 0.5);
       ca[i * 3 + 1] = this.baseColor.g * (0.3 + pulse * 0.7);
       ca[i * 3 + 2] = this.baseColor.b * (0.7 + pulse * 0.3);
-      
+
       if (v.life > 1.2) {
         v.life = 0;
-        pa[i * 3]     = this.origin.x + (Math.random() - 0.5) * 0.9;
+        pa[i * 3] = this.origin.x + (Math.random() - 0.5) * 0.9;
         pa[i * 3 + 1] = this.origin.y + 0.5;
         pa[i * 3 + 2] = this.origin.z + (Math.random() - 0.5) * 0.9;
-        v.vx = (Math.random() - 0.5) * 0.55; 
-        v.vy = 0.6 + Math.random() * 1.2; 
+        v.vx = (Math.random() - 0.5) * 0.55;
+        v.vy = 0.6 + Math.random() * 1.2;
         v.vz = (Math.random() - 0.5) * 0.55;
       } else {
-        pa[i * 3]     += v.vx * dt * spd;
+        pa[i * 3] += v.vx * dt * spd;
         pa[i * 3 + 1] += v.vy * dt * spd;
         pa[i * 3 + 2] += v.vz * dt * spd;
         v.vy -= 0.15 * dt * spd;
       }
     }
-    
+
     this.geo.attributes.position.needsUpdate = true;
     this.geo.attributes.color.needsUpdate = true;
   }
@@ -25638,35 +25649,35 @@ class HeatVapor {
   active = false;
   vel: { vy: number; life: number; ox: number; oz: number; size: number }[] = [];
   sizes: Float32Array;
- 
+
   constructor(scene: THREE.Scene, pos: THREE.Vector3, color: number, n = 80) {
     this.n = n;
     this.origin = pos.clone();
     const pa = new Float32Array(n * 3);
     this.sizes = new Float32Array(n);
- 
-  for (let i = 0; i < n; i++) {
-  pa[i * 3] = pos.x;
-  pa[i * 3 + 1] = pos.y;
-  pa[i * 3 + 2] = pos.z;
-  this.sizes[i] = 0.06 + Math.random() * 0.04;
-  this.vel.push({
-    vy: 0.5 + Math.random() * 0.4,        // gentler rise
-    life: Math.random(),
-    ox: (Math.random() - 0.5) * 0.25,     // tight ±0.25 spread (was ±0.7)
-    oz: (Math.random() - 0.5) * 0.25,     // tight ±0.25 spread (was ±0.7)
-    size: 0.06 + Math.random() * 0.04,
-  });
-}
- 
+
+    for (let i = 0; i < n; i++) {
+      pa[i * 3] = pos.x;
+      pa[i * 3 + 1] = pos.y;
+      pa[i * 3 + 2] = pos.z;
+      this.sizes[i] = 0.06 + Math.random() * 0.04;
+      this.vel.push({
+        vy: 0.5 + Math.random() * 0.4,        // gentler rise
+        life: Math.random(),
+        ox: (Math.random() - 0.5) * 0.25,     // tight ±0.25 spread (was ±0.7)
+        oz: (Math.random() - 0.5) * 0.25,     // tight ±0.25 spread (was ±0.7)
+        size: 0.06 + Math.random() * 0.04,
+      });
+    }
+
     this.geo = new THREE.BufferGeometry();
     this.geo.setAttribute("position", new THREE.BufferAttribute(pa, 3));
- 
+
     const mat = new THREE.PointsMaterial({
-    color,
-    size: 0.10,                              // smaller particles (was 0.22)
-    transparent: true,
-    opacity: 0.45,                           // softer (was 0.65)                             // more visible
+      color,
+      size: 0.10,                              // smaller particles (was 0.22)
+      transparent: true,
+      opacity: 0.45,                           // softer (was 0.65)                             // more visible
       sizeAttenuation: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -25675,27 +25686,27 @@ class HeatVapor {
     this.pts.visible = false;
     scene.add(this.pts);
   }
- 
-  on()  { this.active = true;  this.pts.visible = true;  }
+
+  on() { this.active = true; this.pts.visible = true; }
   off() { this.active = false; this.pts.visible = false; }
- 
+
   tick(dt: number, spd: number) {
     if (!this.active) return;
     const pa = this.geo.attributes.position.array as Float32Array;
- 
+
     for (let i = 0; i < this.n; i++) {
       const v = this.vel[i];
       v.life += dt * spd * 0.55;
- 
+
       if (v.life > 1.8) {
         // Respawn AT the module top
         v.life = 0;
-        pa[i * 3]     = this.origin.x + v.ox * 0.3;
+        pa[i * 3] = this.origin.x + v.ox * 0.3;
         pa[i * 3 + 1] = this.origin.y;
         pa[i * 3 + 2] = this.origin.z + v.oz * 0.3;
       } else {
         // Rise upward with sideways wobble (like real heat shimmer)
-        pa[i * 3]     += Math.sin(v.life * 4 + i) * 0.008 * spd;
+        pa[i * 3] += Math.sin(v.life * 4 + i) * 0.008 * spd;
         pa[i * 3 + 1] += v.vy * dt * spd;
         pa[i * 3 + 2] += Math.cos(v.life * 4 + i) * 0.008 * spd;
       }
@@ -25703,47 +25714,47 @@ class HeatVapor {
     this.geo.attributes.position.needsUpdate = true;
   }
 }
- 
+
 // ─── HMDS VAPOR (swirling fog inside chamber) ────────────────────────────────
 
 class HMDSFog {
-  group: THREE.Group; 
-  fogShells: THREE.Mesh[] = []; 
+  group: THREE.Group;
+  fogShells: THREE.Mesh[] = [];
   active = false;
 
   constructor(scene: THREE.Scene, pos: THREE.Vector3) {
-    this.group = new THREE.Group(); 
-    this.group.position.copy(pos); 
+    this.group = new THREE.Group();
+    this.group.position.copy(pos);
     scene.add(this.group);
     this.group.visible = false;
     for (let i = 0; i < 4; i++) {
       const r = 0.7 + i * 0.15;
       const fog = new THREE.Mesh(
         new THREE.SphereGeometry(r, 24, 16),
-        new THREE.MeshStandardMaterial({ 
-          color: 0xff9933, 
-          emissive: 0xff7700, 
-          emissiveIntensity: 0.3, 
-          transparent: true, 
-          opacity: 0.05 + i * 0.02, 
-          depthWrite: false, 
-          side: THREE.DoubleSide 
+        new THREE.MeshStandardMaterial({
+          color: 0xff9933,
+          emissive: 0xff7700,
+          emissiveIntensity: 0.3,
+          transparent: true,
+          opacity: 0.05 + i * 0.02,
+          depthWrite: false,
+          side: THREE.DoubleSide
         })
       );
-      this.group.add(fog); 
+      this.group.add(fog);
       this.fogShells.push(fog);
     }
   }
 
   // ⬇️ ADD THESE ⬇️
-  on() { 
-    this.active = true; 
-    this.group.visible = false; 
+  on() {
+    this.active = true;
+    this.group.visible = false;
   }
-  
-  off() { 
-    this.active = false; 
-    this.group.visible = false; 
+
+  off() {
+    this.active = false;
+    this.group.visible = false;
   }
   // ⬆️ ADD THESE ⬆️
 
@@ -25837,12 +25848,12 @@ class HMDSFog {
 //     gCtx.lineTo(1024, y); 
 //     gCtx.stroke();
 //   }
-  
+
 //   const gridTex = new THREE.CanvasTexture(gridCanvas);
 //   gridTex.wrapS = THREE.RepeatWrapping;
 //   gridTex.wrapT = THREE.RepeatWrapping;
 //   gridTex.repeat.set(3, 3);
-  
+
 //   const grid = new THREE.Mesh(
 //     new THREE.PlaneGeometry(180, 90),
 //     new THREE.MeshStandardMaterial({ 
@@ -25901,7 +25912,7 @@ function buildInfoBox(scene: THREE.Scene) {
     "Process Parameters: 65°C",
     "Preset Parameters: 1500°C",
     "Chill Coating: 27.5",
-    "Post-Apply Bake: 118°C",
+    "Post-Apply Bake: 90°C",
     "Edge Diam: Silicon wafers",
   ];
   lines.forEach((l, i) => ctx.fillText(l, 14, 75 + i * 24));
@@ -25917,28 +25928,28 @@ function buildInfoBox(scene: THREE.Scene) {
 class DevLiquidAnimator {
   group: THREE.Group;
   liquidPool: THREE.Mesh;
-  
+
   // ── SWING ARM ASSEMBLY ──
   pivotPost: THREE.Mesh;
   swingBar: THREE.Group;
   valveBody: THREE.Mesh;
   nozzleTip: THREE.Mesh;
   tipGlow: THREE.Mesh;
-  
+
   // ── CONTINUOUS STREAMS ──
   liquidStreams: THREE.Mesh[] = [];
   streamMats: THREE.MeshStandardMaterial[] = [];
-  
+
   // ── SPIRAL PATTERN ──
   spiralCanvas!: HTMLCanvasElement;
   spiralCtx!: CanvasRenderingContext2D;
   spiralTex!: THREE.CanvasTexture;
   spiralMesh!: THREE.Mesh;
   spiralAngle = 0;
-  
+
   private _drawAccum = 0;
   private _matUpdateAccum = 0;
-  
+
   poolGroup!: THREE.Group;
   poolSpin = 0;
 
@@ -25947,14 +25958,14 @@ class DevLiquidAnimator {
   readonly BAR_LENGTH = 1.4;
   readonly NOZZLE_DROP = 0.30;
   readonly TIP_DROP = 0.10;
-  
+
   active = false;
   phase: "idle" | "swing_in" | "spray" | "puddle" | "rinse" | "swing_out" | "drain" | "done" = "idle";
   phaseT = 0;
   phaseDur = 1;
-  
+
   readonly SWING_PARKED = -Math.PI / 2;
-  readonly SWING_OVER   = Math.PI / 2;
+  readonly SWING_OVER = Math.PI / 2;
   swingAngle = -Math.PI / 2;
 
   constructor(scene: THREE.Scene) {
@@ -26004,7 +26015,7 @@ class DevLiquidAnimator {
     // ═══════════════════════════════════════════════════════════════════
     const POST_X = this.POST_X;
     const POST_Z = this.POST_Z;
-    
+
     // ── BASE PLATE (sits on module surface) ──
     const basePlate = new THREE.Mesh(
       new THREE.BoxGeometry(0.85, 0.10, 0.75),
@@ -26273,17 +26284,17 @@ class DevLiquidAnimator {
     this.spiralAngle = 0;
     this.swingAngle = this.SWING_PARKED;
     this.swingBar.rotation.y = this.SWING_PARKED;
-    
+
     (this.liquidPool.material as THREE.MeshStandardMaterial).opacity = 0;
     (this.liquidPool.material as THREE.MeshStandardMaterial).color.setHex(0x33cc88);
-    
+
     this.streamMats.forEach((m) => {
       m.opacity = 0;
       m.color.setHex(0x33cc88);
       m.emissive.setHex(0x22aa66);
       m.needsUpdate = true;
     });
-    
+
     this.spiralCtx.clearRect(0, 0, 512, 512);
     this.spiralTex.needsUpdate = true;
     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
@@ -26365,11 +26376,11 @@ class DevLiquidAnimator {
         });
         (this.tipGlow.material as THREE.MeshStandardMaterial).emissiveIntensity =
           3.0 + 0.8 * Math.sin(this.phaseT * 18);
-        
+
         poolMat.opacity = Math.min(t * 0.85, 0.85);
         this.poolSpin += sDt * lerp(0.5, 3.0, t);
         this.poolGroup.rotation.y = this.poolSpin;
-        
+
         const spiralR = lerp(0.05, 0.85, t);
         this._drawSpiralTrail(spiralR, lerp(60, 300, t), sDt, false);
         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0, 0.75, t);
@@ -26388,7 +26399,7 @@ class DevLiquidAnimator {
         this.poolSpin += sDt * 1.2;
         this.poolGroup.rotation.y = this.poolSpin;
         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = lerp(0.75, 0.3, t);
-        
+
         if (t >= 1) {
           this.phase = "rinse";
           this.phaseT = 0;
@@ -26413,7 +26424,7 @@ class DevLiquidAnimator {
         poolMat.opacity = Math.max(0, poolMat.opacity - sDt * 0.3);
         this.poolSpin += sDt * 5.0;
         this.poolGroup.rotation.y = this.poolSpin;
-        
+
         const spiralR = lerp(0.1, 0.9, t);
         this._drawSpiralTrail(spiralR, 400, sDt, true);
         (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity =
@@ -26458,7 +26469,7 @@ class DevLiquidAnimator {
     }
   }
 }
-  
+
 
 
 
@@ -26471,33 +26482,33 @@ class SpinCoatAnimator {
   resistRings: THREE.Mesh[] = [];
   resistGroup: THREE.Group;
   bowl: THREE.Mesh;
-  
+
   pivotPost: THREE.Mesh;
   swingBar: THREE.Group;
   valveBody: THREE.Mesh;
   nozzleTip: THREE.Mesh;
   tipGlow: THREE.Mesh;
-  
+
   liquidStream: THREE.Mesh;
   streamMat: THREE.MeshStandardMaterial;
-  
+
   spiralCanvas!: HTMLCanvasElement;
   spiralCtx!: CanvasRenderingContext2D;
   spiralTex!: THREE.CanvasTexture;
   spiralMesh!: THREE.Mesh;
   spiralAngle = 0;
 
-  phase: "idle"|"swing_in"|"dispense"|"spinup"|"coating"|"swing_out"|"spindown"|"done" = "idle";
+  phase: "idle" | "swing_in" | "dispense" | "spinup" | "coating" | "swing_out" | "spindown" | "done" = "idle";
   phaseT = 0; phaseDur = 1; spinRPM = 0; spinAngle = 0;
   resistRadius = 0; coatColor = 0x9922ff; active = false;
-  
+
   private _drawAccum = 0;
   private _cachedCss = '';
   private _lastColor = 0;
   private _matUpdateAccum = 0;
-  
+
   readonly SWING_PARKED = Math.PI / 2;
-  readonly SWING_OVER   = -Math.PI / 2;
+  readonly SWING_OVER = -Math.PI / 2;
   swingAngle = Math.PI / 2;
 
   readonly CHUCK_Y = 0.35;
@@ -26553,7 +26564,7 @@ class SpinCoatAnimator {
     this.spinChuck = new THREE.Group();
     this.spinChuck.position.y = this.CHUCK_Y;
     this.group.add(this.spinChuck);
-    
+
     this.spinDisc = new THREE.Mesh(
       new THREE.CylinderGeometry(0.92, 0.92, 0.08, 80),
       new THREE.MeshStandardMaterial({
@@ -26608,7 +26619,7 @@ class SpinCoatAnimator {
     this.spiralCanvas.height = 256;
     this.spiralCtx = this.spiralCanvas.getContext("2d")!;
     this.spiralTex = new THREE.CanvasTexture(this.spiralCanvas);
-    
+
     this.spiralMesh = new THREE.Mesh(
       new THREE.CircleGeometry(0.88, perfSegments(80)),
       new THREE.MeshBasicMaterial({
@@ -26631,7 +26642,7 @@ class SpinCoatAnimator {
     // ═══════════════════════════════════════════════════════════════════
     const POST_X = this.POST_X;
     const POST_Z = this.POST_Z;
-    
+
     // ── BASE PLATE ──
     const basePlate = new THREE.Mesh(
       new THREE.BoxGeometry(0.85, 0.10, 0.75),
@@ -26914,7 +26925,7 @@ class SpinCoatAnimator {
     this.streamMat.color.setHex(color);
     this.streamMat.emissive.setHex(color);
     this.streamMat.opacity = 0;
-    
+
     const tipGlowMat = this.tipGlow.material as THREE.MeshStandardMaterial;
     tipGlowMat.color.setHex(color);
     tipGlowMat.emissive.setHex(color);
@@ -26923,7 +26934,7 @@ class SpinCoatAnimator {
     (this.spiralMesh.material as THREE.MeshBasicMaterial).opacity = 0;
     this.spiralCtx.clearRect(0, 0, 256, 256);
     this.spiralTex.needsUpdate = true;
-    
+
     console.log('[COAT] startCoat at', wx, wz, 'color:', color.toString(16));
   }
 
@@ -26939,7 +26950,7 @@ class SpinCoatAnimator {
     if (this._drawAccum < 0.05) return;
     const drawDt = this._drawAccum;
     this._drawAccum = 0;
-    
+
     const ctx = this.spiralCtx;
     const C = 128;
     const maxR = 115;
@@ -26951,9 +26962,9 @@ class SpinCoatAnimator {
     const css = this._cachedCss;
 
     ctx.globalCompositeOperation = "source-over";
-    
+
     const steps = Math.min(8, Math.max(2, Math.floor(spinSpeed * drawDt * 20)));
-    
+
     const cssFull = css + "ff";
     const cssMid = css + "88";
     const cssZero = css + "00";
@@ -26990,11 +27001,11 @@ class SpinCoatAnimator {
 
     const sDt = dt * speed;
     this.phaseT += sDt;
-    
+
     this._matUpdateAccum += sDt;
     const updateMaterials = this._matUpdateAccum >= 0.066;
     if (updateMaterials) this._matUpdateAccum = 0;
-    
+
     const t = Math.min(this.phaseT / this.phaseDur, 1);
     const ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
 
@@ -27419,18 +27430,18 @@ function buildModule(mod: ProcessStep): THREE.Group {
   grp.userData.id = mod.id;
 
   const W = 2.9, D = 2.9, H = 2.7;
-  
+
   // All base colors are now grey
-const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: number }> = {
-  hot:   { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
-  cold:  { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
-  coat:  { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
-  wet:   { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
-  scan:  { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
-  iface: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
-  foup:  { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
-  dry:   { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
-};
+  const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: number }> = {
+    hot: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+    cold: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+    coat: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+    wet: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+    scan: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+    iface: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+    foup: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+    dry: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
+  };
 
   const th = themes_UNIFORM_GREY[mod.type] ?? { base: 0x5a5a5a, edge: 0x4477aa, glass: mod.color };
 
@@ -27442,11 +27453,11 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
     emissive: 0x000000,
     emissiveIntensity: 0,
   });
-  
+
   const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), bodyMat);
   body.castShadow = true;
   body.receiveShadow = true;
-  
+
   // CRITICAL FIX: Raise the module base by 0.5 units from floor
   const MODULE_BASE_Y = 0.5;
   body.position.y = MODULE_BASE_Y + H / 2;
@@ -27491,7 +27502,7 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
     new THREE.MeshStandardMaterial({ color: 0x0e1c2a, roughness: 0.35, metalness: 0.75 }));
   panel.position.set(0, MODULE_BASE_Y + H * 0.32, -(D / 2 + 0.02));
   grp.add(panel);
-  
+
   for (let i = 0; i < 5; i++) {
     const dt2 = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 10),
       matEmissive(i === 0 ? mod.color : i === 1 ? 0x00ff88 : 0x333333, i < 2 ? 3.5 : 0.5));
@@ -27552,13 +27563,13 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
   }
 
   // Wafer anchor for non-FOUP modules
- if (mod.type !== "foup") {
-  const waferAnchor = new THREE.Group();
-  waferAnchor.name = "ModuleWaferAnchor";
-  waferAnchor.position.set(0, WAFER_TRANSFER_Y, 0);
-  grp.add(waferAnchor);
-  grp.userData.waferAnchor = waferAnchor;
-}
+  if (mod.type !== "foup") {
+    const waferAnchor = new THREE.Group();
+    waferAnchor.name = "ModuleWaferAnchor";
+    waferAnchor.position.set(0, WAFER_TRANSFER_Y, 0);
+    grp.add(waferAnchor);
+    grp.userData.waferAnchor = waferAnchor;
+  }
 
   if (mod.type === "wet" || mod.type === "dry") {
     const chuck = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.05, 48),
@@ -27594,67 +27605,67 @@ const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: n
   }
 
   // FOUP special handling
-//   if (mod.type === "foup") {
-//     // Override position for FOUP
-//     grp.position.y = 3.0;
-//     grp.rotation.set(0, -Math.PI / 2, 0);
-//     grp.rotateY(Math.PI);
-//     grp.position.x += 0.12;
+  //   if (mod.type === "foup") {
+  //     // Override position for FOUP
+  //     grp.position.y = 3.0;
+  //     grp.rotation.set(0, -Math.PI / 2, 0);
+  //     grp.rotateY(Math.PI);
+  //     grp.position.x += 0.12;
 
-// //    const foupPickupAnchor  = new THREE.Group();
-// //     foupPickupAnchor.name = "FoupPickupPoint";
-// //     foupPickupAnchor.position.set(0, 1.15, 1.25);
-// //     grp.add(foupPickupAnchor);
-// //     grp.userData.pickupAnchor = foupPickupAnchor;
+  // //    const foupPickupAnchor  = new THREE.Group();
+  // //     foupPickupAnchor.name = "FoupPickupPoint";
+  // //     foupPickupAnchor.position.set(0, 1.15, 1.25);
+  // //     grp.add(foupPickupAnchor);
+  // //     grp.userData.pickupAnchor = foupPickupAnchor;
 
-//        const foupPickupAnchor = new THREE.Group();
-//       foupPickupAnchor.name = "FoupPickupPoint";
-//       foupPickupAnchor.position.set(0, 1.15, 2.2);  // ← push further front (was 1.25)
-//       grp.add(foupPickupAnchor);
-//       grp.userData.pickupAnchor = foupPickupAnchor;
+  //        const foupPickupAnchor = new THREE.Group();
+  //       foupPickupAnchor.name = "FoupPickupPoint";
+  //       foupPickupAnchor.position.set(0, 1.15, 2.2);  // ← push further front (was 1.25)
+  //       grp.add(foupPickupAnchor);
+  //       grp.userData.pickupAnchor = foupPickupAnchor;
 
-//     const foupBody = new THREE.Mesh(new THREE.BoxGeometry(3.2, 5.5, 2.8),
-//       new THREE.MeshStandardMaterial({ color: 0x162230, metalness: 0.82, roughness: 0.22, emissive: 0x081822, emissiveIntensity: 0.16 }));
-//     foupBody.position.y = 1.7;
-//     foupBody.castShadow = true;
-//     grp.add(foupBody);
-    
-//     const door = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.8, 0.08),
-//       new THREE.MeshStandardMaterial({ color: 0x1c2938, metalness: 0.9, roughness: 0.12, emissive: 0x003566, emissiveIntensity: 0.2 }));
-//     door.position.set(0, 1.7, 1.35);
-//     grp.add(door);
-    
-//     const slotAnchors: THREE.Object3D[] = [];
-//     for (let s = 0; s < 6; s++) {
-//       const slotY = 0.55 + s * 0.42;
+  //     const foupBody = new THREE.Mesh(new THREE.BoxGeometry(3.2, 5.5, 2.8),
+  //       new THREE.MeshStandardMaterial({ color: 0x162230, metalness: 0.82, roughness: 0.22, emissive: 0x081822, emissiveIntensity: 0.16 }));
+  //     foupBody.position.y = 1.7;
+  //     foupBody.castShadow = true;
+  //     grp.add(foupBody);
 
-//       // Visible slot disc (where wafer rests) — laid flat
-//       const slot = new THREE.Mesh(
-//         new THREE.CylinderGeometry(0.8, 0.8, 0.03, 64),
-//         new THREE.MeshStandardMaterial({ color: 0x91a8c2, metalness: 0.9, roughness: 0.08 })
-//       );
-//       slot.rotation.x = Math.PI / 2;   // lay disc flat (FOUP is rotated)
-//       slot.position.set(0, slotY, 1.05);
-//       grp.add(slot);
+  //     const door = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.8, 0.08),
+  //       new THREE.MeshStandardMaterial({ color: 0x1c2938, metalness: 0.9, roughness: 0.12, emissive: 0x003566, emissiveIntensity: 0.2 }));
+  //     door.position.set(0, 1.7, 1.35);
+  //     grp.add(door);
 
-//       // Anchor sits AT the slot disc (wafer goes here, not z=2.0)
-//       const anchor = new THREE.Group();
-//       anchor.name = `FoupSlot_${s + 1}`;
-//       anchor.position.set(0, slotY, 1.05);
-//       grp.add(anchor);
-//       slotAnchors.push(anchor);
-//     }
-//     grp.userData.slotAnchors = slotAnchors;
-//     grp.userData.slotCount = slotAnchors.length;
-    
-//     const foupPL = new THREE.PointLight(0x0066ff, 0, 4);
-//     foupPL.position.set(0, 2.5, 1.2);
-//     grp.add(foupPL);
-//     grp.userData.processLight = foupPL;
-//   }
+  //     const slotAnchors: THREE.Object3D[] = [];
+  //     for (let s = 0; s < 6; s++) {
+  //       const slotY = 0.55 + s * 0.42;
+
+  //       // Visible slot disc (where wafer rests) — laid flat
+  //       const slot = new THREE.Mesh(
+  //         new THREE.CylinderGeometry(0.8, 0.8, 0.03, 64),
+  //         new THREE.MeshStandardMaterial({ color: 0x91a8c2, metalness: 0.9, roughness: 0.08 })
+  //       );
+  //       slot.rotation.x = Math.PI / 2;   // lay disc flat (FOUP is rotated)
+  //       slot.position.set(0, slotY, 1.05);
+  //       grp.add(slot);
+
+  //       // Anchor sits AT the slot disc (wafer goes here, not z=2.0)
+  //       const anchor = new THREE.Group();
+  //       anchor.name = `FoupSlot_${s + 1}`;
+  //       anchor.position.set(0, slotY, 1.05);
+  //       grp.add(anchor);
+  //       slotAnchors.push(anchor);
+  //     }
+  //     grp.userData.slotAnchors = slotAnchors;
+  //     grp.userData.slotCount = slotAnchors.length;
+
+  //     const foupPL = new THREE.PointLight(0x0066ff, 0, 4);
+  //     foupPL.position.set(0, 2.5, 1.2);
+  //     grp.add(foupPL);
+  //     grp.userData.processLight = foupPL;
+  //   }
 
 
-if (mod.type === "foup") {
+  if (mod.type === "foup") {
     // Override position for FOUP
     grp.position.y = 3.0;
     grp.rotation.set(0, -Math.PI / 2, 0);
@@ -27689,14 +27700,22 @@ if (mod.type === "foup") {
     grp.add(door);
 
     // ══════════════════════════════════════════════════════════════
-    // ── VISIBLE WAFER STACK (DESIGN ONLY — 20 plates for realism) ──
+    // ── VISIBLE WAFER STACK (seated INSIDE the FOUP, no backside poke) ──
     // ══════════════════════════════════════════════════════════════
-    const VISIBLE_WAFERS = 20;        // ← change this to add/remove visible plates
-    const VIS_START_Y    = 0.55;
-    const VIS_END_Y      = 4.10;
-    const VIS_SPACING    = (VIS_END_Y - VIS_START_Y) / (VISIBLE_WAFERS - 1);
-    const WAFER_RADIUS   = 1.15;
-    const WAFER_THICK    = 0.022;
+    const VISIBLE_WAFERS = 20;        // ← plate count
+    const VIS_START_Y = 0.55;
+    const VIS_END_Y   = 4.10;
+    const VIS_SPACING = (VIS_END_Y - VIS_START_Y) / (VISIBLE_WAFERS - 1);
+    const WAFER_RADIUS = 1.05;        // ← slightly smaller so edge stays inside body
+    const WAFER_THICK  = 0.022;
+
+    // ── KEY KNOB ──────────────────────────────────────────────
+    // FOUP body front face is at local z = +1.4, door at z = 1.35.
+    // 1.05 (old value) pushed discs almost to the door → looked like
+    // they were sticking out / showing from the back.
+    // Pull them back to sit cleanly inside the cassette.
+    const WAFER_Z = 0.35;             // ← decrease to push deeper in, increase to bring forward
+    // ──────────────────────────────────────────────────────────
 
     for (let v = 0; v < VISIBLE_WAFERS; v++) {
       const wY = VIS_START_Y + v * VIS_SPACING;
@@ -27705,16 +27724,16 @@ if (mod.type === "foup") {
       const waferDisc = new THREE.Mesh(
         new THREE.CylinderGeometry(WAFER_RADIUS, WAFER_RADIUS, WAFER_THICK, 96),
         new THREE.MeshPhysicalMaterial({
-          color:     0xc8ccd0,
+          color: 0xc8ccd0,
           metalness: 0.88,
           roughness: 0.22,
           clearcoat: 0.5,
           clearcoatRoughness: 0.15,
-          emissive:  0x0a0a0c,
+          emissive: 0x0a0a0c,
           emissiveIntensity: 0.05,
         })
       );
-      waferDisc.position.set(0, wY, 1.05);
+      waferDisc.position.set(0, wY, WAFER_Z);
       grp.add(waferDisc);
 
       // Polished silver edge ring
@@ -27727,26 +27746,26 @@ if (mod.type === "foup") {
         })
       );
       edgeRing.rotation.x = Math.PI / 2;
-      edgeRing.position.set(0, wY, 1.05);
+      edgeRing.position.set(0, wY, WAFER_Z);
       grp.add(edgeRing);
 
-      // Amber photoresist coating arc on right side (like real FOUP photo)
-      const amberCoat = new THREE.Mesh(
-        new THREE.CylinderGeometry(WAFER_RADIUS * 0.97, WAFER_RADIUS * 0.97, 0.004, 96, 1, false, -Math.PI / 3, (2 * Math.PI) / 3),
+      // NOTE: amberCoat pie-wedge removed — it was the arc poking out
+      // the front/back of the FOUP. The flat resist tint is now baked
+      // into a full thin disc that never extends past the wafer edge.
+      const resistTint = new THREE.Mesh(
+        new THREE.CylinderGeometry(WAFER_RADIUS * 0.96, WAFER_RADIUS * 0.96, 0.003, 96),
         new THREE.MeshPhysicalMaterial({
-          color:     0xb8bcc0,
+          color: 0xb8bcc0,
           metalness: 0.35,
           roughness: 0.30,
           clearcoat: 0.85,
           clearcoatRoughness: 0.08,
-          emissive:  0x000000,
-          emissiveIntensity: 0,
           transparent: true,
-          opacity: 0.94,
+          opacity: 0.5,
         })
       );
-      amberCoat.position.set(0, wY + WAFER_THICK / 2 + 0.002, 1.05);
-      grp.add(amberCoat);
+      resistTint.position.set(0, wY + WAFER_THICK / 2 + 0.002, WAFER_Z);
+      grp.add(resistTint);
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -27755,16 +27774,14 @@ if (mod.type === "foup") {
     const slotAnchors: THREE.Object3D[] = [];
     for (let s = 0; s < 6; s++) {
       const slotY = 0.55 + s * 0.42;
-
-      // Anchor only — invisible, used by robot to know where to pick
       const anchor = new THREE.Group();
       anchor.name = `FoupSlot_${s + 1}`;
-      anchor.position.set(0, slotY, 1.05);
+      anchor.position.set(0, slotY, WAFER_Z);   // ← was 1.05, now matches stack
       grp.add(anchor);
       slotAnchors.push(anchor);
     }
     grp.userData.slotAnchors = slotAnchors;
-    grp.userData.slotCount   = slotAnchors.length;
+    grp.userData.slotCount = slotAnchors.length;
 
     // ── INTERIOR LIGHT ──
     const foupPL = new THREE.PointLight(0xffaa55, 0.4, 4);
@@ -27772,14 +27789,14 @@ if (mod.type === "foup") {
     grp.add(foupPL);
     grp.userData.processLight = foupPL;
   }
-   
 
 
 
 
 
-  
-  
+
+
+
   const SKIP_FLOATING_LABEL_IDS = new Set(['spindry', 'scanner', 'foup']);
   if (SKIP_FLOATING_LABEL_IDS.has(mod.id)) {
     console.log(`[buildModule] Skipping floating sprite for: ${mod.id}`);
@@ -27787,7 +27804,7 @@ if (mod.type === "foup") {
   }
 
   const labelHeight = mod.type === "scan" ? MODULE_BASE_Y + H * 6.0 : MODULE_BASE_Y + H + 2.4;
-  
+
   const nc = document.createElement("canvas");
   nc.width = 512;
   nc.height = 180;
@@ -27986,34 +28003,34 @@ function tickGantryRail(grpRail: THREE.Group, robotX: number, simTime: number) {
 }
 
 export class PrCoatOverlay {
-  plane:    THREE.Mesh;
-  canvas:   HTMLCanvasElement;
-  ctx:      CanvasRenderingContext2D;
-  tex:      THREE.CanvasTexture;
-  active    = false;
+  plane: THREE.Mesh;
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  tex: THREE.CanvasTexture;
+  active = false;
   spinAngle = 0;
-  resistR   = 0;
-  phase:    "idle" | "dispense" | "spinup" | "coating" | "spindown" | "done" = "idle";
-  phaseT    = 0;
-  color:    number;
-  spinRPM   = 0;
+  resistR = 0;
+  phase: "idle" | "dispense" | "spinup" | "coating" | "spindown" | "done" = "idle";
+  phaseT = 0;
+  color: number;
+  spinRPM = 0;
 
   constructor(scene: THREE.Scene, x: number, z: number, color: number) {
-    this.color  = color;
+    this.color = color;
     this.canvas = document.createElement("canvas");
-    this.canvas.width  = 256;
+    this.canvas.width = 256;
     this.canvas.height = 256;
-    this.ctx    = this.canvas.getContext("2d")!;
-    this.tex    = new THREE.CanvasTexture(this.canvas);
+    this.ctx = this.canvas.getContext("2d")!;
+    this.tex = new THREE.CanvasTexture(this.canvas);
 
     this.plane = new THREE.Mesh(
       new THREE.CircleGeometry(0.94, 80),
       new THREE.MeshBasicMaterial({
-        map:         this.tex,
+        map: this.tex,
         transparent: true,
-        opacity:     0.0,
-        depthWrite:  false,
-        blending:    THREE.AdditiveBlending,
+        opacity: 0.0,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
       })
     );
     this.plane.rotation.x = -Math.PI / 2;
@@ -28023,17 +28040,17 @@ export class PrCoatOverlay {
   }
 
   start() {
-    this.active  = true;
-    this.phase   = "dispense";
-    this.phaseT  = 0;
+    this.active = true;
+    this.phase = "dispense";
+    this.phaseT = 0;
     this.resistR = 0;
     this.spinRPM = 0;
     (this.plane.material as THREE.MeshBasicMaterial).opacity = 1;
   }
 
   stop() {
-    this.active  = false;
-    this.phase   = "idle";
+    this.active = false;
+    this.phase = "idle";
     (this.plane.material as THREE.MeshBasicMaterial).opacity = 0;
     this.resistR = 0;
     this.spinRPM = 0;
@@ -28075,9 +28092,9 @@ export class PrCoatOverlay {
   }
 
   private _draw() {
-    const C  = 128;
+    const C = 128;
     const WR = 118;
-    const R  = this.resistR;
+    const R = this.resistR;
     const ctx = this.ctx;
     ctx.clearRect(0, 0, 256, 256);
 
@@ -28088,17 +28105,17 @@ export class PrCoatOverlay {
 
     if (this.phase === "dispense") {
       const blob = Math.min(this.phaseT / 1.5, 1);
-      const rr   = R * blob;
-      const g    = ctx.createRadialGradient(C - 6, C - 6, 0, C, C, rr);
+      const rr = R * blob;
+      const g = ctx.createRadialGradient(C - 6, C - 6, 0, C, C, rr);
       g.addColorStop(0, col + "ee");
       g.addColorStop(0.4, col + "cc");
       g.addColorStop(1, col + "44");
       ctx.beginPath();
       for (let i = 0; i <= 24; i++) {
-        const a   = (i / 24) * Math.PI * 2;
+        const a = (i / 24) * Math.PI * 2;
         const wobble = rr * (1 + 0.12 * Math.sin(a * 5 + 1.3) + 0.08 * Math.sin(a * 3));
         i === 0 ? ctx.moveTo(C + Math.cos(a) * wobble, C + Math.sin(a) * wobble)
-                : ctx.lineTo(C + Math.cos(a) * wobble, C + Math.sin(a) * wobble);
+          : ctx.lineTo(C + Math.cos(a) * wobble, C + Math.sin(a) * wobble);
       }
       ctx.closePath();
       ctx.fillStyle = g;
@@ -28116,10 +28133,10 @@ export class PrCoatOverlay {
       ctx.rotate(this.spinAngle);
 
       const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
-      grad.addColorStop(0,   col + "ee");
+      grad.addColorStop(0, col + "ee");
       grad.addColorStop(0.3, col + "bb");
       grad.addColorStop(0.7, col + "55");
-      grad.addColorStop(1,   col + "22");
+      grad.addColorStop(1, col + "22");
       ctx.beginPath();
       ctx.arc(0, 0, R, 0, Math.PI * 2);
       ctx.fillStyle = grad;
@@ -28130,13 +28147,13 @@ export class PrCoatOverlay {
         const baseAngle = (arm / numArms) * Math.PI * 2;
         ctx.beginPath();
         for (let j = 0; j <= 55; j++) {
-          const p  = j / 55;
-          const r  = R * p;
+          const p = j / 55;
+          const r = R * p;
           const sa = baseAngle + p * 2.5 * Math.PI;
           j === 0 ? ctx.moveTo(0, 0) : ctx.lineTo(Math.cos(sa) * r, Math.sin(sa) * r);
         }
         ctx.strokeStyle = `rgba(255,220,80,${sp * (1 - sp * 0.4) * 0.55})`;
-        ctx.lineWidth   = Math.max(0.5, 3.5 - sp * 3);
+        ctx.lineWidth = Math.max(0.5, 3.5 - sp * 3);
         ctx.stroke();
       }
       ctx.restore();
@@ -28148,8 +28165,8 @@ export class PrCoatOverlay {
 
       const nSectors = 42;
       for (let s = 0; s < nSectors; s++) {
-        const sa  = (s / nSectors) * Math.PI * 2;
-        const ea  = ((s + 1) / nSectors) * Math.PI * 2;
+        const sa = (s / nSectors) * Math.PI * 2;
+        const ea = ((s + 1) / nSectors) * Math.PI * 2;
         const hue = (s / nSectors * 300 + this.spinAngle * 20) % 360;
         ctx.beginPath();
         ctx.moveTo(0, 0);
@@ -28160,9 +28177,9 @@ export class PrCoatOverlay {
       }
 
       const sg = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.92);
-      sg.addColorStop(0,   "rgba(200,220,255,0.22)");
+      sg.addColorStop(0, "rgba(200,220,255,0.22)");
       sg.addColorStop(0.6, "rgba(150,180,255,0.12)");
-      sg.addColorStop(1,   "rgba(80,120,220,0.06)");
+      sg.addColorStop(1, "rgba(80,120,220,0.06)");
       ctx.beginPath();
       ctx.arc(0, 0, R * 0.92, 0, Math.PI * 2);
       ctx.fillStyle = sg;
@@ -28172,21 +28189,21 @@ export class PrCoatOverlay {
       ctx.beginPath();
       ctx.arc(0, 0, R, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(240,180,50,${beadAlpha * 0.85})`;
-      ctx.lineWidth   = 6 + 2;
+      ctx.lineWidth = 6 + 2;
       ctx.stroke();
       ctx.beginPath();
       ctx.arc(0, 0, R + 3, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(255,200,80,${beadAlpha * 0.3})`;
-      ctx.lineWidth   = 4;
+      ctx.lineWidth = 4;
       ctx.stroke();
 
       if (rpm > 800) {
-        const la    = Math.min(rpm / 3000, 1) * 0.4;
+        const la = Math.min(rpm / 3000, 1) * 0.4;
         const nLines = Math.min(16, Math.floor(rpm / 250));
         ctx.globalAlpha = la;
         for (let i = 0; i < nLines; i++) {
-          const a   = (i / nLines) * Math.PI * 2;
-          const cv  = 0.18;
+          const a = (i / nLines) * Math.PI * 2;
+          const cv = 0.18;
           ctx.beginPath();
           ctx.moveTo(0, 0);
           ctx.quadraticCurveTo(
@@ -28194,7 +28211,7 @@ export class PrCoatOverlay {
             Math.cos(a + cv * 2) * R * 0.88, Math.sin(a + cv * 2) * R * 0.88
           );
           ctx.strokeStyle = `rgba(180,210,255,${i % 2 === 0 ? 1 : 0.3})`;
-          ctx.lineWidth   = 0.9;
+          ctx.lineWidth = 0.9;
           ctx.stroke();
         }
         ctx.globalAlpha = 1;
@@ -28205,9 +28222,9 @@ export class PrCoatOverlay {
       ctx.save();
       ctx.translate(C, C);
       const dg = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.92);
-      dg.addColorStop(0,   col + "cc");
+      dg.addColorStop(0, col + "cc");
       dg.addColorStop(0.5, col + "88");
-      dg.addColorStop(1,   col + "44");
+      dg.addColorStop(1, col + "44");
       ctx.beginPath();
       ctx.arc(0, 0, R * 0.92, 0, Math.PI * 2);
       ctx.fillStyle = dg;
@@ -28219,22 +28236,22 @@ export class PrCoatOverlay {
 
 
 export class DevPuddleOverlay {
-  poolPlane:  THREE.Mesh;
-  canvas:     HTMLCanvasElement;
-  ctx:        CanvasRenderingContext2D;
-  tex:        THREE.CanvasTexture;
+  poolPlane: THREE.Mesh;
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  tex: THREE.CanvasTexture;
 
-  swirls:     { angle: number; radius: number; speed: number; alpha: number; color: string }[] = [];
-  drops:      { x: number; y: number; r: number; alpha: number; vx: number; vy: number; color: string }[] = [];
+  swirls: { angle: number; radius: number; speed: number; alpha: number; color: string }[] = [];
+  drops: { x: number; y: number; r: number; alpha: number; vx: number; vy: number; color: string }[] = [];
 
   phase: "idle" | "spray" | "puddle" | "rinse" | "drain" | "done" = "idle";
-  phaseT   = 0;
-  active   = false;
+  phaseT = 0;
+  active = false;
   spinAngle = 0;
 
   constructor(scene: THREE.Scene, x: number, z: number) {
     this.canvas = document.createElement("canvas");
-    this.canvas.width  = 256;
+    this.canvas.width = 256;
     this.canvas.height = 256;
     this.ctx = this.canvas.getContext("2d")!;
     this.tex = new THREE.CanvasTexture(this.canvas);
@@ -28242,11 +28259,11 @@ export class DevPuddleOverlay {
     this.poolPlane = new THREE.Mesh(
       new THREE.CircleGeometry(0.92, 80),
       new THREE.MeshBasicMaterial({
-        map:         this.tex,
+        map: this.tex,
         transparent: true,
-        opacity:     0,
-        depthWrite:  false,
-        blending:    THREE.NormalBlending,
+        opacity: 0,
+        depthWrite: false,
+        blending: THREE.NormalBlending,
       })
     );
     this.poolPlane.rotation.x = -Math.PI / 2;
@@ -28256,19 +28273,19 @@ export class DevPuddleOverlay {
   }
 
   start() {
-    this.active   = true;
-    this.phase    = "spray";
-    this.phaseT   = 0;
-    this.drops    = [];
-    this.swirls   = [];
+    this.active = true;
+    this.phase = "spray";
+    this.phaseT = 0;
+    this.drops = [];
+    this.swirls = [];
     this.spinAngle = 0;
     (this.poolPlane.material as THREE.MeshBasicMaterial).opacity = 1;
   }
 
   stop() {
     this.active = false;
-    this.phase  = "idle";
-    this.drops  = [];
+    this.phase = "idle";
+    this.drops = [];
     this.swirls = [];
     (this.poolPlane.material as THREE.MeshBasicMaterial).opacity = 0;
   }
@@ -28276,7 +28293,7 @@ export class DevPuddleOverlay {
   tick(dt: number, speed: number) {
     if (!this.active) return;
     const sDt = dt * speed;
-    this.phaseT   += sDt;
+    this.phaseT += sDt;
     this.spinAngle += sDt * speed * 0.6;
 
     switch (this.phase) {
@@ -28285,12 +28302,12 @@ export class DevPuddleOverlay {
           const a = Math.random() * Math.PI * 2;
           const r = Math.random() * 0.55;
           this.drops.push({
-            x:     128 + Math.cos(a) * r * 128 * 0.4,
-            y:     128 + Math.sin(a) * r * 128 * 0.4,
-            r:     2 + Math.random() * 4,
+            x: 128 + Math.cos(a) * r * 128 * 0.4,
+            y: 128 + Math.sin(a) * r * 128 * 0.4,
+            r: 2 + Math.random() * 4,
             alpha: 0.9,
-            vx:    (Math.random() - 0.5) * 2,
-            vy:    (Math.random() - 0.5) * 2,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
             color: `hsl(${145 + Math.random() * 30},80%,${40 + Math.random() * 20}%)`,
           });
         }
@@ -28307,12 +28324,12 @@ export class DevPuddleOverlay {
           const a = Math.random() * Math.PI * 2;
           const r = Math.random() * 0.9;
           this.drops.push({
-            x:     128 + Math.cos(a) * r * 115,
-            y:     128 + Math.sin(a) * r * 115,
-            r:     1.5 + Math.random() * 3,
+            x: 128 + Math.cos(a) * r * 115,
+            y: 128 + Math.sin(a) * r * 115,
+            r: 1.5 + Math.random() * 3,
             alpha: 0.85,
-            vx:    (Math.random() - 0.5) * 3,
-            vy:    (Math.random() - 0.5) * 3,
+            vx: (Math.random() - 0.5) * 3,
+            vy: (Math.random() - 0.5) * 3,
             color: `hsl(${200 + Math.random() * 20},90%,${60 + Math.random() * 20}%)`,
           });
         }
@@ -28345,25 +28362,25 @@ export class DevPuddleOverlay {
 
   private _draw() {
     const ctx = this.ctx;
-    const C   = 128;
-    const R   = 115;
+    const C = 128;
+    const R = 115;
     ctx.clearRect(0, 0, 256, 256);
 
     if (this.phase === "idle" || this.phase === "done") return;
 
     // Pool background
     const poolAlpha =
-      this.phase === "spray"  ? Math.min(this.phaseT / 1.5, 0.72) :
-      this.phase === "puddle" ? 0.82 :
-      this.phase === "rinse"  ? 0.7 + 0.15 * Math.sin(this.phaseT * 6) :
-      this.phase === "drain"  ? Math.max(0, 0.72 * (1 - this.phaseT / 1.5)) : 0;
+      this.phase === "spray" ? Math.min(this.phaseT / 1.5, 0.72) :
+        this.phase === "puddle" ? 0.82 :
+          this.phase === "rinse" ? 0.7 + 0.15 * Math.sin(this.phaseT * 6) :
+            this.phase === "drain" ? Math.max(0, 0.72 * (1 - this.phaseT / 1.5)) : 0;
 
     if (poolAlpha > 0) {
       const poolColor =
-        this.phase === "spray"  ? "#1a6640" :
-        this.phase === "puddle" ? "#0d4d2e" :
-        this.phase === "rinse"  ? "#1a4a88" :
-        "#1a4488";
+        this.phase === "spray" ? "#1a6640" :
+          this.phase === "puddle" ? "#0d4d2e" :
+            this.phase === "rinse" ? "#1a4a88" :
+              "#1a4488";
 
       const pg = ctx.createRadialGradient(C - 10, C - 10, 0, C, C, R);
       pg.addColorStop(0, poolColor + "ff");
@@ -28387,13 +28404,13 @@ export class DevPuddleOverlay {
         const baseA = (arm / 5) * Math.PI * 2;
         ctx.beginPath();
         for (let j = 0; j <= 40; j++) {
-          const p  = j / 40;
-          const r  = R * 0.85 * p;
+          const p = j / 40;
+          const r = R * 0.85 * p;
           const sa = baseA + p * Math.PI * 1.6;
           j === 0 ? ctx.moveTo(0, 0) : ctx.lineTo(Math.cos(sa) * r, Math.sin(sa) * r);
         }
         ctx.strokeStyle = `rgba(80,210,130,${this.phase === "puddle" ? 0.4 : 0.2})`;
-        ctx.lineWidth   = 1.8;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
       }
       ctx.restore();
@@ -28408,13 +28425,13 @@ export class DevPuddleOverlay {
         const baseA = (arm / 7) * Math.PI * 2;
         ctx.beginPath();
         for (let j = 0; j <= 40; j++) {
-          const p  = j / 40;
-          const r  = R * 0.9 * p;
+          const p = j / 40;
+          const r = R * 0.9 * p;
           const sa = baseA + p * Math.PI * 1.8;
           j === 0 ? ctx.moveTo(0, 0) : ctx.lineTo(Math.cos(sa) * r, Math.sin(sa) * r);
         }
         ctx.strokeStyle = `rgba(80,160,255,0.35)`;
-        ctx.lineWidth   = 1.5;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       }
       ctx.restore();
@@ -28428,7 +28445,7 @@ export class DevPuddleOverlay {
         ctx.rotate(s.angle);
         ctx.globalAlpha = s.alpha;
         ctx.strokeStyle = s.color;
-        ctx.lineWidth   = 2;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(0, 0, s.radius, 0, Math.PI * 1.5);
         ctx.stroke();
@@ -28442,13 +28459,13 @@ export class DevPuddleOverlay {
       ctx.beginPath();
       ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
       ctx.globalAlpha = d.alpha;
-      ctx.fillStyle   = d.color;
+      ctx.fillStyle = d.color;
       ctx.fill();
       if (d.alpha > 0.5) {
         ctx.beginPath();
         ctx.arc(d.x, d.y, d.r * 1.6, 0, Math.PI * 2);
         ctx.strokeStyle = d.color;
-        ctx.lineWidth   = 0.7;
+        ctx.lineWidth = 0.7;
         ctx.globalAlpha = d.alpha * 0.4;
         ctx.stroke();
       }
@@ -28764,19 +28781,19 @@ function buildRobotGLB(
       root.scale.setScalar(scale);
       root.rotation.y = 0;          // GLB's +X arm direction = world +X (track axis) — good
       scene.add(root);
- 
+
       // Validate transforms
       root.traverse((obj) => {
         if (obj instanceof THREE.Group || (obj as THREE.Mesh).isMesh) {
           obj.quaternion.normalize();
         }
       });
- 
+
       // Snap to floor
       const box = new THREE.Box3().setFromObject(root);
       const FLOOR_Y = 0.3;
       root.position.set(basePos.x, FLOOR_Y - box.min.y, basePos.z);
- 
+
       // Shadows + LEDs
       root.traverse((obj: THREE.Object3D) => {
         if ((obj as THREE.Mesh).isMesh) {
@@ -28790,44 +28807,44 @@ function buildRobotGLB(
           }
         }
       });
- 
+
       // Hide rigging helpers from old file (left in just in case GLB has them)
       const HIDDEN = ['BezierCircle', 'IK', 'CameraTarget', 'Curve', 'Empty', 'Pole'];
       root.traverse((obj) => {
         const name = obj.name || '';
         if (HIDDEN.some(h => name === h || name.startsWith(h))) {
           obj.visible = false;
-          if ((obj as THREE.Mesh).isMesh) (obj as THREE.Mesh).raycast = () => {};
+          if ((obj as THREE.Mesh).isMesh) (obj as THREE.Mesh).raycast = () => { };
         }
       });
- 
+
       // ── Index nodes by name ──
       const byName: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => { byName[obj.name] = obj; });
       console.log('GLB nodes:', Object.keys(byName).filter(n => n.startsWith('Joint') || n.startsWith('Blade')));
- 
+
       // ── Bind to the NEW joint hierarchy ──
-      const zLift   = byName['Joint_ZLift']    as THREE.Object3D;
-      const turret  = byName['Joint_Rot']      as THREE.Group;        // yaw (Y)
-      const shoulder= byName['Joint_Shoulder'] as THREE.Group;        // pitch (Z)
-      const elbow   = byName['Joint_Elbow']    as THREE.Group;        // pitch (Z) — at +X 0.355 from shoulder
-      const foreArm = byName['Joint_Forearm']  as THREE.Group;        // pitch (Z)
-      const wrist   = byName['Joint_Wrist']    as THREE.Group;        // pitch (Z) — at +X 0.305 from elbow
-      const gripper = (byName['Joint_Wrist']   ?? byName['Blade_Mount']) as THREE.Group;
+      const zLift = byName['Joint_ZLift'] as THREE.Object3D;
+      const turret = byName['Joint_Rot'] as THREE.Group;        // yaw (Y)
+      const shoulder = byName['Joint_Shoulder'] as THREE.Group;        // pitch (Z)
+      const elbow = byName['Joint_Elbow'] as THREE.Group;        // pitch (Z) — at +X 0.355 from shoulder
+      const foreArm = byName['Joint_Forearm'] as THREE.Group;        // pitch (Z)
+      const wrist = byName['Joint_Wrist'] as THREE.Group;        // pitch (Z) — at +X 0.305 from elbow
+      const gripper = (byName['Joint_Wrist'] ?? byName['Blade_Mount']) as THREE.Group;
       // Blade tip lives ~0.335 along +X from the wrist (per Joint_Wrist children).
-      const fork    = byName['Blade_Mount']    as THREE.Object3D ?? gripper;
- 
+      const fork = byName['Blade_Mount'] as THREE.Object3D ?? gripper;
+
       if (!turret || !shoulder || !elbow || !wrist) {
         console.error('GLB binding failed — joint nodes not found. Got:',
           { turret: !!turret, shoulder: !!shoulder, elbow: !!elbow, wrist: !!wrist });
         return;
       }
- 
+
       // ── Status LED ──
       const statusPL = new THREE.PointLight(ledColor, 1.6, 10);
       statusPL.position.set(0, 2.0, 0);
       root.add(statusPL);
- 
+
       // ── Rest-pose offsets used by IK (from GLB inspection, multiplied by scale) ──
       // shoulder→elbow distance along X
       const L1 = 0.355 * scale;
@@ -28837,546 +28854,546 @@ function buildRobotGLB(
       const L3 = 0.335 * scale;
       // Shoulder Y position above the rail
       const SHOULDER_Y = (0.93 + 0.46) * scale;   // Joint_ZLift + Joint_Rot offsets
- 
+
       // Save state for animations / restoration
       root.userData.vacuumEngaged = false;
-      root.userData.bladeFlash    = 0;        // for visual "engaged" pulse
-      root.userData._ikYaw        = 0;
-      root.userData.L1            = L1;
-      root.userData.L2            = L2;
-      root.userData.L3            = L3;
-      root.userData.SHOULDER_Y    = SHOULDER_Y;
- 
+      root.userData.bladeFlash = 0;        // for visual "engaged" pulse
+      root.userData._ikYaw = 0;
+      root.userData.L1 = L1;
+      root.userData.L2 = L2;
+      root.userData.L3 = L3;
+      root.userData.SHOULDER_Y = SHOULDER_Y;
+
       // Reusable temp objects
-      const axisY  = new THREE.Vector3(0, 1, 0);
-      const axisZ  = new THREE.Vector3(0, 0, 1);
-      const qTmp   = new THREE.Quaternion();
-      const eTmp   = new THREE.Euler();
- 
+      const axisY = new THREE.Vector3(0, 1, 0);
+      const axisZ = new THREE.Vector3(0, 0, 1);
+      const qTmp = new THREE.Quaternion();
+      const eTmp = new THREE.Euler();
+
       // ── INVERSE KINEMATICS (closed-form 3R planar in the rotated X-Y plane) ──
-//      function runIK(tgt: THREE.Vector3): void {
-//   // ── 1. Turret yaw (unchanged — aim at target on the XZ plane) ──────────
-//   const baseWP = new THREE.Vector3();
-//   root.getWorldPosition(baseWP);
-//   const dx = tgt.x - baseWP.x;
-//   const dz = tgt.z - baseWP.z;
-//   const rawYaw = Math.atan2(dx, dz);
-//   const prev = root.userData._ikYaw as number;
-//   let delta = rawYaw - prev;
-//   while (delta >  Math.PI) delta -= 2 * Math.PI;
-//   while (delta < -Math.PI) delta += 2 * Math.PI;
-//   delta = Math.max(-Math.PI / 1.2, Math.min(Math.PI / 1.2, delta));
-//   const newYaw = prev + delta;
-//   root.userData._ikYaw = newYaw;
-//   qTmp.setFromAxisAngle(axisY, newYaw);
-//   turret.quaternion.slerp(qTmp, 0.22).normalize();
- 
-//   // ── 2. Target in turret-local frame ────────────────────────────────────
-//   turret.updateWorldMatrix(true, false);
-//   const localTgt = turret.worldToLocal(tgt.clone());
- 
-//   // After yaw, the planar reach is along +Z (because we rotated INTO the
-//   // target). The vertical axis is Y. So treat the IK plane as (reachZ, Y).
-//   // Important: use the absolute z because the turret might be slightly
-//   // mis-aimed due to the slerp lag.
-//   const reach = Math.abs(localTgt.z);
- 
-//   // Wrist target = wafer target minus the blade extension L3 along the
-//   // arm's current outward direction. Since the wrist points +X in local
-//   // shoulder frame, but after turret yaw the outward direction is +Z in
-//   // turret-local frame, we subtract L3 from reach.
-//   const wx = reach - L3;                          // horizontal distance to wrist
-//   const wy = localTgt.y - SHOULDER_Y;             // vertical offset to wrist
- 
-//   let D = Math.hypot(wx, wy);
- 
-//   // Force the wrist target to sit strictly inside the bend annulus so the
-//   // arm always bends. NEVER let D ≥ L1+L2 (which would force straight arm).
-//   const MIN_BEND_ANGLE = 0.20;                    // ~11.5° minimum elbow bend
-//   const Dmax_bent = Math.sqrt(
-//     L1 * L1 + L2 * L2 - 2 * L1 * L2 * Math.cos(Math.PI - MIN_BEND_ANGLE)
-//   );
-//   const Dmin = Math.abs(L1 - L2) + 0.005;
-//   D = Math.max(Dmin, Math.min(Dmax_bent, D));
- 
-//   // ── 3. Law-of-cosines (ELBOW-BACK branch) ──────────────────────────────
-//   // Interior elbow angle (between L1 and L2)
-//   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
-//   const elbowInner = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
- 
-//   // Shoulder offset from straight-line-to-wrist
-//   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
-//   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
- 
-//   // Angle from shoulder's +X (outward direction) to the wrist target.
-//   // In the (wx, wy) plane:  +wx = outward, +wy = up.
-//   const targetAng = Math.atan2(wy, wx);
- 
-//   // ── Elbow-BACK branch: forearm folds BACK toward the base, like a real
-//   // wafer handler reaching around obstacles.
-//   //   shoulderAngle = targetAng - shOff   (negative offset bends arm UP first)
-//   //   elbowAngle    = π - elbowInner      (positive = forearm angled back)
-//   const shoulderAngle = targetAng - shOff;
-//   const elbowAngle    = Math.PI - elbowInner;
- 
-//   // ── 4. Wrist counter-rotation so the blade stays horizontal ────────────
-//   // Sum of pitches in the chain must equal 0 for the blade to stay level.
-//   // Chain: shoulder(+sA) → elbow(-eA) → forearm(0) → wrist(wA)
-//   //   sA − eA + wA = 0   →   wA = eA − sA
-//   const wristAngle = elbowAngle - shoulderAngle;
- 
-//   // ── 5. Apply with damped slerp ─────────────────────────────────────────
-//   // Use larger blend (0.3) on shoulder/elbow so the bend is responsive,
-//   // smaller (0.22) on wrist for stability.
-//   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
-//   shoulder.quaternion.slerp(qTmp, 0.30).normalize();
- 
-//   qTmp.setFromAxisAngle(axisZ, -elbowAngle);   // negative = fold back
-//   elbow.quaternion.slerp(qTmp, 0.30).normalize();
- 
-//   // Forearm stays identity (structural link in this rig)
-//   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
- 
-//   qTmp.setFromAxisAngle(axisZ, wristAngle);
-//   wrist.quaternion.slerp(qTmp, 0.22).normalize();
-// }
-
-
-// function runIK(tgt: THREE.Vector3): void {
-//   // ── 1. Turret yaw — aim toward target on the XZ plane ─────────────────
-//   const baseWP = new THREE.Vector3();
-//   root.getWorldPosition(baseWP);
-//   const dx = tgt.x - baseWP.x;
-//   const dz = tgt.z - baseWP.z;
- 
-//   // Note: arm's outward direction in turret-local frame is +X.
-//   // Standard yaw: atan2(dx, dz) aims local +Z; we want local +X. So use atan2(dz, dx) negated, OR rotate by +π/2.
-//   // Easier: aim the arm's local +X by yaw = atan2(dz, dx)? No — let's stick with whichever
-//   // axis the GLB actually extends along. Joint_Elbow translates +X 0.355 → arm extends +X.
-//   // So we want yaw such that turret-local +X points at the target.
-//   // World direction to target on XZ plane: (dx, dz).
-//   // After yaw θ around Y, local +X maps to world (cos θ, 0, -sin θ).
-//   // Setting that equal to normalized (dx, dz): cos θ = dx/r, -sin θ = dz/r  →  θ = atan2(-dz, dx).
-//   const r2d = Math.hypot(dx, dz) || 1;
-//   const rawYaw = Math.atan2(-dz, dx);
- 
-//   const prev = root.userData._ikYaw as number;
-//   let delta = rawYaw - prev;
-//   while (delta >  Math.PI) delta -= 2 * Math.PI;
-//   while (delta < -Math.PI) delta += 2 * Math.PI;
-//   const newYaw = prev + delta;
-//   root.userData._ikYaw = newYaw;
-//   qTmp.setFromAxisAngle(axisY, newYaw);
-//   turret.quaternion.slerp(qTmp, 0.20).normalize();
- 
-//   // ── 2. Target in shoulder-local plane ──────────────────────────────────
-//   // After the turret is yawed, the arm reaches outward along +X in turret-local space.
-//   // The horizontal reach we need to solve for is the distance from the shoulder
-//   // pivot to the (projected) target on the horizontal plane.
-//   // We use world distance directly to avoid issues with slerp lag:
-//   const reachHoriz = r2d;                          // horizontal distance shoulder→target
-//   const verticalOff = tgt.y - (baseWP.y + SHOULDER_Y);
- 
-//   // The blade tip sits L3 beyond the wrist along +X. So the WRIST must reach
-//   // a point that is L3 closer to the shoulder than the target:
-//   const wx = reachHoriz - L3;
-//   const wy = verticalOff;
- 
-//   // ── 3. Solve 2-link IK in the (wx, wy) plane ──────────────────────────
-//   let D = Math.hypot(wx, wy);
- 
-//   // Reach limits — keep the arm slightly bent at extremes to avoid singularity,
-//   // and prevent inversion when target is too close.
-//   const Dmax = (L1 + L2) * 1.4;                   // 97% of max reach
-//   const Dmin = Math.abs(L1 - L2) + 0.02;
-//   D = Math.max(Dmin, Math.min(Dmax, D));
- 
-//   // Law of cosines:
-//   //   cos(elbow_interior) = (L1² + L2² - D²) / (2·L1·L2)
-//   // When D = Dmax, elbow_interior ≈ 0 (arm nearly straight) — fine.
-//   // When D = Dmin, elbow_interior ≈ π (arm fully folded) — also fine.
-//   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
-//   const elbowInterior = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
- 
-//   // Angle from shoulder to wrist target, measured from local +X (outward).
-//   // wx = outward, wy = up.  atan2(wy, wx) ∈ (-π, π].
-//   const wristDirAng = Math.atan2(wy, wx);
- 
-//   // Offset between upper-arm direction and shoulder→wrist line:
-//   //   cos(offset) = (L1² + D² - L2²) / (2·L1·D)
-//   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
-//   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
- 
-//   // ── 4. ELBOW-UP branch (upper arm goes ABOVE the line to wrist) ───────
-//   // This is the natural SCARA-style "shoulder lifts, elbow droops back down"
-//   // silhouette for an outward-reaching horizontal arm.
-//   //
-//   //   shoulderAngle =  wristDirAng + shOff      (rotates upper arm UP)
-//   //   elbowAngle    = -(π - elbowInterior)      (forearm rotates DOWN to reach wrist)
-//   //
-//   // Sign convention: positive Z-rotation rotates local +X toward local +Y (up).
-//   const shoulderAngle = wristDirAng + shOff;
-//   const elbowAngle    = -(Math.PI - elbowInterior);
- 
-//   // ── 5. Wrist keeps blade level ────────────────────────────────────────
-//   // Chain pitches sum to zero so blade points horizontally:
-//   //   shoulderAngle + elbowAngle + wristAngle = 0
-//   const wristAngle = -(shoulderAngle + elbowAngle);
- 
-//   // ── 6. Apply ──────────────────────────────────────────────────────────
-//   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
-//   shoulder.quaternion.slerp(qTmp, 0.22).normalize();
- 
-//   qTmp.setFromAxisAngle(axisZ, elbowAngle);
-//   elbow.quaternion.slerp(qTmp, 0.22).normalize();
- 
-//   // Forearm is a rigid link in this rig
-//   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
- 
-//   qTmp.setFromAxisAngle(axisZ, wristAngle);
-//   wrist.quaternion.slerp(qTmp, 0.22).normalize();
-// }
-
-
-// function runIK(tgt: THREE.Vector3): void {
-//   // ── 1. Turret yaw ──
-//   const baseWP = new THREE.Vector3();
-//   root.getWorldPosition(baseWP);
-//   const dx = tgt.x - baseWP.x;
-//   const dz = tgt.z - baseWP.z;
-//   const r2d = Math.hypot(dx, dz) || 1;
-//   const rawYaw = Math.atan2(-dz, dx);
-
-//   const prev = root.userData._ikYaw as number;
-//   let delta = rawYaw - prev;
-//   while (delta >  Math.PI) delta -= 2 * Math.PI;
-//   while (delta < -Math.PI) delta += 2 * Math.PI;
-//   const newYaw = prev + delta;
-//   root.userData._ikYaw = newYaw;
-//   qTmp.setFromAxisAngle(axisY, newYaw);
-//   turret.quaternion.slerp(qTmp, 0.20).normalize();
-
-//   // ── 2. 2-link IK in shoulder-local plane ──
-//   const reachHoriz = Math.max(r2d, 0.1);  // tiny minimum to avoid singularity
-//   const verticalOff = tgt.y - (baseWP.y + SHOULDER_Y);
-
-//   const wx = reachHoriz - L3;
-//   const wy = verticalOff;
-
-//   let D = Math.hypot(wx, wy);
-//   const Dmax = (L1 + L2) * 0.98;
-//   const Dmin = Math.abs(L1 - L2) + 0.02;
-//   D = Math.max(Dmin, Math.min(Dmax, D));
-
-//   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
-//   const elbowInterior = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
-
-//   const wristDirAng = Math.atan2(wy, wx);
-//   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
-//   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
-
-//   // ── ELBOW-UP branch ──
-//   let shoulderAngle = wristDirAng + shOff;
-//   let elbowAngle    = -(Math.PI - elbowInterior);
-
-//   // ── Joint limits (loose) ──
-//   shoulderAngle = Math.max(-0.4, Math.min(Math.PI * 0.7, shoulderAngle));
-//   elbowAngle    = Math.max(-Math.PI * 0.95, Math.min(-0.03, elbowAngle));
-
-//   let wristAngle = -(shoulderAngle + elbowAngle);
-//   wristAngle = Math.max(-Math.PI * 0.8, Math.min(Math.PI * 0.8, wristAngle));
-
-//   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
-//   shoulder.quaternion.slerp(qTmp, 0.22).normalize();
-
-//   qTmp.setFromAxisAngle(axisZ, elbowAngle);
-//   elbow.quaternion.slerp(qTmp, 0.22).normalize();
-
-//   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
-
-//   qTmp.setFromAxisAngle(axisZ, wristAngle);
-//   wrist.quaternion.slerp(qTmp, 0.22).normalize();
-// }
-// function runIK(tgt: THREE.Vector3): void {
-//   // ── FLOOR CLEARANCE GUARD ──────────────────────────────────────
-//   // Clamp target Y so the end-effector never descends below a safe
-//   // clearance height above the module tops (~3.7 units from floor).
-//   const MIN_SAFE_Y = 3.7;          // ← tune: MODULE_BASE_Y + H + margin
-//   const clampedTgt = tgt.clone();
-//   clampedTgt.y = Math.max(tgt.y, MIN_SAFE_Y);
-
-//   // ── 1. Turret yaw ──
-//   const baseWP = new THREE.Vector3();
-//   root.getWorldPosition(baseWP);
-//   const dx = clampedTgt.x - baseWP.x;
-//   const dz = clampedTgt.z - baseWP.z;
-//   const r2d = Math.hypot(dx, dz) || 1;
-//   const rawYaw = Math.atan2(-dz, dx);
-
-//   const prev = root.userData._ikYaw as number;
-//   let delta = rawYaw - prev;
-//   while (delta >  Math.PI) delta -= 2 * Math.PI;
-//   while (delta < -Math.PI) delta += 2 * Math.PI;
-//   const newYaw = prev + delta;
-//   root.userData._ikYaw = newYaw;
-//   qTmp.setFromAxisAngle(axisY, newYaw);
-//   turret.quaternion.slerp(qTmp, 0.20).normalize();
-
-//   // ── 2. 2-link IK in shoulder-local plane ──
-//   const reachHoriz = Math.max(r2d, 0.1);
-//   const verticalOff = clampedTgt.y - (baseWP.y + SHOULDER_Y);  // ← use clamped Y
-
-//   const wx = reachHoriz - L3;
-//   const wy = verticalOff;
-
-//   let D = Math.hypot(wx, wy);
-//   const Dmax = (L1 + L2) * 0.98;
-//   const Dmin = Math.abs(L1 - L2) + 0.02;
-//   D = Math.max(Dmin, Math.min(Dmax, D));
-
-//   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
-//   const elbowInterior = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
-
-//   const wristDirAng = Math.atan2(wy, wx);
-//   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
-//   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
-
-//   // ── ELBOW-UP branch ──
-//   let shoulderAngle = wristDirAng + shOff;
-//   let elbowAngle    = -(Math.PI - elbowInterior);
-
-//   // ── Joint limits — tightened to prevent floor crash ──
-//   // FIX: raised shoulder min from -0.4 → +0.05 so arm never dips below horizon
-//   shoulderAngle = Math.max(0.05, Math.min(Math.PI * 0.7, shoulderAngle));
-//   // FIX: tightened elbow upper bound from -0.03 → -0.10 prevents hyper-extension low
-//   elbowAngle    = Math.max(-Math.PI * 0.95, Math.min(-0.10, elbowAngle));
-
-//   // ── Wrist compensation with clearance clamp ──
-//   let wristAngle = -(shoulderAngle + elbowAngle);
-//   // FIX: clamp wrist so it can't pitch the end-effector downward past level
-//   wristAngle = Math.max(-Math.PI * 0.5, Math.min(Math.PI * 0.8, wristAngle));
-
-//   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
-//   shoulder.quaternion.slerp(qTmp, 0.22).normalize();
-
-//   qTmp.setFromAxisAngle(axisZ, elbowAngle);
-//   elbow.quaternion.slerp(qTmp, 0.22).normalize();
-
-//   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
-
-//   qTmp.setFromAxisAngle(axisZ, wristAngle);
-//   wrist.quaternion.slerp(qTmp, 0.22).normalize();
-// }
-
-
-// ── Hydraulic Lift Cylinder — global state ──
-let liftCylinder: THREE.Object3D | null = null;   // assigned when robot is built
-let currentLiftHeight = 0.0;
-
-function setLiftHeight(targetHeight: number, speed = 0.25) {
-  currentLiftHeight = THREE.MathUtils.lerp(currentLiftHeight, targetHeight, speed);
-  if (liftCylinder) {
-    // Scale the cylinder along Y and shift its base position
-    liftCylinder.scale.y = Math.max(0.3, 1 + currentLiftHeight * 2.5);
-    liftCylinder.position.y = currentLiftHeight * 0.8;
-  }
-}
-
-function clamp(x: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, x));
-}
-
-function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: boolean; isDIRinse?: boolean; isTravel?: boolean; placeHeightOffset?: number; approachHeight?: number; safetyMargin?: number; } = {}): void {
-  const {
-    isScanner = false,
-    isHMDS = false,
-    isDIRinse = false,
-    isTravel = false,
-    placeHeightOffset = 0.0,
-    approachHeight = 0.12,
-    safetyMargin = 0.08,
-  } = options;
-
-  // ══════════════════════════════════════════════════════════════════════
-  // 0. SANITY CHECK on target — prevent NaN/Infinity from breaking IK
-  // ══════════════════════════════════════════════════════════════════════
-  if (!Number.isFinite(tgt.x) || !Number.isFinite(tgt.y) || !Number.isFinite(tgt.z)) {
-    console.warn('[IK] Invalid target — skipping', tgt);
-    return;
-  }
-
-  // ══════════════════════════════════════════════════════════════════════
-  // 1. LIFT HEIGHT — column rises higher for tall modules (scanner especially)
-  // ══════════════════════════════════════════════════════════════════════
-  let requiredLift = 0.0;
-  if (isScanner) {
-    requiredLift = 0.88;        // ← 4× higher for scanner (was 0.22)
-  } else if (isHMDS) {
-    requiredLift = 0.28;
-  } else if (isDIRinse) {
-    requiredLift = 0.22;
-  }
-  if (isTravel) {
-    requiredLift = Math.max(requiredLift, isScanner ? 0.88 : 0.30);
-  }
-
-  // ── Faster column rise for scanner (smaller smoothing factor = quicker) ──
-  const liftSmoothing = isScanner ? 0.25 : 0.18;
-  setLiftHeight(requiredLift, liftSmoothing);
-
-  // ══════════════════════════════════════════════════════════════════════
-  // 2. TURRET YAW — with safe shortest-path resolution
-  // ══════════════════════════════════════════════════════════════════════
-  const baseWP = new THREE.Vector3();
-  root.getWorldPosition(baseWP);
-  const dx = tgt.x - baseWP.x;
-  const dz = tgt.z - baseWP.z;
-  const r2d = Math.hypot(dx, dz);
-
-  // ── CRITICAL: Avoid yaw singularity when target is directly above base ──
-  // For HMDS especially, the wafer can be very close to the base,
-  // causing dx/dz to be near-zero and atan2 to flip wildly.
-  // Implement hysteresis + rate-limited logging to avoid console spam.
-  const closeThresh = isHMDS ? 0.15 : 0.12;
-  const reopenThresh = closeThresh + 0.04;
-  const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
-  const lastWarn = (root.userData._ikLastCloseWarn as number) ?? 0;
-  const locked = !!root.userData._ikYawLocked;
-
-  if (r2d < closeThresh) {
-    if (!locked) {
-      root.userData._ikYawLocked = true;
-      root.userData._ikLastCloseWarn = now;
-      console.warn('[IK] Target too close to base — yaw locked');
-    } else if (now - lastWarn > 2000) {
-      // periodic reminder if still stuck close for a while
-      root.userData._ikLastCloseWarn = now;
-      console.warn('[IK] Target too close to base — yaw still locked');
-    }
-    // keep previous yaw, skip update
-  } else {
-    // If we were locked and target moved away past reopen threshold, unlock
-    if (locked && r2d > reopenThresh) {
-      root.userData._ikYawLocked = false;
-      // log unlock once
-      console.info('[IK] Target moved away from base — yaw unlocked');
-    }
-
-    const rawYaw = Math.atan2(-dz, dx);
-    const prev = (root.userData._ikYaw as number) ?? rawYaw;
-    let delta = rawYaw - prev;
-
-    // ── Normalize delta to [-π, π]
-    delta = Math.atan2(Math.sin(delta), Math.cos(delta));
-
-    // ── HMDS extra safety: limit rotation speed when going through tight angles
-    let yawStepLimit = Math.PI;
-    if (isHMDS) yawStepLimit = Math.PI * 0.6;
-    if (Math.abs(delta) > yawStepLimit) delta = Math.sign(delta) * yawStepLimit;
-
-    const newYaw = prev + delta;
-    root.userData._ikYaw = newYaw;
-    qTmp.setFromAxisAngle(axisY, newYaw);
-
-    // Slower slerp for HMDS or travel to prevent overshoot
-    const yawSlerpRate = isHMDS || isTravel ? 0.12 : 0.18;
-    turret.quaternion.slerp(qTmp, yawSlerpRate).normalize();
-  }
-
-  // ══════════════════════════════════════════════════════════════════════
-  // 3. ARM IK — 2-link in shoulder-local plane with crash protection
-  // ══════════════════════════════════════════════════════════════════════
-  const shoulderBaseY = baseWP.y + SHOULDER_Y + currentLiftHeight * 0.9;
-  let finalTargetY = tgt.y + placeHeightOffset;
-
-  // ── HMDS gets extra approach height to clear walls ──
-  if (isHMDS) {
-    finalTargetY += 0.05;       // raise approach by 5cm
-  }
-  if (isTravel) {
-    const SAFE_TRAVEL_Y = WAFER_TRANSFER_Y + 1.2;   // keep travel motion well above all modules
-    finalTargetY = Math.max(finalTargetY, SAFE_TRAVEL_Y);
-  }
-
-  const verticalOff = finalTargetY - shoulderBaseY + Math.max(safetyMargin, isTravel ? 0.12 : 0.0);
-  const reachHoriz = Math.max(r2d, 0.15);   // bumped min from 0.12 to 0.15
-
-  const wx = reachHoriz - L3;
-  const wy = verticalOff;
-
-  // ── CRITICAL: Validate wx, wy before computing D ──
-  if (!Number.isFinite(wx) || !Number.isFinite(wy)) {
-    console.warn('[IK] Invalid wrist target — aborting arm IK');
-    return;
-  }
-
-  let D = Math.hypot(wx, wy);
-
-  // ── Reach clamping with HMDS-specific tighter bounds ──
-  const Dmax = (L1 + L2) * (isHMDS ? 0.92 : 0.96);   // ← Tighter for HMDS
-  const Dmin = Math.abs(L1 - L2) + (isHMDS ? 0.08 : 0.04);
-  D = Math.max(Dmin, Math.min(Dmax, D));
-
-  // ── CRITICAL: Guard against D being zero or invalid ──
-  if (D < 0.001 || !Number.isFinite(D)) {
-    console.warn('[IK] Degenerate reach — aborting');
-    return;
-  }
-
-  // Law of Cosines with clamping (prevents NaN from floating point error)
-  const cosElbow = clamp((L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2), -1, 1);
-  const elbowInterior = Math.acos(cosElbow);
-
-  const wristDirAng = Math.atan2(wy, wx);
-  const cosShOff = clamp((L1 * L1 + D * D - L2 * L2) / (2 * L1 * D), -1, 1);
-  const shOff = Math.acos(cosShOff);
-
-  // ── CRITICAL: Validate computed angles ──
-  if (!Number.isFinite(elbowInterior) || !Number.isFinite(wristDirAng) || !Number.isFinite(shOff)) {
-    console.warn('[IK] NaN in IK computation — aborting');
-    return;
-  }
-
-  // ── Elbow-up branch ──
-  let shoulderAngle = wristDirAng + shOff;
-  let elbowAngle    = -(Math.PI - elbowInterior);
-
-  // ── HMDS-specific joint limits (slightly more conservative) ──
-  if (isHMDS) {
-    shoulderAngle = clamp(shoulderAngle, -0.50, Math.PI * 0.60);   // tighter shoulder range
-    elbowAngle    = clamp(elbowAngle,    -Math.PI * 0.80, -0.15);  // tighter elbow range
-  } else if (isScanner) {
-    // Scanner needs wide upward shoulder range to reach raised slot
-    shoulderAngle = clamp(shoulderAngle, -0.30, Math.PI * 0.85);   // ← higher upper limit
-    elbowAngle    = clamp(elbowAngle,    -Math.PI * 0.90, 0.05);   // ← allows straighter arm
-  } else {
-    shoulderAngle = clamp(shoulderAngle, isTravel ? 0.10 : -0.65, Math.PI * 0.70);
-    elbowAngle    = clamp(elbowAngle,    -Math.PI * 0.85, -0.10);
-  }
-
-  let wristAngle = -(shoulderAngle + elbowAngle);
-  wristAngle = clamp(wristAngle, -Math.PI * 0.80, Math.PI * 0.80);
-
-  // ══════════════════════════════════════════════════════════════════════
-  // 4. APPLY ROTATIONS — with HMDS slower slerp to prevent crash
-  // ══════════════════════════════════════════════════════════════════════
-  const armSlerpRate = isHMDS || isTravel ? 0.14 : 0.20;   // slower for HMDS/travel = smoother
-
-  qTmp.setFromAxisAngle(axisZ, shoulderAngle);
-  shoulder.quaternion.slerp(qTmp, armSlerpRate).normalize();
-
-  qTmp.setFromAxisAngle(axisZ, elbowAngle);
-  elbow.quaternion.slerp(qTmp, armSlerpRate).normalize();
-
-  foreArm.quaternion.slerp(new THREE.Quaternion(), armSlerpRate).normalize();
-
-  qTmp.setFromAxisAngle(axisZ, wristAngle);
-  wrist.quaternion.slerp(qTmp, armSlerpRate).normalize();
-}
-
-
-
- 
+      //      function runIK(tgt: THREE.Vector3): void {
+      //   // ── 1. Turret yaw (unchanged — aim at target on the XZ plane) ──────────
+      //   const baseWP = new THREE.Vector3();
+      //   root.getWorldPosition(baseWP);
+      //   const dx = tgt.x - baseWP.x;
+      //   const dz = tgt.z - baseWP.z;
+      //   const rawYaw = Math.atan2(dx, dz);
+      //   const prev = root.userData._ikYaw as number;
+      //   let delta = rawYaw - prev;
+      //   while (delta >  Math.PI) delta -= 2 * Math.PI;
+      //   while (delta < -Math.PI) delta += 2 * Math.PI;
+      //   delta = Math.max(-Math.PI / 1.2, Math.min(Math.PI / 1.2, delta));
+      //   const newYaw = prev + delta;
+      //   root.userData._ikYaw = newYaw;
+      //   qTmp.setFromAxisAngle(axisY, newYaw);
+      //   turret.quaternion.slerp(qTmp, 0.22).normalize();
+
+      //   // ── 2. Target in turret-local frame ────────────────────────────────────
+      //   turret.updateWorldMatrix(true, false);
+      //   const localTgt = turret.worldToLocal(tgt.clone());
+
+      //   // After yaw, the planar reach is along +Z (because we rotated INTO the
+      //   // target). The vertical axis is Y. So treat the IK plane as (reachZ, Y).
+      //   // Important: use the absolute z because the turret might be slightly
+      //   // mis-aimed due to the slerp lag.
+      //   const reach = Math.abs(localTgt.z);
+
+      //   // Wrist target = wafer target minus the blade extension L3 along the
+      //   // arm's current outward direction. Since the wrist points +X in local
+      //   // shoulder frame, but after turret yaw the outward direction is +Z in
+      //   // turret-local frame, we subtract L3 from reach.
+      //   const wx = reach - L3;                          // horizontal distance to wrist
+      //   const wy = localTgt.y - SHOULDER_Y;             // vertical offset to wrist
+
+      //   let D = Math.hypot(wx, wy);
+
+      //   // Force the wrist target to sit strictly inside the bend annulus so the
+      //   // arm always bends. NEVER let D ≥ L1+L2 (which would force straight arm).
+      //   const MIN_BEND_ANGLE = 0.20;                    // ~11.5° minimum elbow bend
+      //   const Dmax_bent = Math.sqrt(
+      //     L1 * L1 + L2 * L2 - 2 * L1 * L2 * Math.cos(Math.PI - MIN_BEND_ANGLE)
+      //   );
+      //   const Dmin = Math.abs(L1 - L2) + 0.005;
+      //   D = Math.max(Dmin, Math.min(Dmax_bent, D));
+
+      //   // ── 3. Law-of-cosines (ELBOW-BACK branch) ──────────────────────────────
+      //   // Interior elbow angle (between L1 and L2)
+      //   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
+      //   const elbowInner = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
+
+      //   // Shoulder offset from straight-line-to-wrist
+      //   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+      //   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
+
+      //   // Angle from shoulder's +X (outward direction) to the wrist target.
+      //   // In the (wx, wy) plane:  +wx = outward, +wy = up.
+      //   const targetAng = Math.atan2(wy, wx);
+
+      //   // ── Elbow-BACK branch: forearm folds BACK toward the base, like a real
+      //   // wafer handler reaching around obstacles.
+      //   //   shoulderAngle = targetAng - shOff   (negative offset bends arm UP first)
+      //   //   elbowAngle    = π - elbowInner      (positive = forearm angled back)
+      //   const shoulderAngle = targetAng - shOff;
+      //   const elbowAngle    = Math.PI - elbowInner;
+
+      //   // ── 4. Wrist counter-rotation so the blade stays horizontal ────────────
+      //   // Sum of pitches in the chain must equal 0 for the blade to stay level.
+      //   // Chain: shoulder(+sA) → elbow(-eA) → forearm(0) → wrist(wA)
+      //   //   sA − eA + wA = 0   →   wA = eA − sA
+      //   const wristAngle = elbowAngle - shoulderAngle;
+
+      //   // ── 5. Apply with damped slerp ─────────────────────────────────────────
+      //   // Use larger blend (0.3) on shoulder/elbow so the bend is responsive,
+      //   // smaller (0.22) on wrist for stability.
+      //   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
+      //   shoulder.quaternion.slerp(qTmp, 0.30).normalize();
+
+      //   qTmp.setFromAxisAngle(axisZ, -elbowAngle);   // negative = fold back
+      //   elbow.quaternion.slerp(qTmp, 0.30).normalize();
+
+      //   // Forearm stays identity (structural link in this rig)
+      //   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
+
+      //   qTmp.setFromAxisAngle(axisZ, wristAngle);
+      //   wrist.quaternion.slerp(qTmp, 0.22).normalize();
+      // }
+
+
+      // function runIK(tgt: THREE.Vector3): void {
+      //   // ── 1. Turret yaw — aim toward target on the XZ plane ─────────────────
+      //   const baseWP = new THREE.Vector3();
+      //   root.getWorldPosition(baseWP);
+      //   const dx = tgt.x - baseWP.x;
+      //   const dz = tgt.z - baseWP.z;
+
+      //   // Note: arm's outward direction in turret-local frame is +X.
+      //   // Standard yaw: atan2(dx, dz) aims local +Z; we want local +X. So use atan2(dz, dx) negated, OR rotate by +π/2.
+      //   // Easier: aim the arm's local +X by yaw = atan2(dz, dx)? No — let's stick with whichever
+      //   // axis the GLB actually extends along. Joint_Elbow translates +X 0.355 → arm extends +X.
+      //   // So we want yaw such that turret-local +X points at the target.
+      //   // World direction to target on XZ plane: (dx, dz).
+      //   // After yaw θ around Y, local +X maps to world (cos θ, 0, -sin θ).
+      //   // Setting that equal to normalized (dx, dz): cos θ = dx/r, -sin θ = dz/r  →  θ = atan2(-dz, dx).
+      //   const r2d = Math.hypot(dx, dz) || 1;
+      //   const rawYaw = Math.atan2(-dz, dx);
+
+      //   const prev = root.userData._ikYaw as number;
+      //   let delta = rawYaw - prev;
+      //   while (delta >  Math.PI) delta -= 2 * Math.PI;
+      //   while (delta < -Math.PI) delta += 2 * Math.PI;
+      //   const newYaw = prev + delta;
+      //   root.userData._ikYaw = newYaw;
+      //   qTmp.setFromAxisAngle(axisY, newYaw);
+      //   turret.quaternion.slerp(qTmp, 0.20).normalize();
+
+      //   // ── 2. Target in shoulder-local plane ──────────────────────────────────
+      //   // After the turret is yawed, the arm reaches outward along +X in turret-local space.
+      //   // The horizontal reach we need to solve for is the distance from the shoulder
+      //   // pivot to the (projected) target on the horizontal plane.
+      //   // We use world distance directly to avoid issues with slerp lag:
+      //   const reachHoriz = r2d;                          // horizontal distance shoulder→target
+      //   const verticalOff = tgt.y - (baseWP.y + SHOULDER_Y);
+
+      //   // The blade tip sits L3 beyond the wrist along +X. So the WRIST must reach
+      //   // a point that is L3 closer to the shoulder than the target:
+      //   const wx = reachHoriz - L3;
+      //   const wy = verticalOff;
+
+      //   // ── 3. Solve 2-link IK in the (wx, wy) plane ──────────────────────────
+      //   let D = Math.hypot(wx, wy);
+
+      //   // Reach limits — keep the arm slightly bent at extremes to avoid singularity,
+      //   // and prevent inversion when target is too close.
+      //   const Dmax = (L1 + L2) * 1.4;                   // 97% of max reach
+      //   const Dmin = Math.abs(L1 - L2) + 0.02;
+      //   D = Math.max(Dmin, Math.min(Dmax, D));
+
+      //   // Law of cosines:
+      //   //   cos(elbow_interior) = (L1² + L2² - D²) / (2·L1·L2)
+      //   // When D = Dmax, elbow_interior ≈ 0 (arm nearly straight) — fine.
+      //   // When D = Dmin, elbow_interior ≈ π (arm fully folded) — also fine.
+      //   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
+      //   const elbowInterior = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
+
+      //   // Angle from shoulder to wrist target, measured from local +X (outward).
+      //   // wx = outward, wy = up.  atan2(wy, wx) ∈ (-π, π].
+      //   const wristDirAng = Math.atan2(wy, wx);
+
+      //   // Offset between upper-arm direction and shoulder→wrist line:
+      //   //   cos(offset) = (L1² + D² - L2²) / (2·L1·D)
+      //   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+      //   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
+
+      //   // ── 4. ELBOW-UP branch (upper arm goes ABOVE the line to wrist) ───────
+      //   // This is the natural SCARA-style "shoulder lifts, elbow droops back down"
+      //   // silhouette for an outward-reaching horizontal arm.
+      //   //
+      //   //   shoulderAngle =  wristDirAng + shOff      (rotates upper arm UP)
+      //   //   elbowAngle    = -(π - elbowInterior)      (forearm rotates DOWN to reach wrist)
+      //   //
+      //   // Sign convention: positive Z-rotation rotates local +X toward local +Y (up).
+      //   const shoulderAngle = wristDirAng + shOff;
+      //   const elbowAngle    = -(Math.PI - elbowInterior);
+
+      //   // ── 5. Wrist keeps blade level ────────────────────────────────────────
+      //   // Chain pitches sum to zero so blade points horizontally:
+      //   //   shoulderAngle + elbowAngle + wristAngle = 0
+      //   const wristAngle = -(shoulderAngle + elbowAngle);
+
+      //   // ── 6. Apply ──────────────────────────────────────────────────────────
+      //   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
+      //   shoulder.quaternion.slerp(qTmp, 0.22).normalize();
+
+      //   qTmp.setFromAxisAngle(axisZ, elbowAngle);
+      //   elbow.quaternion.slerp(qTmp, 0.22).normalize();
+
+      //   // Forearm is a rigid link in this rig
+      //   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
+
+      //   qTmp.setFromAxisAngle(axisZ, wristAngle);
+      //   wrist.quaternion.slerp(qTmp, 0.22).normalize();
+      // }
+
+
+      // function runIK(tgt: THREE.Vector3): void {
+      //   // ── 1. Turret yaw ──
+      //   const baseWP = new THREE.Vector3();
+      //   root.getWorldPosition(baseWP);
+      //   const dx = tgt.x - baseWP.x;
+      //   const dz = tgt.z - baseWP.z;
+      //   const r2d = Math.hypot(dx, dz) || 1;
+      //   const rawYaw = Math.atan2(-dz, dx);
+
+      //   const prev = root.userData._ikYaw as number;
+      //   let delta = rawYaw - prev;
+      //   while (delta >  Math.PI) delta -= 2 * Math.PI;
+      //   while (delta < -Math.PI) delta += 2 * Math.PI;
+      //   const newYaw = prev + delta;
+      //   root.userData._ikYaw = newYaw;
+      //   qTmp.setFromAxisAngle(axisY, newYaw);
+      //   turret.quaternion.slerp(qTmp, 0.20).normalize();
+
+      //   // ── 2. 2-link IK in shoulder-local plane ──
+      //   const reachHoriz = Math.max(r2d, 0.1);  // tiny minimum to avoid singularity
+      //   const verticalOff = tgt.y - (baseWP.y + SHOULDER_Y);
+
+      //   const wx = reachHoriz - L3;
+      //   const wy = verticalOff;
+
+      //   let D = Math.hypot(wx, wy);
+      //   const Dmax = (L1 + L2) * 0.98;
+      //   const Dmin = Math.abs(L1 - L2) + 0.02;
+      //   D = Math.max(Dmin, Math.min(Dmax, D));
+
+      //   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
+      //   const elbowInterior = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
+
+      //   const wristDirAng = Math.atan2(wy, wx);
+      //   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+      //   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
+
+      //   // ── ELBOW-UP branch ──
+      //   let shoulderAngle = wristDirAng + shOff;
+      //   let elbowAngle    = -(Math.PI - elbowInterior);
+
+      //   // ── Joint limits (loose) ──
+      //   shoulderAngle = Math.max(-0.4, Math.min(Math.PI * 0.7, shoulderAngle));
+      //   elbowAngle    = Math.max(-Math.PI * 0.95, Math.min(-0.03, elbowAngle));
+
+      //   let wristAngle = -(shoulderAngle + elbowAngle);
+      //   wristAngle = Math.max(-Math.PI * 0.8, Math.min(Math.PI * 0.8, wristAngle));
+
+      //   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
+      //   shoulder.quaternion.slerp(qTmp, 0.22).normalize();
+
+      //   qTmp.setFromAxisAngle(axisZ, elbowAngle);
+      //   elbow.quaternion.slerp(qTmp, 0.22).normalize();
+
+      //   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
+
+      //   qTmp.setFromAxisAngle(axisZ, wristAngle);
+      //   wrist.quaternion.slerp(qTmp, 0.22).normalize();
+      // }
+      // function runIK(tgt: THREE.Vector3): void {
+      //   // ── FLOOR CLEARANCE GUARD ──────────────────────────────────────
+      //   // Clamp target Y so the end-effector never descends below a safe
+      //   // clearance height above the module tops (~3.7 units from floor).
+      //   const MIN_SAFE_Y = 3.7;          // ← tune: MODULE_BASE_Y + H + margin
+      //   const clampedTgt = tgt.clone();
+      //   clampedTgt.y = Math.max(tgt.y, MIN_SAFE_Y);
+
+      //   // ── 1. Turret yaw ──
+      //   const baseWP = new THREE.Vector3();
+      //   root.getWorldPosition(baseWP);
+      //   const dx = clampedTgt.x - baseWP.x;
+      //   const dz = clampedTgt.z - baseWP.z;
+      //   const r2d = Math.hypot(dx, dz) || 1;
+      //   const rawYaw = Math.atan2(-dz, dx);
+
+      //   const prev = root.userData._ikYaw as number;
+      //   let delta = rawYaw - prev;
+      //   while (delta >  Math.PI) delta -= 2 * Math.PI;
+      //   while (delta < -Math.PI) delta += 2 * Math.PI;
+      //   const newYaw = prev + delta;
+      //   root.userData._ikYaw = newYaw;
+      //   qTmp.setFromAxisAngle(axisY, newYaw);
+      //   turret.quaternion.slerp(qTmp, 0.20).normalize();
+
+      //   // ── 2. 2-link IK in shoulder-local plane ──
+      //   const reachHoriz = Math.max(r2d, 0.1);
+      //   const verticalOff = clampedTgt.y - (baseWP.y + SHOULDER_Y);  // ← use clamped Y
+
+      //   const wx = reachHoriz - L3;
+      //   const wy = verticalOff;
+
+      //   let D = Math.hypot(wx, wy);
+      //   const Dmax = (L1 + L2) * 0.98;
+      //   const Dmin = Math.abs(L1 - L2) + 0.02;
+      //   D = Math.max(Dmin, Math.min(Dmax, D));
+
+      //   const cosElbow = (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2);
+      //   const elbowInterior = Math.acos(Math.max(-1, Math.min(1, cosElbow)));
+
+      //   const wristDirAng = Math.atan2(wy, wx);
+      //   const cosShOff = (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D);
+      //   const shOff = Math.acos(Math.max(-1, Math.min(1, cosShOff)));
+
+      //   // ── ELBOW-UP branch ──
+      //   let shoulderAngle = wristDirAng + shOff;
+      //   let elbowAngle    = -(Math.PI - elbowInterior);
+
+      //   // ── Joint limits — tightened to prevent floor crash ──
+      //   // FIX: raised shoulder min from -0.4 → +0.05 so arm never dips below horizon
+      //   shoulderAngle = Math.max(0.05, Math.min(Math.PI * 0.7, shoulderAngle));
+      //   // FIX: tightened elbow upper bound from -0.03 → -0.10 prevents hyper-extension low
+      //   elbowAngle    = Math.max(-Math.PI * 0.95, Math.min(-0.10, elbowAngle));
+
+      //   // ── Wrist compensation with clearance clamp ──
+      //   let wristAngle = -(shoulderAngle + elbowAngle);
+      //   // FIX: clamp wrist so it can't pitch the end-effector downward past level
+      //   wristAngle = Math.max(-Math.PI * 0.5, Math.min(Math.PI * 0.8, wristAngle));
+
+      //   qTmp.setFromAxisAngle(axisZ, shoulderAngle);
+      //   shoulder.quaternion.slerp(qTmp, 0.22).normalize();
+
+      //   qTmp.setFromAxisAngle(axisZ, elbowAngle);
+      //   elbow.quaternion.slerp(qTmp, 0.22).normalize();
+
+      //   foreArm.quaternion.slerp(new THREE.Quaternion(), 0.15).normalize();
+
+      //   qTmp.setFromAxisAngle(axisZ, wristAngle);
+      //   wrist.quaternion.slerp(qTmp, 0.22).normalize();
+      // }
+
+
+      // ── Hydraulic Lift Cylinder — global state ──
+      let liftCylinder: THREE.Object3D | null = null;   // assigned when robot is built
+      let currentLiftHeight = 0.0;
+
+      function setLiftHeight(targetHeight: number, speed = 0.25) {
+        currentLiftHeight = THREE.MathUtils.lerp(currentLiftHeight, targetHeight, speed);
+        if (liftCylinder) {
+          // Scale the cylinder along Y and shift its base position
+          liftCylinder.scale.y = Math.max(0.3, 1 + currentLiftHeight * 2.5);
+          liftCylinder.position.y = currentLiftHeight * 0.8;
+        }
+      }
+
+      function clamp(x: number, min: number, max: number): number {
+        return Math.max(min, Math.min(max, x));
+      }
+
+      function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: boolean; isDIRinse?: boolean; isTravel?: boolean; placeHeightOffset?: number; approachHeight?: number; safetyMargin?: number; } = {}): void {
+        const {
+          isScanner = false,
+          isHMDS = false,
+          isDIRinse = false,
+          isTravel = false,
+          placeHeightOffset = 0.0,
+          approachHeight = 0.12,
+          safetyMargin = 0.08,
+        } = options;
+
+        // ══════════════════════════════════════════════════════════════════════
+        // 0. SANITY CHECK on target — prevent NaN/Infinity from breaking IK
+        // ══════════════════════════════════════════════════════════════════════
+        if (!Number.isFinite(tgt.x) || !Number.isFinite(tgt.y) || !Number.isFinite(tgt.z)) {
+          console.warn('[IK] Invalid target — skipping', tgt);
+          return;
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // 1. LIFT HEIGHT — column rises higher for tall modules (scanner especially)
+        // ══════════════════════════════════════════════════════════════════════
+        let requiredLift = 0.0;
+        if (isScanner) {
+          requiredLift = 0.88;        // ← 4× higher for scanner (was 0.22)
+        } else if (isHMDS) {
+          requiredLift = 0.28;
+        } else if (isDIRinse) {
+          requiredLift = 0.22;
+        }
+        if (isTravel) {
+          requiredLift = Math.max(requiredLift, isScanner ? 0.88 : 0.30);
+        }
+
+        // ── Faster column rise for scanner (smaller smoothing factor = quicker) ──
+        const liftSmoothing = isScanner ? 0.25 : 0.18;
+        setLiftHeight(requiredLift, liftSmoothing);
+
+        // ══════════════════════════════════════════════════════════════════════
+        // 2. TURRET YAW — with safe shortest-path resolution
+        // ══════════════════════════════════════════════════════════════════════
+        const baseWP = new THREE.Vector3();
+        root.getWorldPosition(baseWP);
+        const dx = tgt.x - baseWP.x;
+        const dz = tgt.z - baseWP.z;
+        const r2d = Math.hypot(dx, dz);
+
+        // ── CRITICAL: Avoid yaw singularity when target is directly above base ──
+        // For HMDS especially, the wafer can be very close to the base,
+        // causing dx/dz to be near-zero and atan2 to flip wildly.
+        // Implement hysteresis + rate-limited logging to avoid console spam.
+        const closeThresh = isHMDS ? 0.15 : 0.12;
+        const reopenThresh = closeThresh + 0.04;
+        const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        const lastWarn = (root.userData._ikLastCloseWarn as number) ?? 0;
+        const locked = !!root.userData._ikYawLocked;
+
+        if (r2d < closeThresh) {
+          if (!locked) {
+            root.userData._ikYawLocked = true;
+            root.userData._ikLastCloseWarn = now;
+            console.warn('[IK] Target too close to base — yaw locked');
+          } else if (now - lastWarn > 2000) {
+            // periodic reminder if still stuck close for a while
+            root.userData._ikLastCloseWarn = now;
+            console.warn('[IK] Target too close to base — yaw still locked');
+          }
+          // keep previous yaw, skip update
+        } else {
+          // If we were locked and target moved away past reopen threshold, unlock
+          if (locked && r2d > reopenThresh) {
+            root.userData._ikYawLocked = false;
+            // log unlock once
+            console.info('[IK] Target moved away from base — yaw unlocked');
+          }
+
+          const rawYaw = Math.atan2(-dz, dx);
+          const prev = (root.userData._ikYaw as number) ?? rawYaw;
+          let delta = rawYaw - prev;
+
+          // ── Normalize delta to [-π, π]
+          delta = Math.atan2(Math.sin(delta), Math.cos(delta));
+
+          // ── HMDS extra safety: limit rotation speed when going through tight angles
+          let yawStepLimit = Math.PI;
+          if (isHMDS) yawStepLimit = Math.PI * 0.6;
+          if (Math.abs(delta) > yawStepLimit) delta = Math.sign(delta) * yawStepLimit;
+
+          const newYaw = prev + delta;
+          root.userData._ikYaw = newYaw;
+          qTmp.setFromAxisAngle(axisY, newYaw);
+
+          // Slower slerp for HMDS or travel to prevent overshoot
+          const yawSlerpRate = isHMDS || isTravel ? 0.12 : 0.18;
+          turret.quaternion.slerp(qTmp, yawSlerpRate).normalize();
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // 3. ARM IK — 2-link in shoulder-local plane with crash protection
+        // ══════════════════════════════════════════════════════════════════════
+        const shoulderBaseY = baseWP.y + SHOULDER_Y + currentLiftHeight * 0.9;
+        let finalTargetY = tgt.y + placeHeightOffset;
+
+        // ── HMDS gets extra approach height to clear walls ──
+        if (isHMDS) {
+          finalTargetY += 0.05;       // raise approach by 5cm
+        }
+        if (isTravel) {
+          const SAFE_TRAVEL_Y = WAFER_TRANSFER_Y + 1.2;   // keep travel motion well above all modules
+          finalTargetY = Math.max(finalTargetY, SAFE_TRAVEL_Y);
+        }
+
+        const verticalOff = finalTargetY - shoulderBaseY + Math.max(safetyMargin, isTravel ? 0.12 : 0.0);
+        const reachHoriz = Math.max(r2d, 0.15);   // bumped min from 0.12 to 0.15
+
+        const wx = reachHoriz - L3;
+        const wy = verticalOff;
+
+        // ── CRITICAL: Validate wx, wy before computing D ──
+        if (!Number.isFinite(wx) || !Number.isFinite(wy)) {
+          console.warn('[IK] Invalid wrist target — aborting arm IK');
+          return;
+        }
+
+        let D = Math.hypot(wx, wy);
+
+        // ── Reach clamping with HMDS-specific tighter bounds ──
+        const Dmax = (L1 + L2) * (isHMDS ? 0.92 : 0.96);   // ← Tighter for HMDS
+        const Dmin = Math.abs(L1 - L2) + (isHMDS ? 0.08 : 0.04);
+        D = Math.max(Dmin, Math.min(Dmax, D));
+
+        // ── CRITICAL: Guard against D being zero or invalid ──
+        if (D < 0.001 || !Number.isFinite(D)) {
+          console.warn('[IK] Degenerate reach — aborting');
+          return;
+        }
+
+        // Law of Cosines with clamping (prevents NaN from floating point error)
+        const cosElbow = clamp((L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2), -1, 1);
+        const elbowInterior = Math.acos(cosElbow);
+
+        const wristDirAng = Math.atan2(wy, wx);
+        const cosShOff = clamp((L1 * L1 + D * D - L2 * L2) / (2 * L1 * D), -1, 1);
+        const shOff = Math.acos(cosShOff);
+
+        // ── CRITICAL: Validate computed angles ──
+        if (!Number.isFinite(elbowInterior) || !Number.isFinite(wristDirAng) || !Number.isFinite(shOff)) {
+          console.warn('[IK] NaN in IK computation — aborting');
+          return;
+        }
+
+        // ── Elbow-up branch ──
+        let shoulderAngle = wristDirAng + shOff;
+        let elbowAngle = -(Math.PI - elbowInterior);
+
+        // ── HMDS-specific joint limits (slightly more conservative) ──
+        if (isHMDS) {
+          shoulderAngle = clamp(shoulderAngle, -0.50, Math.PI * 0.60);   // tighter shoulder range
+          elbowAngle = clamp(elbowAngle, -Math.PI * 0.80, -0.15);  // tighter elbow range
+        } else if (isScanner) {
+          // Scanner needs wide upward shoulder range to reach raised slot
+          shoulderAngle = clamp(shoulderAngle, -0.30, Math.PI * 0.85);   // ← higher upper limit
+          elbowAngle = clamp(elbowAngle, -Math.PI * 0.90, 0.05);   // ← allows straighter arm
+        } else {
+          shoulderAngle = clamp(shoulderAngle, isTravel ? 0.10 : -0.65, Math.PI * 0.70);
+          elbowAngle = clamp(elbowAngle, -Math.PI * 0.85, -0.10);
+        }
+
+        let wristAngle = -(shoulderAngle + elbowAngle);
+        wristAngle = clamp(wristAngle, -Math.PI * 0.80, Math.PI * 0.80);
+
+        // ══════════════════════════════════════════════════════════════════════
+        // 4. APPLY ROTATIONS — with HMDS slower slerp to prevent crash
+        // ══════════════════════════════════════════════════════════════════════
+        const armSlerpRate = isHMDS || isTravel ? 0.14 : 0.20;   // slower for HMDS/travel = smoother
+
+        qTmp.setFromAxisAngle(axisZ, shoulderAngle);
+        shoulder.quaternion.slerp(qTmp, armSlerpRate).normalize();
+
+        qTmp.setFromAxisAngle(axisZ, elbowAngle);
+        elbow.quaternion.slerp(qTmp, armSlerpRate).normalize();
+
+        foreArm.quaternion.slerp(new THREE.Quaternion(), armSlerpRate).normalize();
+
+        qTmp.setFromAxisAngle(axisZ, wristAngle);
+        wrist.quaternion.slerp(qTmp, armSlerpRate).normalize();
+      }
+
+
+
+
       function getJoints(): JointData {
         eTmp.setFromQuaternion(turret.quaternion, "YXZ");
         const baseA = eTmp.y;
@@ -29387,13 +29404,13 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
         eTmp.setFromQuaternion(wrist.quaternion, "XYZ");
         const wristA = eTmp.z;
         return {
-          base:     { c: baseA },
+          base: { c: baseA },
           shoulder: { c: shoulderA },
-          elbow:    { c: elbowA },
-          wrist:    { c: wristA },
+          elbow: { c: elbowA },
+          wrist: { c: wristA },
         };
       }
- 
+
       console.log('=== NEW ROBOT BOUND ===');
       console.log('  turret  :', turret.name);
       console.log('  shoulder:', shoulder.name);
@@ -29402,7 +29419,7 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
       console.log('  wrist   :', wrist.name);
       console.log('  blade   :', fork.name);
       console.log(`  L1=${L1.toFixed(3)} L2=${L2.toFixed(3)} L3=${L3.toFixed(3)} SH_Y=${SHOULDER_Y.toFixed(3)}`);
- 
+
       onReady({
         group: root,
         turret,
@@ -29425,16 +29442,16 @@ function runIK(tgt: THREE.Vector3, options: { isScanner?: boolean; isHMDS?: bool
       });
     },
     (p: any) => {
-      if (p.total > 0) console.log('GLB loading:', Math.round(p.loaded/p.total*100)+'%');
+      if (p.total > 0) console.log('GLB loading:', Math.round(p.loaded / p.total * 100) + '%');
     },
     (err: any) => console.error('GLB FAILED:', err)
   );
 }
- 
+
 
 
 function normalizeAngle(angle: number): number {
-  while (angle >  Math.PI) angle -= Math.PI * 2;
+  while (angle > Math.PI) angle -= Math.PI * 2;
   while (angle < -Math.PI) angle += Math.PI * 2;
   return angle;
 }
@@ -29450,7 +29467,7 @@ function positionWaferAnchorAboveChuck(
   // ── Step 1: Find the chuck (if it exists) and use ITS top as anchor reference ──
   let chuckTopY: number | null = null;
   const chuckGrp = placeholder.userData.waferChuck as THREE.Group | undefined;
-  
+
   if (chuckGrp) {
     chuckGrp.updateWorldMatrix(true, true);
     const chuckBox = new THREE.Box3().setFromObject(chuckGrp);
@@ -29545,8 +29562,8 @@ function buildDehydrationGLB(
         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
 
       const colorScheme: Record<string, { base: number; emissive: number; light: number; pl: number }> = {
-        dehy:     { base: 0x4a2a15, emissive: 0xff6622, light: 0xff6622, pl: 0xff5500 },
-        pab:      { base: 0x5a1505, emissive: 0xff3322, light: 0xff2233, pl: 0xff2200 },
+        dehy: { base: 0x4a2a15, emissive: 0xff6622, light: 0xff6622, pl: 0xff5500 },
+        pab: { base: 0x5a1505, emissive: 0xff3322, light: 0xff2233, pl: 0xff2200 },
         hardbake: { base: 0x4a1808, emissive: 0xff4422, light: 0xff3300, pl: 0xff3300 },
       };
       const scheme = colorScheme[mod.id] ?? colorScheme.dehy;
@@ -29644,7 +29661,7 @@ function buildHardBakeGLB(
       const afterCenter = new THREE.Vector3();
       afterBox.getCenter(afterCenter);
       root.position.x -= afterCenter.x;
-      root.position.z -= afterCenter.z  - 0.1;
+      root.position.z -= afterCenter.z - 0.1;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -29763,13 +29780,13 @@ function buildPrCoatGLB(
 
       const spinChuck =
         namedParts['SpinChuck'] || namedParts['Spin_Chuck'] ||
-        namedParts['Chuck']     || namedParts['Spinner']    ||
-        namedParts['HotPlate']  || namedParts['Plate']      ||
+        namedParts['Chuck'] || namedParts['Spinner'] ||
+        namedParts['HotPlate'] || namedParts['Plate'] ||
         namedParts['Top'];
 
       const dispenseArm =
         namedParts['DispenseArm'] || namedParts['Dispense_Arm'] ||
-        namedParts['Arm']         || namedParts['NozzleArm'];
+        namedParts['Arm'] || namedParts['NozzleArm'];
 
       const lightGreen =
         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
@@ -29868,11 +29885,41 @@ function buildScannerGLB(
       root.position.y = 0 - box.min.y - SCANNER_FLOOR_DROP;
       root.updateWorldMatrix(true, true);
       const rootWorldBox = new THREE.Box3().setFromObject(root);
-      // Process line sits at +Z relative to scanner — the front face is max.z
-      const scannerFrontZ  = rootWorldBox.max.z;
-      const scannerPickupZ = scannerFrontZ + 0.35;   // slightly proud of front
-      const scannerSlotZ   = scannerFrontZ - 0.67;   // slot frame just inside the face
-      const scannerTunnelZ = scannerFrontZ + 0.14;   // tunnel just outside
+
+      // Compute front Z excluding Floor and Cassette_Body (which are hidden later)
+      const rootBoxFilter = new THREE.Box3();
+      let hasValidMesh = false;
+      root.traverse((obj) => {
+        if ((obj as THREE.Mesh).isMesh) {
+          const name = obj.name;
+          if (name !== 'Floor' && name !== 'Cassette_Body' && name !== 'Cube.001') {
+            rootBoxFilter.expandByObject(obj);
+            hasValidMesh = true;
+          }
+        }
+      });
+      const scannerFrontZ  = hasValidMesh ? rootBoxFilter.max.z : rootWorldBox.max.z;
+      const scannerBackZ   = hasValidMesh ? rootBoxFilter.min.z : rootWorldBox.min.z;
+      const scannerCenterZ = (scannerFrontZ + scannerBackZ) / 2;
+
+      // ════════════════════════════════════════════════════════════════
+      // DIRECT SLOT POSITION OFFSETS (local Z, measured from body center)
+      // Body center is GUARANTEED inside the scanner. Add a small +/- to
+      // slide the wafer toward whichever face is the opening.
+      //   • Wafer too far FORWARD / poking out → make SCANNER_SLOT_OFFSET
+      //     MORE NEGATIVE (e.g. -1, -2) to pull it back into the body.
+      //   • Wafer buried / want it nearer the opening → make it more positive.
+      // ════════════════════════════════════════════════════════════════
+      const SCANNER_SLOT_OFFSET   = -100.8;   // ← wafer rest depth from center
+      const SCANNER_PICKUP_OFFSET = 1.0;   // ← pickup point, relative to slot (toward opening)
+
+      const scannerSlotZ   = scannerCenterZ + SCANNER_SLOT_OFFSET;
+      const scannerTunnelZ = scannerSlotZ + SCANNER_PICKUP_OFFSET * 0.5;
+      const scannerPickupZ = scannerSlotZ + SCANNER_PICKUP_OFFSET;
+
+      console.log('[SCANNER] center=', scannerCenterZ.toFixed(2),
+        'slotZ=', scannerSlotZ.toFixed(2),
+        'depth=', (scannerFrontZ - scannerBackZ).toFixed(2));
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -29881,39 +29928,65 @@ function buildScannerGLB(
           obj.castShadow = false;
           obj.receiveShadow = true;
         }
+        if (obj.name.startsWith('Dot_6_2')) {
+          obj.visible = false;
+        }
       });
 
       console.log('ALL Scanner GLB nodes:', Object.keys(namedParts));
       console.log('[SCANNER] frontZ=', scannerFrontZ.toFixed(3), 'pickupZ=', scannerPickupZ.toFixed(3), 'slotZ=', scannerSlotZ.toFixed(3));
 
-// ── HIDE BACKSIDE PLATES + floating top panels ──
-[
-  'Vent_Panel', 'Base_Louvre_0', 'Base_Louvre_1', 'Base_Louvre_2', 'Base_Louvre_3', 'Base_Louvre_4',
-  'Top', 'Top_Panel', 'TopPanel', 'Top_Cover', 'TopCover', 'Lid', 'Cover',
-  'Top_Plate', 'TopPlate', 'Roof', 'Hood', 'Cap', 'Upper_Panel', 'UpperPanel',
-  'Top_Housing', 'TopHousing', 'Top_Shell', 'TopShell',
-  'Stage_Slab', 'Cassette_Body', 'Cube.001', 'Floor',
-].forEach((name) => {
-  if (namedParts[name]) namedParts[name].visible = false;
-});
+      // ── HIDE BACKSIDE PLATES + floating top panels ──
+      [
+        'Vent_Panel', 'Base_Louvre_0', 'Base_Louvre_1', 'Base_Louvre_2', 'Base_Louvre_3', 'Base_Louvre_4',
+        'Top', 'Top_Panel', 'TopPanel', 'Top_Cover', 'TopCover', 'Lid', 'Cover',
+        'Top_Plate', 'TopPlate', 'Roof', 'Hood', 'Cap', 'Upper_Panel', 'UpperPanel',
+        'Top_Housing', 'TopHousing', 'Top_Shell', 'TopShell',
+        'Stage_Slab', 'Cassette_Body', 'Cube.001', 'Floor',
+        'Btn_0', 'Btn_1', 'Handle_-0.28', 'Handle_0.28',
+        // Hide back-side slot elements
+        'BackSlot', 'Back_Slot', 'RearSlot', 'Rear_Slot', 'SlotBack', 'Slot_Back',
+        'BackOpening', 'Back_Opening', 'RearOpening', 'Rear_Opening',
+      ].forEach((name) => {
+        if (namedParts[name]) namedParts[name].visible = false;
+      });
 
-// Also hide any mesh that is very flat (thin in Y) and positioned high — catches unnamed floating plates
-root.traverse((obj) => {
-  if (!(obj as THREE.Mesh).isMesh) return;
-  const mesh = obj as THREE.Mesh;
-  const geo = mesh.geometry;
-  if (!geo.boundingBox) geo.computeBoundingBox();
-  const bb = geo.boundingBox!;
-  const worldPos = new THREE.Vector3();
-  mesh.getWorldPosition(worldPos);
-  const sizeY = (bb.max.y - bb.min.y) * mesh.getWorldScale(new THREE.Vector3()).y;
-  const sizeX = (bb.max.x - bb.min.x) * mesh.getWorldScale(new THREE.Vector3()).x;
-  const sizeZ = (bb.max.z - bb.min.z) * mesh.getWorldScale(new THREE.Vector3()).z;
-  // A "floating plate": very thin in Y, wide in X and Z, positioned above y=3
-  if (sizeY < 0.5 && sizeX > 3 && sizeZ > 3 && worldPos.y > 3) {
-    mesh.visible = false;
-  }
-});
+      // Also hide any slot-like geometry on the back (-Z side)
+      root.traverse((obj) => {
+        if (!(obj as THREE.Mesh).isMesh) return;
+        const mesh = obj as THREE.Mesh;
+        const name = obj.name.toLowerCase();
+
+        // Hide any object with "slot", "opening", "port" in its name that isn't the main one
+        if ((name.includes('slot') || name.includes('opening') || name.includes('port')) &&
+          !name.includes('anchor')) {
+          const worldPos = new THREE.Vector3();
+          mesh.getWorldPosition(worldPos);
+
+          // If it's on the back (-Z) side relative to the scanner front, hide it
+          if (worldPos.z < scannerFrontZ - 5) {
+            mesh.visible = false;
+          }
+        }
+      });
+
+      // Also hide any mesh that is very flat (thin in Y) and positioned high — catches unnamed floating plates
+      root.traverse((obj) => {
+        if (!(obj as THREE.Mesh).isMesh) return;
+        const mesh = obj as THREE.Mesh;
+        const geo = mesh.geometry;
+        if (!geo.boundingBox) geo.computeBoundingBox();
+        const bb = geo.boundingBox!;
+        const worldPos = new THREE.Vector3();
+        mesh.getWorldPosition(worldPos);
+        const sizeY = (bb.max.y - bb.min.y) * mesh.getWorldScale(new THREE.Vector3()).y;
+        const sizeX = (bb.max.x - bb.min.x) * mesh.getWorldScale(new THREE.Vector3()).x;
+        const sizeZ = (bb.max.z - bb.min.z) * mesh.getWorldScale(new THREE.Vector3()).z;
+        // A "floating plate": very thin in Y, wide in X and Z, positioned above y=3
+        if (sizeY < 0.5 && sizeX > 3 && sizeZ > 3 && worldPos.y > 3) {
+          mesh.visible = false;
+        }
+      });
 
       // Try to find UV lens / beam emitter (NOT 'Top' — that's the cover panel)
       const lens =
@@ -29928,7 +30001,7 @@ root.traverse((obj) => {
 
       // Magenta/UV scheme for scanner
       // Line ~45
-    const scheme = { base: 0x1a1400, emissive: 0xffcc00, light: 0xffdd00, pl: 0xffaa00 };
+      const scheme = { base: 0x1a1400, emissive: 0xffcc00, light: 0xffdd00, pl: 0xffaa00 };
 
       if (lens && (lens as THREE.Mesh).isMesh) {
         const lensMat = new THREE.MeshStandardMaterial({
@@ -29983,12 +30056,12 @@ root.traverse((obj) => {
       root.add(pl);
       placeholder.userData.processLight = pl;
 
-    //   placeholder.add(root);
-    //   placeholder.userData.glbRoot = root;
-    //   placeholder.userData.loaded = true;
+      //   placeholder.add(root);
+      //   placeholder.userData.glbRoot = root;
+      //   placeholder.userData.loaded = true;
 
 
-    // ── RECTANGULAR WAFER SLOT on front face of scanner ──
+      // ── RECTANGULAR WAFER SLOT on front face of scanner ──
       const SLOT_W = 1.8;   // ← width of slot opening
       const SLOT_H = 0.25;  // ← height of slot opening  
       const SLOT_D = 0;   // ← depth of slot tunnel
@@ -30107,11 +30180,11 @@ root.traverse((obj) => {
         const ctx = nc.getContext('2d')!;
 
         const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
-        metalGrad.addColorStop(0,    '#dde2e8');
+        metalGrad.addColorStop(0, '#dde2e8');
         metalGrad.addColorStop(0.12, '#f0f4f7');
         metalGrad.addColorStop(0.45, '#c8ced4');
         metalGrad.addColorStop(0.88, '#e4e8ec');
-        metalGrad.addColorStop(1,    '#adb4bc');
+        metalGrad.addColorStop(1, '#adb4bc');
         ctx.fillStyle = metalGrad;
         ctx.fillRect(0, 0, CW, CH);
 
@@ -30125,13 +30198,13 @@ root.traverse((obj) => {
 
         // Bevels
         ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, CW, 7); ctx.fillRect(0, 0, 7, CH);
-        ctx.fillStyle = '#555c64'; ctx.fillRect(0, CH-7, CW, 7); ctx.fillRect(CW-7, 0, 7, CH);
+        ctx.fillStyle = '#555c64'; ctx.fillRect(0, CH - 7, CW, 7); ctx.fillRect(CW - 7, 0, 7, CH);
 
         const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
-        innerGrad.addColorStop(0,    '#b0b8c0');
+        innerGrad.addColorStop(0, '#b0b8c0');
         innerGrad.addColorStop(0.25, '#d0d8de');
         innerGrad.addColorStop(0.75, '#c8d0d6');
-        innerGrad.addColorStop(1,    '#a0a8b0');
+        innerGrad.addColorStop(1, '#a0a8b0');
         ctx.fillStyle = innerGrad;
         ctx.fillRect(11, 11, CW - 22, CH - 22);
 
@@ -30152,18 +30225,18 @@ root.traverse((obj) => {
         // Full name
         ctx.font = "bold 44px Arial, sans-serif";
         ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillText('Scanner 193nm Exposure', 48, 234);
-        ctx.fillStyle = '#1a2030';          ctx.fillText('Scanner 193nm Exposure', 47, 233);
+        ctx.fillStyle = '#1a2030'; ctx.fillText('Scanner 193nm Exposure', 47, 233);
 
         // Rivets
         const drawRivet = (rx: number, ry: number) => {
           ctx.fillStyle = 'rgba(0,0,0,0.3)';
-          ctx.beginPath(); ctx.arc(rx+2, ry+2, 10, 0, Math.PI*2); ctx.fill();
-          const rg = ctx.createRadialGradient(rx-3, ry-3, 0, rx, ry, 10);
+          ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
+          const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
           rg.addColorStop(0, '#eef2f6'); rg.addColorStop(0.4, '#a8b0b8'); rg.addColorStop(1, '#707880');
           ctx.fillStyle = rg;
-          ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
         };
-        drawRivet(28, 28); drawRivet(CW-28, 28); drawRivet(28, CH-28); drawRivet(CW-28, CH-28);
+        drawRivet(28, 28); drawRivet(CW - 28, 28); drawRivet(28, CH - 28); drawRivet(CW - 28, CH - 28);
 
         const tex = new THREE.CanvasTexture(nc);
         tex.minFilter = THREE.LinearFilter;
@@ -30183,9 +30256,9 @@ root.traverse((obj) => {
         // The scanner is at world x=38; the process line is at lower X, so -X is the front.
         // Use local coordinates: localMinX = rootWorldBox.min.x - placeholder.position.x
         const localMinX = rootWorldBox.min.x - placeholder.position.x;
-        const PLATE_Y   = WAFER_TRANSFER_Y + 6.5;  // ↑ raise/lower on the face
-        const PLATE_X   = localMinX + 39;         // just proud of the -X face
-        const PLATE_Z   = 0;                         // centered along Z on the face
+        const PLATE_Y = WAFER_TRANSFER_Y + 6.5;  // ↑ raise/lower on the face
+        const PLATE_X = localMinX + 39;         // just proud of the -X face
+        const PLATE_Z = 0;                         // centered along Z on the face
         plate.position.set(PLATE_X, PLATE_Y, PLATE_Z);
         // Rotate so the plate faces -X (toward the process line / FOUP)
         plate.rotation.set(0, -Math.PI / 2, 0);
@@ -30233,8 +30306,8 @@ function buildChillPlateGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-     // root.position.y = -0.5 - box.min.y;
-     root.position.y = MODULE_FLOOR_Y - box.min.y;
+      // root.position.y = -0.5 - box.min.y;
+      root.position.y = MODULE_FLOOR_Y - box.min.y;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -30250,7 +30323,7 @@ function buildChillPlateGLB(
       // Try to find the cold plate surface
       const plate =
         namedParts['ChillPlate'] || namedParts['Chill_Plate'] ||
-        namedParts['ColdPlate']  || namedParts['Plate'] || namedParts['Top'];
+        namedParts['ColdPlate'] || namedParts['Plate'] || namedParts['Top'];
 
       // Cooling fins (optional)
       const fins =
@@ -30312,10 +30385,10 @@ function buildChillPlateGLB(
       placeholder.userData.loaded = true;
 
 
-			addModuleLabel(placeholder, mod);
-			addWaferChuck(placeholder, 'chill');
+      addModuleLabel(placeholder, mod);
+      addWaferChuck(placeholder, 'chill');
 
-    positionWaferAnchorAboveChuck(placeholder, root);
+      positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
     },
@@ -30480,7 +30553,7 @@ function buildHMDSGLB(
 
       const chamber =
         namedParts['Chamber'] || namedParts['Vessel'] ||
-        namedParts['Body']    || namedParts['Top']    || namedParts['Plate'];
+        namedParts['Body'] || namedParts['Top'] || namedParts['Plate'];
 
       const lightGreen =
         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
@@ -30589,7 +30662,7 @@ function buildPostBakeGLB(
 
       const hotPlate =
         namedParts['HotPlate'] || namedParts['Hot_Plate'] ||
-        namedParts['Plate']    || namedParts['Heater']    || namedParts['Top'];
+        namedParts['Plate'] || namedParts['Heater'] || namedParts['Top'];
 
       const lightGreen =
         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
@@ -30721,7 +30794,7 @@ function buildInterfaceGLB(
       });
 
       // ── Resolve IF_in / IF_out handoff nodes from the GLB (if present) ──
-      const ifIn  = namedParts['IF_in']  || namedParts['IFin']  || namedParts['if_in']  || null;
+      const ifIn = namedParts['IF_in'] || namedParts['IFin'] || namedParts['if_in'] || null;
       const ifOut = namedParts['IF_out'] || namedParts['IFout'] || namedParts['if_out'] || null;
 
       const lightGreen =
@@ -30747,7 +30820,7 @@ function buildInterfaceGLB(
         placeholder.userData.redLight = redMat;
       }
 
-      if (ifIn)  placeholder.userData.ifIn  = ifIn;
+      if (ifIn) placeholder.userData.ifIn = ifIn;
       if (ifOut) placeholder.userData.ifOut = ifOut;
 
       const pl = new THREE.PointLight(scheme.pl, 0, 6);
@@ -30759,7 +30832,6 @@ function buildInterfaceGLB(
       placeholder.userData.glbRoot = root;
       placeholder.userData.loaded = true;
 
-      addModuleLabel(placeholder, mod);
       positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
@@ -30818,17 +30890,17 @@ function buildDIWaterRinseGLB(
       });
 
       const bowl =
-        namedParts['Bowl']   || namedParts['Basin']  ||
-        namedParts['Chuck']  || namedParts['Plate']  || namedParts['Top'];
+        namedParts['Bowl'] || namedParts['Basin'] ||
+        namedParts['Chuck'] || namedParts['Plate'] || namedParts['Top'];
 
       const nozzle =
-        namedParts['Nozzle'] || namedParts['Arm']    ||
-        namedParts['Spray']  || namedParts['Head'];
+        namedParts['Nozzle'] || namedParts['Arm'] ||
+        namedParts['Spray'] || namedParts['Head'];
 
       const lightGreen =
         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
       const lightRed =
-        namedParts['LightRed']   || namedParts['Light_Red']   || namedParts['LED_Red'];
+        namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
 
       const scheme = { base: 0x001428, emissive: 0x0088ff, light: 0x00aaff, pl: 0x0077ff };
 
@@ -30942,17 +31014,17 @@ function buildDeveloperModuleGLB(
       });
 
       const chuck =
-        namedParts['Chuck']  || namedParts['SpinChuck'] ||
-        namedParts['Plate']  || namedParts['Bowl']      || namedParts['Top'];
+        namedParts['Chuck'] || namedParts['SpinChuck'] ||
+        namedParts['Plate'] || namedParts['Bowl'] || namedParts['Top'];
 
       const arm =
-        namedParts['Arm']    || namedParts['NozzleArm'] ||
+        namedParts['Arm'] || namedParts['NozzleArm'] ||
         namedParts['Nozzle'] || namedParts['Dispense'];
 
       const lightGreen =
         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
       const lightRed =
-        namedParts['LightRed']   || namedParts['Light_Red']   || namedParts['LED_Red'];
+        namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
 
       const scheme = { base: 0x001a0a, emissive: 0x00ff88, light: 0x00dd66, pl: 0x00cc77 };
 
@@ -31074,12 +31146,12 @@ function placeWaferAnchorOnChuck(
 //   // ── INCREASED HEIGHT: was H = 0.35, now H = 1.2 (taller pedestal) ──
 //   // ── INCREASED FOOTPRINT slightly for better proportions ──
 //   const W = 3.4, D = 3.4, H = 3.2;
- 
+
 //   // ── UNIFORM GREY for ALL module types (no per-type color) ──
 //   const UNIFORM_GREY_BASE = 0x4a4a4a;      // medium grey body
 //   const UNIFORM_GREY_TOP  = 0x5a5a5a;      // slightly lighter top bevel
 //   const UNIFORM_GREY_DARK = 0x2e2e2e;      // dark grey accent strips
- 
+
 //   // ── MAIN PLINTH BODY (grey, taller) ──
 //   const plinth = new THREE.Mesh(
 //     new THREE.BoxGeometry(W, H, D),
@@ -31095,7 +31167,7 @@ function placeWaferAnchorOnChuck(
 //   plinth.castShadow = true;
 //   plinth.receiveShadow = true;
 //   scene.add(plinth);
- 
+
 //   // ── DARK GREY ACCENT STRIPS (front + back, instead of colored neon) ──
 //   const stripMat = new THREE.MeshStandardMaterial({
 //     color: UNIFORM_GREY_DARK,
@@ -31104,21 +31176,21 @@ function placeWaferAnchorOnChuck(
 //     emissive: 0x000000,
 //     emissiveIntensity: 0,
 //   });
- 
+
 //   const stripFront = new THREE.Mesh(
 //     new THREE.BoxGeometry(W, 0.06, 0.04),
 //     stripMat
 //   );
 //   stripFront.position.set(mod.x, -0.5 + H - 0.08, mod.z + D / 2);
 //   scene.add(stripFront);
- 
+
 //   const stripBack = new THREE.Mesh(
 //     new THREE.BoxGeometry(W, 0.06, 0.04),
 //     stripMat.clone()
 //   );
 //   stripBack.position.set(mod.x, -0.5 + H - 0.08, mod.z - D / 2);
 //   scene.add(stripBack);
- 
+
 //   // ── VERTICAL SIDE STRIPS (give the taller box visual rhythm) ──
 //   [-1, 1].forEach((sx) => {
 //     const sideStrip = new THREE.Mesh(
@@ -31132,7 +31204,7 @@ function placeWaferAnchorOnChuck(
 //     );
 //     scene.add(sideStrip);
 //   });
- 
+
 //   // ── TOP BEVEL (lighter grey, polished edge) ──
 //   const bevel = new THREE.Mesh(
 //     new THREE.BoxGeometry(W + 0.05, 0.04, D + 0.05),
@@ -31146,7 +31218,7 @@ function placeWaferAnchorOnChuck(
 //   );
 //   bevel.position.set(mod.x, -0.5 + H, mod.z);
 //   scene.add(bevel);
- 
+
 //   // ── BOTTOM BEVEL (matches top, hides plinth–floor seam) ──
 //   const bottomBevel = new THREE.Mesh(
 //     new THREE.BoxGeometry(W + 0.05, 0.04, D + 0.05),
@@ -31158,7 +31230,7 @@ function placeWaferAnchorOnChuck(
 //   );
 //   bottomBevel.position.set(mod.x, -0.5 + 0.02, mod.z);
 //   scene.add(bottomBevel);
- 
+
 //   // ── CORNER ACCENT DOTS (small dark grey, replace neon colored dots) ──
 //   const dotMat = new THREE.MeshStandardMaterial({
 //     color: UNIFORM_GREY_DARK,
@@ -31179,7 +31251,7 @@ function placeWaferAnchorOnChuck(
 //     );
 //     scene.add(dot);
 //   });
- 
+
 //   // ── OPTIONAL: subtle ID plate on the front face (still grey, just engraved look) ──
 //   const idPlate = new THREE.Mesh(
 //     new THREE.BoxGeometry(W * 0.35, 0.12, 0.02),
@@ -31191,7 +31263,7 @@ function placeWaferAnchorOnChuck(
 //   );
 //   idPlate.position.set(mod.x, -0.5 + H * 0.35, mod.z + D / 2 + 0.012);
 //   scene.add(idPlate);
- 
+
 //   return plinth;
 // }
 
@@ -31212,18 +31284,18 @@ function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
 
   if (mod.id === 'dehy' || mod.id === 'pab' || mod.id === 'hardbake') {
     // ── RED BAKING PLINTH (hot, baking something) ──
-    baseColor     = 0x6a6a6a;   // deep red body
-    topColor      = 0x7a7a7a;   // brighter red top bevel
-    darkColor     = 0x3e3e3e;   // dark red accents
-    stripColor    = 0x4a4a4a;   // bright orange-red strips (heating element look)
+    baseColor = 0x6a6a6a;   // deep red body
+    topColor = 0x7a7a7a;   // brighter red top bevel
+    darkColor = 0x3e3e3e;   // dark red accents
+    stripColor = 0x4a4a4a;   // bright orange-red strips (heating element look)
     emissiveColor = 0x000000;   // glowing red emissive
     emissiveIntensity = 0.35;   // visible glow like a hotplate
   } else {
     // ── MEDIUM GREY for all other modules ──
-    baseColor     = 0x6a6a6a;   // medium grey body (lighter than before)
-    topColor      = 0x7a7a7a;   // slightly lighter top bevel
-    darkColor     = 0x3e3e3e;   // dark grey accents
-    stripColor    = 0x4a4a4a;   // dark strip
+    baseColor = 0x6a6a6a;   // medium grey body (lighter than before)
+    topColor = 0x7a7a7a;   // slightly lighter top bevel
+    darkColor = 0x3e3e3e;   // dark grey accents
+    stripColor = 0x4a4a4a;   // dark strip
     emissiveColor = 0x000000;   // no glow
     emissiveIntensity = 0.35;
   }
@@ -31375,9 +31447,9 @@ function buildCombinedPlatform(scene: THREE.Scene): void {
     unifiedMaxX = Math.max(unifiedMaxX, ...botModules.map(m => m.x));
   }
 
-  const unifiedLeft   = unifiedMinX - PAD;
-  const unifiedRight  = unifiedMaxX + PAD;
-  const unifiedWidth  = unifiedRight - unifiedLeft;
+  const unifiedLeft = unifiedMinX - PAD;
+  const unifiedRight = unifiedMaxX + PAD;
+  const unifiedWidth = unifiedRight - unifiedLeft;
   const unifiedCenter = (unifiedLeft + unifiedRight) / 2;
 
   // ── TOP ROW (coater side, z < 0) ──
@@ -31467,9 +31539,9 @@ function buildPlatform(
   stripBack.position.set(centerX, -0.5 + H - 0.08, centerZ - depth / 2);
   scene.add(stripBack);
 
-  const modules = ALL_STEPS.filter(m => 
-    m.id !== 'output' && 
-    m.id !== 'scanner' && 
+  const modules = ALL_STEPS.filter(m =>
+    m.id !== 'output' &&
+    m.id !== 'scanner' &&
     Math.abs(m.z - centerZ) < 0.5
   );
 
@@ -31629,7 +31701,7 @@ function buildPlatform(
 //   //
 //   // BOTH ROWS should have labels on +Z face for the camera-facing label!
 //   // ══════════════════════════════════════════════════════════════════════
-  
+
 //   // ──────────────────────────────────────────────────────────────────────
 //   // LABEL 1: CAMERA-FACING (always +Z side for both rows)
 //   // ──────────────────────────────────────────────────────────────────────
@@ -31908,7 +31980,7 @@ function buildPlatform(
 // }
 
 function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
-  const SKIP_LABEL_IDS = new Set(['spindry', 'scanner', 'foup']);
+  const SKIP_LABEL_IDS = new Set(['spindry', 'scanner', 'foup', 'iface_in', 'iface_out']);
   if (SKIP_LABEL_IDS.has(mod.id)) {
     console.log(`[LABEL] Skipping virtual/special module: ${mod.id}`);
     return;
@@ -31924,11 +31996,11 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
 
     // Base metal gradient
     const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
-    metalGrad.addColorStop(0,    "#e2e6ea");
+    metalGrad.addColorStop(0, "#e2e6ea");
     metalGrad.addColorStop(0.15, "#f5f7f9");
-    metalGrad.addColorStop(0.5,  "#d0d5da");
+    metalGrad.addColorStop(0.5, "#d0d5da");
     metalGrad.addColorStop(0.85, "#eaedf0");
-    metalGrad.addColorStop(1,    "#b8bec4");
+    metalGrad.addColorStop(1, "#b8bec4");
     ctx.fillStyle = metalGrad;
     ctx.fillRect(0, 0, CW, CH);
 
@@ -31959,17 +32031,17 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
 
     // Inner panel gradient
     const innerGrad = ctx.createLinearGradient(0, 10, 0, CH - 10);
-    innerGrad.addColorStop(0,   "#b8bec4");
+    innerGrad.addColorStop(0, "#b8bec4");
     innerGrad.addColorStop(0.3, "#d8dde2");
     innerGrad.addColorStop(0.7, "#cdd2d7");
-    innerGrad.addColorStop(1,   "#a8adb2");
+    innerGrad.addColorStop(1, "#a8adb2");
     ctx.fillStyle = innerGrad;
     ctx.fillRect(8, 8, CW - 16, CH - 16);
 
     // Color accent stripe (from mod.color)
     const r = (mod.color >> 16) & 255;
-    const g = (mod.color >> 8)  & 255;
-    const b =  mod.color        & 255;
+    const g = (mod.color >> 8) & 255;
+    const b = mod.color & 255;
     ctx.fillStyle = `rgba(${r},${g},${b},0.25)`;
     ctx.fillRect(8, 8, 16, CH - 16);
     ctx.fillStyle = `rgb(${r},${g},${b})`;
@@ -32040,8 +32112,8 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
   const MODULE_BASE_Y = 0.5;
   const labelY = MODULE_BASE_Y + boxH * 0.5;
 
-  const isFoup    = mod.type === 'foup';
-  const isScanner = mod.id   === 'scanner';
+  const isFoup = mod.type === 'foup';
+  const isScanner = mod.id === 'scanner';
 
   console.log(`[LABEL] ${mod.id} z=${mod.z.toFixed(2)}`);
 
@@ -32313,14 +32385,225 @@ function addModuleLabel(grp: THREE.Group, mod: ProcessStep): void {
 
 
 
+// function addPlinthNameplates(scene: THREE.Scene): void {
+//   ALL_STEPS.forEach((mod) => {
+//     const SKIP_PLINTH_IDS = new Set([
+//       'scanner',  // No floating SCAN plinth plates at scanner row
+//     ]);
+//     if (SKIP_PLINTH_IDS.has(mod.id)) return;
+
+//     const makeNameplateMesh = (): THREE.Mesh => {
+//       const CW = 1024, CH = 300;
+//       const canvas = document.createElement('canvas');
+//       canvas.width = CW;
+//       canvas.height = CH;
+//       const ctx = canvas.getContext('2d')!;
+
+//       const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+//       metalGrad.addColorStop(0,    '#dde2e8');
+//       metalGrad.addColorStop(0.12, '#f0f4f7');
+//       metalGrad.addColorStop(0.45, '#c8ced4');
+//       metalGrad.addColorStop(0.88, '#e4e8ec');
+//       metalGrad.addColorStop(1,    '#adb4bc');
+//       ctx.fillStyle = metalGrad;
+//       ctx.fillRect(0, 0, CW, CH);
+
+//       ctx.globalAlpha = 0.045;
+//       ctx.strokeStyle = '#ffffff';
+//       ctx.lineWidth = 1;
+//       for (let y = 2; y < CH; y += 3) {
+//         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+//       }
+//       ctx.globalAlpha = 1;
+
+//       ctx.fillStyle = '#ffffff';
+//       ctx.fillRect(0, 0, CW, 7);
+//       ctx.fillRect(0, 0, 7, CH);
+//       ctx.fillStyle = '#555c64';
+//       ctx.fillRect(0, CH - 7, CW, 7);
+//       ctx.fillRect(CW - 7, 0, 7, CH);
+
+//       ctx.fillStyle = '#bcc2c8';
+//       ctx.fillRect(7, 7, CW - 14, 4);
+//       ctx.fillRect(7, 7, 4, CH - 14);
+//       ctx.fillStyle = '#888e94';
+//       ctx.fillRect(7, CH - 11, CW - 14, 4);
+//       ctx.fillRect(CW - 11, 7, 4, CH - 14);
+
+//       const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
+//       innerGrad.addColorStop(0,   '#b0b8c0');
+//       innerGrad.addColorStop(0.25,'#d0d8de');
+//       innerGrad.addColorStop(0.75,'#c8d0d6');
+//       innerGrad.addColorStop(1,   '#a0a8b0');
+//       ctx.fillStyle = innerGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+//       const shadowGrad = ctx.createLinearGradient(11, 11, 60, 60);
+//       shadowGrad.addColorStop(0, 'rgba(0,0,0,0.18)');
+//       shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+//       ctx.fillStyle = shadowGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+//       const r = (mod.color >> 16) & 255;
+//       const g = (mod.color >> 8)  & 255;
+//       const b =  mod.color        & 255;
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
+//       ctx.fillRect(11, 11, 24, CH - 22);
+//       ctx.fillStyle = `rgb(${r},${g},${b})`;
+//       ctx.fillRect(11, 11, 14, CH - 22);
+//       ctx.fillStyle = 'rgba(255,255,255,0.5)';
+//       ctx.fillRect(11, 11, 5, CH - 22);
+
+//       const sheenGrad = ctx.createLinearGradient(0, 11, 0, 11 + CH * 0.35);
+//       sheenGrad.addColorStop(0, 'rgba(255,255,255,0.28)');
+//       sheenGrad.addColorStop(1, 'rgba(255,255,255,0)');
+//       ctx.fillStyle = sheenGrad;
+//       ctx.fillRect(11, 11, CW - 22, CH * 0.35);
+
+//       ctx.font = "bold 120px 'Arial Black', Arial, sans-serif";
+//       ctx.textAlign = 'left';
+//       ctx.textBaseline = 'alphabetic';
+//       ctx.fillStyle = 'rgba(0,0,0,0.45)';
+//       ctx.fillText(mod.short, 48, 168);
+//       ctx.fillStyle = 'rgba(255,255,255,0.65)';
+//       ctx.fillText(mod.short, 46, 166);
+//       ctx.fillStyle = '#1a2028';
+//       ctx.fillText(mod.short, 47, 167);
+
+//       const displayName = (mod.name.length > 26 ? mod.name.slice(0, 26) + '…' : mod.name)
+//         .replace(/\s+\d+\s*°\s*C/gi, '')
+//         .replace(/\s+\d+°C/gi, '')
+//         .trim();
+//       ctx.font = "bold 44px 'Arial', sans-serif";
+//       ctx.textAlign = 'left';
+//       ctx.fillStyle = 'rgba(0,0,0,0.4)';
+//       ctx.fillText(displayName, 48, 234);
+//       ctx.fillStyle = '#1a2030';
+//       ctx.fillText(displayName, 47, 233);
+
+//       const drawRivet = (rx: number, ry: number) => {
+//         ctx.fillStyle = 'rgba(0,0,0,0.3)';
+//         ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
+//         const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
+//         rg.addColorStop(0,   '#eef2f6');
+//         rg.addColorStop(0.4, '#a8b0b8');
+//         rg.addColorStop(1,   '#707880');
+//         ctx.fillStyle = rg;
+//         ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
+//         ctx.strokeStyle = '#505860';
+//         ctx.lineWidth = 2;
+//         ctx.beginPath(); ctx.moveTo(rx - 5, ry); ctx.lineTo(rx + 5, ry); ctx.stroke();
+//         ctx.fillStyle = 'rgba(255,255,255,0.7)';
+//         ctx.beginPath(); ctx.arc(rx - 3, ry - 3, 3.5, 0, Math.PI * 2); ctx.fill();
+//       };
+//       drawRivet(28, 28);
+//       drawRivet(CW - 28, 28);
+//       drawRivet(28, CH - 28);
+//       drawRivet(CW - 28, CH - 28);
+
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.18)`;
+//       ctx.fillRect(11, CH - 38, CW - 22, 27);
+//       ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+//       ctx.font = "bold 16px 'Courier New', monospace";
+//       ctx.textAlign = 'center';
+//       ctx.fillText('SMaRT SIMULATOR — PROCESS MODULE', CW / 2, CH - 18);
+
+//       const tex = new THREE.CanvasTexture(canvas);
+//       tex.minFilter = THREE.LinearFilter;
+//       tex.magFilter = THREE.LinearFilter;
+//       tex.anisotropy = 8;
+
+//       const plate = new THREE.Mesh(
+//         new THREE.PlaneGeometry(3.4, 1.4),
+//         new THREE.MeshBasicMaterial({
+//           map: tex,
+//           transparent: false,
+//           depthTest: true,
+//           depthWrite: true,
+//           side: THREE.FrontSide,
+//         })
+//       );
+//       plate.renderOrder = 10;
+//       return plate;
+//     };
+
+//     // ── POSITIONS ──
+//     const PLINTH_H          = 3.2;
+//     const PLINTH_Y0         = -0.5;
+//     const PLATE_Y           = PLINTH_Y0 + PLINTH_H * 0.50;
+//     const FACE_OFFSET       = 2.5;
+
+//     // Interface modules should use the actual module/plinth face offset,
+//     // not the generic step spacing used by the row plates.
+//     const IFACE_FACE_OFFSET = 1.2; // ~half plinth depth (1.7) + clearance
+
+//     const isIface = mod.id === 'iface_in' || mod.id === 'iface_out';
+
+//     // For iface: nameplates on the ±X side faces (facing along the process line).
+//     const addIfaceFrontBack = () => {
+//       const SIDE_OFFSET = 3.0;  // ← LINE 32472 — push plates off the ±X faces. Increase if inside box, decrease if floating too far.
+
+//       // Left side plate — faces -X direction
+//       const left = makeNameplateMesh();
+//       left.position.set(mod.x - SIDE_OFFSET, PLATE_Y, mod.z);
+//       left.rotation.y = Math.PI / 2;   // face -X
+//       scene.add(left);
+
+//       // Right side plate — faces +X direction
+//       const right = makeNameplateMesh();
+//       right.position.set(mod.x + SIDE_OFFSET, PLATE_Y, mod.z);
+//       right.rotation.y = -Math.PI / 2; // face +X
+//       scene.add(right);
+//     };
+
+//     // Two FrontSide plates, back-to-back, each facing outward.
+//     // FRONT_BACK_OFFSET controls how far off the ±Z faces the plates sit.
+//     // Increase if plates are inside the box, decrease if floating too far out.
+//     const addBackToBack = (centerZ: number) => {
+//       // Plate A: faces +Z direction (readable from +Z side)
+//       const a = makeNameplateMesh();
+//       a.position.set(mod.x, PLATE_Y, centerZ);
+//       a.rotation.y = 0;
+//       scene.add(a);
+
+//       // Plate B: faces -Z direction (readable from -Z side)
+//       const b = makeNameplateMesh();
+//       b.position.set(mod.x, PLATE_Y, centerZ);
+//       b.rotation.y = Math.PI;
+//       scene.add(b);
+//     };
+
+//     if (isIface) {
+//       addIfaceFrontBack();
+//     } else if (mod.z < 0) {
+//       // top row
+//       addBackToBack(mod.z + FACE_OFFSET);
+//       addBackToBack(mod.z - FACE_OFFSET);
+//     } else {
+//       // bottom row + center
+//       addBackToBack(mod.z - FACE_OFFSET);
+//       addBackToBack(mod.z + FACE_OFFSET);
+//     }
+//   });
+// }
+
 function addPlinthNameplates(scene: THREE.Scene): void {
   ALL_STEPS.forEach((mod) => {
-    const SKIP_PLINTH_IDS = new Set([
-      'scanner',  // No floating SCAN plinth plates at scanner row
+    console.log('[PLATE-DBG]', mod.id, 'z=', mod.z,
+      'skip?', mod.id === 'scanner',
+      'iface?', (mod.id === 'iface_in' || mod.id === 'iface_out'));
+
+   const SKIP_PLINTH_IDS = new Set([
+      'scanner',    // No floating SCAN plinth plates at scanner row
+      'iface_in',   // IF plates handled in buildNamePlate.attachAllNamePlates
+      'iface_out',  // IF plates handled in buildNamePlate.attachAllNamePlates
     ]);
     if (SKIP_PLINTH_IDS.has(mod.id)) return;
+    if (SKIP_PLINTH_IDS.has(mod.id)) return;
 
-    const makeNameplateMesh = (): THREE.Mesh => {
+    const isIface = mod.id === 'iface_in' || mod.id === 'iface_out';
+
+    const makeNameplateMesh = (width = 2.8, height = 1.4): THREE.Mesh => {
       const CW = 1024, CH = 300;
       const canvas = document.createElement('canvas');
       canvas.width = CW;
@@ -32328,11 +32611,11 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       const ctx = canvas.getContext('2d')!;
 
       const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
-      metalGrad.addColorStop(0,    '#dde2e8');
+      metalGrad.addColorStop(0, '#dde2e8');
       metalGrad.addColorStop(0.12, '#f0f4f7');
       metalGrad.addColorStop(0.45, '#c8ced4');
       metalGrad.addColorStop(0.88, '#e4e8ec');
-      metalGrad.addColorStop(1,    '#adb4bc');
+      metalGrad.addColorStop(1, '#adb4bc');
       ctx.fillStyle = metalGrad;
       ctx.fillRect(0, 0, CW, CH);
 
@@ -32359,10 +32642,10 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       ctx.fillRect(CW - 11, 7, 4, CH - 14);
 
       const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
-      innerGrad.addColorStop(0,   '#b0b8c0');
-      innerGrad.addColorStop(0.25,'#d0d8de');
-      innerGrad.addColorStop(0.75,'#c8d0d6');
-      innerGrad.addColorStop(1,   '#a0a8b0');
+      innerGrad.addColorStop(0, '#b0b8c0');
+      innerGrad.addColorStop(0.25, '#d0d8de');
+      innerGrad.addColorStop(0.75, '#c8d0d6');
+      innerGrad.addColorStop(1, '#a0a8b0');
       ctx.fillStyle = innerGrad;
       ctx.fillRect(11, 11, CW - 22, CH - 22);
 
@@ -32373,8 +32656,8 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       ctx.fillRect(11, 11, CW - 22, CH - 22);
 
       const r = (mod.color >> 16) & 255;
-      const g = (mod.color >> 8)  & 255;
-      const b =  mod.color        & 255;
+      const g = (mod.color >> 8) & 255;
+      const b = mod.color & 255;
       ctx.fillStyle = `rgba(${r},${g},${b},0.22)`;
       ctx.fillRect(11, 11, 24, CH - 22);
       ctx.fillStyle = `rgb(${r},${g},${b})`;
@@ -32413,9 +32696,9 @@ function addPlinthNameplates(scene: THREE.Scene): void {
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
         const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
-        rg.addColorStop(0,   '#eef2f6');
+        rg.addColorStop(0, '#eef2f6');
         rg.addColorStop(0.4, '#a8b0b8');
-        rg.addColorStop(1,   '#707880');
+        rg.addColorStop(1, '#707880');
         ctx.fillStyle = rg;
         ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#505860';
@@ -32442,13 +32725,13 @@ function addPlinthNameplates(scene: THREE.Scene): void {
       tex.anisotropy = 8;
 
       const plate = new THREE.Mesh(
-        new THREE.PlaneGeometry(3.4, 1.4),
+        new THREE.PlaneGeometry(width, height),
         new THREE.MeshBasicMaterial({
           map: tex,
           transparent: false,
           depthTest: true,
           depthWrite: true,
-          side: THREE.FrontSide,
+          side: THREE.DoubleSide,
         })
       );
       plate.renderOrder = 10;
@@ -32456,47 +32739,85 @@ function addPlinthNameplates(scene: THREE.Scene): void {
     };
 
     // ── POSITIONS ──
-    const PLINTH_H          = 3.2;
-    const PLINTH_Y0         = -0.5;
-    const PLATE_Y           = PLINTH_Y0 + PLINTH_H * 0.50;
-    const FACE_OFFSET       = 2.5;
+    const PLINTH_H = 3.2;
+    const PLINTH_Y0 = -0.5;
+    const PLATE_Y = PLINTH_Y0 + PLINTH_H * 0.50;
 
-    // Interface modules should use the actual module/plinth face offset,
-    // not the generic step spacing used by the row plates.
-    const IFACE_FACE_OFFSET = 1.2; // ~half plinth depth (1.7) + clearance
+    // ── REGULAR MODULE FACE OFFSETS (front vs back, independent) ──
+    // FRONT = camera-facing plate (looks correct in your screenshot).
+    // BACK  = inner plate — RAISE THIS if it sits inside the box.
+    const FRONT_FACE_OFFSET = 2.3;   // ← outward (camera-facing) plate
+    const BACK_FACE_ALLOWANCE = 0.3; // ← extra clearance the back gets over the front
+    const BACK_FACE_OFFSET = FRONT_FACE_OFFSET + BACK_FACE_ALLOWANCE; // back always sits one allowance further out
 
-    const isIface = mod.id === 'iface_in' || mod.id === 'iface_out';
+    // ── INTERFACE PLATE OFFSETS — independent per face, like regular modules ──
+    const IFACE_FRONT_OFFSET = 1.75;                                  // ← +Z (outward/camera-facing) plate
+    const IFACE_BACK_ALLOWANCE = 0.45;                                // ← extra clearance the -Z side gets
+    const IFACE_BACK_OFFSET = IFACE_FRONT_OFFSET + IFACE_BACK_ALLOWANCE; // back always sits one allowance further out
 
-    // Two FrontSide plates, back-to-back, each facing outward.
-    const addBackToBack = (centerZ: number) => {
-      // Plate A: faces +Z direction (readable from +Z side)
-      const a = makeNameplateMesh();
-      a.position.set(mod.x, PLATE_Y, centerZ);
-      a.rotation.y = 0;
-      scene.add(a);
+    // ── Account for iface module Z nudge (plinth is offset, nameplate must match) ──
+    const ifaceNudgeZ = isIface ? (IFACE_LOCAL_Z[mod.id] ?? 0) : 0;
+    const effectiveZ = mod.z + ifaceNudgeZ;
 
-      // Plate B: faces -Z direction (readable from -Z side)
-      const b = makeNameplateMesh();
-      b.position.set(mod.x, PLATE_Y, centerZ);
-      b.rotation.y = Math.PI;
-      scene.add(b);
+    // ── INTERFACE: nameplates positioned on process-facing side only ──
+    // iface_out bridges TOP row → scanner (sits at z ≈ -3, faces +Z toward scanner)
+    // iface_in bridges scanner → BOTTOM row (sits at z ≈ +3, faces -Z from scanner)
+    const addIfaceFrontBack = () => {
+      // Interface plinths are wide in X, thin in Z. Put a plate on EACH Z face,
+      // each rotated to face outward. Narrow IF-only width.
+      const IFACE_PLATE_W = 4.2;
+      const IFACE_PLATE_H = 1.6;
+
+      // +Z face — plate faces +Z (rotation 0)
+      const plusZ = makeNameplateMesh(IFACE_PLATE_W, IFACE_PLATE_H);
+      plusZ.position.set(mod.x, PLATE_Y, effectiveZ + IFACE_FRONT_OFFSET);
+      plusZ.rotation.y = 0;
+      scene.add(plusZ);
+
+      // -Z face — plate faces -Z (rotation π), pushed out by the extra allowance
+      const minusZ = makeNameplateMesh(IFACE_PLATE_W, IFACE_PLATE_H);
+      minusZ.position.set(mod.x, PLATE_Y, effectiveZ - IFACE_BACK_OFFSET);
+      minusZ.rotation.y = Math.PI;
+      scene.add(minusZ);
+
+      console.log('[IFACE-PLATE]', mod.id, 'effectiveZ=', effectiveZ,
+        'frontOff=', IFACE_FRONT_OFFSET, 'backOff=', IFACE_BACK_OFFSET);
+    };
+
+    // ── REGULAR MODULE: front + back with SEPARATE offsets ──
+    // outwardSign = +1 if camera-facing plate is on +Z, -1 if on -Z.
+    const addBackToBack = (outwardSign: number) => {
+      console.log('[PLATE-POS]', mod.id, 'outwardSign=', outwardSign, 'FRONT_OFFSET=', FRONT_FACE_OFFSET, 'BACK_OFFSET=', BACK_FACE_OFFSET);
+
+      // Outward (camera-facing) plate — uses FRONT offset
+      const front = makeNameplateMesh();
+      front.position.set(mod.x, PLATE_Y, mod.z + outwardSign * FRONT_FACE_OFFSET);
+      front.rotation.y = outwardSign > 0 ? 0 : Math.PI;   // face outward
+      console.log('[PLATE-FRONT]', mod.id, 'frontZ=', front.position.z, 'frontY=', front.position.y);
+      scene.add(front);
+
+      // Inner (back) plate — wider so it reads from behind
+      const back = makeNameplateMesh(3.4, 1.45);
+      back.position.set(mod.x, PLATE_Y, mod.z - outwardSign * BACK_FACE_OFFSET);
+      back.rotation.y = outwardSign > 0 ? Math.PI : 0;    // face the other way
+      scene.add(back);
     };
 
     if (isIface) {
-      // Both faces — front (outer) and back (inner toward process row)
-      addBackToBack(mod.z - IFACE_FACE_OFFSET);
-      addBackToBack(mod.z + IFACE_FACE_OFFSET);
+      addIfaceFrontBack();
     } else if (mod.z < 0) {
-      // top row
-      addBackToBack(mod.z + FACE_OFFSET);
-      addBackToBack(mod.z - FACE_OFFSET);
+      // top row — camera-facing side is +Z
+      addBackToBack(+1);
     } else {
-      // bottom row + center
-      addBackToBack(mod.z - FACE_OFFSET);
-      addBackToBack(mod.z + FACE_OFFSET);
+      // bottom row + center — camera-facing side is -Z
+      addBackToBack(-1);
     }
   });
 }
+
+
+
+
 
 
 
@@ -32554,11 +32875,11 @@ function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
 
   // ── Metal plate background ──
   const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
-  metalGrad.addColorStop(0,    '#dde2e8');
+  metalGrad.addColorStop(0, '#dde2e8');
   metalGrad.addColorStop(0.12, '#f0f4f7');
   metalGrad.addColorStop(0.45, '#c8ced4');
   metalGrad.addColorStop(0.88, '#e4e8ec');
-  metalGrad.addColorStop(1,    '#adb4bc');
+  metalGrad.addColorStop(1, '#adb4bc');
   ctx.fillStyle = metalGrad;
   ctx.fillRect(0, 0, CW, CH);
 
@@ -32579,17 +32900,17 @@ function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
   ctx.fillRect(CW - 7, 0, 7, CH);
 
   const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
-  innerGrad.addColorStop(0,    '#b0b8c0');
+  innerGrad.addColorStop(0, '#b0b8c0');
   innerGrad.addColorStop(0.25, '#d0d8de');
   innerGrad.addColorStop(0.75, '#c8d0d6');
-  innerGrad.addColorStop(1,    '#a0a8b0');
+  innerGrad.addColorStop(1, '#a0a8b0');
   ctx.fillStyle = innerGrad;
   ctx.fillRect(11, 11, CW - 22, CH - 22);
 
   // Color accent stripe
   const r = (mod.color >> 16) & 255;
-  const g = (mod.color >> 8)  & 255;
-  const b =  mod.color        & 255;
+  const g = (mod.color >> 8) & 255;
+  const b = mod.color & 255;
   ctx.fillStyle = `rgb(${r},${g},${b})`;
   ctx.fillRect(11, 11, 14, CH - 22);
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -32622,9 +32943,9 @@ function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
     const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
-    rg.addColorStop(0,   '#eef2f6');
+    rg.addColorStop(0, '#eef2f6');
     rg.addColorStop(0.4, '#a8b0b8');
-    rg.addColorStop(1,   '#707880');
+    rg.addColorStop(1, '#707880');
     ctx.fillStyle = rg;
     ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
   };
@@ -32650,8 +32971,8 @@ function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
   );
 
   // ── Position on scanner front face (LOCAL coords — tunes here) ──
-  const PLATE_Y  = 2.0;   // height up the front face — raise/lower to taste
-  const FRONT_Z  = -4.2;  // toward the slot/front face (scanner front is −Z side)
+  const PLATE_Y = 2.0;   // height up the front face — raise/lower to taste
+  const FRONT_Z = -4.2;  // toward the slot/front face (scanner front is −Z side)
   plate.position.set(0, PLATE_Y, FRONT_Z);
   plate.rotation.y = Math.PI; // face −Z toward camera/front
   plate.renderOrder = 50;
@@ -32679,7 +33000,7 @@ function roundRect(
 
 // Replace WaferState type:
 // ─── WAFER STATE MACHINE ─────────────────────────────────────────────────────
-type WaferState = 
+type WaferState =
   | "idle"
   | "conveyor_move"
   | "belt_to_module"
@@ -32716,13 +33037,13 @@ class WaferStateMachine {
   conveyorEl = 0;
   onConveyor = false;
   entryStart = new THREE.Vector3();
-  entryEnd   = new THREE.Vector3();
-  entryEl    = 0;
-  entryDur   = 0.55;
-  exitStart  = new THREE.Vector3();
-  exitEnd    = new THREE.Vector3();
-  exitEl     = 0;
-  exitDur    = 0.55;
+  entryEnd = new THREE.Vector3();
+  entryEl = 0;
+  entryDur = 0.55;
+  exitStart = new THREE.Vector3();
+  exitEnd = new THREE.Vector3();
+  exitEl = 0;
+  exitDur = 0.55;
 
   constructor(wi: number, mesh: THREE.Group, scene: THREE.Scene) {
     this.wi = wi;
@@ -32760,80 +33081,80 @@ class WaferStateMachine {
     return t >= 1;
   }
 
-// attachTo(robot: RobotObject): void {
-//   this.carrierRobot = robot;
-//   this.onConveyor = false;
-//   this.owner = "robot";
-//   this.mesh.visible = true;
-//   this.mesh.scale.setScalar(1);
+  // attachTo(robot: RobotObject): void {
+  //   this.carrierRobot = robot;
+  //   this.onConveyor = false;
+  //   this.owner = "robot";
+  //   this.mesh.visible = true;
+  //   this.mesh.scale.setScalar(1);
 
-//   const fork = robot.fork ?? robot.gripper;
-//   robot.group.updateWorldMatrix(true, true);
-//   fork.updateWorldMatrix(true, false);
+  //   const fork = robot.fork ?? robot.gripper;
+  //   robot.group.updateWorldMatrix(true, true);
+  //   fork.updateWorldMatrix(true, false);
 
-//   const worldPos = new THREE.Vector3();
-//   const worldQuat = new THREE.Quaternion();
-//   fork.getWorldPosition(worldPos);
-//   fork.getWorldQuaternion(worldQuat);
-// const offset = new THREE.Vector3(0.8, 0.05, 0);
-// offset.applyQuaternion(worldQuat);
-// worldPos.add(offset);
-//   worldPos.y += 0.003;
+  //   const worldPos = new THREE.Vector3();
+  //   const worldQuat = new THREE.Quaternion();
+  //   fork.getWorldPosition(worldPos);
+  //   fork.getWorldQuaternion(worldQuat);
+  // const offset = new THREE.Vector3(0.8, 0.05, 0);
+  // offset.applyQuaternion(worldQuat);
+  // worldPos.add(offset);
+  //   worldPos.y += 0.003;
 
-//   this.scene.attach(this.mesh);
-//   this.mesh.position.copy(worldPos);
-//   this.mesh.quaternion.copy(worldQuat);
-//   fork.attach(this.mesh);
+  //   this.scene.attach(this.mesh);
+  //   this.mesh.position.copy(worldPos);
+  //   this.mesh.quaternion.copy(worldQuat);
+  //   fork.attach(this.mesh);
 
-//   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
-//   if (pr) {
-//     const mat = pr.material as THREE.MeshStandardMaterial;
-//     mat.emissive.setHex(0xffffff);
-//     mat.emissiveIntensity = 3.5;
-//     setTimeout(() => {
-//       mat.emissive.setHex(WAFER_COLORS[this.wi]);
-//       mat.emissiveIntensity = 0.9;
-//     }, 180);
-//   }
-//   robot.statusPL.intensity = 3.0;
-//   setTimeout(() => { if (robot.statusPL) robot.statusPL.intensity = 1.2; }, 300);
-// }
-
-
-attachTo(robot: RobotObject): void {
-  this.carrierRobot = robot;
-  this.onConveyor = false;
-  this.owner = "robot";
-  this.mesh.visible = true;
-  this.mesh.scale.setScalar(1);
- 
-  const fork = robot.fork ?? robot.gripper;
-  robot.group.updateWorldMatrix(true, true);
-  fork.updateWorldMatrix(true, false);
- 
-  const worldPos = new THREE.Vector3();
-  const worldQuat = new THREE.Quaternion();
-  fork.getWorldPosition(worldPos);
-  fork.getWorldQuaternion(worldQuat);
- 
-  // Wafer seating offset on the blade teeth — MUST match computeFingerOffset
-  const offset = new THREE.Vector3(0.8, 0.05, 0);
-  offset.applyQuaternion(worldQuat);
-  worldPos.add(offset);
- 
-  this.scene.attach(this.mesh);
-  this.mesh.position.copy(worldPos);
-  this.mesh.quaternion.copy(worldQuat);
-  fork.attach(this.mesh);
- 
-  // ── NO color flash anymore. Only flash the robot's status LED briefly
-  //    so the pick is visible without touching the wafer's appearance.
-  robot.statusPL.intensity = 3.0;
-  setTimeout(() => { if (robot.statusPL) robot.statusPL.intensity = 1.2; }, 300);
-}
+  //   const pr = this.mesh.userData.prLayer as THREE.Mesh | undefined;
+  //   if (pr) {
+  //     const mat = pr.material as THREE.MeshStandardMaterial;
+  //     mat.emissive.setHex(0xffffff);
+  //     mat.emissiveIntensity = 3.5;
+  //     setTimeout(() => {
+  //       mat.emissive.setHex(WAFER_COLORS[this.wi]);
+  //       mat.emissiveIntensity = 0.9;
+  //     }, 180);
+  //   }
+  //   robot.statusPL.intensity = 3.0;
+  //   setTimeout(() => { if (robot.statusPL) robot.statusPL.intensity = 1.2; }, 300);
+  // }
 
 
-detachAt(worldPos: THREE.Vector3): void {
+  attachTo(robot: RobotObject): void {
+    this.carrierRobot = robot;
+    this.onConveyor = false;
+    this.owner = "robot";
+    this.mesh.visible = true;
+    this.mesh.scale.setScalar(1);
+
+    const fork = robot.fork ?? robot.gripper;
+    robot.group.updateWorldMatrix(true, true);
+    fork.updateWorldMatrix(true, false);
+
+    const worldPos = new THREE.Vector3();
+    const worldQuat = new THREE.Quaternion();
+    fork.getWorldPosition(worldPos);
+    fork.getWorldQuaternion(worldQuat);
+
+    // Wafer seating offset on the blade teeth — MUST match computeFingerOffset
+    const offset = new THREE.Vector3(0.8, 0.05, 0);
+    offset.applyQuaternion(worldQuat);
+    worldPos.add(offset);
+
+    this.scene.attach(this.mesh);
+    this.mesh.position.copy(worldPos);
+    this.mesh.quaternion.copy(worldQuat);
+    fork.attach(this.mesh);
+
+    // ── NO color flash anymore. Only flash the robot's status LED briefly
+    //    so the pick is visible without touching the wafer's appearance.
+    robot.statusPL.intensity = 3.0;
+    setTimeout(() => { if (robot.statusPL) robot.statusPL.intensity = 1.2; }, 300);
+  }
+
+
+  detachAt(worldPos: THREE.Vector3): void {
     if (!this.carrierRobot) return;
 
     // Preserve world transform by reattaching to scene
@@ -32865,8 +33186,8 @@ detachAt(worldPos: THREE.Vector3): void {
       `[DETACH] wafer ${this.wi} placed at`,
       this.mesh.position.toArray().map((v) => v.toFixed(3))
     );
+  }
 }
-} 
 
 
 class Sim {
@@ -32876,7 +33197,7 @@ class Sim {
   private _frm = 0; private _lastFpsT = 0; private _lastT = 0; private _animId = 0; private _logSeq = 0;
   orbit = { theta: Math.PI * 0.11, phi: 0.36, radius: 48, tT: Math.PI * 0.11, tP: 0.36, tR: 48, cx: 4, cy: 0.2, cz: 0, tcx: 4, tcy: 0.2, tcz: 0, drag: false, btn: -1, sx: 0, sy: 0 };
   modObjs: Record<string, THREE.Group> = {}; busy: Record<string, number> = {};
-robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: RobotObject; robotD!: RobotObject;
+  robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: RobotObject; robotD!: RobotObject;
   gantryRail!: THREE.Group;
   prCoatOverlay!: PrCoatOverlay;
   devOverlay!: DevPuddleOverlay;
@@ -32896,7 +33217,7 @@ robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: Ro
   private _raycaster = new THREE.Raycaster();
   private _lastRaycastT = 0;
   private navStepIndex = 0;
-  
+
   // ── Narration system ──
   narration: any;
   private _narratedSteps = new Set<string>();
@@ -32906,7 +33227,7 @@ robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: Ro
     this.camera = new THREE.PerspectiveCamera(44, renderer.domElement.clientWidth / renderer.domElement.clientHeight, 0.08, 350);
     this.speed = 1; this.paused = false; this.simTime = 0; this.fps = 60;
     this.onUI = onUI; this.onLog = onLog; this.onTooltip = onTooltip;
-    
+
     // ── Initialize narration ──
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       import('../lib/NarrationManager').then(({ NarrationManager }) => {
@@ -32920,7 +33241,7 @@ robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: Ro
         console.warn('[SIM] Narration failed to load:', err);
       });
     }
-    
+
     this._build(); this._bindEvents();
   }
 
@@ -32935,40 +33256,40 @@ robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: Ro
   private _build() {
     setupLighting(this.scene);
     buildEnv(this.scene);
-ALL_STEPS.forEach((mod) => {
-  if (mod.id === 'output') return; // single FOUP only
+    ALL_STEPS.forEach((mod) => {
+      if (mod.id === 'output') return; // single FOUP only
 
-  let grp: THREE.Group;
-  if (mod.id === 'dehy' || mod.id === 'pab') {
-    grp = buildDehydrationGLB(this.scene, mod);
-  } else if (mod.id === 'hardbake') {
-    grp = buildHardBakeGLB(this.scene, mod);
-  } else if (mod.id === 'prcoat') {
-    grp = buildPrCoatGLB(this.scene, mod);
-  } else if (mod.id === 'hmds') {
-    grp = buildHMDSGLB(this.scene, mod);
-  } else if (mod.id === 'peb') {
-    grp = buildPostBakeGLB(this.scene, mod);
-  } else if (mod.id === 'rinse') {
-    grp = buildDIWaterRinseGLB(this.scene, mod);
-  } else if (mod.id === 'develop') {
-    grp = buildDeveloperModuleGLB(this.scene, mod);
-  } else if (mod.id === 'scanner') {
-    grp = buildScannerGLB(this.scene, mod);
-  } else if (mod.id === 'iface_out' || mod.id === 'iface_in') {
-    grp = buildInterfaceGLB(this.scene, mod);
-  } else if (mod.type === 'cold') {
-    grp = buildChillPlateGLB(this.scene, mod);
-  } else {
-    grp = buildModule(mod);
-    this.scene.add(grp);
-  }
-  this.modObjs[mod.id] = grp;
-});
+      let grp: THREE.Group;
+      if (mod.id === 'dehy' || mod.id === 'pab') {
+        grp = buildDehydrationGLB(this.scene, mod);
+      } else if (mod.id === 'hardbake') {
+        grp = buildHardBakeGLB(this.scene, mod);
+      } else if (mod.id === 'prcoat') {
+        grp = buildPrCoatGLB(this.scene, mod);
+      } else if (mod.id === 'hmds') {
+        grp = buildHMDSGLB(this.scene, mod);
+      } else if (mod.id === 'peb') {
+        grp = buildPostBakeGLB(this.scene, mod);
+      } else if (mod.id === 'rinse') {
+        grp = buildDIWaterRinseGLB(this.scene, mod);
+      } else if (mod.id === 'develop') {
+        grp = buildDeveloperModuleGLB(this.scene, mod);
+      } else if (mod.id === 'scanner') {
+        grp = buildScannerGLB(this.scene, mod);
+      } else if (mod.id === 'iface_out' || mod.id === 'iface_in') {
+        grp = buildInterfaceGLB(this.scene, mod);
+      } else if (mod.type === 'cold') {
+        grp = buildChillPlateGLB(this.scene, mod);
+      } else {
+        grp = buildModule(mod);
+        this.scene.add(grp);
+      }
+      this.modObjs[mod.id] = grp;
+    });
     buildFlowArrows(this.scene);
     addPlinthNameplates(this.scene);
     addRowLabelBars(this.scene);
-    
+
     // ── Physical nameplates — attached to every module group ──
     // Called after all GLBs have been queued so groups exist.
     // GLB groups may still be loading; attachNamePlate reads the
@@ -32976,20 +33297,20 @@ ALL_STEPS.forEach((mod) => {
     // synchronous geometry settle.
     setTimeout(() => {
       attachAllNamePlates(this.modObjs, ALL_STEPS);
-      
+
       // Re-attach after another delay for GLBs that load slowly
       setTimeout(() => {
         attachAllNamePlates(this.modObjs, ALL_STEPS);
       }, 2000);
     }, 1200);
-    
+
     // Fix PR Coat nozzle - reconnect to piping system
     setTimeout(() => {
       const prCoat = this.modObjs['prcoat'];
       if (prCoat) {
         this._reconnectPrCoatNozzle(prCoat);
       }
-      
+
       // Second pass for slow-loading GLB
       setTimeout(() => {
         const prCoat = this.modObjs['prcoat'];
@@ -32998,40 +33319,40 @@ ALL_STEPS.forEach((mod) => {
         }
       }, 2000);
     }, 1500);
-    
+
     //this.gantryRail = buildGantryRail(this.scene);
     const _prS = ALL_STEPS.find(s => s.id === 'prcoat')!;
-    this.prCoatOverlay = new PrCoatOverlay(this.scene, _prS.x, _prS.z, WAFER_COLORS[0]);
+    this.prCoatOverlay = new PrCoatOverlay(this.scene, _prS.x, _prS.z, 0xffaa00); // Wafer color
     const _devS = ALL_STEPS.find(s => s.id === 'develop')!;
     this.devOverlay = new DevPuddleOverlay(this.scene, _devS.x, _devS.z);
 
     // No conveyor belt segments: single robot handles all wafer transfers.
     // Conveyor arrays are preserved only for compatibility with legacy code paths.
- 
+
     // Robots — sit on the INNER side of each track (toward z=0), so the belt
     // is on one side and the robot reaches modules from the other.
-// Place robot between FOUP (x=-20) and DEHY (x=-11), at midpoint x=-15.5
-// Scale 1.0 is correct — the GLB already has proper dimensions
-buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
-    this.robotEFEM = r; 
-    this.robotA    = r; 
-    this.robotB    = r; 
-    this.robotC    = r; 
-    this.robotD    = r;
-    
-    // ── Lock robot base to floor level ──
-    r.group.position.y = 0;          // snap to floor on load
-    r.group.userData.baseY = 0;      // override whatever GLB baked in
-    r.group.userData.zLiftY = 0;
-    console.log('[ROBOT] loaded at', r.basePos.toArray(), 'scale 1.0');
-  });
-  
-  this._buildRailTrack();   // ← add rail track system
-  
+    // Place robot between FOUP (x=-20) and DEHY (x=-11), at midpoint x=-15.5
+    // Scale 1.0 is correct — the GLB already has proper dimensions
+    buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
+      this.robotEFEM = r;
+      this.robotA = r;
+      this.robotB = r;
+      this.robotC = r;
+      this.robotD = r;
+
+      // ── Lock robot base to floor level ──
+      r.group.position.y = 0;          // snap to floor on load
+      r.group.userData.baseY = 0;      // override whatever GLB baked in
+      r.group.userData.zLiftY = 0;
+      console.log('[ROBOT] loaded at', r.basePos.toArray(), 'scale 1.0');
+    });
+
+    this._buildRailTrack();   // ← add rail track system
+
     // Process animators
-   const prcoatStep = ALL_STEPS.find(s => s.id === 'prcoat')!;
+    const prcoatStep = ALL_STEPS.find(s => s.id === 'prcoat')!;
     const developStep = ALL_STEPS.find(s => s.id === 'develop')!;
-    
+
     this.spinCoat = new SpinCoatAnimator(this.scene);
     // Parent spinCoat to the prcoat module placeholder so it inherits transforms
     const prGrp = this.modObjs['prcoat'];
@@ -33053,21 +33374,21 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     if (this.devLiquid.swingBar) this.devLiquid.swingBar.rotation.y = -Math.PI / 2;
 
     // Particle systems
-    const dryS   = ALL_STEPS.find((s) => s.id === "spindry")!;
+    const dryS = ALL_STEPS.find((s) => s.id === "spindry")!;
     const rinseS = ALL_STEPS.find((s) => s.id === "rinse")!;
-    const hmdsS  = ALL_STEPS.find((s) => s.id === "hmds")!;
-    this.n2Particles    = new Particles(this.scene, new THREE.Vector3(dryS.x,   1.3, dryS.z),   0x66eeff, 60, 0.072);
+    const hmdsS = ALL_STEPS.find((s) => s.id === "hmds")!;
+    this.n2Particles = new Particles(this.scene, new THREE.Vector3(dryS.x, 1.3, dryS.z), 0x66eeff, 60, 0.072);
     this.waterParticles = new Particles(this.scene, new THREE.Vector3(rinseS.x, 1.3, rinseS.z), 0x2299ff, 50, 0.068);
-    this.hmdsFog        = new HMDSFog(this.scene, new THREE.Vector3(hmdsS.x, 1.3, hmdsS.z));
+    this.hmdsFog = new HMDSFog(this.scene, new THREE.Vector3(hmdsS.x, 1.3, hmdsS.z));
 
     // Heat vapor for hot plates
-   // Heat vapor for hot plates — color matches each module's heat scheme
+    // Heat vapor for hot plates — color matches each module's heat scheme
     const vaporColors: Record<string, number> = {
-      dehy:     0xffaa66,  // orange vapor
-      pab:      0xff7755,  // red-orange vapor
+      dehy: 0xffaa66,  // orange vapor
+      pab: 0xff7755,  // red-orange vapor
       hardbake: 0xff5544,  // red vapor
-      hmds:     0xffcc88,  // amber vapor
-      peb:      0xff8866,  // warm red vapor
+      hmds: 0xffcc88,  // amber vapor
+      peb: 0xff8866,  // warm red vapor
     };
     ALL_STEPS.filter(s => s.type === "hot").forEach(s => {
       const vColor = vaporColors[s.id] ?? 0xffaa66;
@@ -33115,13 +33436,13 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
   private _buildRailTrack(): void {
     // A thin flat beam along the floor connecting FOUP to end of track
     const TRACK_MIN_X = -20;
-    const TRACK_MAX_X =  26;
-    const trackLen    = TRACK_MAX_X - TRACK_MIN_X;
-    
+    const TRACK_MAX_X = 26;
+    const trackLen = TRACK_MAX_X - TRACK_MIN_X;
+
     // Main rail beam — sits flush on the floor
     const railGeo = new THREE.BoxGeometry(trackLen, 0.08, 0.32);
     const railMat = new THREE.MeshStandardMaterial({
-      color:     0x223344,
+      color: 0x223344,
       metalness: 0.85,
       roughness: 0.25,
     });
@@ -33130,14 +33451,14 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     rail.castShadow = true;
     rail.receiveShadow = true;
     this.scene.add(rail);
-    
+
     // Two thin guide rails (top edges)
     const guideGeo = new THREE.BoxGeometry(trackLen, 0.04, 0.04);
     const guideMat = new THREE.MeshStandardMaterial({
-      color:     0x00d8ff,
+      color: 0x00d8ff,
       metalness: 0.9,
       roughness: 0.1,
-      emissive:  new THREE.Color(0x00d8ff),
+      emissive: new THREE.Color(0x00d8ff),
       emissiveIntensity: 0.4,
     });
     [-0.13, 0.13].forEach(zOff => {
@@ -33147,11 +33468,11 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
       guide.receiveShadow = false;
       this.scene.add(guide);
     });
-    
+
     // Tick marks every 2 units so it reads as a machined rail
     for (let x = TRACK_MIN_X; x <= TRACK_MAX_X; x += 2) {
       const tickGeo = new THREE.BoxGeometry(0.04, 0.06, 0.32);
-      const tick    = new THREE.Mesh(tickGeo, railMat);
+      const tick = new THREE.Mesh(tickGeo, railMat);
       tick.position.set(x, 0.07, 0);
       tick.castShadow = false;
       tick.receiveShadow = true;
@@ -33168,20 +33489,20 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
       prCoatGroup.add(nozzleGroup);
       prCoatGroup.userData.nozzleGroup = nozzleGroup;
     }
-    
+
     // Clear existing nozzle parts to rebuild properly
     while (nozzleGroup.children.length) {
       nozzleGroup.remove(nozzleGroup.children[0]);
     }
-    
+
     // Materials
     const metalMat = new THREE.MeshStandardMaterial({ color: 0x778899, roughness: 0.12, metalness: 0.94 });
     const darkMat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.15, metalness: 0.92 });
     const tipMat = new THREE.MeshStandardMaterial({ color: 0xbb9966, metalness: 0.88, roughness: 0.1 });
     const glowMat = new THREE.MeshStandardMaterial({ color: 0xff44cc, emissive: 0xff22aa, emissiveIntensity: 2.2 });
-    
+
     // === CONTINUOUS PIPE FROM SOURCE TO TIP (NO GAPS) ===
-    
+
     // 1. Vertical supply pipe (from overhead)
     const supplyPipe = new THREE.Mesh(
       new THREE.CylinderGeometry(0.085, 0.085, 1.5, 12),
@@ -33190,7 +33511,7 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     supplyPipe.position.set(0.8, 1.25, 0.6);
     supplyPipe.castShadow = true;
     nozzleGroup.add(supplyPipe);
-    
+
     // 2. First elbow - connects vertical to horizontal (continuous)
     const elbow1 = new THREE.Mesh(
       new THREE.SphereGeometry(0.105, 16, 12),
@@ -33198,7 +33519,7 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     );
     elbow1.position.set(0.8, 0.5, 0.6);
     nozzleGroup.add(elbow1);
-    
+
     // 3. Horizontal pipe (touches elbow1 exactly)
     const horizPipe = new THREE.Mesh(
       new THREE.CylinderGeometry(0.08, 0.08, 1.2, 12),
@@ -33207,7 +33528,7 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     horizPipe.rotation.z = Math.PI / 2;
     horizPipe.position.set(1.4, 0.5, 0.6);
     nozzleGroup.add(horizPipe);
-    
+
     // 4. Second elbow - connects horizontal to vertical down
     const elbow2 = new THREE.Mesh(
       new THREE.SphereGeometry(0.105, 16, 12),
@@ -33215,7 +33536,7 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     );
     elbow2.position.set(2.0, 0.5, 0.6);
     nozzleGroup.add(elbow2);
-    
+
     // 5. Downward pipe (touches elbow2 exactly)
     const downPipe = new THREE.Mesh(
       new THREE.CylinderGeometry(0.075, 0.075, 0.48, 12),
@@ -33223,7 +33544,7 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     );
     downPipe.position.set(2.0, 0.26, 0.6);
     nozzleGroup.add(downPipe);
-    
+
     // 6. Nozzle valve body (directly connected, NO GAP)
     const valveBody = new THREE.Mesh(
       new THREE.CylinderGeometry(0.13, 0.11, 0.32, 16),
@@ -33231,7 +33552,7 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     );
     valveBody.position.set(2.0, 0.05, 0.6);
     nozzleGroup.add(valveBody);
-    
+
     // 7. Nozzle tip (directly connected to valve body)
     const nozzleTip = new THREE.Mesh(
       new THREE.ConeGeometry(0.048, 0.13, 12),
@@ -33239,7 +33560,7 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     );
     nozzleTip.position.set(2.0, -0.08, 0.6);
     nozzleGroup.add(nozzleTip);
-    
+
     // 8. Glow tip (at nozzle exit)
     const tipGlow = new THREE.Mesh(
       new THREE.SphereGeometry(0.03, 8, 8),
@@ -33248,7 +33569,7 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     tipGlow.position.set(2.0, -0.15, 0.6);
     tipGlow.userData.isTipGlow = true;
     nozzleGroup.add(tipGlow);
-    
+
     // 9. Connection coupler - hides any remaining seam
     const coupler = new THREE.Mesh(
       new THREE.TorusGeometry(0.095, 0.025, 8, 24),
@@ -33257,7 +33578,7 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     coupler.rotation.x = Math.PI / 2;
     coupler.position.set(2.0, 0.21, 0.6);
     nozzleGroup.add(coupler);
-    
+
     // 10. Second coupler at elbow junction
     const coupler2 = new THREE.Mesh(
       new THREE.TorusGeometry(0.095, 0.02, 8, 24),
@@ -33266,11 +33587,11 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
     coupler2.rotation.z = Math.PI / 2;
     coupler2.position.set(1.4, 0.5, 0.6);
     nozzleGroup.add(coupler2);
-    
+
     // Store references for animation
     prCoatGroup.userData.nozzleTipGlow = tipGlow;
     prCoatGroup.userData.nozzleTip = nozzleTip;
-    
+
     console.log('[FIX] Nozzle pipe gap closed - continuous connection established');
   }
 
@@ -33282,22 +33603,22 @@ buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
   }
 
   /** Temporarily disable HMDS + helper collision meshes during pick sequence */
-private _maskCollisions(mask: boolean) {
-  const hmds = this.modObjs['hmds'];
-  if (!hmds) return;
-  hmds.traverse((obj) => {
-    if ((obj as THREE.Mesh).isMesh && obj.userData.collidable !== false) {
-      // Store original raycast behavior, then disable
-      if (mask) {
-        obj.userData._origRaycast = obj.raycast;
-        obj.raycast = () => {};   // no-op disables ghost collisions
-      } else if (obj.userData._origRaycast) {
-        obj.raycast = obj.userData._origRaycast;
-        delete obj.userData._origRaycast;
+  private _maskCollisions(mask: boolean) {
+    const hmds = this.modObjs['hmds'];
+    if (!hmds) return;
+    hmds.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh && obj.userData.collidable !== false) {
+        // Store original raycast behavior, then disable
+        if (mask) {
+          obj.userData._origRaycast = obj.raycast;
+          obj.raycast = () => { };   // no-op disables ghost collisions
+        } else if (obj.userData._origRaycast) {
+          obj.raycast = obj.userData._origRaycast;
+          delete obj.userData._origRaycast;
+        }
       }
-    }
-  });
-}
+    });
+  }
 
   private _disableAllShadows() {
     this.scene.traverse((obj) => {
@@ -33315,1803 +33636,1842 @@ private _maskCollisions(mask: boolean) {
     });
   }
 
-// private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
-//   const ud = robot.group.userData;
-//   const current = (ud.gripperState as number) ?? 0;
-//   const blend = 0.18;
-//   ud.gripperState = lerp(current, targetState, blend);
-//   const g = ud.gripperState as number;
-//   ud.vacuumEngaged = g > 0.7;
- 
-//   // Visual feedback on the blade meshes (Blade_Top / Blade_Bot / Blade_Mount).
-//   // We pulse the emissive of any mesh under the gripper / fork that has a
-//   // standard material — gives a clean "vacuum locked" indicator without
-//   // depending on bone names that may or may not exist.
-//   if (!ud._bladeMats) {
-//     const mats: THREE.MeshStandardMaterial[] = [];
-//     const collect = (node: THREE.Object3D) => {
-//       if ((node as THREE.Mesh).isMesh) {
-//         const m = (node as THREE.Mesh).material as THREE.MeshStandardMaterial;
-//         if (m && (m as any).isMeshStandardMaterial) mats.push(m);
-//       }
-//     };
-//     robot.fork.traverse(collect);
-//     if (robot.gripper && robot.gripper !== robot.fork) robot.gripper.traverse(collect);
-//     ud._bladeMats = mats;
-//     // Cache the original emissive so we can restore on release
-//     ud._bladeEmissiveBase = mats.map(m => ({
-//       hex: m.emissive.getHex(),
-//       intensity: m.emissiveIntensity,
-//     }));
-//   }
- 
-//   const mats        = ud._bladeMats as THREE.MeshStandardMaterial[];
-//   const base        = ud._bladeEmissiveBase as { hex: number; intensity: number }[];
-//   const t           = this.simTime;
-//   const engagedHex  = 0x00ddff;
-//   const engagedAmp  = 1.8 + 1.2 * Math.abs(Math.sin(t * 8));
- 
-//   mats.forEach((m, i) => {
-//     if (g > 0.05) {
-//       // Blend toward cyan emissive when vacuum is on
-//       const tgt = new THREE.Color(engagedHex);
-//       m.emissive.lerp(tgt, 0.15);
-//       m.emissiveIntensity = lerp(m.emissiveIntensity, engagedAmp * g, 0.18);
-//     } else {
-//       // Restore original
-//       const b = base[i];
-//       m.emissive.lerp(new THREE.Color(b.hex), 0.10);
-//       m.emissiveIntensity = lerp(m.emissiveIntensity, b.intensity, 0.10);
-//     }
-//   });
-// }
+  // private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
+  //   const ud = robot.group.userData;
+  //   const current = (ud.gripperState as number) ?? 0;
+  //   const blend = 0.18;
+  //   ud.gripperState = lerp(current, targetState, blend);
+  //   const g = ud.gripperState as number;
+  //   ud.vacuumEngaged = g > 0.7;
+
+  //   // Visual feedback on the blade meshes (Blade_Top / Blade_Bot / Blade_Mount).
+  //   // We pulse the emissive of any mesh under the gripper / fork that has a
+  //   // standard material — gives a clean "vacuum locked" indicator without
+  //   // depending on bone names that may or may not exist.
+  //   if (!ud._bladeMats) {
+  //     const mats: THREE.MeshStandardMaterial[] = [];
+  //     const collect = (node: THREE.Object3D) => {
+  //       if ((node as THREE.Mesh).isMesh) {
+  //         const m = (node as THREE.Mesh).material as THREE.MeshStandardMaterial;
+  //         if (m && (m as any).isMeshStandardMaterial) mats.push(m);
+  //       }
+  //     };
+  //     robot.fork.traverse(collect);
+  //     if (robot.gripper && robot.gripper !== robot.fork) robot.gripper.traverse(collect);
+  //     ud._bladeMats = mats;
+  //     // Cache the original emissive so we can restore on release
+  //     ud._bladeEmissiveBase = mats.map(m => ({
+  //       hex: m.emissive.getHex(),
+  //       intensity: m.emissiveIntensity,
+  //     }));
+  //   }
+
+  //   const mats        = ud._bladeMats as THREE.MeshStandardMaterial[];
+  //   const base        = ud._bladeEmissiveBase as { hex: number; intensity: number }[];
+  //   const t           = this.simTime;
+  //   const engagedHex  = 0x00ddff;
+  //   const engagedAmp  = 1.8 + 1.2 * Math.abs(Math.sin(t * 8));
+
+  //   mats.forEach((m, i) => {
+  //     if (g > 0.05) {
+  //       // Blend toward cyan emissive when vacuum is on
+  //       const tgt = new THREE.Color(engagedHex);
+  //       m.emissive.lerp(tgt, 0.15);
+  //       m.emissiveIntensity = lerp(m.emissiveIntensity, engagedAmp * g, 0.18);
+  //     } else {
+  //       // Restore original
+  //       const b = base[i];
+  //       m.emissive.lerp(new THREE.Color(b.hex), 0.10);
+  //       m.emissiveIntensity = lerp(m.emissiveIntensity, b.intensity, 0.10);
+  //     }
+  //   });
+  // }
 
 
-// private _animRobots(dt: number) {
-//   const t = this.simTime;
-//   const r = this.robotEFEM;
-//   if (!r || !r.runIK) return;
-//   if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
+  // private _animRobots(dt: number) {
+  //   const t = this.simTime;
+  //   const r = this.robotEFEM;
+  //   if (!r || !r.runIK) return;
+  //   if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
 
-//   // ── One-time init ──
-//   if (!r.group.userData.railInit) {
-//     r.group.userData.railX        = r.basePos.x;
-//     r.group.userData.armPhase     = 'idle';
-//     r.group.userData.phaseT       = 0;
-//     r.group.userData.railInit     = true;
-//     r.group.userData.gripperState = 0;
-//     r.group.userData.turretRestY  = r.turret.rotation.y;
-//     r.group.userData._ikYaw      = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
-//     r.group.userData.bezierT      = 0;
-//     r.group.userData.bezierStart  = new THREE.Vector3();
-//     r.group.userData.bezierEnd    = new THREE.Vector3();
-//     r.group.userData.bezierCP1    = new THREE.Vector3();
-//     r.group.userData.bezierCP2    = new THREE.Vector3();
-//     r.group.userData.dwellTimer   = 0;
-//   }
+  //   // ── One-time init ──
+  //   if (!r.group.userData.railInit) {
+  //     r.group.userData.railX        = r.basePos.x;
+  //     r.group.userData.armPhase     = 'idle';
+  //     r.group.userData.phaseT       = 0;
+  //     r.group.userData.railInit     = true;
+  //     r.group.userData.gripperState = 0;
+  //     r.group.userData.turretRestY  = r.turret.rotation.y;
+  //     r.group.userData._ikYaw      = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
+  //     r.group.userData.bezierT      = 0;
+  //     r.group.userData.bezierStart  = new THREE.Vector3();
+  //     r.group.userData.bezierEnd    = new THREE.Vector3();
+  //     r.group.userData.bezierCP1    = new THREE.Vector3();
+  //     r.group.userData.bezierCP2    = new THREE.Vector3();
+  //     r.group.userData.dwellTimer   = 0;
+  //   }
 
-//   // ── Compute finger-to-gripper offset (in gripper local space) ──
-//   // This tells us how far forward the wafer sits relative to the gripper origin
-//   const computeFingerOffset = (): THREE.Vector3 => {
-//     const ud = r.group.userData;
-//     const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-//     const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-//     const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
-//     const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
+  //   // ── Compute finger-to-gripper offset (in gripper local space) ──
+  //   // This tells us how far forward the wafer sits relative to the gripper origin
+  //   const computeFingerOffset = (): THREE.Vector3 => {
+  //     const ud = r.group.userData;
+  //     const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
+  //     const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
+  //     const t2 = ud.fingerTop2  as THREE.Object3D | undefined;
+  //     const d2 = ud.fingerDown2 as THREE.Object3D | undefined;
 
-//     if (!t1 || !d1) return new THREE.Vector3();
+  //     if (!t1 || !d1) return new THREE.Vector3();
 
-//     // Finger world midpoint
-//     const fingerMid = new THREE.Vector3();
-//     const tmp = new THREE.Vector3();
-//     t1.getWorldPosition(tmp); fingerMid.add(tmp);
-//     d1.getWorldPosition(tmp); fingerMid.add(tmp);
-//     if (t2 && d2) {
-//       t2.getWorldPosition(tmp); fingerMid.add(tmp);
-//       d2.getWorldPosition(tmp); fingerMid.add(tmp);
-//       fingerMid.multiplyScalar(0.25);
-//     } else {
-//       fingerMid.multiplyScalar(0.5);
-//     }
+  //     // Finger world midpoint
+  //     const fingerMid = new THREE.Vector3();
+  //     const tmp = new THREE.Vector3();
+  //     t1.getWorldPosition(tmp); fingerMid.add(tmp);
+  //     d1.getWorldPosition(tmp); fingerMid.add(tmp);
+  //     if (t2 && d2) {
+  //       t2.getWorldPosition(tmp); fingerMid.add(tmp);
+  //       d2.getWorldPosition(tmp); fingerMid.add(tmp);
+  //       fingerMid.multiplyScalar(0.25);
+  //     } else {
+  //       fingerMid.multiplyScalar(0.5);
+  //     }
 
-//     // Gripper world position
-//     const gripWP = new THREE.Vector3();
-//     r.gripper.getWorldPosition(gripWP);
+  //     // Gripper world position
+  //     const gripWP = new THREE.Vector3();
+  //     r.gripper.getWorldPosition(gripWP);
 
-//     // Offset = how far fingers extend past gripper origin
-//     return fingerMid.clone().sub(gripWP);
-//   };
+  //     // Offset = how far fingers extend past gripper origin
+  //     return fingerMid.clone().sub(gripWP);
+  //   };
 
-//   // ── Helper: convert "where wafer should be" → "where gripper should be" ──
-//   const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
-//     const fingerOffset = computeFingerOffset();
-//     // Subtract finger offset so fingers (not gripper) end up at waferTarget
-//     return waferTarget.clone().sub(fingerOffset);
-//   };
+  //   // ── Helper: convert "where wafer should be" → "where gripper should be" ──
+  //   const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
+  //     const fingerOffset = computeFingerOffset();
+  //     // Subtract finger offset so fingers (not gripper) end up at waferTarget
+  //     return waferTarget.clone().sub(fingerOffset);
+  //   };
 
-//   // ── Keep-out collision clamp (FOUP / scanner) ────────────────────────────
-//   const APPROACH_OFFSET = 0.25;
-//   const RETRACT_DIST = 0.3;
-//   const TRANSFER_MIN_Y = 0.18;
-//   const keepOut = (id: "foup" | "scanner", desired: THREE.Vector3, from: THREE.Vector3): THREE.Vector3 => {
-//     const box = this._blockBoxes[id];
-//     if (!box) return desired;
-//     // If desired point is inside the box, pull it out along the approach ray.
-//     if (!box.containsPoint(desired)) return desired;
-//     const dir = desired.clone().sub(from);
-//     if (dir.lengthSq() < 1e-6) return desired;
-//     dir.normalize();
-//     // Walk out of the box by stepping backwards.
-//     const out = desired.clone();
-//     for (let i = 0; i < 20 && box.containsPoint(out); i++) {
-//       out.addScaledVector(dir, -0.08);
-//     }
-//     return out;
-//   };
+  //   // ── Keep-out collision clamp (FOUP / scanner) ────────────────────────────
+  //   const APPROACH_OFFSET = 0.25;
+  //   const RETRACT_DIST = 0.3;
+  //   const TRANSFER_MIN_Y = 0.18;
+  //   const keepOut = (id: "foup" | "scanner", desired: THREE.Vector3, from: THREE.Vector3): THREE.Vector3 => {
+  //     const box = this._blockBoxes[id];
+  //     if (!box) return desired;
+  //     // If desired point is inside the box, pull it out along the approach ray.
+  //     if (!box.containsPoint(desired)) return desired;
+  //     const dir = desired.clone().sub(from);
+  //     if (dir.lengthSq() < 1e-6) return desired;
+  //     dir.normalize();
+  //     // Walk out of the box by stepping backwards.
+  //     const out = desired.clone();
+  //     for (let i = 0; i < 20 && box.containsPoint(out); i++) {
+  //       out.addScaledVector(dir, -0.08);
+  //     }
+  //     return out;
+  //   };
 
-//   // ── Carried wafers: transform owned by gripper.attach(); no world-space lerp ──
+  //   // ── Carried wafers: transform owned by gripper.attach(); no world-space lerp ──
 
-//   // ── Find target wafer ──
-//   const carried = this.wSMs.find(
-//     (w) => w.launched && !w.done && w.carrierRobot === r
-//   );
-//   const waiting = this.wSMs.find(
-//     (w) => w.launched && !w.done && !w.carrierRobot &&
-//            w.state === 'track_approach' && !(w as any)._picked
-//   );
-//   const target = carried ?? waiting ?? null;
+  //   // ── Find target wafer ──
+  //   const carried = this.wSMs.find(
+  //     (w) => w.launched && !w.done && w.carrierRobot === r
+  //   );
+  //   const waiting = this.wSMs.find(
+  //     (w) => w.launched && !w.done && !w.carrierRobot &&
+  //            w.state === 'track_approach' && !(w as any)._picked
+  //   );
+  //   const target = carried ?? waiting ?? null;
 
-//   const ud = r.group.userData;
+  //   const ud = r.group.userData;
 
-//   // Smooth easing
-//   const sCurve = (x: number) => {
-//     x = Math.max(0, Math.min(1, x));
-//     return x * x * (3 - 2 * x);
-//   };
+  //   // Smooth easing
+  //   const sCurve = (x: number) => {
+  //     x = Math.max(0, Math.min(1, x));
+  //     return x * x * (3 - 2 * x);
+  //   };
 
-//   // Bezier evaluator
-//   const evalBezier = (out: THREE.Vector3, t01: number) => {
-//     const p0 = ud.bezierStart as THREE.Vector3;
-//     const p1 = ud.bezierCP1   as THREE.Vector3;
-//     const p2 = ud.bezierCP2   as THREE.Vector3;
-//     const p3 = ud.bezierEnd   as THREE.Vector3;
-//     const u = 1 - t01, u2 = u * u, u3 = u2 * u;
-//     const tt = t01 * t01, ttt = tt * t01;
-//     out.set(
-//       u3 * p0.x + 3 * u2 * t01 * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
-//       u3 * p0.y + 3 * u2 * t01 * p1.y + 3 * u * tt * p2.y + ttt * p3.y,
-//       u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
-//     );
-//   };
+  //   // Bezier evaluator
+  //   const evalBezier = (out: THREE.Vector3, t01: number) => {
+  //     const p0 = ud.bezierStart as THREE.Vector3;
+  //     const p1 = ud.bezierCP1   as THREE.Vector3;
+  //     const p2 = ud.bezierCP2   as THREE.Vector3;
+  //     const p3 = ud.bezierEnd   as THREE.Vector3;
+  //     const u = 1 - t01, u2 = u * u, u3 = u2 * u;
+  //     const tt = t01 * t01, ttt = tt * t01;
+  //     out.set(
+  //       u3 * p0.x + 3 * u2 * t01 * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
+  //       u3 * p0.y + 3 * u2 * t01 * p1.y + 3 * u * tt * p2.y + ttt * p3.y,
+  //       u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
+  //     );
+  //   };
 
-//   // Rail target + integration BEFORE runIK.
-//   // DISABLED: full-track robot travel. EFEM only handles FOUP -> DEHY handoff.
-//  // Rail target + integration BEFORE runIK.
-//   // Robot travels the full track to service all 4 handoff zones.
-//   const RAIL_MIN = -22;
-//   const RAIL_MAX = 32;
-//   let dropStep = ALL_STEPS[0];
-//   let prevStep = ALL_STEPS[0];
-//   let pickupX = r.basePos.x;
-//   let pickupZ = 0;
-//   let isPicked = false;
-//   let railTargetX = ud.railX as number;
+  //   // Rail target + integration BEFORE runIK.
+  //   // DISABLED: full-track robot travel. EFEM only handles FOUP -> DEHY handoff.
+  //  // Rail target + integration BEFORE runIK.
+  //   // Robot travels the full track to service all 4 handoff zones.
+  //   const RAIL_MIN = -22;
+  //   const RAIL_MAX = 32;
+  //   let dropStep = ALL_STEPS[0];
+  //   let prevStep = ALL_STEPS[0];
+  //   let pickupX = r.basePos.x;
+  //   let pickupZ = 0;
+  //   let isPicked = false;
+  //   let railTargetX = ud.railX as number;
 
-//   if (target) {
-//     dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
-//     const prevStepIdx = Math.max(target.stepIdx - 1, 0);
-//     prevStep = ALL_STEPS[prevStepIdx];
-//     pickupX = (target as any)._pickupX as number ?? prevStep.x;
-//     pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
-//     isPicked = !!(target as any)._picked;
-//     railTargetX = clamp(isPicked ? dropStep.x : pickupX, RAIL_MIN, RAIL_MAX);
-//   }
+  //   if (target) {
+  //     dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
+  //     const prevStepIdx = Math.max(target.stepIdx - 1, 0);
+  //     prevStep = ALL_STEPS[prevStepIdx];
+  //     pickupX = (target as any)._pickupX as number ?? prevStep.x;
+  //     pickupZ = (target as any)._pickupZ as number ?? prevStep.z;
+  //     isPicked = !!(target as any)._picked;
+  //     railTargetX = clamp(isPicked ? dropStep.x : pickupX, RAIL_MIN, RAIL_MAX);
+  //   }
 
-//   // Smooth rail movement
-//   const railSpeed = 6.0;
-//   const currentRailX = ud.railX as number;
-//   const dxRail = railTargetX - currentRailX;
-//   const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * dt * this.speed);
-//   ud.railX = currentRailX + railStep;
-//   r.group.position.x = ud.railX as number;
+  //   // Smooth rail movement
+  //   const railSpeed = 6.0;
+  //   const currentRailX = ud.railX as number;
+  //   const dxRail = railTargetX - currentRailX;
+  //   const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * dt * this.speed);
+  //   ud.railX = currentRailX + railStep;
+  //   r.group.position.x = ud.railX as number;
 
-//   if (!target) {
-//     ud.armPhase = 'idle';
-//     ud.phaseT = 0;
-//     const idleTgt = new THREE.Vector3(
-//       r.group.position.x,
-//       1.8,
-//       Math.sin(t * 0.22) * 1.5
-//     );
-//     r.runIK(targetForGripper(idleTgt));
-//     this._setGripperState(r, 0, dt);
+  //   if (!target) {
+  //     ud.armPhase = 'idle';
+  //     ud.phaseT = 0;
+  //     const idleTgt = new THREE.Vector3(
+  //       r.group.position.x,
+  //       1.8,
+  //       Math.sin(t * 0.22) * 1.5
+  //     );
+  //     r.runIK(targetForGripper(idleTgt));
+  //     this._setGripperState(r, 0, dt);
 
-//   } else {
-//     // if (target.stepIdx > 1 && !target.carrierRobot) {
-//     //   // DISABLED:
-//     //   // Robot should only transfer FOUP → Dehydration Bake.
-//     //   // Downstream handling is conveyor-owned.
-//     //   ud.armPhase = 'idle';
-//     //   ud.phaseT = 0;
-//     //   return;
-//     // }
-//     const railX = ud.railX as number;
-//     const distPick = Math.abs(railX - pickupX);
-//     const distDrop = Math.abs(railX - dropStep.x);
+  //   } else {
+  //     // if (target.stepIdx > 1 && !target.carrierRobot) {
+  //     //   // DISABLED:
+  //     //   // Robot should only transfer FOUP → Dehydration Bake.
+  //     //   // Downstream handling is conveyor-owned.
+  //     //   ud.armPhase = 'idle';
+  //     //   ud.phaseT = 0;
+  //     //   return;
+  //     // }
+  //     const railX = ud.railX as number;
+  //     const distPick = Math.abs(railX - pickupX);
+  //     const distDrop = Math.abs(railX - dropStep.x);
 
-//     ud.phaseT = (ud.phaseT as number) + dt * this.speed;
-//     const phaseT = ud.phaseT as number;
-//     const phase  = ud.armPhase as string;
+  //     ud.phaseT = (ud.phaseT as number) + dt * this.speed;
+  //     const phaseT = ud.phaseT as number;
+  //     const phase  = ud.armPhase as string;
 
-//     const pickWorld = new THREE.Vector3();
-//     if (prevStep.type === "foup") {
-//       const foupGrp = this.modObjs["foup"];
-//       const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-//       const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-//       if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(pickWorld);
-//       else pickWorld.set(pickupX, 1.55, pickupZ);
-//     } else {
-//       const modGrp = this.modObjs[prevStep.id];
-//       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-//       if (wa) wa.getWorldPosition(pickWorld);
-//       else pickWorld.set(pickupX, 0.93, pickupZ);
-//     }
+  //     const pickWorld = new THREE.Vector3();
+  //     if (prevStep.type === "foup") {
+  //       const foupGrp = this.modObjs["foup"];
+  //       const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+  //       const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+  //       if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(pickWorld);
+  //       else pickWorld.set(pickupX, 1.55, pickupZ);
+  //     } else {
+  //       const modGrp = this.modObjs[prevStep.id];
+  //       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+  //       if (wa) wa.getWorldPosition(pickWorld);
+  //       else pickWorld.set(pickupX, 0.93, pickupZ);
+  //     }
 
-//     const dropWorld = new THREE.Vector3();
-//     // Step 16 = return wafer to FOUP after hardbake
-//     const returnToFoup = target.stepIdx >= ALL_STEPS.length;
-//     if (dropStep.type === "foup" || returnToFoup) {
-//       const foupGrp = this.modObjs["foup"];
-//       const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-//       const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-//       if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(dropWorld);
-//       else dropWorld.set(ALL_STEPS[0].x, 1.55, ALL_STEPS[0].z);
-//     } else {
-//       const modGrp = this.modObjs[dropStep.id];
-//       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-//       if (wa) wa.getWorldPosition(dropWorld);
-//       else dropWorld.set(dropStep.x, 0.93, dropStep.z);
-//     }
+  //     const dropWorld = new THREE.Vector3();
+  //     // Step 16 = return wafer to FOUP after hardbake
+  //     const returnToFoup = target.stepIdx >= ALL_STEPS.length;
+  //     if (dropStep.type === "foup" || returnToFoup) {
+  //       const foupGrp = this.modObjs["foup"];
+  //       const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+  //       const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+  //       if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(dropWorld);
+  //       else dropWorld.set(ALL_STEPS[0].x, 1.55, ALL_STEPS[0].z);
+  //     } else {
+  //       const modGrp = this.modObjs[dropStep.id];
+  //       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+  //       if (wa) wa.getWorldPosition(dropWorld);
+  //       else dropWorld.set(dropStep.x, 0.93, dropStep.z);
+  //     }
 
-//     // ── Safe approach / collision rules ────────────────────────────────────
-//     const APPROACH_OFFSET = 0.4;      // vertical approach height above port
-//     const APPROACH_BACKOFF = 0.25;    // stop short of equipment opening
-//     const RETRACT_DIST = 0.3;         // pull out before lifting/turning
-//     const TRANSFER_MIN_Y = 0.18;      // never dip into floor/under-plinth plane
-//     // Wafer geometry from buildWafer(): thickness H=0.035 so half=0.0175.
-//     const WAFER_HALF_T = 0.0175;
-//     // Fork should sit slightly under wafer bottom before vacuum (mm-level clearance).
-//     const PICK_CLEARANCE = 0.003;
-//     const SAFE_HEIGHT     = 2.4;
+  //     // ── Safe approach / collision rules ────────────────────────────────────
+  //     const APPROACH_OFFSET = 0.4;      // vertical approach height above port
+  //     const APPROACH_BACKOFF = 0.25;    // stop short of equipment opening
+  //     const RETRACT_DIST = 0.3;         // pull out before lifting/turning
+  //     const TRANSFER_MIN_Y = 0.18;      // never dip into floor/under-plinth plane
+  //     // Wafer geometry from buildWafer(): thickness H=0.035 so half=0.0175.
+  //     const WAFER_HALF_T = 0.0175;
+  //     // Fork should sit slightly under wafer bottom before vacuum (mm-level clearance).
+  //     const PICK_CLEARANCE = 0.003;
+  //     const SAFE_HEIGHT     = 2.4;
 
-//     if (!isPicked) {
-//       // Approach direction: from TCP toward the port (used for backoff + retract).
-//       const tcpNow = new THREE.Vector3();
-//       r.gripper.getWorldPosition(tcpNow);
-//       const approachDir = pickWorld.clone().sub(tcpNow);
-//       if (approachDir.lengthSq() > 1e-6) approachDir.normalize();
+  //     if (!isPicked) {
+  //       // Approach direction: from TCP toward the port (used for backoff + retract).
+  //       const tcpNow = new THREE.Vector3();
+  //       r.gripper.getWorldPosition(tcpNow);
+  //       const approachDir = pickWorld.clone().sub(tcpNow);
+  //       if (approachDir.lengthSq() > 1e-6) approachDir.normalize();
 
-//       // Back off along approach ray so TCP never enters FOUP/scanner volume.
-//       const backoffBase = pickWorld.clone().addScaledVector(approachDir, -APPROACH_BACKOFF);
-//       const backoffSafe = prevStep.type === "foup"
-//         ? keepOut("foup", backoffBase, tcpNow)
-//         : (prevStep.id === "scanner" ? keepOut("scanner", backoffBase, tcpNow) : backoffBase);
+  //       // Back off along approach ray so TCP never enters FOUP/scanner volume.
+  //       const backoffBase = pickWorld.clone().addScaledVector(approachDir, -APPROACH_BACKOFF);
+  //       const backoffSafe = prevStep.type === "foup"
+  //         ? keepOut("foup", backoffBase, tcpNow)
+  //         : (prevStep.id === "scanner" ? keepOut("scanner", backoffBase, tcpNow) : backoffBase);
 
-//       const approachPos = new THREE.Vector3(backoffSafe.x, pickWorld.y + APPROACH_OFFSET + 0.4, backoffSafe.z);
-//       const insertPos   = new THREE.Vector3(backoffSafe.x, pickWorld.y + APPROACH_OFFSET,       backoffSafe.z);
-//       const contactPos  = new THREE.Vector3(
-//         pickWorld.x,
-//         // Align fork surface just below wafer bottom.
-//         pickWorld.y - WAFER_HALF_T + PICK_CLEARANCE,
-//         pickWorld.z
-//       );
-//       contactPos.y = Math.max(contactPos.y, TRANSFER_MIN_Y);
+  //       const approachPos = new THREE.Vector3(backoffSafe.x, pickWorld.y + APPROACH_OFFSET + 0.4, backoffSafe.z);
+  //       const insertPos   = new THREE.Vector3(backoffSafe.x, pickWorld.y + APPROACH_OFFSET,       backoffSafe.z);
+  //       const contactPos  = new THREE.Vector3(
+  //         pickWorld.x,
+  //         // Align fork surface just below wafer bottom.
+  //         pickWorld.y - WAFER_HALF_T + PICK_CLEARANCE,
+  //         pickWorld.z
+  //       );
+  //       contactPos.y = Math.max(contactPos.y, TRANSFER_MIN_Y);
 
-//       switch (phase) {
-//         case 'idle':
-//         case 'retract':
-//           ud.armPhase = 'approach';
-//           ud.phaseT = 0;
-//           break;
+  //       switch (phase) {
+  //         case 'idle':
+  //         case 'retract':
+  //           ud.armPhase = 'approach';
+  //           ud.phaseT = 0;
+  //           break;
 
-//         case 'approach':
-//           r.runIK(targetForGripper(approachPos));
-//           this._setGripperState(r, 0, dt);
-//           if (distPick < 1.0 && phaseT > 0.6) {
-//             ud.armPhase = 'insert';
-//             ud.phaseT = 0;
-//           }
-//           break;
+  //         case 'approach':
+  //           r.runIK(targetForGripper(approachPos));
+  //           this._setGripperState(r, 0, dt);
+  //           if (distPick < 1.0 && phaseT > 0.6) {
+  //             ud.armPhase = 'insert';
+  //             ud.phaseT = 0;
+  //           }
+  //           break;
 
-//         case 'insert': {
-//           const p = sCurve(Math.min(phaseT / 0.9, 1));
-//           const tgt = new THREE.Vector3().lerpVectors(approachPos, insertPos, p);
-//           r.runIK(targetForGripper(tgt));
-//           this._setGripperState(r, 0, dt);
-//           if (p >= 1) {
-//             ud.armPhase = 'contact';
-//             ud.phaseT = 0;
-//           }
-//           break;
-//         }
+  //         case 'insert': {
+  //           const p = sCurve(Math.min(phaseT / 0.9, 1));
+  //           const tgt = new THREE.Vector3().lerpVectors(approachPos, insertPos, p);
+  //           r.runIK(targetForGripper(tgt));
+  //           this._setGripperState(r, 0, dt);
+  //           if (p >= 1) {
+  //             ud.armPhase = 'contact';
+  //             ud.phaseT = 0;
+  //           }
+  //           break;
+  //         }
 
-//         case 'contact': {
-//           const p = sCurve(Math.min(phaseT / 0.5, 1));
-//           const tgt = new THREE.Vector3().lerpVectors(insertPos, contactPos, p);
-//           r.runIK(targetForGripper(tgt));
-//           this._setGripperState(r, 0.3, dt);
-//           if (p >= 1) {
-//             ud.armPhase = 'vacuum_dwell';
-//             ud.phaseT = 0;
-//             ud.dwellTimer = 0;
-//           }
-//           break;
-//         }
+  //         case 'contact': {
+  //           const p = sCurve(Math.min(phaseT / 0.5, 1));
+  //           const tgt = new THREE.Vector3().lerpVectors(insertPos, contactPos, p);
+  //           r.runIK(targetForGripper(tgt));
+  //           this._setGripperState(r, 0.3, dt);
+  //           if (p >= 1) {
+  //             ud.armPhase = 'vacuum_dwell';
+  //             ud.phaseT = 0;
+  //             ud.dwellTimer = 0;
+  //           }
+  //           break;
+  //         }
 
-//         case 'vacuum_dwell': {
-//           ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
-//           const dwellP = (ud.dwellTimer as number) / 0.5;
-//           const settleY = Math.sin(dwellP * Math.PI) * 0.008;
-//           const settledPos = contactPos.clone();
-//           settledPos.y -= settleY;
-//           r.runIK(targetForGripper(settledPos));
-//           this._setGripperState(r, 1, dt);
+  //         case 'vacuum_dwell': {
+  //           ud.dwellTimer = (ud.dwellTimer as number) + dt * this.speed;
+  //           const dwellP = (ud.dwellTimer as number) / 0.5;
+  //           const settleY = Math.sin(dwellP * Math.PI) * 0.008;
+  //           const settledPos = contactPos.clone();
+  //           settledPos.y -= settleY;
+  //           r.runIK(targetForGripper(settledPos));
+  //           this._setGripperState(r, 1, dt);
 
-//           r.group.updateWorldMatrix(true, true);
-//           // TCP = gripper origin + finger midpoint offset (same basis as targetForGripper / runIK).
-//           const gripWP = new THREE.Vector3();
-//           r.gripper.getWorldPosition(gripWP);
-//           const tcpWorld = gripWP.clone().add(computeFingerOffset());
-//           // Did the arm reach the commanded contact point (not wafer mesh pivot — that can be metres away)?
-//           const ikErr = tcpWorld.distanceTo(settledPos);
-//           const waferWp = new THREE.Vector3();
-//           target.mesh.getWorldPosition(waferWp);
-//           const waferToTcp = tcpWorld.distanceTo(waferWp);
-//           const sx = Math.max(Math.abs(r.group.scale.x), 0.35);
-//           const PICK_IK_TOL = Math.max(0.12, 0.06 * sx);
-//           const PICK_WAFER_TOL = Math.max(0.22, 0.1 * sx);
-//           const ALIGN_TIMEOUT = 1.2;
-//           const dwell = ud.dwellTimer as number;
-//           const aligned = ikErr < PICK_IK_TOL || waferToTcp < PICK_WAFER_TOL;
-//           const canAttach = dwell >= 0.45 && (aligned || dwell >= ALIGN_TIMEOUT);
+  //           r.group.updateWorldMatrix(true, true);
+  //           // TCP = gripper origin + finger midpoint offset (same basis as targetForGripper / runIK).
+  //           const gripWP = new THREE.Vector3();
+  //           r.gripper.getWorldPosition(gripWP);
+  //           const tcpWorld = gripWP.clone().add(computeFingerOffset());
+  //           // Did the arm reach the commanded contact point (not wafer mesh pivot — that can be metres away)?
+  //           const ikErr = tcpWorld.distanceTo(settledPos);
+  //           const waferWp = new THREE.Vector3();
+  //           target.mesh.getWorldPosition(waferWp);
+  //           const waferToTcp = tcpWorld.distanceTo(waferWp);
+  //           const sx = Math.max(Math.abs(r.group.scale.x), 0.35);
+  //           const PICK_IK_TOL = Math.max(0.12, 0.06 * sx);
+  //           const PICK_WAFER_TOL = Math.max(0.22, 0.1 * sx);
+  //           const ALIGN_TIMEOUT = 1.2;
+  //           const dwell = ud.dwellTimer as number;
+  //           const aligned = ikErr < PICK_IK_TOL || waferToTcp < PICK_WAFER_TOL;
+  //           const canAttach = dwell >= 0.45 && (aligned || dwell >= ALIGN_TIMEOUT);
 
-//           if (canAttach) {
-//             if (!aligned && dwell >= ALIGN_TIMEOUT) {
-//               console.warn('[PICK] alignment timeout — attach anyway', {
-//                 wi: target.wi,
-//                 ikErr: +ikErr.toFixed(3),
-//                 waferToTcp: +waferToTcp.toFixed(3),
-//                 tolIk: +PICK_IK_TOL.toFixed(3),
-//               });
-//             } else {
-//               console.log('[PICK] aligned', {
-//                 wi: target.wi,
-//                 ikErr: +ikErr.toFixed(3),
-//                 waferToTcp: +waferToTcp.toFixed(3),
-//               });
-//             }
-//             target.attachTo(r);
-//             (target as any)._picked = true;
-//             this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED → ${prevStep.short}`, 'pick');
+  //           if (canAttach) {
+  //             if (!aligned && dwell >= ALIGN_TIMEOUT) {
+  //               console.warn('[PICK] alignment timeout — attach anyway', {
+  //                 wi: target.wi,
+  //                 ikErr: +ikErr.toFixed(3),
+  //                 waferToTcp: +waferToTcp.toFixed(3),
+  //                 tolIk: +PICK_IK_TOL.toFixed(3),
+  //               });
+  //             } else {
+  //               console.log('[PICK] aligned', {
+  //                 wi: target.wi,
+  //                 ikErr: +ikErr.toFixed(3),
+  //                 waferToTcp: +waferToTcp.toFixed(3),
+  //               });
+  //             }
+  //             target.attachTo(r);
+  //             (target as any)._picked = true;
+  //             this._addLog(`[${WAFER_NAMES[target.wi]}] VACUUM ENGAGED → ${prevStep.short}`, 'pick');
 
-//             const startW = contactPos.clone();
-//             const endW   = new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET + 0.4, dropWorld.z);
-//             (ud.bezierStart as THREE.Vector3).copy(startW);
-//             (ud.bezierEnd as THREE.Vector3).copy(endW);
-//             (ud.bezierCP1 as THREE.Vector3).set(startW.x, SAFE_HEIGHT, startW.z);
-//             (ud.bezierCP2 as THREE.Vector3).set(endW.x, SAFE_HEIGHT, endW.z);
-//             ud.bezierT = 0;
+  //             const startW = contactPos.clone();
+  //             const endW   = new THREE.Vector3(dropWorld.x, dropWorld.y + APPROACH_OFFSET + 0.4, dropWorld.z);
+  //             (ud.bezierStart as THREE.Vector3).copy(startW);
+  //             (ud.bezierEnd as THREE.Vector3).copy(endW);
+  //             (ud.bezierCP1 as THREE.Vector3).set(startW.x, SAFE_HEIGHT, startW.z);
+  //             (ud.bezierCP2 as THREE.Vector3).set(endW.x, SAFE_HEIGHT, endW.z);
+  //             ud.bezierT = 0;
 
-//             ud.postAttachHold = 0;
-//             ud.armPhase = 'lift';
-//             ud.phaseT = 0;
-//           }
-//           break;
-//         }
+  //             ud.postAttachHold = 0;
+  //             ud.armPhase = 'lift';
+  //             ud.phaseT = 0;
+  //           }
+  //           break;
+  //         }
 
-//         case 'lift': {
-//           const hold = (ud.postAttachHold as number) ?? 0;
-//           ud.postAttachHold = hold + dt * this.speed;
-//           // 0–0.2s: settle at contact
-//           if (hold < 0.2) {
-//             r.runIK(targetForGripper(contactPos));
-//             this._setGripperState(r, 1, dt);
-//             break;
-//           }
-//           // 0.2–0.4s: retract out of port before lifting/turning (prevents collisions)
-//           if (hold < 0.4) {
-//             const retractPos = contactPos.clone().addScaledVector(approachDir, -RETRACT_DIST);
-//             retractPos.y = Math.max(retractPos.y, TRANSFER_MIN_Y);
-//             r.runIK(targetForGripper(retractPos));
-//             this._setGripperState(r, 1, dt);
-//             break;
-//           }
-//           const liftPos = new THREE.Vector3(pickWorld.x, SAFE_HEIGHT, pickWorld.z);
-//           const p = sCurve(Math.min(phaseT / 0.7, 1));
-//           const tgt = new THREE.Vector3().lerpVectors(contactPos, liftPos, p);
-//           r.runIK(targetForGripper(tgt));
-//           this._setGripperState(r, 1, dt);
-//           if (p >= 1) {
-//             delete ud.postAttachHold;
-//             ud.armPhase = 'transport';
-//             ud.phaseT = 0;
-//             ud.bezierT = 0;
-//           }
-//           break;
-//         }
+  //         case 'lift': {
+  //           const hold = (ud.postAttachHold as number) ?? 0;
+  //           ud.postAttachHold = hold + dt * this.speed;
+  //           // 0–0.2s: settle at contact
+  //           if (hold < 0.2) {
+  //             r.runIK(targetForGripper(contactPos));
+  //             this._setGripperState(r, 1, dt);
+  //             break;
+  //           }
+  //           // 0.2–0.4s: retract out of port before lifting/turning (prevents collisions)
+  //           if (hold < 0.4) {
+  //             const retractPos = contactPos.clone().addScaledVector(approachDir, -RETRACT_DIST);
+  //             retractPos.y = Math.max(retractPos.y, TRANSFER_MIN_Y);
+  //             r.runIK(targetForGripper(retractPos));
+  //             this._setGripperState(r, 1, dt);
+  //             break;
+  //           }
+  //           const liftPos = new THREE.Vector3(pickWorld.x, SAFE_HEIGHT, pickWorld.z);
+  //           const p = sCurve(Math.min(phaseT / 0.7, 1));
+  //           const tgt = new THREE.Vector3().lerpVectors(contactPos, liftPos, p);
+  //           r.runIK(targetForGripper(tgt));
+  //           this._setGripperState(r, 1, dt);
+  //           if (p >= 1) {
+  //             delete ud.postAttachHold;
+  //             ud.armPhase = 'transport';
+  //             ud.phaseT = 0;
+  //             ud.bezierT = 0;
+  //           }
+  //           break;
+  //         }
 
-//         default:
-//           ud.armPhase = 'approach';
-//           ud.phaseT = 0;
-//           break;
-//       }
+  //         default:
+  //           ud.armPhase = 'approach';
+  //           ud.phaseT = 0;
+  //           break;
+  //       }
 
-//     } else {
-//       // Place target uses module waferAnchor (chuck top reference). Drop world pos is anchor.
-//       // Wafer should sit on chuck: wafer center = chuckTop + waferHalfThickness.
-//       const tcpNow = new THREE.Vector3();
-//       r.gripper.getWorldPosition(tcpNow);
-//       const approachDir = dropWorld.clone().sub(tcpNow);
-//       if (approachDir.lengthSq() > 1e-6) approachDir.normalize();
-//       const backoffBase = dropWorld.clone().addScaledVector(approachDir, -APPROACH_BACKOFF);
-//       const backoffSafe = dropStep.id === "scanner"
-//         ? keepOut("scanner", backoffBase, tcpNow)
-//         : backoffBase;
+  //     } else {
+  //       // Place target uses module waferAnchor (chuck top reference). Drop world pos is anchor.
+  //       // Wafer should sit on chuck: wafer center = chuckTop + waferHalfThickness.
+  //       const tcpNow = new THREE.Vector3();
+  //       r.gripper.getWorldPosition(tcpNow);
+  //       const approachDir = dropWorld.clone().sub(tcpNow);
+  //       if (approachDir.lengthSq() > 1e-6) approachDir.normalize();
+  //       const backoffBase = dropWorld.clone().addScaledVector(approachDir, -APPROACH_BACKOFF);
+  //       const backoffSafe = dropStep.id === "scanner"
+  //         ? keepOut("scanner", backoffBase, tcpNow)
+  //         : backoffBase;
 
-//       const approachDrop = new THREE.Vector3(backoffSafe.x, dropWorld.y + APPROACH_OFFSET + 0.4, backoffSafe.z);
-//       const insertDrop   = new THREE.Vector3(backoffSafe.x, dropWorld.y + APPROACH_OFFSET,       backoffSafe.z);
-//       const placePos     = new THREE.Vector3(dropWorld.x, dropWorld.y + WAFER_HALF_T, dropWorld.z);
-//       placePos.y = Math.max(placePos.y, TRANSFER_MIN_Y);
+  //       const approachDrop = new THREE.Vector3(backoffSafe.x, dropWorld.y + APPROACH_OFFSET + 0.4, backoffSafe.z);
+  //       const insertDrop   = new THREE.Vector3(backoffSafe.x, dropWorld.y + APPROACH_OFFSET,       backoffSafe.z);
+  //       const placePos     = new THREE.Vector3(dropWorld.x, dropWorld.y + WAFER_HALF_T, dropWorld.z);
+  //       placePos.y = Math.max(placePos.y, TRANSFER_MIN_Y);
 
-//       switch (phase) {
-//         case 'lift':
-//         case 'transport':
-//         case 'carry':
-//         case 'rise': {
-//           ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.45, 1);
-//           const tBz = sCurve(ud.bezierT as number);
-//           const tgt = new THREE.Vector3();
-//           evalBezier(tgt, tBz);
-//           r.runIK(targetForGripper(tgt));
-//           this._setGripperState(r, 1, dt);
-//           if ((ud.bezierT as number) >= 1) {
-//             ud.armPhase = 'lower';
-//             ud.phaseT = 0;
-//           }
-//           break;
-//         }
+  //       switch (phase) {
+  //         case 'lift':
+  //         case 'transport':
+  //         case 'carry':
+  //         case 'rise': {
+  //           ud.bezierT = Math.min((ud.bezierT as number) + dt * this.speed * 0.45, 1);
+  //           const tBz = sCurve(ud.bezierT as number);
+  //           const tgt = new THREE.Vector3();
+  //           evalBezier(tgt, tBz);
+  //           r.runIK(targetForGripper(tgt));
+  //           this._setGripperState(r, 1, dt);
+  //           if ((ud.bezierT as number) >= 1) {
+  //             ud.armPhase = 'lower';
+  //             ud.phaseT = 0;
+  //           }
+  //           break;
+  //         }
 
-//         case 'lower': {
-//           const p = sCurve(Math.min(phaseT / 0.8, 1));
-//           const tgt = new THREE.Vector3().lerpVectors(approachDrop, insertDrop, p);
-//           r.runIK(targetForGripper(tgt));
-//           this._setGripperState(r, 1, dt);
-//           if (p >= 1) {
-//             ud.armPhase = 'place_contact';
-//             ud.phaseT = 0;
-//           }
-//           break;
-//         }
+  //         case 'lower': {
+  //           const p = sCurve(Math.min(phaseT / 0.8, 1));
+  //           const tgt = new THREE.Vector3().lerpVectors(approachDrop, insertDrop, p);
+  //           r.runIK(targetForGripper(tgt));
+  //           this._setGripperState(r, 1, dt);
+  //           if (p >= 1) {
+  //             ud.armPhase = 'place_contact';
+  //             ud.phaseT = 0;
+  //           }
+  //           break;
+  //         }
 
-//         case 'place_contact': {
-//           const p = sCurve(Math.min(phaseT / 0.5, 1));
-//           const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
-//           r.runIK(targetForGripper(tgt));
-//           this._setGripperState(r, 1, dt);
-//           if (p >= 1) {
-//             ud.armPhase = 'release';
-//             ud.phaseT = 0;
-//           }
-//           break;
-//         }
+  //         case 'place_contact': {
+  //           const p = sCurve(Math.min(phaseT / 0.5, 1));
+  //           const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
+  //           r.runIK(targetForGripper(tgt));
+  //           this._setGripperState(r, 1, dt);
+  //           if (p >= 1) {
+  //             ud.armPhase = 'release';
+  //             ud.phaseT = 0;
+  //           }
+  //           break;
+  //         }
 
-//         case 'release': {
-//           // Validate finger midpoint vs target
-//           const fingerMid = new THREE.Vector3();
-//           const tmp = new THREE.Vector3();
-//           const fT1 = ud.fingerTop1 as THREE.Object3D | undefined;
-//           const fD1 = ud.fingerDown1 as THREE.Object3D | undefined;
-//           if (fT1 && fD1) {
-//             fT1.getWorldPosition(tmp); fingerMid.add(tmp);
-//             fD1.getWorldPosition(tmp); fingerMid.add(tmp);
-//             fingerMid.multiplyScalar(0.5);
-//           }
-//           const targetPos = dropWorld.clone();
-//           const posError = fingerMid.distanceTo(targetPos);
+  //         case 'release': {
+  //           // Validate finger midpoint vs target
+  //           const fingerMid = new THREE.Vector3();
+  //           const tmp = new THREE.Vector3();
+  //           const fT1 = ud.fingerTop1 as THREE.Object3D | undefined;
+  //           const fD1 = ud.fingerDown1 as THREE.Object3D | undefined;
+  //           if (fT1 && fD1) {
+  //             fT1.getWorldPosition(tmp); fingerMid.add(tmp);
+  //             fD1.getWorldPosition(tmp); fingerMid.add(tmp);
+  //             fingerMid.multiplyScalar(0.5);
+  //           }
+  //           const targetPos = dropWorld.clone();
+  //           const posError = fingerMid.distanceTo(targetPos);
 
-//           r.runIK(targetForGripper(placePos));
-//           this._setGripperState(r, 0, dt);
+  //           r.runIK(targetForGripper(placePos));
+  //           this._setGripperState(r, 0, dt);
 
-//           const POS_TOL = 0.12;
-//           const timeoutFallback = phaseT > 1.5;
+  //           const POS_TOL = 0.12;
+  //           const timeoutFallback = phaseT > 1.5;
 
-//           if ((posError <= POS_TOL && phaseT > 0.4) || timeoutFallback) {
-//             target.detachAt(targetPos);
-//             this._addLog(`[${WAFER_NAMES[target.wi]}] RELEASE @ ${dropStep.short}`, 'place');
-//             target.state = 'processing';
-//             target.processTimer = 0;
-//             this._onProcessStart(target, dropStep);
-//             this.busy[dropStep.id] = target.wi;
-//             (target as any)._picked = false;
-//             (target as any)._pickupX = undefined;
-//             (target as any)._pickupZ = undefined;
-//             ud.armPhase = 'retractUp';
-//             ud.phaseT = 0;
-//           }
-//           break;
-//         }
+  //           if ((posError <= POS_TOL && phaseT > 0.4) || timeoutFallback) {
+  //             target.detachAt(targetPos);
+  //             this._addLog(`[${WAFER_NAMES[target.wi]}] RELEASE @ ${dropStep.short}`, 'place');
+  //             target.state = 'processing';
+  //             target.processTimer = 0;
+  //             this._onProcessStart(target, dropStep);
+  //             this.busy[dropStep.id] = target.wi;
+  //             (target as any)._picked = false;
+  //             (target as any)._pickupX = undefined;
+  //             (target as any)._pickupZ = undefined;
+  //             ud.armPhase = 'retractUp';
+  //             ud.phaseT = 0;
+  //           }
+  //           break;
+  //         }
 
-//         case 'retractUp': {
-//           const p = sCurve(Math.min(phaseT / 0.6, 1));
-//           const tgt = new THREE.Vector3().lerpVectors(placePos, approachDrop, p);
-//           r.runIK(targetForGripper(tgt));
-//           this._setGripperState(r, 0, dt);
-//           if (p >= 1) {
-//             ud.armPhase = 'retract';
-//             ud.phaseT = 0;
-//           }
-//           break;
-//         }
+  //         case 'retractUp': {
+  //           const p = sCurve(Math.min(phaseT / 0.6, 1));
+  //           const tgt = new THREE.Vector3().lerpVectors(placePos, approachDrop, p);
+  //           r.runIK(targetForGripper(tgt));
+  //           this._setGripperState(r, 0, dt);
+  //           if (p >= 1) {
+  //             ud.armPhase = 'retract';
+  //             ud.phaseT = 0;
+  //           }
+  //           break;
+  //         }
 
-//         case 'retract':
-//           r.runIK(targetForGripper(approachDrop));
-//           this._setGripperState(r, 0, dt);
-//           if (phaseT > 0.5) {
-//             ud.armPhase = 'idle';
-//             ud.phaseT = 0;
-//           }
-//           break;
+  //         case 'retract':
+  //           r.runIK(targetForGripper(approachDrop));
+  //           this._setGripperState(r, 0, dt);
+  //           if (phaseT > 0.5) {
+  //             ud.armPhase = 'idle';
+  //             ud.phaseT = 0;
+  //           }
+  //           break;
 
-//         default:
-//           ud.armPhase = 'transport';
-//           ud.phaseT = 0;
-//           break;
-//       }
-//     }
-//   }
+  //         default:
+  //           ud.armPhase = 'transport';
+  //           ud.phaseT = 0;
+  //           break;
+  //       }
+  //     }
+  //   }
 
-//   // ── Status LED ──
-//   if (ud.gripperState as number > 0.7) {
-//     r.statusPL.color.setHex(0x00ffff);
-//     r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
-//   } else if (carried) {
-//     r.statusPL.color.setHex(0x00ff88);
-//     r.statusPL.intensity = 1.8;
-//   } else {
-//     r.statusPL.color.setHex(0x00d8ff);
-//     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
-//   }
-// }
-
-
-private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
-  const ud = robot.group.userData;
-  const current = (ud.gripperState as number) ?? 0;
-  ud.gripperState = lerp(current, targetState, 0.18);
-  ud.vacuumEngaged = (ud.gripperState as number) > 0.7;
-  // No material changes — robot keeps its natural colors.
-}
+  //   // ── Status LED ──
+  //   if (ud.gripperState as number > 0.7) {
+  //     r.statusPL.color.setHex(0x00ffff);
+  //     r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
+  //   } else if (carried) {
+  //     r.statusPL.color.setHex(0x00ff88);
+  //     r.statusPL.intensity = 1.8;
+  //   } else {
+  //     r.statusPL.color.setHex(0x00d8ff);
+  //     r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
+  //   }
+  // }
 
 
-
-private _animRobots(dt: number) {
-  const t = this.simTime;
-  const r = this.robotEFEM;
-  if (!r || !r.runIK) return;
-  if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
-
-  // ── One-time init ──
-  if (!r.group.userData.railInit) {
-    r.group.userData.railX        = r.group.position.x;
-    r.group.userData.baseY        = 0;        // ← force floor, not GLB baked Y
-    r.group.userData.zLiftY       = 0;
-    r.group.userData.armPhase     = 'idle';
-    r.group.userData.phaseT       = 0;
-    r.group.userData.railInit     = true;
-    r.group.userData.gripperState = 0;
-    r.group.userData._ikYaw       = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
-    r.group.userData.bezierT      = 0;
-    r.group.userData.bezierStart  = new THREE.Vector3();
-    r.group.userData.bezierEnd    = new THREE.Vector3();
-    r.group.userData.bezierCP1    = new THREE.Vector3();
-    r.group.userData.bezierCP2    = new THREE.Vector3();
-    r.group.userData.dwellTimer   = 0;
+  private _setGripperState(robot: RobotObject, targetState: number, dt: number) {
+    const ud = robot.group.userData;
+    const current = (ud.gripperState as number) ?? 0;
+    ud.gripperState = lerp(current, targetState, 0.18);
+    ud.vacuumEngaged = (ud.gripperState as number) > 0.7;
+    // No material changes — robot keeps its natural colors.
   }
 
-  const ud = r.group.userData;
 
-  // ── Finger-to-gripper offset helper ──
-  const computeFingerOffset = (): THREE.Vector3 => {
-    const t1 = ud.fingerTop1  as THREE.Object3D | undefined;
-    const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
-    if (!t1 || !d1) return new THREE.Vector3();
-    const fingerMid = new THREE.Vector3();
-    const tmp = new THREE.Vector3();
-    t1.getWorldPosition(tmp); fingerMid.add(tmp);
-    d1.getWorldPosition(tmp); fingerMid.add(tmp);
-    fingerMid.multiplyScalar(0.5);
-    const gripWP = new THREE.Vector3();
-    r.gripper.getWorldPosition(gripWP);
-    return fingerMid.clone().sub(gripWP);
-  };
 
-  const getKeepOutBox = (id: string): THREE.Box3 | null => {
-    const grp = this.modObjs[id];
-    if (!grp) return null;
-    const glbRoot = (grp.userData.glbRoot as THREE.Object3D | undefined) ?? grp;
-    glbRoot.updateWorldMatrix(true, true);
-    const box = new THREE.Box3().setFromObject(glbRoot);
+  private _animRobots(dt: number) {
+    const t = this.simTime;
+    const r = this.robotEFEM;
+    if (!r || !r.runIK) return;
+    if (!r.turret || !r.shoulder || !r.elbow || !r.wrist || !r.gripper) return;
 
-    let expansion = 1.5;
-    if (id === 'foup') expansion = 4.5;
-    else if (id === 'scanner') expansion = 4.5;
-    else if (id === 'hmds') expansion = 2.0;
-    else if (id === 'prcoat' || id === 'develop') expansion = 1.8;
-
-    box.expandByScalar(expansion);
-    this._blockBoxes[id] = box;
-    return box;
-  };
-
-  const avoidCollisions = (desired: THREE.Vector3): THREE.Vector3 => {
-    const safe = desired.clone();
-    const hazardModules = ['hmds', 'prcoat', 'develop', 'scanner'];
-    const center = new THREE.Vector3();
-    const half = new THREE.Vector3();
-
-    for (const modId of hazardModules) {
-      const box = getKeepOutBox(modId);
-      if (!box || !box.containsPoint(safe)) continue;
-      box.getCenter(center);
-      box.getSize(half).multiplyScalar(0.5);
-      const local = safe.clone().sub(center);
-      const ratios = [
-        Math.abs(local.x) / half.x,
-        Math.abs(local.y) / half.y,
-        Math.abs(local.z) / half.z,
-      ];
-      const maxRatio = Math.max(...ratios);
-      if (maxRatio <= 0) continue;
-      local.divideScalar(maxRatio);
-      safe.copy(center).add(local);
-      const outDir = safe.clone().sub(center).normalize();
-      safe.addScaledVector(outDir, 0.3);
+    // ── One-time init ──
+    if (!r.group.userData.railInit) {
+      r.group.userData.railX = r.group.position.x;
+      r.group.userData.baseY = 0;        // ← force floor, not GLB baked Y
+      r.group.userData.zLiftY = 0;
+      r.group.userData.armPhase = 'idle';
+      r.group.userData.phaseT = 0;
+      r.group.userData.railInit = true;
+      r.group.userData.gripperState = 0;
+      r.group.userData._ikYaw = new THREE.Euler().setFromQuaternion(r.turret.quaternion, "YXZ").y;
+      r.group.userData.bezierT = 0;
+      r.group.userData.bezierStart = new THREE.Vector3();
+      r.group.userData.bezierEnd = new THREE.Vector3();
+      r.group.userData.bezierCP1 = new THREE.Vector3();
+      r.group.userData.bezierCP2 = new THREE.Vector3();
+      r.group.userData.dwellTimer = 0;
     }
 
-    return safe;
-  };
+    const ud = r.group.userData;
 
-  const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
-    const fingerOffset = computeFingerOffset();
-    const raw = waferTarget.clone().sub(fingerOffset);
-    return avoidCollisions(raw);
-  };
+    // ── Finger-to-gripper offset helper ──
+    const computeFingerOffset = (): THREE.Vector3 => {
+      const t1 = ud.fingerTop1 as THREE.Object3D | undefined;
+      const d1 = ud.fingerDown1 as THREE.Object3D | undefined;
+      if (!t1 || !d1) return new THREE.Vector3();
+      const fingerMid = new THREE.Vector3();
+      const tmp = new THREE.Vector3();
+      t1.getWorldPosition(tmp); fingerMid.add(tmp);
+      d1.getWorldPosition(tmp); fingerMid.add(tmp);
+      fingerMid.multiplyScalar(0.5);
+      const gripWP = new THREE.Vector3();
+      r.gripper.getWorldPosition(gripWP);
+      return fingerMid.clone().sub(gripWP);
+    };
 
-  // ── Motion params ──
-  const APPROACH_OFFSET = 0.3;
-  const TRANSFER_MIN_Y  = 0.8;
-  const WAFER_HALF_T    = 0.0175;
-  const PICK_CLEARANCE  = 0.003;
-  const SAFE_HEIGHT  = 9.5;
-  const SAFE_TRAVEL_Y = WAFER_TRANSFER_Y + 1.2;
-    const Z_LIFT_HIGH  = 0.8;
-    const Z_LIFT_LOW   = 0.0;
-    const FOUP_MAX_Y   = 3.2;   // ← FOUP top height — arm never goes above this near FOUP
-   const FOUP_MIN_X = ALL_STEPS[0].x + 1.5;  // ALL_STEPS[0] is always FOUP
- // ← front face of FOUP
+    const getKeepOutBox = (id: string): THREE.Box3 | null => {
+      const grp = this.modObjs[id];
+      if (!grp) return null;
+      const glbRoot = (grp.userData.glbRoot as THREE.Object3D | undefined) ?? grp;
+      glbRoot.updateWorldMatrix(true, true);
+      const box = new THREE.Box3().setFromObject(glbRoot);
 
-   const clampForFoup = (pos: THREE.Vector3): THREE.Vector3 => {
-  if (!target || prevStep.type !== "foup") return pos;
-  const clamped = pos.clone();
-  clamped.x = Math.max(clamped.x, FOUP_MIN_X);   // never go behind FOUP front
-  clamped.y = Math.min(clamped.y, FOUP_MAX_Y);    // never go above FOUP top
-  return clamped;
-};
-  
+      let expansion = 1.5;
+      if (id === 'foup') expansion = 4.5;
+      else if (id === 'scanner') expansion = 4.5;
+      else if (id === 'hmds') expansion = 2.0;
+      else if (id === 'prcoat' || id === 'develop') expansion = 1.8;
 
-  // ── Find target wafer ──
-  const carried = this.wSMs.find((w) => w.launched && !w.done && w.carrierRobot === r);
-  const waiting = this.wSMs.find(
-    (w) => w.launched && !w.done && !w.carrierRobot &&
-           w.state === 'track_approach' && !(w as any)._picked
-  );
-  const target = carried ?? waiting ?? null;
+      box.expandByScalar(expansion);
+      this._blockBoxes[id] = box;
+      return box;
+    };
 
-  const evalBezier = (out: THREE.Vector3, t01: number) => {
-    const p0 = ud.bezierStart as THREE.Vector3;
-    const p1 = ud.bezierCP1   as THREE.Vector3;
-    const p2 = ud.bezierCP2   as THREE.Vector3;
-    const p3 = ud.bezierEnd   as THREE.Vector3;
-    const u = 1 - t01, u2 = u * u, u3 = u2 * u;
-    const tt = t01 * t01, ttt = tt * t01;
-    out.set(
-      u3 * p0.x + 3 * u2 * t01 * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
-      u3 * p0.y + 3 * u2 * t01 * p1.y + 3 * u * tt * p2.y + ttt * p3.y,
-      u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
+    const avoidCollisions = (desired: THREE.Vector3): THREE.Vector3 => {
+      const safe = desired.clone();
+      const hazardModules = ['hmds', 'prcoat', 'develop', 'scanner'];
+      const center = new THREE.Vector3();
+      const half = new THREE.Vector3();
+
+      for (const modId of hazardModules) {
+        const box = getKeepOutBox(modId);
+        if (!box || !box.containsPoint(safe)) continue;
+        box.getCenter(center);
+        box.getSize(half).multiplyScalar(0.5);
+        const local = safe.clone().sub(center);
+        const ratios = [
+          Math.abs(local.x) / half.x,
+          Math.abs(local.y) / half.y,
+          Math.abs(local.z) / half.z,
+        ];
+        const maxRatio = Math.max(...ratios);
+        if (maxRatio <= 0) continue;
+        local.divideScalar(maxRatio);
+        safe.copy(center).add(local);
+        const outDir = safe.clone().sub(center).normalize();
+        safe.addScaledVector(outDir, 0.3);
+      }
+
+      return safe;
+    };
+
+    const targetForGripper = (waferTarget: THREE.Vector3): THREE.Vector3 => {
+      const fingerOffset = computeFingerOffset();
+      const raw = waferTarget.clone().sub(fingerOffset);
+      return avoidCollisions(raw);
+    };
+
+    // ── Motion params ──
+    const APPROACH_OFFSET = 0.3;
+    const TRANSFER_MIN_Y = 0.8;
+    const WAFER_HALF_T = 0.0175;
+    const PICK_CLEARANCE = 0.003;
+    const SAFE_HEIGHT = 9.5;
+    const SAFE_TRAVEL_Y = WAFER_TRANSFER_Y + 1.2;
+    const Z_LIFT_HIGH = 0.8;
+    const Z_LIFT_LOW = 0.0;
+    const FOUP_MAX_Y = 3.2;   // ← FOUP top height — arm never goes above this near FOUP
+    const FOUP_MIN_X = ALL_STEPS[0].x + 1.5;  // ALL_STEPS[0] is always FOUP
+    
+    // ════════════════════════════════════════════════════════════════════════════
+    // VERTICAL LIFT CLEARANCE RULES
+    // Only HMDS and DI Water Rinse require the higher clearance arc.
+    // All other stations should keep transfers low and direct.
+    // ════════════════════════════════════════════════════════════════════════════
+    const needsVerticalLift = (stepId: string): boolean => {
+      return stepId === 'hmds' || stepId === 'rinse';  // Only HMDS and DI Rinse
+    };
+    const isCoatStationStep = (stepId: string): boolean => {
+      return stepId === 'prcoat';
+    };
+
+    // Direct transfer height (minimal lift, no arc) for most stations
+    const DIRECT_TRANSFER_HEIGHT = WAFER_TRANSFER_Y + 0.4;
+
+    // Safe arc height only for stations that need clearance
+    const ARC_TRANSFER_HEIGHT = SAFE_HEIGHT;
+    // ← front face of FOUP
+
+    const clampForFoup = (pos: THREE.Vector3): THREE.Vector3 => {
+      if (!target || prevStep.type !== "foup") return pos;
+      const clamped = pos.clone();
+      clamped.x = Math.max(clamped.x, FOUP_MIN_X);   // never go behind FOUP front
+      clamped.y = Math.min(clamped.y, FOUP_MAX_Y);    // never go above FOUP top
+      return clamped;
+    };
+
+
+    // ── Find target wafer ──
+    const carried = this.wSMs.find((w) => w.launched && !w.done && w.carrierRobot === r);
+    const waiting = this.wSMs.find(
+      (w) => w.launched && !w.done && !w.carrierRobot &&
+        w.state === 'track_approach' && !(w as any)._picked
     );
-  };
+    const target = carried ?? waiting ?? null;
 
-  const sCurve = (x: number) => {
-    x = Math.max(0, Math.min(1, x));
-    return x * x * (3 - 2 * x);
-  };
+    const evalBezier = (out: THREE.Vector3, t01: number) => {
+      const p0 = ud.bezierStart as THREE.Vector3;
+      const p1 = ud.bezierCP1 as THREE.Vector3;
+      const p2 = ud.bezierCP2 as THREE.Vector3;
+      const p3 = ud.bezierEnd as THREE.Vector3;
+      const u = 1 - t01, u2 = u * u, u3 = u2 * u;
+      const tt = t01 * t01, ttt = tt * t01;
+      out.set(
+        u3 * p0.x + 3 * u2 * t01 * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
+        u3 * p0.y + 3 * u2 * t01 * p1.y + 3 * u * tt * p2.y + ttt * p3.y,
+        u3 * p0.z + 3 * u2 * t01 * p1.z + 3 * u * tt * p2.z + ttt * p3.z,
+      );
+    };
 
-  // ── Determine pickup / drop positions FIRST ──
-  let dropStep = ALL_STEPS[0];
-  let prevStep = ALL_STEPS[0];
-  let isPicked = false;
-  let isScannerDrop = false;
-  let isInterfaceDrop = false;
-  const pickWorld = new THREE.Vector3();
-  const dropWorld = new THREE.Vector3();
+    const sCurve = (x: number) => {
+      x = Math.max(0, Math.min(1, x));
+      return x * x * (3 - 2 * x);
+    };
 
-  if (target) {
-    dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
-    const prevStepIdx = Math.max(target.stepIdx - 1, 0);
-    prevStep = ALL_STEPS[prevStepIdx];
-    isPicked = !!(target as any)._picked;
-    isScannerDrop = dropStep.id === 'scanner';
-    isInterfaceDrop = dropStep.type === 'iface';
+    // ── Determine pickup / drop positions FIRST ──
+    let dropStep = ALL_STEPS[0];
+    let prevStep = ALL_STEPS[0];
+    let isPicked = false;
+    let isScannerDrop = false;
+    let isInterfaceDrop = false;
+    const pickWorld = new THREE.Vector3();
+    const dropWorld = new THREE.Vector3();
 
-    // ── PICK WORLD: get actual wafer mesh position (works for ANY module) ──
-    target.mesh.getWorldPosition(pickWorld);
-    // CRITICAL: wafer pickup height is always the transfer height.
-    pickWorld.y = WAFER_TRANSFER_Y;
-    // Scanner wafer is at the front slot, not the body center
-    if (prevStep.id === 'scanner') {
-      // ── Pick from the scanner's outgoing transfer port, not the internal chuck.
-      const scannerGrp = this.modObjs['scanner'];
-      const pickAnchor = scannerGrp?.userData?.pickupAnchor as THREE.Object3D | undefined
-        ?? scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-      if (pickAnchor) {
-        pickAnchor.getWorldPosition(pickWorld);
-        // Ensure pickup height is at transfer height
-        pickWorld.y = WAFER_TRANSFER_Y;
+    if (target) {
+      dropStep = ALL_STEPS[Math.min(target.stepIdx, ALL_STEPS.length - 1)];
+      const prevStepIdx = Math.max(target.stepIdx - 1, 0);
+      prevStep = ALL_STEPS[prevStepIdx];
+      isPicked = !!(target as any)._picked;
+      isScannerDrop = dropStep.id === 'scanner';
+      isInterfaceDrop = dropStep.type === 'iface';
+
+      // ── PICK WORLD: get actual wafer mesh position (works for ANY module) ──
+      target.mesh.getWorldPosition(pickWorld);
+      // CRITICAL: wafer pickup height is always the transfer height.
+      pickWorld.y = WAFER_TRANSFER_Y;
+      // Scanner wafer is at the front slot, not the body center
+      if (prevStep.id === 'scanner') {
+        // ── Pick from the scanner's outgoing transfer port, not the internal chuck.
+        const scannerGrp = this.modObjs['scanner'];
+        const pickAnchor = scannerGrp?.userData?.pickupAnchor as THREE.Object3D | undefined
+          ?? scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+        if (pickAnchor) {
+          pickAnchor.getWorldPosition(pickWorld);
+          // Ensure pickup height is at transfer height
+          pickWorld.y = WAFER_TRANSFER_Y;
+        } else {
+          pickWorld.x = prevStep.x;
+          pickWorld.z = prevStep.z + 0.35;
+        }
+      }
+
+      // ── DROP WORLD: get target module's wafer anchor ──
+      const isReturning = (target as any)._returnToFoup === true;
+
+      if (dropStep.type === 'foup' || isReturning) {
+        const foupGrp = this.modObjs['foup'];
+        const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+        const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
+        if (anchors?.[slotIx]) {
+          anchors[slotIx].getWorldPosition(dropWorld);
+          // CRITICAL: clamp Y to prevent going above FOUP top
+          dropWorld.y = Math.min(dropWorld.y, 2.5);
+        } else {
+          // Fallback: place at FOUP front face at safe height
+          dropWorld.set(ALL_STEPS[0].x + 4.0, 2.0, ALL_STEPS[0].z);
+        }
+      } else if (dropStep.id === 'scanner') {
+        // ── SCANNER: place wafer at the scanner slot anchor inside the front opening.
+        const scannerGrp = this.modObjs['scanner'];
+        const slotAnchor = scannerGrp?.userData?.slotAnchor as THREE.Object3D | undefined;
+        const wa = slotAnchor ?? (scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined);
+        if (wa) {
+          wa.getWorldPosition(dropWorld);
+          // Clamp Y to a safe visible range — never let it go behind the machine
+          dropWorld.y = Math.max(dropWorld.y, WAFER_TRANSFER_Y - 0.5);
+          dropWorld.y = Math.min(dropWorld.y, WAFER_TRANSFER_Y + 0.5);
+          console.log('[SCANNER] wafer drop at slot:', dropWorld.toArray());
+        } else {
+          // Fallback: position the wafer near the scanner input slot on the negative Z side.
+          dropWorld.set(dropStep.x, WAFER_TRANSFER_Y, dropStep.z - 4.15);
+        }
       } else {
-        pickWorld.x = prevStep.x;
-        pickWorld.z = prevStep.z + 0.35;
+        const modGrp = this.modObjs[dropStep.id];
+        const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+        if (wa) {
+          // Use exact anchor world position (do not override Y)
+          wa.getWorldPosition(dropWorld);
+        } else {
+          dropWorld.set(dropStep.x, WAFER_TRANSFER_Y + 0.02, dropStep.z);
+        }
       }
     }
 
-    // ── DROP WORLD: get target module's wafer anchor ──
-    const isReturning = (target as any)._returnToFoup === true;
-    
-    if (dropStep.type === 'foup' || isReturning) {
-      const foupGrp = this.modObjs['foup'];
-      const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-      const slotIx = Math.min(target.wi, Math.max(0, (anchors?.length ?? 1) - 1));
-      if (anchors?.[slotIx]) {
-        anchors[slotIx].getWorldPosition(dropWorld);
-        // CRITICAL: clamp Y to prevent going above FOUP top
-        dropWorld.y = Math.min(dropWorld.y, 2.5);
-      } else {
-        // Fallback: place at FOUP front face at safe height
-        dropWorld.set(ALL_STEPS[0].x + 4.0, 2.0, ALL_STEPS[0].z);
+    const isCrossRow = target ? Math.abs(pickWorld.z - dropWorld.z) > 5.0 : false;
+
+    // ── Compute rail target: position robot near the relevant module ──
+    // CRITICAL: rail follows the X of pickup (before pick) or drop (after pick)
+    const TRACK_MIN = -14;   // can't go past FOUP enclosure
+    const TRACK_MAX = 22;   // extended to reach scanner at x=36
+    let railTargetX = ud.railX as number;
+
+    if (target) {
+      // Position robot rail X near where the action is
+      // For scanner: rail needs to position robot at scanner.x so arm can reach the slot
+      let targetX = isPicked ? dropStep.x : pickWorld.x;
+
+      // Special handling: scanner is far out, but robot reaches with extended arm
+      if (isPicked && dropStep.id === 'scanner') {
+        targetX = dropStep.x - 4;  // stand 4 units back from scanner center
       }
-    } else if (dropStep.id === 'scanner') {
-      // ── SCANNER: place wafer at the scanner slot anchor inside the front opening.
-      const scannerGrp = this.modObjs['scanner'];
-      const slotAnchor = scannerGrp?.userData?.slotAnchor as THREE.Object3D | undefined;
-      const wa = slotAnchor ?? (scannerGrp?.userData?.waferAnchor as THREE.Object3D | undefined);
-      if (wa) {
-        wa.getWorldPosition(dropWorld);
-        // Clamp Y to a safe visible range — never let it go behind the machine
-        dropWorld.y = Math.max(dropWorld.y, WAFER_TRANSFER_Y - 0.5);
-        dropWorld.y = Math.min(dropWorld.y, WAFER_TRANSFER_Y + 0.5);
-        console.log('[SCANNER] wafer drop at slot:', dropWorld.toArray());
-      } else {
-        // Fallback: position the wafer near the scanner input slot on the negative Z side.
-        dropWorld.set(dropStep.x, WAFER_TRANSFER_Y, dropStep.z - 4.15);
+      if (!isPicked && prevStep.id === 'scanner') {
+        targetX = prevStep.x - 4;  // same when picking from scanner
       }
-    } else {
-      const modGrp = this.modObjs[dropStep.id];
-      const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-      if (wa) {
-        // Use exact anchor world position (do not override Y)
-        wa.getWorldPosition(dropWorld);
-      } else {
-        dropWorld.set(dropStep.x, WAFER_TRANSFER_Y + 0.02, dropStep.z);
-      }
+
+      railTargetX = clamp(targetX, TRACK_MIN, TRACK_MAX);
     }
-  }
 
-  const isCrossRow = target ? Math.abs(pickWorld.z - dropWorld.z) > 5.0 : false;
+    // ── Smooth rail movement ──
+    const railSpeed = 8.0;
+    const isPathToScanner = isInterfaceDrop || isScannerDrop;
+    const actionSpeed = isPathToScanner ? Math.max(this.speed, 10) : this.speed;
+    const actionDt = dt * actionSpeed;
+    const currentRailX = ud.railX as number;
+    const dxRail = railTargetX - currentRailX;
+    const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * actionDt);
+    ud.railX = currentRailX + railStep;
+    r.group.position.x = ud.railX as number;
 
-  // ── Compute rail target: position robot near the relevant module ──
-  // CRITICAL: rail follows the X of pickup (before pick) or drop (after pick)
-  const TRACK_MIN = -14;   // can't go past FOUP enclosure
-  const TRACK_MAX =  22;   // extended to reach scanner at x=36
-  let railTargetX = ud.railX as number;
+    // ── Z-Lift: REMOVED from robot body ──
+    // Base stays at floor. Arm reaches up/down via IK only.
+    r.group.position.y = 0;   // always floor-locked
 
-  if (target) {
-    // Position robot rail X near where the action is
-    // For scanner: rail needs to position robot at scanner.x so arm can reach the slot
-    let targetX = isPicked ? dropStep.x : pickWorld.x;
-    
-    // Special handling: scanner is far out, but robot reaches with extended arm
-    if (isPicked && dropStep.id === 'scanner') {
-      targetX = dropStep.x - 4;  // stand 4 units back from scanner center
+    // ── Rail still moves on X ──
+    r.group.position.x = ud.railX as number;
+
+    // ── Carriage block follows robot X, stays glued to rail ──
+    if (!ud._carriage) {
+      const cGeo = new THREE.BoxGeometry(0.55, 0.12, 0.40);
+      const cMat = new THREE.MeshStandardMaterial({
+        color: 0x1a2a3a,
+        metalness: 0.9,
+        roughness: 0.2,
+      });
+      const carriage = new THREE.Mesh(cGeo, cMat);
+      carriage.name = '__robotCarriage__';
+      carriage.castShadow = true;
+      carriage.receiveShadow = true;
+      this.scene.add(carriage);
+      ud._carriage = carriage;
     }
-    if (!isPicked && prevStep.id === 'scanner') {
-      targetX = prevStep.x - 4;  // same when picking from scanner
-    }
-    
-    railTargetX = clamp(targetX, TRACK_MIN, TRACK_MAX);
-  }
-
-  // ── Smooth rail movement ──
-  const railSpeed = 8.0;
-  const isPathToScanner = isInterfaceDrop || isScannerDrop;
-  const actionSpeed = isPathToScanner ? Math.max(this.speed, 10) : this.speed;
-  const actionDt = dt * actionSpeed;
-  const currentRailX = ud.railX as number;
-  const dxRail = railTargetX - currentRailX;
-  const railStep = Math.sign(dxRail) * Math.min(Math.abs(dxRail), railSpeed * actionDt);
-  ud.railX = currentRailX + railStep;
-  r.group.position.x = ud.railX as number;
-
-  // ── Z-Lift: REMOVED from robot body ──
-  // Base stays at floor. Arm reaches up/down via IK only.
-  r.group.position.y = 0;   // always floor-locked
-  
-  // ── Rail still moves on X ──
-  r.group.position.x = ud.railX as number;
-  
-  // ── Carriage block follows robot X, stays glued to rail ──
-  if (!ud._carriage) {
-    const cGeo = new THREE.BoxGeometry(0.55, 0.12, 0.40);
-    const cMat = new THREE.MeshStandardMaterial({
-      color:     0x1a2a3a,
-      metalness: 0.9,
-      roughness: 0.2,
-    });
-    const carriage = new THREE.Mesh(cGeo, cMat);
-    carriage.name = '__robotCarriage__';
-    carriage.castShadow = true;
-    carriage.receiveShadow = true;
-    this.scene.add(carriage);
-    ud._carriage = carriage;
-  }
-  const carriage = ud._carriage as THREE.Mesh;
-  carriage.position.set(
-    r.group.position.x,   // tracks robot X exactly
-    0.06,                 // sits on top of the rail beam
-    0
-  );
-
-  // ── NO TARGET: idle hover ──
-  if (!target) {
-    ud.armPhase = 'idle';
-    ud.phaseT = 0;
-    const idleTgt = new THREE.Vector3(
-      r.group.position.x + 1.5,
-      r.group.position.y + 2.5,
-      Math.sin(t * 0.22) * 0.5
+    const carriage = ud._carriage as THREE.Mesh;
+    carriage.position.set(
+      r.group.position.x,   // tracks robot X exactly
+      0.06,                 // sits on top of the rail beam
+      0
     );
-    r.runIK(targetForGripper(idleTgt));
-    this._setGripperState(r, 0, dt);
-    r.statusPL.color.setHex(0x00d8ff);
-    r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
-    return;
-  }
 
-  const railX = ud.railX as number;
-  const targetRailX = isPicked ? dropStep.x : pickWorld.x;
-  const railDist = Math.abs(railX - clamp(targetRailX, TRACK_MIN, TRACK_MAX));
-  const railArrived = railDist < 0.5;
-
-  ud.phaseT = (ud.phaseT as number) + actionDt;
-  const phaseT = ud.phaseT as number;
-  const phase = ud.armPhase as string;
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // PICK SEQUENCE
-  // ══════════════════════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════
-// REPLACE the entire PICK SEQUENCE section (if (!isPicked))
-// in _animRobots with this:
-// ══════════════════════════════════════════════════════
-
-if (!isPicked) {
-
-  // ── FOUP-specific safe zone ──
-  const isFoupPick = prevStep.type === "foup";
-  const FOUP_FRONT_X = (ALL_STEPS[0].x + 5.5); // safe front face of FOUP
-  const FOUP_MAX_Y = 2.8;                        // FOUP ceiling — never go above
-
-  // ── Safe pickup world position ──
-  // For FOUP: pick from staging point IN FRONT of door, not inside
-  const safePickX = isFoupPick 
-    ? Math.max(pickWorld.x, FOUP_FRONT_X)   // clamp to front face
-    : pickWorld.x;
-  const safePickY = isFoupPick
-    ? Math.min(pickWorld.y, FOUP_MAX_Y)      // clamp to below FOUP ceiling
-    : pickWorld.y;
-
-  // Approach: come from the side at wafer height — NO upward arc into FOUP
-  const approachPos = new THREE.Vector3(
-    isFoupPick ? FOUP_FRONT_X + 2.0 : pickWorld.x,  // stand away from FOUP
-    isFoupPick ? safePickY           : safePickY + APPROACH_OFFSET + 0.3,
-    pickWorld.z
-  );
-
-  // Insert: move toward FOUP door horizontally
-  const insertPos = new THREE.Vector3(
-    isFoupPick ? FOUP_FRONT_X + 0.5 : pickWorld.x,
-    safePickY,
-    pickWorld.z
-  );
-
-  // Contact: exactly at wafer, clamped to front of FOUP
-  const contactPos = new THREE.Vector3(
-    Math.max(safePickX, isFoupPick ? FOUP_FRONT_X : -999),
-    Math.max(safePickY - WAFER_HALF_T + PICK_CLEARANCE, TRANSFER_MIN_Y),
-    pickWorld.z
-  );
-
-  switch (phase) {
-    case 'idle':
-    case 'retract':
-      ud.armPhase = 'approach';
+    // ── NO TARGET: idle hover ──
+    if (!target) {
+      ud.armPhase = 'idle';
       ud.phaseT = 0;
-      break;
-
-    case 'approach': {
-      r.runIK(targetForGripper(approachPos), { 
-        approachHeight: 0.18,
-        safetyMargin: 0.10 
-      });
+      const idleTgt = new THREE.Vector3(
+        r.group.position.x + 1.5,
+        r.group.position.y + 2.5,
+        Math.sin(t * 0.22) * 0.5
+      );
+      r.runIK(targetForGripper(idleTgt));
       this._setGripperState(r, 0, dt);
-      if (railArrived && phaseT > 0.5) {
-        ud.armPhase = 'insert';
-        ud.phaseT = 0;
-      }
-      break;
+      r.statusPL.color.setHex(0x00d8ff);
+      r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
+      return;
     }
 
-    case 'insert': {
-      const p = sCurve(Math.min(phaseT / 0.8, 1));
-      // Interpolate HORIZONTALLY from approach to insert — no Y change for FOUP
-      const tgt = new THREE.Vector3(
-        lerp(approachPos.x, insertPos.x, p),
-        isFoupPick ? safePickY : lerp(approachPos.y, insertPos.y, p),
+    const railX = ud.railX as number;
+    const targetRailX = isPicked ? dropStep.x : pickWorld.x;
+    const railDist = Math.abs(railX - clamp(targetRailX, TRACK_MIN, TRACK_MAX));
+    const railArrived = railDist < 0.5;
+
+    ud.phaseT = (ud.phaseT as number) + actionDt;
+    const phaseT = ud.phaseT as number;
+    const phase = ud.armPhase as string;
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // PICK SEQUENCE
+    // ══════════════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
+    // REPLACE the entire PICK SEQUENCE section (if (!isPicked))
+    // in _animRobots with this:
+    // ══════════════════════════════════════════════════════
+
+    if (!isPicked) {
+
+      // ── FOUP-specific safe zone ──
+      const isFoupPick = prevStep.type === "foup";
+      const FOUP_FRONT_X = (ALL_STEPS[0].x + 5.5); // safe front face of FOUP
+      const FOUP_MAX_Y = 2.8;                        // FOUP ceiling — never go above
+
+      // ── Safe pickup world position ──
+      // For FOUP: pick from staging point IN FRONT of door, not inside
+      const safePickX = isFoupPick
+        ? Math.max(pickWorld.x, FOUP_FRONT_X)   // clamp to front face
+        : pickWorld.x;
+      const safePickY = isFoupPick
+        ? Math.min(pickWorld.y, FOUP_MAX_Y)      // clamp to below FOUP ceiling
+        : pickWorld.y;
+
+      // ════════════════════════════════════════════════════════════════════════════
+      // COLLISION AVOIDANCE: Extra clearance for coater cup and nozzle
+      // Coater has tall cup and dispense nozzle that extend above wafer plane
+      // Add extra vertical clearance when approaching coat stations
+      // ════════════════════════════════════════════════════════════════════════════
+      const isCoatStation = prevStep.type === "coat";
+      const coatClearance = isCoatStation ? 0.8 : 0;  // Extra 0.8 units clearance for coater
+
+      // Approach: come from the side at wafer height — NO upward arc into FOUP
+      const approachPos = new THREE.Vector3(
+        isFoupPick ? FOUP_FRONT_X + 2.0 : pickWorld.x,  // stand away from FOUP
+        isFoupPick ? safePickY : safePickY + APPROACH_OFFSET + 0.3 + coatClearance,
         pickWorld.z
       );
-      r.runIK(targetForGripper(tgt), { 
-        safetyMargin: 0.08 
-      });
-      this._setGripperState(r, 0, dt);
-      if (p >= 1) {
-        ud.armPhase = 'contact';
-        ud.phaseT = 0;
-      }
-      break;
-    }
 
-    case 'contact': {
-      const p = sCurve(Math.min(phaseT / 0.6, 1));
-      const tgt = new THREE.Vector3(
-        lerp(insertPos.x, contactPos.x, p),
-        Math.min(  // always enforce FOUP ceiling
-          lerp(insertPos.y, contactPos.y, p),
-          isFoupPick ? FOUP_MAX_Y : 999
-        ),
+      // Insert: move toward FOUP door horizontally
+      const insertPos = new THREE.Vector3(
+        isFoupPick ? FOUP_FRONT_X + 0.5 : pickWorld.x,
+        safePickY,
         pickWorld.z
       );
-      r.runIK(targetForGripper(tgt), { 
-        safetyMargin: 0.05 
-      });
-      this._setGripperState(r, 0.3, dt);
-      if (p >= 1) {
-        ud.armPhase = 'vacuum_dwell';
-        ud.phaseT = 0;
-        ud.dwellTimer = 0;
+
+      // Contact: exactly at wafer, clamped to front of FOUP
+      const contactPos = new THREE.Vector3(
+        Math.max(safePickX, isFoupPick ? FOUP_FRONT_X : -999),
+        Math.max(safePickY - WAFER_HALF_T + PICK_CLEARANCE, TRANSFER_MIN_Y),
+        pickWorld.z
+      );
+
+      switch (phase) {
+        case 'idle':
+        case 'retract':
+          ud.armPhase = 'approach';
+          ud.phaseT = 0;
+          break;
+
+        case 'approach': {
+          r.runIK(targetForGripper(approachPos), {
+            approachHeight: 0.18,
+            safetyMargin: 0.10
+          });
+          this._setGripperState(r, 0, dt);
+          if (railArrived && phaseT > 0.5) {
+            ud.armPhase = 'insert';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'insert': {
+          const p = sCurve(Math.min(phaseT / 0.8, 1));
+          // Interpolate HORIZONTALLY from approach to insert — no Y change for FOUP
+          const tgt = new THREE.Vector3(
+            lerp(approachPos.x, insertPos.x, p),
+            isFoupPick ? safePickY : lerp(approachPos.y, insertPos.y, p),
+            pickWorld.z
+          );
+          r.runIK(targetForGripper(tgt), {
+            safetyMargin: 0.08
+          });
+          this._setGripperState(r, 0, dt);
+          if (p >= 1) {
+            ud.armPhase = 'contact';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'contact': {
+          const p = sCurve(Math.min(phaseT / 0.6, 1));
+          const tgt = new THREE.Vector3(
+            lerp(insertPos.x, contactPos.x, p),
+            Math.min(  // always enforce FOUP ceiling
+              lerp(insertPos.y, contactPos.y, p),
+              isFoupPick ? FOUP_MAX_Y : 999
+            ),
+            pickWorld.z
+          );
+          r.runIK(targetForGripper(tgt), {
+            safetyMargin: 0.05
+          });
+          this._setGripperState(r, 0.3, dt);
+          if (p >= 1) {
+            ud.armPhase = 'vacuum_dwell';
+            ud.phaseT = 0;
+            ud.dwellTimer = 0;
+          }
+          break;
+        }
+
+        case 'vacuum_dwell': {
+          ud.dwellTimer = (ud.dwellTimer as number) + actionDt;
+          // Stay at contact — enforce FOUP ceiling
+          const dwellPos = contactPos.clone();
+          dwellPos.y = Math.min(dwellPos.y, isFoupPick ? FOUP_MAX_Y : 999);
+          r.runIK(targetForGripper(dwellPos), {
+            safetyMargin: 0.05
+          });
+          this._setGripperState(r, 1, dt);
+
+          if ((ud.dwellTimer as number) >= 0.4) {
+            target.attachTo(r);
+            (target as any)._picked = true;
+            this._addLog(`[${WAFER_NAMES[target.wi]}] PICK ↑ ${prevStep.short}`, 'pick');
+
+            // ════════════════════════════════════════════════════════════════════════
+            // OPTIMIZED TRANSFER PATH
+            // Use direct horizontal transfer for most stations (no excessive Z lift)
+            // Only lift for HMDS/DI Rinse stations where collision clearance is needed
+            // ════════════════════════════════════════════════════════════════════════
+            const startW = contactPos.clone();
+            const endW = new THREE.Vector3(
+              dropWorld.x,
+              dropWorld.y + APPROACH_OFFSET + 0.3,
+              dropWorld.z
+            );
+
+            // Determine transfer height and extra clearance for coater handling.
+            const isCoatPick = isCoatStationStep(prevStep.id);
+            const isCoatDrop = isCoatStationStep(dropStep.id);
+            const coatTransferBoost = (isCoatPick || isCoatDrop) ? 0.5 : 0;
+            const pickNeedsLift = needsVerticalLift(prevStep.id);
+            const dropNeedsLift = needsVerticalLift(dropStep.id);
+            const transferHeight = (pickNeedsLift || dropNeedsLift)
+              ? ARC_TRANSFER_HEIGHT  // High arc for HMDS/Rinse stations
+              : DIRECT_TRANSFER_HEIGHT + coatTransferBoost;  // Low but cleared for coater
+
+            // For FOUP: exit horizontally before going up
+            const cp1 = isFoupPick
+              ? new THREE.Vector3(FOUP_FRONT_X + 3.0, safePickY + 1.0, startW.z)  // exit sideways first
+              : new THREE.Vector3(startW.x, transferHeight, startW.z);
+
+            const cp2 = new THREE.Vector3(endW.x, transferHeight, endW.z);
+
+            (ud.bezierStart as THREE.Vector3).copy(startW);
+            (ud.bezierEnd as THREE.Vector3).copy(endW);
+            (ud.bezierCP1 as THREE.Vector3).copy(cp1);
+            (ud.bezierCP2 as THREE.Vector3).copy(cp2);
+            ud.bezierT = 0;
+            ud.postAttachHold = 0;
+            ud.armPhase = 'lift';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'lift': {
+          const hold = (ud.postAttachHold as number) ?? 0;
+          ud.postAttachHold = hold + actionDt;
+          if (hold < 0.15) {
+            // Hold at contact briefly
+            r.runIK(targetForGripper(contactPos), {
+              safetyMargin: 0.05
+            });
+            this._setGripperState(r, 1, dt);
+          } else if (hold < 0.45 && isFoupPick) {
+            // FOUP: retract HORIZONTALLY out of FOUP door before lifting up
+            const retractX = lerp(contactPos.x, FOUP_FRONT_X + 3.5,
+              sCurve((hold - 0.15) / 0.3));
+            const retractPos = new THREE.Vector3(retractX, safePickY, pickWorld.z);
+            r.runIK(targetForGripper(retractPos), {
+              safetyMargin: 0.08
+            });
+            this._setGripperState(r, 1, dt);
+          } else {
+            // Now lift straight up — safely away from FOUP
+            const liftBase = isFoupPick
+              ? new THREE.Vector3(FOUP_FRONT_X + 3.5, safePickY, pickWorld.z)
+              : contactPos.clone();
+            const liftPos = liftBase.clone();
+            liftPos.y = SAFE_HEIGHT;
+            const liftP = sCurve(Math.min((hold - (isFoupPick ? 0.45 : 0.15)) / 0.5, 1));
+            const tgt = new THREE.Vector3().lerpVectors(liftBase, liftPos, liftP);
+            r.runIK(targetForGripper(tgt), {
+              isTravel: true,
+              safetyMargin: 0.10
+            });
+            this._setGripperState(r, 1, dt);
+            if (liftP >= 1) {
+              delete ud.postAttachHold;
+              ud.armPhase = 'transport';
+              ud.phaseT = 0;
+              ud.bezierT = 0;
+            }
+          }
+          break;
+        }
+
+        default:
+          ud.armPhase = 'approach';
+          ud.phaseT = 0;
+          break;
       }
-      break;
-    }
 
-    case 'vacuum_dwell': {
-      ud.dwellTimer = (ud.dwellTimer as number) + actionDt;
-      // Stay at contact — enforce FOUP ceiling
-      const dwellPos = contactPos.clone();
-      dwellPos.y = Math.min(dwellPos.y, isFoupPick ? FOUP_MAX_Y : 999);
-      r.runIK(targetForGripper(dwellPos), { 
-        safetyMargin: 0.05 
-      });
-      this._setGripperState(r, 1, dt);
+    } else {
+      // ══════════════════════════════════════════════════════════════════════════
+      // PLACE SEQUENCE
+      // ══════════════════════════════════════════════════════════════════════════
+      const isScannerDrop = dropStep.id === 'scanner';
+      const isFoupDrop = dropStep.type === 'foup' || (target as any)._returnToFoup;
+      const isInterfaceDrop = dropStep.type === 'iface';
 
-      if ((ud.dwellTimer as number) >= 0.4) {
-        target.attachTo(r);
-        (target as any)._picked = true;
-        this._addLog(`[${WAFER_NAMES[target.wi]}] PICK ↑ ${prevStep.short}`, 'pick');
+      // FOUP-specific safe zone (same as pick)
+      const FOUP_FRONT_X = (ALL_STEPS[0].x + 5.5);
+      const FOUP_MAX_Y = 2.8;
 
-        // Bezier transport arc — lift HORIZONTALLY first for FOUP,
-        // then arc up and over to destination
-        const startW = contactPos.clone();
-        const endW = new THREE.Vector3(
-          dropWorld.x, 
-          dropWorld.y + APPROACH_OFFSET + 0.3, 
+      // Compute safe approach based on destination type
+      let approachDrop: THREE.Vector3;
+      let insertDrop: THREE.Vector3;
+      let placePos: THREE.Vector3;
+
+      if (isFoupDrop) {
+        // FOUP RETURN: approach horizontally, never go above FOUP top
+        approachDrop = new THREE.Vector3(
+          FOUP_FRONT_X + 2.0,        // stand in front of FOUP
+          Math.min(dropWorld.y, FOUP_MAX_Y),
           dropWorld.z
         );
+        insertDrop = new THREE.Vector3(
+          FOUP_FRONT_X + 0.5,         // approach door
+          Math.min(dropWorld.y, FOUP_MAX_Y),
+          dropWorld.z
+        );
+        placePos = new THREE.Vector3(
+          Math.max(dropWorld.x, FOUP_FRONT_X),  // never go behind front
+          Math.min(dropWorld.y + 0.05, FOUP_MAX_Y),
+          dropWorld.z
+        );
+      } else if (isScannerDrop) {
+        // ── SCANNER: drop into TOP chuck — vertical approach/drop sequence
+        const chuckY = dropWorld.y;     // actual chuck top height (from waferAnchor)
 
-        // For FOUP: exit horizontally before going up
-        const cp1 = isFoupPick
-          ? new THREE.Vector3(FOUP_FRONT_X + 3.0, safePickY + 1.0, startW.z)  // exit sideways first
-          : new THREE.Vector3(startW.x, SAFE_HEIGHT, startW.z);
-
-        const cp2 = new THREE.Vector3(endW.x, SAFE_HEIGHT, endW.z);
-
-        (ud.bezierStart as THREE.Vector3).copy(startW);
-        (ud.bezierEnd   as THREE.Vector3).copy(endW);
-        (ud.bezierCP1   as THREE.Vector3).copy(cp1);
-        (ud.bezierCP2   as THREE.Vector3).copy(cp2);
-        ud.bezierT = 0;
-        ud.postAttachHold = 0;
-        ud.armPhase = 'lift';
-        ud.phaseT = 0;
-      }
-      break;
-    }
-
-    case 'lift': {
-      const hold = (ud.postAttachHold as number) ?? 0;
-      ud.postAttachHold = hold + actionDt;
-      if (hold < 0.15) {
-        // Hold at contact briefly
-        r.runIK(targetForGripper(contactPos), { 
-          safetyMargin: 0.05 
-        });
-        this._setGripperState(r, 1, dt);
-      } else if (hold < 0.45 && isFoupPick) {
-        // FOUP: retract HORIZONTALLY out of FOUP door before lifting up
-        const retractX = lerp(contactPos.x, FOUP_FRONT_X + 3.5, 
-          sCurve((hold - 0.15) / 0.3));
-        const retractPos = new THREE.Vector3(retractX, safePickY, pickWorld.z);
-        r.runIK(targetForGripper(retractPos), { 
-          safetyMargin: 0.08 
-        });
-        this._setGripperState(r, 1, dt);
+        approachDrop = new THREE.Vector3(
+          dropWorld.x,                  // directly above chuck (X)
+          chuckY + 1.8,                 // ← rise WELL ABOVE the chuck
+          dropWorld.z                   // directly above chuck (Z)
+        );
+        insertDrop = new THREE.Vector3(
+          dropWorld.x,
+          chuckY + 0.5,                 // ← hovering just above chuck
+          dropWorld.z
+        );
+        placePos = new THREE.Vector3(
+          dropWorld.x,
+          chuckY + 0.02,                // ← on chuck (tiny gap for seating)
+          dropWorld.z
+        );
       } else {
-        // Now lift straight up — safely away from FOUP
-        const liftBase = isFoupPick 
-          ? new THREE.Vector3(FOUP_FRONT_X + 3.5, safePickY, pickWorld.z)
-          : contactPos.clone();
-        const liftPos = liftBase.clone();
-        liftPos.y = SAFE_HEIGHT;
-        const liftP = sCurve(Math.min((hold - (isFoupPick ? 0.45 : 0.15)) / 0.5, 1));
-        const tgt = new THREE.Vector3().lerpVectors(liftBase, liftPos, liftP);
-        r.runIK(targetForGripper(tgt), { 
-          isTravel: true,
-          safetyMargin: 0.10 
-        });
-        this._setGripperState(r, 1, dt);
-        if (liftP >= 1) {
-          delete ud.postAttachHold;
+        // STANDARD MODULE PLACE
+        approachDrop = new THREE.Vector3(
+          dropWorld.x,
+          WAFER_TRANSFER_Y + APPROACH_OFFSET + 0.3,
+          dropWorld.z
+        );
+        insertDrop = new THREE.Vector3(
+          dropWorld.x,
+          WAFER_TRANSFER_Y + 0.1,
+          dropWorld.z
+        );
+        placePos = new THREE.Vector3(
+          dropWorld.x,
+          WAFER_TRANSFER_Y + 0.05,
+          dropWorld.z
+        );
+      }
+
+      switch (phase) {
+        case 'lift':
+        case 'transport':
+        case 'carry':
+        case 'rise': {
+          ud.bezierT = Math.min((ud.bezierT as number) + actionDt * 0.5, 1);
+          const tBz = sCurve(ud.bezierT as number);
+          const tgt = new THREE.Vector3();
+          evalBezier(tgt, tBz);
+
+          // Force travel arc above all modules for cross-row motion.
+          tgt.y = Math.max(tgt.y, SAFE_TRAVEL_Y + (isCrossRow ? 0.3 : 0));
+
+          // For FOUP destination: clamp arc height so we never go above FOUP top
+          if (isFoupDrop) {
+            tgt.y = Math.min(tgt.y, FOUP_MAX_Y + 1.5);
+          }
+
+          r.runIK(targetForGripper(tgt), {
+            isTravel: true,
+            isScanner: isScannerDrop,
+            safetyMargin: 0.12,
+          });
+          this._setGripperState(r, 1, dt);
+          if ((ud.bezierT as number) >= 1 && railArrived) {
+            ud.armPhase = 'approach_drop';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'approach_drop': {
+          // Move to approach position — for scanner, rise high above body first
+          const p = sCurve(Math.min(phaseT / 0.6, 1));
+          const tgt = new THREE.Vector3().lerpVectors(
+            new THREE.Vector3(approachDrop.x, SAFE_HEIGHT, approachDrop.z),
+            approachDrop,
+            p
+          );
+          r.runIK(targetForGripper(tgt), {
+            isScanner: isScannerDrop,
+            approachHeight: 0.16,
+            safetyMargin: 0.10
+          });
+          this._setGripperState(r, 1, dt);
+          if (p >= 1) {
+            ud.armPhase = isFoupDrop ? 'foup_insert' : (isScannerDrop ? 'scanner_insert' : 'place_contact');
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'foup_insert': {
+          // Move horizontally into FOUP at constant height
+          const p = sCurve(Math.min(phaseT / 0.8, 1));
+          const tgt = new THREE.Vector3(
+            lerp(approachDrop.x, insertDrop.x, p),
+            Math.min(approachDrop.y, FOUP_MAX_Y),
+            dropWorld.z
+          );
+          r.runIK(targetForGripper(tgt), {
+            safetyMargin: 0.08
+          });
+          this._setGripperState(r, 1, dt);
+          if (p >= 1) {
+            ud.armPhase = 'place_contact';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'scanner_insert': {
+          // Phase 1: move horizontally over the slot (X/Z align) while staying high
+          const p = sCurve(Math.min(phaseT / 0.55, 1));
+          const tgt = new THREE.Vector3(
+            lerp(approachDrop.x, insertDrop.x, p),
+            approachDrop.y,                          // stay at rise height during align
+            lerp(approachDrop.z, insertDrop.z, p)
+          );
+          r.runIK(targetForGripper(tgt), {
+            isScanner: true,
+            safetyMargin: 0.06
+          });
+          this._setGripperState(r, 1, dt);
+          if (p >= 1) {
+            ud.armPhase = 'scanner_lower';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'scanner_lower': {
+          // Phase 2: lower straight down into the slot from above
+          const p = sCurve(Math.min(phaseT / 0.55, 1));
+          const tgt = new THREE.Vector3(
+            insertDrop.x,
+            lerp(insertDrop.y, placePos.y, p),       // descend into slot
+            insertDrop.z
+          );
+          r.runIK(targetForGripper(tgt), {
+            isScanner: true,
+            safetyMargin: 0.04
+          });
+          this._setGripperState(r, 1, dt);
+          if (p >= 1) {
+            ud.armPhase = 'place_contact';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'place_contact': {
+          const p = sCurve(Math.min(phaseT / 0.6, 1));
+          const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
+
+          // Safety clamps
+          if (isFoupDrop) {
+            tgt.y = Math.min(tgt.y, FOUP_MAX_Y);
+            tgt.x = Math.max(tgt.x, FOUP_FRONT_X);
+          }
+
+          r.runIK(targetForGripper(tgt), {
+            isScanner: isScannerDrop,
+            safetyMargin: 0.04
+          });
+          this._setGripperState(r, 1, dt);
+          if (p >= 1) {
+            ud.armPhase = 'release';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'release': {
+          r.runIK(targetForGripper(placePos), {
+            isScanner: isScannerDrop,
+            safetyMargin: 0.04
+          });
+          this._setGripperState(r, 0, dt);
+
+          if (phaseT > 0.4) {
+            // Detach wafer at the final place position for scanner drops.
+            if (isScannerDrop) {
+              target.detachAt(placePos);
+            } else {
+              target.detachAt(dropWorld);
+            }
+            (target as any)._picked = false;
+            (target as any)._pickupX = undefined;
+            (target as any)._pickupZ = undefined;
+
+            // Handle FOUP return completion
+            if ((target as any)._returnToFoup) {
+              (target as any)._returnToFoup = false;
+              (target as any)._returning = false;
+              target.done = true;
+              target.state = 'done';
+              target.mesh.visible = true;
+              this._addLog(`[${WAFER_NAMES[target.wi]}] RETURNED TO FOUP ✓`, 'place');
+
+              // Place wafer at the FOUP slot position
+              const foupGrp = this.modObjs['foup'];
+              const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+              if (anchors?.[target.wi]) {
+                const slotPos = new THREE.Vector3();
+                anchors[target.wi].getWorldPosition(slotPos);
+                target.mesh.position.copy(slotPos);
+              }
+            } else {
+              this._addLog(`[${WAFER_NAMES[target.wi]}] PLACE @ ${dropStep.short}`, 'place');
+              target.state = 'processing';
+              target.processTimer = 0;
+              this._onProcessStart(target, dropStep);
+              this.busy[dropStep.id] = target.wi;
+            }
+
+            // Choose retract phase based on destination
+            if (isInterfaceDrop) {
+              ud.armPhase = 'place_hold';
+            } else {
+              ud.armPhase = isScannerDrop ? 'scanner_retract' : (isFoupDrop ? 'foup_retract' : 'retract');
+            }
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'place_hold': {
+          r.runIK(targetForGripper(placePos), {
+            isScanner: isScannerDrop,
+            safetyMargin: 0.04
+          });
+          this._setGripperState(r, 0, dt);
+          if (phaseT > 0.8) {
+            ud.armPhase = 'retract';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'scanner_retract': {
+          // Move out of the scanner slot and then lift away.
+          const p = sCurve(Math.min(phaseT / 0.65, 1));
+          const exitPos = new THREE.Vector3(
+            placePos.x,
+            approachDrop.y,            // rise to the slot clearance height
+            placePos.z + 3.5           // step out in front of the scanner
+          );
+          const tgt = new THREE.Vector3().lerpVectors(placePos, exitPos, p);
+          r.runIK(targetForGripper(tgt), {
+            isScanner: true,
+            safetyMargin: 0.06
+          });
+          this._setGripperState(r, 0, dt);
+          if (p >= 1) {
+            ud.armPhase = 'retract';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'foup_retract': {
+          // Pull straight out of FOUP horizontally before lifting
+          const p = sCurve(Math.min(phaseT / 0.7, 1));
+          const retractedPos = new THREE.Vector3(
+            FOUP_FRONT_X + 3.5,
+            Math.min(placePos.y, FOUP_MAX_Y),
+            placePos.z
+          );
+          const tgt = new THREE.Vector3(
+            lerp(placePos.x, retractedPos.x, p),
+            Math.min(lerp(placePos.y, retractedPos.y, p), FOUP_MAX_Y),
+            placePos.z
+          );
+          r.runIK(targetForGripper(tgt), {
+            safetyMargin: 0.08
+          });
+          this._setGripperState(r, 0, dt);
+          if (p >= 1) {
+            ud.armPhase = 'retract';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        case 'retract': {
+          // Lift up to safe height
+          const liftedPos = new THREE.Vector3(
+            r.group.position.x,
+            SAFE_HEIGHT,
+            0
+          );
+          const p = sCurve(Math.min(phaseT / 0.5, 1));
+          const startPos = isFoupDrop
+            ? new THREE.Vector3(FOUP_FRONT_X + 3.5, Math.min(placePos.y, FOUP_MAX_Y), placePos.z)
+            : (isScannerDrop ? new THREE.Vector3(placePos.x, approachDrop.y, placePos.z) : placePos);
+          const tgt = new THREE.Vector3().lerpVectors(startPos, liftedPos, p);
+          r.runIK(targetForGripper(tgt), {
+            safetyMargin: 0.10
+          });
+          this._setGripperState(r, 0, dt);
+          if (p >= 1) {
+            ud.armPhase = 'idle';
+            ud.phaseT = 0;
+          }
+          break;
+        }
+
+        default:
           ud.armPhase = 'transport';
           ud.phaseT = 0;
-          ud.bezierT = 0;
-        }
+          break;
       }
-      break;
     }
 
-    default:
-      ud.armPhase = 'approach';
-      ud.phaseT = 0;
-      break;
-  }
-
-     } else {
-    // ══════════════════════════════════════════════════════════════════════════
-    // PLACE SEQUENCE
-    // ══════════════════════════════════════════════════════════════════════════
-    const isScannerDrop = dropStep.id === 'scanner';
-    const isFoupDrop = dropStep.type === 'foup' || (target as any)._returnToFoup;
-    const isInterfaceDrop = dropStep.type === 'iface';
-    
-    // FOUP-specific safe zone (same as pick)
-    const FOUP_FRONT_X = (ALL_STEPS[0].x + 5.5);
-    const FOUP_MAX_Y = 2.8;
-    
-    // Compute safe approach based on destination type
-    let approachDrop: THREE.Vector3;
-    let insertDrop: THREE.Vector3;
-    let placePos: THREE.Vector3;
-    
-    if (isFoupDrop) {
-      // FOUP RETURN: approach horizontally, never go above FOUP top
-      approachDrop = new THREE.Vector3(
-        FOUP_FRONT_X + 2.0,        // stand in front of FOUP
-        Math.min(dropWorld.y, FOUP_MAX_Y),
-        dropWorld.z
-      );
-      insertDrop = new THREE.Vector3(
-        FOUP_FRONT_X + 0.5,         // approach door
-        Math.min(dropWorld.y, FOUP_MAX_Y),
-        dropWorld.z
-      );
-      placePos = new THREE.Vector3(
-        Math.max(dropWorld.x, FOUP_FRONT_X),  // never go behind front
-        Math.min(dropWorld.y + 0.05, FOUP_MAX_Y),
-        dropWorld.z
-      );
-    } else if (isScannerDrop) {
-      // ── SCANNER: drop into TOP chuck — vertical approach/drop sequence
-      const chuckY = dropWorld.y;     // actual chuck top height (from waferAnchor)
-
-      approachDrop = new THREE.Vector3(
-        dropWorld.x,                  // directly above chuck (X)
-        chuckY + 1.8,                 // ← rise WELL ABOVE the chuck
-        dropWorld.z                   // directly above chuck (Z)
-      );
-      insertDrop = new THREE.Vector3(
-        dropWorld.x,
-        chuckY + 0.5,                 // ← hovering just above chuck
-        dropWorld.z
-      );
-      placePos = new THREE.Vector3(
-        dropWorld.x,
-        chuckY + 0.02,                // ← on chuck (tiny gap for seating)
-        dropWorld.z
-      );
+    // ── Status LED ──
+    if ((ud.gripperState as number) > 0.7) {
+      r.statusPL.color.setHex(0x00ffff);
+      r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
+    } else if (carried) {
+      r.statusPL.color.setHex(0x00ff88);
+      r.statusPL.intensity = 1.8;
     } else {
-      // STANDARD MODULE PLACE
-      approachDrop = new THREE.Vector3(
-        dropWorld.x,
-        WAFER_TRANSFER_Y + APPROACH_OFFSET + 0.3,
-        dropWorld.z
-      );
-      insertDrop = new THREE.Vector3(
-        dropWorld.x,
-        WAFER_TRANSFER_Y + 0.1,
-        dropWorld.z
-      );
-      placePos = new THREE.Vector3(
-        dropWorld.x,
-        WAFER_TRANSFER_Y + 0.05,
-        dropWorld.z
-      );
-    }
-
-    switch (phase) {
-      case 'lift':
-      case 'transport':
-      case 'carry':
-      case 'rise': {
-        ud.bezierT = Math.min((ud.bezierT as number) + actionDt * 0.5, 1);
-        const tBz = sCurve(ud.bezierT as number);
-        const tgt = new THREE.Vector3();
-        evalBezier(tgt, tBz);
-        
-        // Force travel arc above all modules for cross-row motion.
-        tgt.y = Math.max(tgt.y, SAFE_TRAVEL_Y + (isCrossRow ? 0.3 : 0));
-
-        // For FOUP destination: clamp arc height so we never go above FOUP top
-        if (isFoupDrop) {
-          tgt.y = Math.min(tgt.y, FOUP_MAX_Y + 1.5);
-        }
-        
-        r.runIK(targetForGripper(tgt), {
-          isTravel: true,
-          isScanner: isScannerDrop,
-          safetyMargin: 0.12,
-        });
-        this._setGripperState(r, 1, dt);
-        if ((ud.bezierT as number) >= 1 && railArrived) {
-          ud.armPhase = 'approach_drop';
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'approach_drop': {
-        // Move to approach position — for scanner, rise high above body first
-        const p = sCurve(Math.min(phaseT / 0.6, 1));
-        const tgt = new THREE.Vector3().lerpVectors(
-          new THREE.Vector3(approachDrop.x, SAFE_HEIGHT, approachDrop.z),
-          approachDrop,
-          p
-        );
-        r.runIK(targetForGripper(tgt), { 
-          isScanner: isScannerDrop,
-          approachHeight: 0.16,
-          safetyMargin: 0.10 
-        });
-        this._setGripperState(r, 1, dt);
-        if (p >= 1) {
-          ud.armPhase = isFoupDrop ? 'foup_insert' : (isScannerDrop ? 'scanner_insert' : 'place_contact');
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'foup_insert': {
-        // Move horizontally into FOUP at constant height
-        const p = sCurve(Math.min(phaseT / 0.8, 1));
-        const tgt = new THREE.Vector3(
-          lerp(approachDrop.x, insertDrop.x, p),
-          Math.min(approachDrop.y, FOUP_MAX_Y),
-          dropWorld.z
-        );
-        r.runIK(targetForGripper(tgt), { 
-          safetyMargin: 0.08 
-        });
-        this._setGripperState(r, 1, dt);
-        if (p >= 1) {
-          ud.armPhase = 'place_contact';
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'scanner_insert': {
-        // Phase 1: move horizontally over the slot (X/Z align) while staying high
-        const p = sCurve(Math.min(phaseT / 0.55, 1));
-        const tgt = new THREE.Vector3(
-          lerp(approachDrop.x, insertDrop.x, p),
-          approachDrop.y,                          // stay at rise height during align
-          lerp(approachDrop.z, insertDrop.z, p)
-        );
-        r.runIK(targetForGripper(tgt), {
-          isScanner: true,
-          safetyMargin: 0.06
-        });
-        this._setGripperState(r, 1, dt);
-        if (p >= 1) {
-          ud.armPhase = 'scanner_lower';
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'scanner_lower': {
-        // Phase 2: lower straight down into the slot from above
-        const p = sCurve(Math.min(phaseT / 0.55, 1));
-        const tgt = new THREE.Vector3(
-          insertDrop.x,
-          lerp(insertDrop.y, placePos.y, p),       // descend into slot
-          insertDrop.z
-        );
-        r.runIK(targetForGripper(tgt), {
-          isScanner: true,
-          safetyMargin: 0.04
-        });
-        this._setGripperState(r, 1, dt);
-        if (p >= 1) {
-          ud.armPhase = 'place_contact';
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'place_contact': {
-        const p = sCurve(Math.min(phaseT / 0.6, 1));
-        const tgt = new THREE.Vector3().lerpVectors(insertDrop, placePos, p);
-        
-        // Safety clamps
-        if (isFoupDrop) {
-          tgt.y = Math.min(tgt.y, FOUP_MAX_Y);
-          tgt.x = Math.max(tgt.x, FOUP_FRONT_X);
-        }
-        
-        r.runIK(targetForGripper(tgt), { 
-          isScanner: isScannerDrop,
-          safetyMargin: 0.04
-        });
-        this._setGripperState(r, 1, dt);
-        if (p >= 1) {
-          ud.armPhase = 'release';
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'release': {
-        r.runIK(targetForGripper(placePos), { 
-          isScanner: isScannerDrop,
-          safetyMargin: 0.04
-        });
-        this._setGripperState(r, 0, dt);
-        
-        if (phaseT > 0.4) {
-          // Detach wafer at the final place position for scanner drops.
-          if (isScannerDrop) {
-            target.detachAt(placePos);
-          } else {
-            target.detachAt(dropWorld);
-          }
-          (target as any)._picked = false;
-          (target as any)._pickupX = undefined;
-          (target as any)._pickupZ = undefined;
-
-          // Handle FOUP return completion
-          if ((target as any)._returnToFoup) {
-            (target as any)._returnToFoup = false;
-            (target as any)._returning = false;
-            target.done = true;
-            target.state = 'done';
-            target.mesh.visible = true;
-            this._addLog(`[${WAFER_NAMES[target.wi]}] RETURNED TO FOUP ✓`, 'place');
-            
-            // Place wafer at the FOUP slot position
-            const foupGrp = this.modObjs['foup'];
-            const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-            if (anchors?.[target.wi]) {
-              const slotPos = new THREE.Vector3();
-              anchors[target.wi].getWorldPosition(slotPos);
-              target.mesh.position.copy(slotPos);
-            }
-          } else {
-            this._addLog(`[${WAFER_NAMES[target.wi]}] PLACE @ ${dropStep.short}`, 'place');
-            target.state = 'processing';
-            target.processTimer = 0;
-            this._onProcessStart(target, dropStep);
-            this.busy[dropStep.id] = target.wi;
-          }
-          
-          // Choose retract phase based on destination
-          if (isInterfaceDrop) {
-            ud.armPhase = 'place_hold';
-          } else {
-            ud.armPhase = isScannerDrop ? 'scanner_retract' : (isFoupDrop ? 'foup_retract' : 'retract');
-          }
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'place_hold': {
-        r.runIK(targetForGripper(placePos), {
-          isScanner: isScannerDrop,
-          safetyMargin: 0.04
-        });
-        this._setGripperState(r, 0, dt);
-        if (phaseT > 0.8) {
-          ud.armPhase = 'retract';
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'scanner_retract': {
-        // Move out of the scanner slot and then lift away.
-        const p = sCurve(Math.min(phaseT / 0.65, 1));
-        const exitPos = new THREE.Vector3(
-          placePos.x,
-          approachDrop.y,            // rise to the slot clearance height
-          placePos.z + 3.5           // step out in front of the scanner
-        );
-        const tgt = new THREE.Vector3().lerpVectors(placePos, exitPos, p);
-        r.runIK(targetForGripper(tgt), {
-          isScanner: true,
-          safetyMargin: 0.06
-        });
-        this._setGripperState(r, 0, dt);
-        if (p >= 1) {
-          ud.armPhase = 'retract';
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'foup_retract': {
-        // Pull straight out of FOUP horizontally before lifting
-        const p = sCurve(Math.min(phaseT / 0.7, 1));
-        const retractedPos = new THREE.Vector3(
-          FOUP_FRONT_X + 3.5,
-          Math.min(placePos.y, FOUP_MAX_Y),
-          placePos.z
-        );
-        const tgt = new THREE.Vector3(
-          lerp(placePos.x, retractedPos.x, p),
-          Math.min(lerp(placePos.y, retractedPos.y, p), FOUP_MAX_Y),
-          placePos.z
-        );
-        r.runIK(targetForGripper(tgt), { 
-          safetyMargin: 0.08 
-        });
-        this._setGripperState(r, 0, dt);
-        if (p >= 1) {
-          ud.armPhase = 'retract';
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      case 'retract': {
-        // Lift up to safe height
-        const liftedPos = new THREE.Vector3(
-          r.group.position.x,
-          SAFE_HEIGHT,
-          0
-        );
-        const p = sCurve(Math.min(phaseT / 0.5, 1));
-        const startPos = isFoupDrop
-          ? new THREE.Vector3(FOUP_FRONT_X + 3.5, Math.min(placePos.y, FOUP_MAX_Y), placePos.z)
-          : (isScannerDrop ? new THREE.Vector3(placePos.x, approachDrop.y, placePos.z) : placePos);
-        const tgt = new THREE.Vector3().lerpVectors(startPos, liftedPos, p);
-        r.runIK(targetForGripper(tgt), { 
-          safetyMargin: 0.10 
-        });
-        this._setGripperState(r, 0, dt);
-        if (p >= 1) {
-          ud.armPhase = 'idle';
-          ud.phaseT = 0;
-        }
-        break;
-      }
-
-      default:
-        ud.armPhase = 'transport';
-        ud.phaseT = 0;
-        break;
+      r.statusPL.color.setHex(0x00d8ff);
+      r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
     }
   }
 
-  // ── Status LED ──
-  if ((ud.gripperState as number) > 0.7) {
-    r.statusPL.color.setHex(0x00ffff);
-    r.statusPL.intensity = 2.5 + 0.5 * Math.sin(t * 8);
-  } else if (carried) {
-    r.statusPL.color.setHex(0x00ff88);
-    r.statusPL.intensity = 1.8;
-  } else {
-    r.statusPL.color.setHex(0x00d8ff);
-    r.statusPL.intensity = 1.2 + 0.5 * Math.sin(t * 2.8);
-  }
-}
 
 
 
-
-private _getCarrierForStep(si: number): RobotObject | null {
+  private _getCarrierForStep(si: number): RobotObject | null {
     // Single robot handles every step-to-step transfer in the no-belt layout.
     return this.robotEFEM ?? null;
   }
-//   private _useConveyor(fromIdx: number, toIdx: number): boolean {
-//     const topRange = (i: number) => i >= 1 && i <= 7;
-//     const botRange = (i: number) => i >= 10 && i <= 16;
-//     return (topRange(fromIdx) && topRange(toIdx)) || (botRange(fromIdx) && botRange(toIdx));
-//   }
-private _useConveyor(fromIdx: number, toIdx: number): boolean {
+  //   private _useConveyor(fromIdx: number, toIdx: number): boolean {
+  //     const topRange = (i: number) => i >= 1 && i <= 7;
+  //     const botRange = (i: number) => i >= 10 && i <= 16;
+  //     return (topRange(fromIdx) && topRange(toIdx)) || (botRange(fromIdx) && botRange(toIdx));
+  //   }
+  private _useConveyor(fromIdx: number, toIdx: number): boolean {
     // No conveyor belts in this single-robot flow.
     return false;
   }
- private _tickWafer(sm: WaferStateMachine, dt: number) {
-  if (sm.done || !sm.launched) return;
-  
-  // Already returning to FOUP and being carried by robot — let robot finish
-  if ((sm as any)._returning && sm.carrierRobot) {
-    // Wafer transform owned by gripper.attach() — nothing to do here
-    return;
-  }
-  
-  const w = sm.mesh;
-  const currentStep = ALL_STEPS[sm.stepIdx];
-  const isScannerStage = currentStep?.id === 'scanner' || currentStep?.type === 'iface';
-  const waferSpeed = isScannerStage ? Math.max(this.speed, 10) : this.speed;
-  if (sm.spinning && !this.paused) { sm.spin += dt * waferSpeed * 8; w.rotation.y = sm.spin; }
+  private _tickWafer(sm: WaferStateMachine, dt: number) {
+    if (sm.done || !sm.launched) return;
 
-  const sDt = dt * waferSpeed;
+    // Already returning to FOUP and being carried by robot — let robot finish
+    if ((sm as any)._returning && sm.carrierRobot) {
+      // Wafer transform owned by gripper.attach() — nothing to do here
+      return;
+    }
 
-  switch (sm.state) {
+    const w = sm.mesh;
+    const currentStep = ALL_STEPS[sm.stepIdx];
+    const isScannerStage = currentStep?.id === 'scanner' || currentStep?.type === 'iface';
+    const waferSpeed = isScannerStage ? Math.max(this.speed, 10) : this.speed;
+    if (sm.spinning && !this.paused) { sm.spin += dt * waferSpeed * 8; w.rotation.y = sm.spin; }
 
-    // ── IDLE: decide next move ──────────────────────────────────────────────
- case "idle": {
-      // After all steps done, return wafer to FOUP
-      if (sm.stepIdx >= ALL_STEPS.length) {
-        // Don't mark done yet — return wafer to FOUP first
-        if (!(sm as any)._returning) {
-          (sm as any)._returning = true;
-          (sm as any)._returnToFoup = true;
-          (sm as any)._picked = false;
-          
-          // Set pickup point as the last processed module (hardbake)
-          const lastMod = ALL_STEPS[ALL_STEPS.length - 1];
-          (sm as any)._pickupX = lastMod.x;
-          (sm as any)._pickupZ = lastMod.z;
-          
-          sm.state = "track_approach";
-          sm.timer = 0;
-          this._addLog(`[${WAFER_NAMES[sm.wi]}] RETURNING → FOUP`, "move");
+    const sDt = dt * waferSpeed;
+
+    switch (sm.state) {
+
+      // ── IDLE: decide next move ──────────────────────────────────────────────
+      case "idle": {
+        // After all steps done, return wafer to FOUP
+        if (sm.stepIdx >= ALL_STEPS.length) {
+          // Don't mark done yet — return wafer to FOUP first
+          if (!(sm as any)._returning) {
+            (sm as any)._returning = true;
+            (sm as any)._returnToFoup = true;
+            (sm as any)._picked = false;
+
+            // Set pickup point as the last processed module (hardbake)
+            const lastMod = ALL_STEPS[ALL_STEPS.length - 1];
+            (sm as any)._pickupX = lastMod.x;
+            (sm as any)._pickupZ = lastMod.z;
+
+            sm.state = "track_approach";
+            sm.timer = 0;
+            this._addLog(`[${WAFER_NAMES[sm.wi]}] RETURNING → FOUP`, "move");
+            return;
+          }
+
+          // Already returning — wait for robot to complete
           return;
         }
 
-        // Already returning — wait for robot to complete
-        return;
-      }
-
-      const mod = ALL_STEPS[sm.stepIdx];
-
-      // Don't reserve if another wafer owns this module
-      if (this.busy[mod.id] !== undefined && this.busy[mod.id] !== sm.wi) return;
-
-      // Wait for robot to be ready
-      if (!this.robotEFEM || !this.robotEFEM.gripper) return;
-
-      // Don't start if robot is busy carrying another wafer
-      const robotBusy = this.wSMs.some(
-        (o) => o !== sm && o.carrierRobot === this.robotEFEM
-      );
-      if (robotBusy) return;
-
-      // Reserve the module and hand off to the robot
-      this.busy[mod.id] = sm.wi;
-      (sm as any)._picked = false;
-      
-      // Set pickup point as the previous module
-      const prevStepIdx = Math.max(sm.stepIdx - 1, 0);
-      const prevMod = ALL_STEPS[prevStepIdx];
-      (sm as any)._pickupX = prevMod.x;
-      (sm as any)._pickupZ = prevMod.z;
-      
-      sm.state = "track_approach";
-      sm.timer = 0;
-      sm.owner = "robot";
-      sm.mesh.visible = true;
-      this._addLog(`[${WAFER_NAMES[sm.wi]}] REQUEST → ${mod.short}`, "move");
-      break;
-    }
-    // ── CONVEYOR MOVE: slide along belt surface ─────────────────────────────
-    case "conveyor_move": {
-      const done = sm.tickConveyor(sDt);
-      if (done) {
-        sm.onConveyor = false;
-        const mod   = ALL_STEPS[sm.stepIdx];
-        const isTop = mod.z < 0;
-        const beltZ = isTop ? TOP_TRACK_BELT_Z : BOT_TRACK_BELT_Z;
-
-        // Begin entry animation: belt → module chuck
-        sm.entryEl  = 0;
-        sm.entryDur = 0.6 / Math.max(this.speed, 1);
-        sm.entryStart.set(mod.x, CONVEYOR_WAFER_Y, beltZ);
-        
-        // FIX 5: Use actual waferAnchor world position if available
-        const modGrp = this.modObjs[mod.id];
-        const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
-        const endPos = new THREE.Vector3();
-        if (wa) {
-          wa.getWorldPosition(endPos);
-        } else {
-          endPos.set(mod.x, 0.93, mod.z);
-        }
-        sm.entryEnd.copy(endPos);
-        sm.state = "belt_to_module";
-        this._addLog(`[${WAFER_NAMES[sm.wi]}] ENTER → ${mod.short}`, "pick");
-      }
-      break;
-    }
-
-    // ── BELT TO MODULE: glide from belt into module ─────────────────────────
-    case "belt_to_module": {
-      sm.entryEl += sDt;
-      const t = Math.min(sm.entryEl / sm.entryDur, 1);
-      const e = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
-      w.position.x = lerp(sm.entryStart.x, sm.entryEnd.x, e);
-      w.position.y = lerp(sm.entryStart.y, sm.entryEnd.y, e);
-      w.position.z = lerp(sm.entryStart.z, sm.entryEnd.z, e);
-      if (t >= 1) {
-        w.position.copy(sm.entryEnd);
         const mod = ALL_STEPS[sm.stepIdx];
-        sm.state = "processing";
-        sm.processTimer = 0;
-        this._onProcessStart(sm, mod);
-        this._addLog(`[${WAFER_NAMES[sm.wi]}] PLACE @ ${mod.short}`, "place");
-      }
-      break;
-    }
 
-    // ── PROCESSING: wafer sits on chuck being processed ─────────────────────
-    case "processing": {
-      sm.processTimer += sDt;
-      const mod = ALL_STEPS[sm.stepIdx];
-      const mo  = this.modObjs[mod.id];
+        // Don't reserve if another wafer owns this module
+        if (this.busy[mod.id] !== undefined && this.busy[mod.id] !== sm.wi) return;
 
-      if (mo?.userData.processLight) {
-        const li: Record<string, number> = { hot: 4.0, cold: 3.2, scan: 6.0, coat: 3.5, wet: 3.0, dry: 3.0, iface: 2.5, foup: 1.5 };
-        (mo.userData.processLight as THREE.PointLight).intensity =
-          (li[mod.type] ?? 2.5) + 0.6 * Math.sin(this.simTime * 4);
-      }
-      if (mo?.userData.innerRing) {
-        const mat = (mo.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial;
-        mat.emissiveIntensity = 2.5 + 1.5 * Math.sin(this.simTime * 6);
-      }
-      if (mod.type === "hot" && mo?.userData.coils) {
-        (mo.userData.coils as THREE.Mesh[]).forEach((coil, idx) => {
-          const cm = coil.material as THREE.MeshStandardMaterial;
-          cm.emissiveIntensity = 1.5 + 1.0 * Math.sin(this.simTime * 4 + idx);
-        });
-      }
-			if (mod.id === "prcoat"  && this._activeCoatWI === sm.wi) {
-				this.spinCoat.tick(dt, this.speed);
-				const prLayer = w.userData.prLayer as THREE.Mesh | undefined;
-				if (prLayer) {
-					const mat = prLayer.material as THREE.MeshStandardMaterial;
-					const pink = new THREE.Color(0xcc1177);
-					if (["dispense","spinup","coating"].includes(this.spinCoat.phase)) {
-						mat.color.lerp(pink, 0.12);
-						mat.emissive.lerp(pink, 0.08);
-						mat.opacity = lerp(mat.opacity, 0.95, 0.06);
-						const glowRing = w.userData.glowRing as THREE.Mesh | undefined;
-						if (glowRing) {
-							(glowRing.material as THREE.MeshStandardMaterial).color.lerp(pink, 0.1);
-							(glowRing.material as THREE.MeshStandardMaterial).emissive.lerp(pink, 0.06);
-						}
-					}
-				}
-			}
-			if (mod.id === "develop" && this._activeDevWI  === sm.wi) {
-				this.devLiquid.tick(dt, this.speed);
-				const prLayer = w.userData.prLayer as THREE.Mesh | undefined;
-				if (prLayer) {
-					const mat = prLayer.material as THREE.MeshStandardMaterial;
-					const baseCol = new THREE.Color(WAFER_COLORS[sm.wi]);
-					const green = new THREE.Color(0x33cc88);
-					const grey = new THREE.Color(0x8899cc);
-					if (["spray","puddle"].includes(this.devLiquid.phase)) {
-						mat.color.lerp(green, 0.12);
-						mat.emissive.lerp(new THREE.Color(0x22aa66), 0.08);
-						mat.opacity = lerp(mat.opacity, 0.95, 0.06);
-					} else if (["rinse","drain"].includes(this.devLiquid.phase)) {
-						mat.color.lerp(grey, 0.10);
-						mat.emissive.lerp(new THREE.Color(0x112244), 0.06);
-						mat.opacity = lerp(mat.opacity, 0.9, 0.08);
-					} else {
-						mat.color.lerp(baseCol, 0.06);
-						mat.emissive.lerp(new THREE.Color(0x000000), 0.04);
-						mat.opacity = lerp(mat.opacity, 0.0, 0.06);
-					}
-				}
-			}
-			if (mod.id === "scanner") {
-				this._animateScannerEntry(sm, dt);
-			}
-			if (mod.id === "scanner" && mo?.userData.uvBeam) {
-        const beam = mo.userData.uvBeam as THREE.Mesh;
-        const bmat = beam.material as THREE.MeshStandardMaterial;
-        bmat.emissiveIntensity = 1.5 + 1.2 * Math.abs(Math.sin(this.simTime * 8));
-        bmat.opacity = 0.08 + 0.08 * Math.abs(Math.sin(this.simTime * 8));
-        const pr = w.userData.prLayer as THREE.Mesh;
-        if (pr) {
-          (pr.material as THREE.MeshStandardMaterial).emissiveIntensity =
-            0.7 + 0.5 * Math.abs(Math.sin(this.simTime * 8));
-        }
-      }
+        // Wait for robot to be ready
+        if (!this.robotEFEM || !this.robotEFEM.gripper) return;
 
-      if (sm.processTimer >= mod.time) {
-        if (mod.id === "scanner" && !sm.mesh.visible) sm.mesh.visible = true;
-        this._onProcessEnd(sm, mod, mo);
-        if (this.busy[mod.id] === sm.wi) delete this.busy[mod.id];
+        // Don't start if robot is busy carrying another wafer
+        const robotBusy = this.wSMs.some(
+          (o) => o !== sm && o.carrierRobot === this.robotEFEM
+        );
+        if (robotBusy) return;
 
-        // Check if NEXT step is also on conveyor → exit back to belt first
-        const nextIdx    = sm.stepIdx + 1;
-        const nextOnConv = nextIdx < ALL_STEPS.length &&
-                           this._useConveyor(sm.stepIdx, nextIdx);
+        // Reserve the module and hand off to the robot
+        this.busy[mod.id] = sm.wi;
+        (sm as any)._picked = false;
 
-        if (nextOnConv) {
+        // Set pickup point as the previous module
+        const prevStepIdx = Math.max(sm.stepIdx - 1, 0);
+        const prevMod = ALL_STEPS[prevStepIdx];
+        (sm as any)._pickupX = prevMod.x;
+        (sm as any)._pickupZ = prevMod.z;
+
+        sm.state = "track_approach";
+        sm.timer = 0;
+        sm.owner = "robot";
+        sm.mesh.visible = true;
+        this._addLog(`[${WAFER_NAMES[sm.wi]}] REQUEST → ${mod.short}`, "move");
+        break;
+      }
+      // ── CONVEYOR MOVE: slide along belt surface ─────────────────────────────
+      case "conveyor_move": {
+        const done = sm.tickConveyor(sDt);
+        if (done) {
+          sm.onConveyor = false;
+          const mod = ALL_STEPS[sm.stepIdx];
           const isTop = mod.z < 0;
           const beltZ = isTop ? TOP_TRACK_BELT_Z : BOT_TRACK_BELT_Z;
 
-          // Exit animation: chuck → belt
-          sm.exitEl  = 0;
-          sm.exitDur = 0.6 / Math.max(this.speed, 1);
-          sm.exitStart.set(mod.x, 0.93, mod.z);
-          sm.exitEnd.set(mod.x, CONVEYOR_WAFER_Y, beltZ);
-          sm.state = "module_to_belt";
-          this._addLog(`[${WAFER_NAMES[sm.wi]}] EXIT ← ${mod.short}`, "move");
-        } else {
-          // Robot picks up — advance to next step normally
-          sm.stepIdx++; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
+          // Begin entry animation: belt → module chuck
+          sm.entryEl = 0;
+          sm.entryDur = 0.6 / Math.max(this.speed, 1);
+          sm.entryStart.set(mod.x, CONVEYOR_WAFER_Y, beltZ);
+
+          // FIX 5: Use actual waferAnchor world position if available
+          const modGrp = this.modObjs[mod.id];
+          const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
+          const endPos = new THREE.Vector3();
+          if (wa) {
+            wa.getWorldPosition(endPos);
+          } else {
+            endPos.set(mod.x, 0.93, mod.z);
+          }
+          sm.entryEnd.copy(endPos);
+          sm.state = "belt_to_module";
+          this._addLog(`[${WAFER_NAMES[sm.wi]}] ENTER → ${mod.short}`, "pick");
+        }
+        break;
+      }
+
+      // ── BELT TO MODULE: glide from belt into module ─────────────────────────
+      case "belt_to_module": {
+        sm.entryEl += sDt;
+        const t = Math.min(sm.entryEl / sm.entryDur, 1);
+        const e = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+        w.position.x = lerp(sm.entryStart.x, sm.entryEnd.x, e);
+        w.position.y = lerp(sm.entryStart.y, sm.entryEnd.y, e);
+        w.position.z = lerp(sm.entryStart.z, sm.entryEnd.z, e);
+        if (t >= 1) {
+          w.position.copy(sm.entryEnd);
+          const mod = ALL_STEPS[sm.stepIdx];
+          sm.state = "processing";
+          sm.processTimer = 0;
+          this._onProcessStart(sm, mod);
+          this._addLog(`[${WAFER_NAMES[sm.wi]}] PLACE @ ${mod.short}`, "place");
+        }
+        break;
+      }
+
+      // ── PROCESSING: wafer sits on chuck being processed ─────────────────────
+      case "processing": {
+        sm.processTimer += sDt;
+        const mod = ALL_STEPS[sm.stepIdx];
+        const mo = this.modObjs[mod.id];
+
+        if (mo?.userData.processLight) {
+          const li: Record<string, number> = { hot: 4.0, cold: 3.2, scan: 6.0, coat: 3.5, wet: 3.0, dry: 3.0, iface: 2.5, foup: 1.5 };
+          (mo.userData.processLight as THREE.PointLight).intensity =
+            (li[mod.type] ?? 2.5) + 0.6 * Math.sin(this.simTime * 4);
+        }
+        if (mo?.userData.innerRing) {
+          const mat = (mo.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial;
+          mat.emissiveIntensity = 2.5 + 1.5 * Math.sin(this.simTime * 6);
+        }
+        if (mod.type === "hot" && mo?.userData.coils) {
+          (mo.userData.coils as THREE.Mesh[]).forEach((coil, idx) => {
+            const cm = coil.material as THREE.MeshStandardMaterial;
+            cm.emissiveIntensity = 1.5 + 1.0 * Math.sin(this.simTime * 4 + idx);
+          });
+        }
+        if (mod.id === "prcoat" && this._activeCoatWI === sm.wi) {
+          this.spinCoat.tick(dt, this.speed);
+          const prLayer = w.userData.prLayer as THREE.Mesh | undefined;
+          if (prLayer) {
+            const mat = prLayer.material as THREE.MeshStandardMaterial;
+            const pink = new THREE.Color(0xcc1177);
+            if (["dispense", "spinup", "coating"].includes(this.spinCoat.phase)) {
+              mat.color.lerp(pink, 0.12);
+              mat.emissive.lerp(pink, 0.08);
+              mat.opacity = lerp(mat.opacity, 0.95, 0.06);
+              const glowRing = w.userData.glowRing as THREE.Mesh | undefined;
+              if (glowRing) {
+                (glowRing.material as THREE.MeshStandardMaterial).color.lerp(pink, 0.1);
+                (glowRing.material as THREE.MeshStandardMaterial).emissive.lerp(pink, 0.06);
+              }
+            }
+          }
+        }
+        if (mod.id === "develop" && this._activeDevWI === sm.wi) {
+          this.devLiquid.tick(dt, this.speed);
+          const prLayer = w.userData.prLayer as THREE.Mesh | undefined;
+          if (prLayer) {
+            const mat = prLayer.material as THREE.MeshStandardMaterial;
+            const baseCol = new THREE.Color(WAFER_COLORS[sm.wi]);
+            const green = new THREE.Color(0x33cc88);
+            const grey = new THREE.Color(0x8899cc);
+            if (["spray", "puddle"].includes(this.devLiquid.phase)) {
+              mat.color.lerp(green, 0.12);
+              mat.emissive.lerp(new THREE.Color(0x22aa66), 0.08);
+              mat.opacity = lerp(mat.opacity, 0.95, 0.06);
+            } else if (["rinse", "drain"].includes(this.devLiquid.phase)) {
+              mat.color.lerp(grey, 0.10);
+              mat.emissive.lerp(new THREE.Color(0x112244), 0.06);
+              mat.opacity = lerp(mat.opacity, 0.9, 0.08);
+            } else {
+              mat.color.lerp(baseCol, 0.06);
+              mat.emissive.lerp(new THREE.Color(0x000000), 0.04);
+              mat.opacity = lerp(mat.opacity, 0.0, 0.06);
+            }
+          }
+        }
+        if (mod.id === "scanner") {
+          this._animateScannerEntry(sm, dt);
+        }
+        if (mod.id === "scanner" && mo?.userData.uvBeam) {
+          const beam = mo.userData.uvBeam as THREE.Mesh;
+          const bmat = beam.material as THREE.MeshStandardMaterial;
+          bmat.emissiveIntensity = 1.5 + 1.2 * Math.abs(Math.sin(this.simTime * 8));
+          bmat.opacity = 0.08 + 0.08 * Math.abs(Math.sin(this.simTime * 8));
+          const pr = w.userData.prLayer as THREE.Mesh;
+          if (pr) {
+            (pr.material as THREE.MeshStandardMaterial).emissiveIntensity =
+              0.7 + 0.5 * Math.abs(Math.sin(this.simTime * 8));
+          }
+        }
+
+        if (sm.processTimer >= mod.time) {
+          if (mod.id === "scanner" && !sm.mesh.visible) sm.mesh.visible = true;
+          this._onProcessEnd(sm, mod, mo);
+          if (this.busy[mod.id] === sm.wi) delete this.busy[mod.id];
+
+          // Check if NEXT step is also on conveyor → exit back to belt first
+          const nextIdx = sm.stepIdx + 1;
+          const nextOnConv = nextIdx < ALL_STEPS.length &&
+            this._useConveyor(sm.stepIdx, nextIdx);
+
+          if (nextOnConv) {
+            const isTop = mod.z < 0;
+            const beltZ = isTop ? TOP_TRACK_BELT_Z : BOT_TRACK_BELT_Z;
+
+            // Exit animation: chuck → belt
+            sm.exitEl = 0;
+            sm.exitDur = 0.6 / Math.max(this.speed, 1);
+            sm.exitStart.set(mod.x, 0.93, mod.z);
+            sm.exitEnd.set(mod.x, CONVEYOR_WAFER_Y, beltZ);
+            sm.state = "module_to_belt";
+            this._addLog(`[${WAFER_NAMES[sm.wi]}] EXIT ← ${mod.short}`, "move");
+          } else {
+            // Robot picks up — advance to next step normally
+            sm.stepIdx++; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
+
+            if (sm.wi === 0 && this.narration) {
+              this.narration.updateProcessPosition(sm.stepIdx);
+            }
+            if (sm.wi === 0 && sm.stepIdx >= ALL_STEPS.length && this.narration?.isEnabled()) {
+              const doneKey = 'process-complete';
+              if (!this._narratedSteps.has(doneKey)) {
+                this._narratedSteps.add(doneKey);
+                this.narration.speak('All process steps completed. Wafer returning to FOUP for unload.', 'high');
+              }
+            }
+          }
+        }
+        break;
+      }
+
+      // ── MODULE TO BELT: glide from chuck back out to belt ───────────────────
+      case "module_to_belt": {
+        sm.exitEl += sDt;
+        const t = Math.min(sm.exitEl / sm.exitDur, 1);
+        const e = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+        w.position.x = lerp(sm.exitStart.x, sm.exitEnd.x, e);
+        w.position.y = lerp(sm.exitStart.y, sm.exitEnd.y, e);
+        w.position.z = lerp(sm.exitStart.z, sm.exitEnd.z, e);
+        if (t >= 1) {
+          w.position.copy(sm.exitEnd);
+          sm.stepIdx++;
+          sm.state = "idle";
+          sm.timer = 0;
+          sm.processTimer = 0;
 
           if (sm.wi === 0 && this.narration) {
             this.narration.updateProcessPosition(sm.stepIdx);
           }
-          if (sm.wi === 0 && sm.stepIdx >= ALL_STEPS.length && this.narration?.isEnabled()) {
-            const doneKey = 'process-complete';
-            if (!this._narratedSteps.has(doneKey)) {
-              this._narratedSteps.add(doneKey);
-              this.narration.speak('All process steps completed. Wafer returning to FOUP for unload.', 'high');
-            }
-          }
         }
+        break;
       }
-      break;
-    }
 
-    // ── MODULE TO BELT: glide from chuck back out to belt ───────────────────
-    case "module_to_belt": {
-      sm.exitEl += sDt;
-      const t = Math.min(sm.exitEl / sm.exitDur, 1);
-      const e = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
-      w.position.x = lerp(sm.exitStart.x, sm.exitEnd.x, e);
-      w.position.y = lerp(sm.exitStart.y, sm.exitEnd.y, e);
-      w.position.z = lerp(sm.exitStart.z, sm.exitEnd.z, e);
-      if (t >= 1) {
-        w.position.copy(sm.exitEnd);
-        sm.stepIdx++;
-        sm.state = "idle";
-        sm.timer = 0;
+      // ── ROBOT STATES ────────────────────────────────────────────────────────
+      //  case "track_approach": {
+      //   sm.timer += sDt;
+      //   const robot = this._getCarrierForStep(sm.stepIdx);
+      //   if (!robot) { sm.state = "idle"; return; }
+
+      //   const railX = robot.group.userData.railX ?? robot.basePos.x;
+      //   const picked = (sm as any)._picked;
+      //   const pickupX = (sm as any)._pickupX;
+
+      //   if (!picked) {
+      //     // PHASE 1: slide to pickup location, then attach
+      //     const distToPickup = Math.abs(railX - pickupX);
+      //     if (distToPickup < 0.5 && sm.timer > 0.3) {
+      //       sm.attachTo(robot);
+      //       (sm as any)._picked = true;
+      //       sm.timer = 0;
+      //       this._addLog(`[${WAFER_NAMES[sm.wi]}] PICK ↑ ${ALL_STEPS[Math.max(sm.stepIdx-1,0)].short}`, "pick");
+      //     }
+      //   } else {
+      //     // PHASE 2: slide to drop location, then place
+      //     const mod = ALL_STEPS[sm.stepIdx];
+      //     const distToDrop = Math.abs(railX - mod.x);
+      //     if (distToDrop < 0.5 && sm.timer > 0.3) {
+      //       sm.state = "track_place";
+      //       sm.timer = 0;
+      //     }
+      //   }
+      //   break;
+      // }
+      //     case "track_place": {
+      //       sm.timer += sDt;
+      //       if (sm.timer >= PLACE_DELAY) {
+      //         const mod = ALL_STEPS[sm.stepIdx];
+      //         sm.detachAt(sm.targetPos);
+      //         this._addLog(`[${WAFER_NAMES[sm.wi]}] PLACE @ ${mod.short}`, "place");
+      //         sm.state = "processing"; sm.processTimer = 0;
+      //         this._onProcessStart(sm, mod);
+      //       }
+      //       break;
+      //     }
+
+      case "track_approach": {
+        // Wafer sits at pickup location until robot grabs it.
+        // Once _animRobots calls attachTo(), wafer moves with robot automatically.
+        // Once _animRobots calls detachAt() + sets state='processing', we're done.
+        sm.timer += sDt;
+        // Safety timeout — if stuck for 60 sim-seconds, reset to idle
+        if (sm.timer > 60) {
+          sm.state = "idle";
+          sm.timer = 0;
+          (sm as any)._picked = false;
+          (sm as any)._pickupX = undefined;
+          (sm as any)._pickupZ = undefined;
+        }
+        break;
+      }
+
+      // case "track_place": {
+      //   sm.state        = "processing";
+      //   sm.processTimer = 0;
+      //   break;
+      // }
+
+      case "track_place": {
+        // No-op: handled by _animRobots now. Skip straight to processing if reached.
+        sm.state = "processing";
         sm.processTimer = 0;
-
-        if (sm.wi === 0 && this.narration) {
-          this.narration.updateProcessPosition(sm.stepIdx);
-        }
+        break;
       }
-      break;
     }
-
-    // ── ROBOT STATES ────────────────────────────────────────────────────────
-//  case "track_approach": {
-//   sm.timer += sDt;
-//   const robot = this._getCarrierForStep(sm.stepIdx);
-//   if (!robot) { sm.state = "idle"; return; }
-  
-//   const railX = robot.group.userData.railX ?? robot.basePos.x;
-//   const picked = (sm as any)._picked;
-//   const pickupX = (sm as any)._pickupX;
-
-//   if (!picked) {
-//     // PHASE 1: slide to pickup location, then attach
-//     const distToPickup = Math.abs(railX - pickupX);
-//     if (distToPickup < 0.5 && sm.timer > 0.3) {
-//       sm.attachTo(robot);
-//       (sm as any)._picked = true;
-//       sm.timer = 0;
-//       this._addLog(`[${WAFER_NAMES[sm.wi]}] PICK ↑ ${ALL_STEPS[Math.max(sm.stepIdx-1,0)].short}`, "pick");
-//     }
-//   } else {
-//     // PHASE 2: slide to drop location, then place
-//     const mod = ALL_STEPS[sm.stepIdx];
-//     const distToDrop = Math.abs(railX - mod.x);
-//     if (distToDrop < 0.5 && sm.timer > 0.3) {
-//       sm.state = "track_place";
-//       sm.timer = 0;
-//     }
-//   }
-//   break;
-// }
-//     case "track_place": {
-//       sm.timer += sDt;
-//       if (sm.timer >= PLACE_DELAY) {
-//         const mod = ALL_STEPS[sm.stepIdx];
-//         sm.detachAt(sm.targetPos);
-//         this._addLog(`[${WAFER_NAMES[sm.wi]}] PLACE @ ${mod.short}`, "place");
-//         sm.state = "processing"; sm.processTimer = 0;
-//         this._onProcessStart(sm, mod);
-//       }
-//       break;
-//     }
-
-case "track_approach": {
-  // Wafer sits at pickup location until robot grabs it.
-  // Once _animRobots calls attachTo(), wafer moves with robot automatically.
-  // Once _animRobots calls detachAt() + sets state='processing', we're done.
-  sm.timer += sDt;
-  // Safety timeout — if stuck for 60 sim-seconds, reset to idle
-  if (sm.timer > 60) {
-    sm.state = "idle";
-    sm.timer = 0;
-    (sm as any)._picked  = false;
-    (sm as any)._pickupX = undefined;
-    (sm as any)._pickupZ = undefined;
   }
-  break;
-}
-
-// case "track_place": {
-//   sm.state        = "processing";
-//   sm.processTimer = 0;
-//   break;
-// }
-
-case "track_place": {
-  // No-op: handled by _animRobots now. Skip straight to processing if reached.
-  sm.state = "processing";
-  sm.processTimer = 0;
-  break;
-}
-  }
-}
   /** Speak step narration when the wafer is placed on the module chuck (not on step exit). */
   private _narrateStepArrival(sm: WaferStateMachine, mod: ProcessStep) {
     if (sm.wi !== 0 || !this.narration?.isEnabled()) return;
@@ -35156,9 +35516,9 @@ case "track_place": {
   private _openProcessPage(htmlFile: string, title: string): void {
     // Map old html names to MP4 files in /public/
     const videoMap: Record<string, string> = {
-      'pr_coat_process.html':     'pr_coat_anim.mp4',
-      'developer_process.html':   'developeranimation.mp4',
-      'pr_coat_animation.html':   'pr_coat_anim.mp4',
+      'pr_coat_process.html': 'pr_coat_anim.mp4',
+      'developer_process.html': 'developeranimation.mp4',
+      'pr_coat_animation.html': 'pr_coat_anim.mp4',
       'developer_animation.html': 'developeranimation.mp4',
     };
     const videoFile = videoMap[htmlFile] || htmlFile.replace('.html', '.mp4');
@@ -35167,24 +35527,44 @@ case "track_place": {
 
   /** Inline video popup — preloads, instant play, minimal controls */
   public openAnimVideo(videoSrc: string, title: string): void {
-    // Pause simulator while video plays
     this.setVideoOpen(true);
     this.paused = true;
 
-    // Remove any existing popup
     const existing = document.getElementById('__animVideoPopup');
     if (existing) existing.remove();
 
-    // Add CSS animations once
-    if (!document.getElementById('__animVideoStyle')) {
-      const style = document.createElement('style');
-      style.id = '__animVideoStyle';
-      style.textContent = `
-        @keyframes __fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes __slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    // ── Inject shared styles (reuse smart-video-styles if already present) ──
+    if (!document.getElementById('smart-video-styles')) {
+      const s = document.createElement('style');
+      s.id = 'smart-video-styles';
+      s.textContent = `
+        @keyframes smartFadeIn  { from { opacity:0 } to { opacity:1 } }
+        @keyframes smartSlideUp { from { transform:translateY(16px);opacity:0 } to { transform:translateY(0);opacity:1 } }
+        .smart-speed-btn {
+          padding:4px 10px; border-radius:4px; font-size:11px; font-weight:700;
+          cursor:pointer; border:1px solid rgba(51,221,255,0.3);
+          background:rgba(51,221,255,0.08); color:#66ddff;
+          transition:background 0.15s,border-color 0.15s; font-family:'Inter',sans-serif;
+        }
+        .smart-speed-btn:hover  { background:rgba(51,221,255,0.22); border-color:#33ddff; }
+        .smart-speed-btn.active { background:rgba(51,221,255,0.30); border-color:#33ddff; color:#fff; }
+        .smart-scrubber {
+          -webkit-appearance:none; appearance:none; width:100%; height:3px;
+          background:rgba(255,255,255,0.15); border-radius:2px; outline:none; cursor:pointer;
+        }
+        .smart-scrubber::-webkit-slider-thumb {
+          -webkit-appearance:none; width:12px; height:12px; border-radius:50%;
+          background:#33ddff; cursor:pointer; margin-top:-4px;
+        }
       `;
-      document.head.appendChild(style);
+      document.head.appendChild(s);
     }
+
+    const isPR = videoSrc.includes('pr_coat');
+    const accent = isPR ? '#ff44aa' : '#33ddff';
+    const caption = isPR
+      ? 'PR Coat — resist dispense, spin-up, edge bead removal'
+      : 'Developer — puddle dispense, develop reaction, DI rinse & spin-dry';
 
     // ── Backdrop ──
     const backdrop = document.createElement('div');
@@ -35192,102 +35572,168 @@ case "track_place": {
     Object.assign(backdrop.style, {
       position: 'fixed', top: '0', left: '0',
       width: '100vw', height: '100vh',
-      background: 'rgba(0, 5, 12, 0.92)',
-      backdropFilter: 'blur(4px)',
+      background: 'rgba(0,5,12,0.93)',
+      backdropFilter: 'blur(5px)',
       zIndex: '9999',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      animation: '__fadeIn 0.18s ease-out',
+      animation: 'smartFadeIn 0.18s ease-out',
     });
 
     // ── Container ──
     const container = document.createElement('div');
     Object.assign(container.style, {
-      width: 'min(70%, 800px)', maxHeight: '85vh',
-      background: 'linear-gradient(135deg, #0a1525 0%, #1a2a3a 100%)',
-      border: '2px solid #33ddff', borderRadius: '12px',
-      boxShadow: '0 10px 50px rgba(51, 221, 255, 0.4)',
+      width: 'min(72%,860px)', maxHeight: '90vh',
+      background: '#070b11',
+      border: `2px solid ${accent}`,
+      borderRadius: '12px',
+      boxShadow: `0 0 60px ${accent}55, 0 20px 80px rgba(0,0,0,0.9)`,
       overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      animation: '__slideUp 0.25s ease-out',
+      animation: 'smartSlideUp 0.25s ease-out',
     });
 
     // ── Header ──
     const header = document.createElement('div');
     Object.assign(header.style, {
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      padding: '12px 18px',
-      background: 'rgba(0, 0, 0, 0.4)',
-      borderBottom: '1px solid #33ddff',
+      padding: '11px 18px',
+      background: 'rgba(0,0,0,0.5)',
+      borderBottom: `1px solid ${accent}55`,
+      gap: '10px',
     });
 
     const titleEl = document.createElement('div');
     titleEl.textContent = title.toUpperCase();
     Object.assign(titleEl.style, {
-      color: '#33ddff', fontSize: '14px', fontWeight: 'bold',
-      letterSpacing: '2px', fontFamily: '"Segoe UI", sans-serif',
+      color: accent, fontSize: '13px', fontWeight: 'bold',
+      letterSpacing: '2px', fontFamily: '"Inter","Segoe UI",sans-serif',
+      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
     });
 
-    const controls = document.createElement('div');
-    Object.assign(controls.style, { display: 'flex', gap: '8px', alignItems: 'center' });
+    // Speed buttons
+    const speedGroup = document.createElement('div');
+    Object.assign(speedGroup.style, { display: 'flex', gap: '5px', alignItems: 'center', flexShrink: '0' });
+    [1, 1.5, 2].forEach(spd => {
+      const btn = document.createElement('button');
+      btn.className = 'smart-speed-btn' + (spd === 1 ? ' active' : '');
+      btn.textContent = spd + '×';
+      btn.onclick = () => {
+        video.playbackRate = spd;
+        speedGroup.querySelectorAll('.smart-speed-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+      speedGroup.appendChild(btn);
+    });
+
+    const ctrlGroup = document.createElement('div');
+    Object.assign(ctrlGroup.style, { display: 'flex', gap: '6px', alignItems: 'center', flexShrink: '0' });
 
     const playBtn = document.createElement('button');
+    playBtn.className = 'smart-speed-btn';
+    playBtn.style.minWidth = '74px';
     playBtn.textContent = '❚❚ Pause';
-    Object.assign(playBtn.style, {
-      padding: '6px 14px', background: '#1a4458', color: '#fff',
-      border: '1px solid #33ddff', borderRadius: '4px',
-      cursor: 'pointer', fontSize: '12px', fontWeight: 'bold',
-    });
 
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ CLOSE';
     Object.assign(closeBtn.style, {
       padding: '6px 14px',
-      background: 'linear-gradient(135deg, #cc2244 0%, #882233 100%)',
+      background: 'linear-gradient(135deg,#cc2244,#882233)',
       color: '#fff', border: '1px solid #ff5577', borderRadius: '4px',
       cursor: 'pointer', fontSize: '12px', fontWeight: 'bold',
+      fontFamily: '"Inter",sans-serif',
     });
+    closeBtn.textContent = '✕ CLOSE';
 
-    controls.appendChild(playBtn);
-    controls.appendChild(closeBtn);
-    header.appendChild(titleEl);
-    header.appendChild(controls);
+    ctrlGroup.append(speedGroup, playBtn, closeBtn);
+    header.append(titleEl, ctrlGroup);
 
-    // ── Video element ──
-    const video = document.createElement('video');
-    video.src = videoSrc;
+    // ── Video ──
+    const preloadKey = '_preloaded_' + videoSrc;
+    const preloaded = (this as any)[preloadKey] as HTMLVideoElement | undefined;
+    const video = (preloaded && preloaded.readyState >= 2) ? preloaded : document.createElement('video');
+    if (!preloaded || preloaded.readyState < 2) { video.src = videoSrc; }
     video.autoplay = true;
     video.muted = false;
     video.controls = false;
-    video.preload = 'auto';
     video.playsInline = true;
+    video.playbackRate = 1;
+    video.setAttribute('controlslist', 'nodownload nofullscreen noremoteplayback');
+    video.setAttribute('disablepictureinpicture', '');
+    video.oncontextmenu = (e) => { e.preventDefault(); return false; };
     Object.assign(video.style, {
-      width: '100%', maxHeight: '70vh', display: 'block', background: '#000',
+      width: '100%', maxHeight: '68vh', display: 'block',
+      background: '#000', objectFit: 'contain',
     });
 
-    // ── Loading indicator ──
+    // Show first frame immediately
+    video.addEventListener('loadedmetadata', () => { video.currentTime = 0; }, { once: true });
+
+    // ── Loading indicator (shown until data ready) ──
     const loader = document.createElement('div');
     Object.assign(loader.style, {
-      position: 'absolute', color: '#33ddff',
-      fontSize: '14px', letterSpacing: '2px', fontWeight: 'bold',
+      position: 'absolute', color: accent,
+      fontSize: '13px', letterSpacing: '2px', fontWeight: 'bold',
+      fontFamily: '"Inter",sans-serif',
     });
-    loader.textContent = 'LOADING...';
-
-    // ── Events ──
+    loader.textContent = 'LOADING…';
     video.addEventListener('loadeddata', () => {
-      loader.remove();
+      loader.style.display = 'none';
       video.play().catch(e => console.warn('[VIDEO] Autoplay blocked:', e));
-    });
-    video.addEventListener('play',  () => { playBtn.textContent = '❚❚ Pause'; });
-    video.addEventListener('pause', () => { playBtn.textContent = '▶ Play'; });
+    }, { once: true });
 
+    // ── Caption ──
+    const captionEl = document.createElement('div');
+    Object.assign(captionEl.style, {
+      padding: '5px 18px', fontSize: '10px',
+      color: 'rgba(255,255,255,0.4)',
+      fontFamily: '"Inter",sans-serif', letterSpacing: '0.3px',
+      background: 'rgba(0,0,0,0.3)',
+      borderTop: '1px solid rgba(255,255,255,0.05)',
+    });
+    captionEl.textContent = caption;
+
+    // ── Scrubber ──
+    const scrubWrap = document.createElement('div');
+    Object.assign(scrubWrap.style, {
+      padding: '7px 18px 6px', background: 'rgba(0,0,0,0.35)',
+      borderTop: '1px solid rgba(255,255,255,0.05)',
+      display: 'flex', alignItems: 'center', gap: '10px',
+    });
+    const timeLbl = document.createElement('span');
+    Object.assign(timeLbl.style, {
+      color: 'rgba(255,255,255,0.4)', fontSize: '10px',
+      fontFamily: 'monospace', minWidth: '36px',
+    });
+    timeLbl.textContent = '0:00';
+    const scrubber = document.createElement('input');
+    scrubber.type = 'range'; scrubber.className = 'smart-scrubber';
+    scrubber.min = '0'; scrubber.max = '100'; scrubber.value = '0';
+    scrubber.oninput = () => {
+      if (video.duration) video.currentTime = (parseFloat(scrubber.value) / 100) * video.duration;
+    };
+    video.ontimeupdate = () => {
+      if (!video.duration) return;
+      const pct = (video.currentTime / video.duration) * 100;
+      scrubber.value = String(pct);
+      const s = Math.floor(video.currentTime);
+      timeLbl.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      scrubber.style.background =
+        `linear-gradient(to right, ${accent} ${pct}%, rgba(255,255,255,0.15) ${pct}%)`;
+    };
+    scrubWrap.append(scrubber, timeLbl);
+
+    // ── Play/Pause events ──
+    const updatePP = () => { playBtn.textContent = video.paused ? '▶ Play' : '❚❚ Pause'; };
     playBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (video.paused) video.play(); else video.pause();
+      video.paused ? video.play() : video.pause();
     });
+    video.addEventListener('play', updatePP);
+    video.addEventListener('pause', updatePP);
 
+    // ── Close ──
     const closeVideo = () => {
       video.pause();
-      video.src = '';
-      backdrop.style.animation = '__fadeIn 0.15s ease-out reverse';
+      if (!(preloaded && video === preloaded)) video.src = '';
+      backdrop.style.animation = 'smartFadeIn 0.15s ease-out reverse';
       setTimeout(() => {
         backdrop.remove();
         this.setVideoOpen(false);
@@ -35297,7 +35743,6 @@ case "track_place": {
 
     closeBtn.addEventListener('click', closeVideo);
     backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeVideo(); });
-
     const escHandler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { closeVideo(); document.removeEventListener('keydown', escHandler); }
     };
@@ -35309,89 +35754,99 @@ case "track_place": {
       position: 'relative', display: 'flex',
       alignItems: 'center', justifyContent: 'center', background: '#000',
     });
-    videoWrap.appendChild(video);
-    videoWrap.appendChild(loader);
+    videoWrap.append(video, loader);
 
-    container.appendChild(header);
-    container.appendChild(videoWrap);
+    container.append(header, videoWrap, captionEl, scrubWrap);
     backdrop.appendChild(container);
     document.body.appendChild(backdrop);
 
+    video.play().catch(() => {/* blocked */ });
     this._addLog(`[VIDEO] Playing ${title}`, '');
   }
 
-	// Scanner stage animation: slide in, step-and-scan, slide out
-	private _animateScannerEntry(sm: WaferStateMachine, dt: number) {
-		const phase = sm.processTimer;
-		const wafer = sm.mesh;
-		const scannerMod = ALL_STEPS.find(s => s.id === 'scanner')!;
+  // Scanner stage animation: ease in, step-and-scan, ease out — anchored to the
+  // REAL slot position so the wafer never pops outside the scanner.
+  private _animateScannerEntry(sm: WaferStateMachine, dt: number) {
+    const phase = sm.processTimer;
+    const wafer = sm.mesh;
+    const scannerMod = ALL_STEPS.find(s => s.id === 'scanner')!;
+    const scannerGrp = this.modObjs['scanner'];
 
-		// Anchor wafer at the slot position (front face of scanner)
-		if (!wafer.userData.scannerOrigPos) {
-			wafer.userData.scannerOrigPos = new THREE.Vector3(
-				scannerMod.x,
-				WAFER_TRANSFER_Y,
-				scannerMod.z - 3.3   // slot is at front face
-			);
-			wafer.userData.scannerStartTime = sm.processTimer;
-		}
+    // ── Resolve the actual slot world position ONCE (single source of truth) ──
+    if (!wafer.userData.scannerOrigPos) {
+      const slotAnchor = (scannerGrp?.userData?.slotAnchor
+        ?? scannerGrp?.userData?.waferAnchor) as THREE.Object3D | undefined;
+      const slotPos = new THREE.Vector3();
+      if (slotAnchor) {
+        slotAnchor.getWorldPosition(slotPos);   // ← exactly where the slot frame is
+      } else {
+        slotPos.set(scannerMod.x, WAFER_TRANSFER_Y, scannerMod.z);
+      }
+      wafer.userData.scannerOrigPos = slotPos;
+      wafer.userData.scannerStartTime = sm.processTimer;
+    }
 
-		const slotPos = wafer.userData.scannerOrigPos as THREE.Vector3;
-		const TOTAL_DUR = scannerMod.time;
-		const t = Math.min(phase / TOTAL_DUR, 1);
+    const slotPos = wafer.userData.scannerOrigPos as THREE.Vector3;
+    const TOTAL_DUR = scannerMod.time;
+    const t = Math.min(phase / TOTAL_DUR, 1);
 
-		if (t < 0.15) {
-			// Phase 1: slide INTO slot from front
-			const p = t / 0.15;
-			const ease = p < 0.5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p);
-			wafer.position.x = slotPos.x;
-			wafer.position.y = slotPos.y;
-			wafer.position.z = lerp(slotPos.z - 1.5, slotPos.z, ease);
-		} else if (t < 0.45) {
-			// Phase 2: step-and-scan in X direction (inside slot)
-			const p = (t - 0.15) / 0.30;
-			const stepCycle = (p * 4) % 1;
-			const scanOffset = (stepCycle < 0.8)
-				? -0.3 + stepCycle * 0.75
-				: -0.3 + 0.6 * (1 - (stepCycle - 0.8) / 0.2);
-			wafer.position.x = slotPos.x + scanOffset;
-			wafer.position.y = slotPos.y;
-			wafer.position.z = slotPos.z;
-		} else if (t < 0.55) {
-			// Phase 3: pause at center
-			wafer.position.x = slotPos.x;
-			wafer.position.y = slotPos.y;
-			wafer.position.z = slotPos.z;
-		} else if (t < 0.85) {
-			// Phase 4: step-and-scan back
-			const p = (t - 0.55) / 0.30;
-			const stepCycle = (p * 4) % 1;
-			const scanOffset = (stepCycle < 0.8)
-				? 0.3 - stepCycle * 0.75
-				: 0.3 - 0.6 * (1 - (stepCycle - 0.8) / 0.2);
-			wafer.position.x = slotPos.x + scanOffset;
-			wafer.position.y = slotPos.y;
-			wafer.position.z = slotPos.z;
-		} else {
-			// Phase 5: slide OUT of slot to front
-			const p = (t - 0.85) / 0.15;
-			const ease = p < 0.5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p);
-			wafer.position.x = slotPos.x;
-			wafer.position.y = slotPos.y;
-			wafer.position.z = lerp(slotPos.z, slotPos.z - 1.5, ease);
-		}
+    // Keep the wafer INSIDE the body. The "entry" travel is small and clamped
+    // so the wafer never crosses the front face.
+    const SLIDE = 0.25;   // tiny in/out nudge — never crosses the body face
+    const SCAN  = 0.30;   // step-and-scan travel along X (kept inside slot width)
 
-		// Tiny vibration during scan
-		wafer.position.y = slotPos.y + Math.sin(phase * 8) * 0.005;
-	}
+    if (t < 0.15) {
+      // Phase 1: ease IN from the opening (outside → slot)
+      const p = t / 0.15;
+      const ease = p < 0.5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p);
+      wafer.position.x = slotPos.x;
+      wafer.position.y = slotPos.y;
+      wafer.position.z = lerp(slotPos.z + SLIDE, slotPos.z, ease);
+    } else if (t < 0.45) {
+      // Phase 2: step-and-scan in X (inside slot)
+      const p = (t - 0.15) / 0.30;
+      const stepCycle = (p * 4) % 1;
+      const scanOffset = (stepCycle < 0.8)
+        ? -SCAN + stepCycle * (SCAN * 2.5)
+        : -SCAN + (SCAN * 2) * (1 - (stepCycle - 0.8) / 0.2);
+      wafer.position.x = slotPos.x + scanOffset;
+      wafer.position.y = slotPos.y;
+      wafer.position.z = slotPos.z;
+    } else if (t < 0.55) {
+      // Phase 3: pause at center
+      wafer.position.x = slotPos.x;
+      wafer.position.y = slotPos.y;
+      wafer.position.z = slotPos.z;
+    } else if (t < 0.85) {
+      // Phase 4: step-and-scan back
+      const p = (t - 0.55) / 0.30;
+      const stepCycle = (p * 4) % 1;
+      const scanOffset = (stepCycle < 0.8)
+        ? SCAN - stepCycle * (SCAN * 2.5)
+        : SCAN - (SCAN * 2) * (1 - (stepCycle - 0.8) / 0.2);
+      wafer.position.x = slotPos.x + scanOffset;
+      wafer.position.y = slotPos.y;
+      wafer.position.z = slotPos.z;
+    } else {
+      // Phase 5: ease OUT toward the opening (slot → outside)
+      const p = (t - 0.85) / 0.15;
+      const ease = p < 0.5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p);
+      wafer.position.x = slotPos.x;
+      wafer.position.y = slotPos.y;
+      wafer.position.z = lerp(slotPos.z, slotPos.z + SLIDE, ease);
+    }
+
+    // Tiny vibration during scan
+    wafer.position.y = slotPos.y + Math.sin(phase * 8) * 0.005;
+  }
 
   private _onProcessEnd(sm: WaferStateMachine, mod: ProcessStep, mo?: THREE.Group) {
     const w = sm.mesh;
-		// Reset scanner animation markers when exiting scanner
-		if (mod.id === "scanner") {
-			w.userData.scannerOrigPos = undefined;
-			w.userData.scannerStartTime = undefined;
-		}
+    // Reset scanner animation markers when exiting scanner
+    if (mod.id === "scanner") {
+      w.userData.scannerOrigPos = undefined;
+      w.userData.scannerStartTime = undefined;
+    }
     if (mo?.userData.processLight) (mo.userData.processLight as THREE.PointLight).intensity = 0;
     if (mo?.userData.innerRing) {
       const mat = (mo.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial;
@@ -35415,7 +35870,7 @@ case "track_place": {
         gmat.emissive.setHex(PINK);
       }
     }
-   if (mod.id === "develop" && this._activeDevWI === sm.wi) {
+    if (mod.id === "develop" && this._activeDevWI === sm.wi) {
       this.devLiquid.stopDev(); this._activeDevWI = -1;
       this.devOverlay.stop();
       // leave wafer color handling to the processing-phase animator
@@ -35445,54 +35900,54 @@ case "track_place": {
 
   // REPLACE _launchWafer with:
   private _launchWafer(wi: number) {
-  const sm = this.wSMs[wi];
-  if (sm.launched) return;
-  sm.launched = true;
-  sm.mesh.visible = true;
-  sm.mesh.scale.setScalar(1);
+    const sm = this.wSMs[wi];
+    if (sm.launched) return;
+    sm.launched = true;
+    sm.mesh.visible = true;
+    sm.mesh.scale.setScalar(1);
 
-  // ── Reset wafer to GREY silicon at launch ──
-  const prLayer = sm.mesh.userData.prLayer as THREE.Mesh | undefined;
-  if (prLayer) {
-    const mat = prLayer.material as THREE.MeshPhysicalMaterial;
-    mat.color.setHex(0xc0c8d0);
-    mat.emissive.setHex(0x222428);
-    mat.emissiveIntensity = 0.15;
-    mat.opacity = 0.0;          // resist not applied yet
-    mat.needsUpdate = true;
+    // ── Reset wafer to GREY silicon at launch ──
+    const prLayer = sm.mesh.userData.prLayer as THREE.Mesh | undefined;
+    if (prLayer) {
+      const mat = prLayer.material as THREE.MeshPhysicalMaterial;
+      mat.color.setHex(0xc0c8d0);
+      mat.emissive.setHex(0x222428);
+      mat.emissiveIntensity = 0.15;
+      mat.opacity = 0.0;          // resist not applied yet
+      mat.needsUpdate = true;
+    }
+
+    // ── Place wafer EXACTLY at FOUP slot anchor (world position) ──
+    const foupStep = ALL_STEPS[0];
+    const foupGrp = this.modObjs["foup"];
+
+    // Force-update the FOUP world matrix so anchor world position is correct
+    if (foupGrp) foupGrp.updateWorldMatrix(true, true);
+
+    const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
+    const slotIx = Math.min(wi, Math.max(0, (anchors?.length ?? 1) - 1));
+
+    if (anchors?.[slotIx]) {
+      const p = new THREE.Vector3();
+      anchors[slotIx].getWorldPosition(p);
+      sm.mesh.position.copy(p);
+      console.log(`[LAUNCH] ${WAFER_NAMES[wi]} → FOUP slot ${slotIx}`, p.toArray());
+    } else {
+      // Fallback only if anchors missing
+      sm.mesh.position.set(foupStep.x, WAFER_TRANSFER_Y, foupStep.z);
+      console.warn(`[LAUNCH] No FOUP anchors — fallback position`);
+    }
+
+    // Wafer must lie FLAT (FOUP is rotated, but wafer stays horizontal)
+    sm.mesh.rotation.set(0, 0, 0);
+    sm.mesh.quaternion.identity();
+
+    sm.state = "idle";
+    sm.stepIdx = 1;  // First destination is DEHY (step 1)
+    sm.owner = "none";
+
+    this._addLog(`[${WAFER_NAMES[wi]}] LAUNCHED from FOUP`, "pick");
   }
-
-  // ── Place wafer EXACTLY at FOUP slot anchor (world position) ──
-  const foupStep = ALL_STEPS[0];
-  const foupGrp = this.modObjs["foup"];
-
-  // Force-update the FOUP world matrix so anchor world position is correct
-  if (foupGrp) foupGrp.updateWorldMatrix(true, true);
-
-  const anchors = foupGrp?.userData?.slotAnchors as THREE.Object3D[] | undefined;
-  const slotIx = Math.min(wi, Math.max(0, (anchors?.length ?? 1) - 1));
-
-  if (anchors?.[slotIx]) {
-    const p = new THREE.Vector3();
-    anchors[slotIx].getWorldPosition(p);
-    sm.mesh.position.copy(p);
-    console.log(`[LAUNCH] ${WAFER_NAMES[wi]} → FOUP slot ${slotIx}`, p.toArray());
-  } else {
-    // Fallback only if anchors missing
-    sm.mesh.position.set(foupStep.x, WAFER_TRANSFER_Y, foupStep.z);
-    console.warn(`[LAUNCH] No FOUP anchors — fallback position`);
-  }
-
-  // Wafer must lie FLAT (FOUP is rotated, but wafer stays horizontal)
-  sm.mesh.rotation.set(0, 0, 0);
-  sm.mesh.quaternion.identity();
-
-  sm.state = "idle";
-  sm.stepIdx = 1;  // First destination is DEHY (step 1)
-  sm.owner = "none";
-
-  this._addLog(`[${WAFER_NAMES[wi]}] LAUNCHED from FOUP`, "pick");
-}
 
   private _updateCamera() {
     const o = this.orbit;
@@ -35516,7 +35971,7 @@ case "track_place": {
       if (sm.done) completed++;
       return { wi: sm.wi, name: WAFER_NAMES[i], state: sm.state, stepIdx: sm.stepIdx, stepName: sm.stepIdx < ALL_STEPS.length ? ALL_STEPS[sm.stepIdx].name : "Complete", processTimer: sm.processTimer, stepTime: sm.stepIdx < ALL_STEPS.length ? ALL_STEPS[sm.stepIdx].time : 1, done: sm.done, launched: sm.launched };
     });
-   return { 
+    return {
       wafers, simTime: this.simTime, fps: this.fps, active, completed,
       jointsEFEM: this.robotEFEM ? this.robotEFEM.getJoints() : null,
     };
@@ -35570,14 +36025,14 @@ case "track_place": {
         const canLaunch = nextIdx === 0 || (prev && prev.launched && prev.stepIdx >= 2);
         if (canLaunch) this._launchWafer(nextIdx);
       }
-// ── 1. Tick every wafer state machine ──
-this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
+      // ── 1. Tick every wafer state machine ──
+      this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
 
-// ── 2. Carried wafers follow the gripper in world space ──
-// ── 2. Carried wafers — visibility only; transform handled by parent (gripper) ──
-// ── Carried wafers: parented to gripper via attach(); no per-frame position lerp ──
+      // ── 2. Carried wafers follow the gripper in world space ──
+      // ── 2. Carried wafers — visibility only; transform handled by parent (gripper) ──
+      // ── Carried wafers: parented to gripper via attach(); no per-frame position lerp ──
 
-// ── 3. GLB module animations ──
+      // ── 3. GLB module animations ──
 
       // ── Animate Dehydration Bake GLB ──
       // ── Animate GLB hot-plate modules (dehy + hardbake) ──
@@ -35587,13 +36042,20 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
         const idx = ALL_STEPS.findIndex(s => s.id === modId);
         const isActive = this.wSMs.some(
           (sm) => sm.launched && !sm.done &&
-                  sm.stepIdx === idx &&
-                  sm.state === 'processing'
+            sm.stepIdx === idx &&
+            sm.state === 'processing'
         );
 
         const t = this.simTime;
         const mod = ALL_STEPS[idx];
         const tempC = mod?.temp ?? 150;
+
+        // ── Temp-driven speed/intensity multipliers ──
+        // dehy=150, hardbake=130, pab=90 → hotter = faster waves, brighter
+        const tempRatio = Math.min(tempC / 200, 1);           // 0–1
+        const waveSpeed = 0.5 + tempRatio * 0.7;              // 0.5–1.2
+        const glowAmp = 1.8 + tempRatio * 1.4;              // 1.8–3.2
+        const shimmerAmp = 0.03 + tempRatio * 0.04;            // 0.03–0.07
 
         // ── Initialize enhanced heat effects (once) ──
         if (!grp.userData._heatFXInit) {
@@ -35608,7 +36070,7 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
           });
           const shimmer = new THREE.Mesh(shimmerGeo, shimmerMat);
           shimmer.rotation.x = -Math.PI / 2;
-          shimmer.position.set(0, 1.2, 0);
+          shimmer.position.set(0, MODULE_FLOOR_Y + 0.50, 0);
           grp.add(shimmer);
           grp.userData._heatShimmer = shimmer;
           grp.userData._shimmerVerts = (shimmerGeo.attributes.position.array as Float32Array).slice();
@@ -35622,42 +36084,60 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
             })
           );
           glowRing.rotation.x = -Math.PI / 2;
-          glowRing.position.set(0, 0.92, 0);
+          glowRing.position.set(0, MODULE_FLOOR_Y + 0.18, 0);
           grp.add(glowRing);
           grp.userData._glowRing = glowRing;
 
-          // 3. Heat waves (4 expanding rings)
+          // 3. Heat waves — count scales with temp (4 base + up to 2 extra)
+          const waveCount = 4 + Math.round(tempRatio * 2);
           const heatWaves: THREE.Mesh[] = [];
           const waveGeo = new THREE.RingGeometry(0.4, 0.42, 32);
-          for (let i = 0; i < 4; i++) {
+          for (let i = 0; i < waveCount; i++) {
             const wave = new THREE.Mesh(waveGeo, new THREE.MeshBasicMaterial({
               color: 0xff8844, transparent: true, opacity: 0,
               side: THREE.DoubleSide, depthWrite: false,
               blending: THREE.AdditiveBlending,
             }));
             wave.rotation.x = -Math.PI / 2;
-            wave.position.set(0, 0.93, 0);
-            wave.userData.phase = i / 4;
+            wave.position.set(0, MODULE_FLOOR_Y + 0.20, 0);
+            wave.userData.phase = i / waveCount;
             grp.add(wave);
             heatWaves.push(wave);
           }
           grp.userData._heatWaves = heatWaves;
 
-          // 4. Rising heat particles (18 warm specks)
+          // 4. Rising heat particles (28) — spiral convection
           const particles: THREE.Mesh[] = [];
-          const partGeo = new THREE.SphereGeometry(0.015, 4, 4);
-          for (let i = 0; i < 18; i++) {
+          const partGeo = new THREE.SphereGeometry(0.018, 5, 5);
+          for (let i = 0; i < 28; i++) {
             const p = new THREE.Mesh(partGeo, new THREE.MeshBasicMaterial({
               color: 0xffcc66, transparent: true, opacity: 0,
               blending: THREE.AdditiveBlending,
             }));
             p.userData.angle = Math.random() * Math.PI * 2;
-            p.userData.radius = 0.2 + Math.random() * 0.7;
+            p.userData.radius = 0.2 + Math.random() * 0.8;
             p.userData.lifeOffset = Math.random();
+            p.userData.spiralDir = Math.random() < 0.5 ? 1 : -1;
             grp.add(p);
             particles.push(p);
           }
           grp.userData._heatParticles = particles;
+
+          // 5. Settling-pulse ring
+          const settlePulse = new THREE.Mesh(
+            new THREE.RingGeometry(0.2, 1.1, 48),
+            new THREE.MeshBasicMaterial({
+              color: 0xffdd88, transparent: true, opacity: 0,
+              side: THREE.DoubleSide, depthWrite: false,
+              blending: THREE.AdditiveBlending,
+            })
+          );
+          settlePulse.rotation.x = -Math.PI / 2;
+          settlePulse.position.set(0, MODULE_FLOOR_Y + 0.22, 0);
+          grp.add(settlePulse);
+          grp.userData._settlePulse = settlePulse;
+          grp.userData._settleT = -999;   // last time wafer arrived
+          grp.userData._wasActive = false;
         }
 
         const shimmer = grp.userData._heatShimmer as THREE.Mesh;
@@ -35667,69 +36147,97 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
         const glowMat = glowRing.material as THREE.MeshStandardMaterial;
         const heatWaves = grp.userData._heatWaves as THREE.Mesh[];
         const heatParticles = grp.userData._heatParticles as THREE.Mesh[];
+        const settlePulse = grp.userData._settlePulse as THREE.Mesh;
+        const settleMat = settlePulse.material as THREE.MeshBasicMaterial;
+
+        // ── Detect fresh wafer arrival → trigger settle pulse ──
+        if (isActive && !grp.userData._wasActive) {
+          grp.userData._settleT = t;
+        }
+        grp.userData._wasActive = isActive;
+        const settleAge = t - (grp.userData._settleT as number);
+        const settleAlive = settleAge < 0.5;  // 0.5 s pulse window
 
         // Temperature-based color (hotter = more red)
-        const heatRatio = Math.min(tempC / 200, 1);
         const heatColor = new THREE.Color().lerpColors(
           new THREE.Color(0xffaa66),
           new THREE.Color(0xff3300),
-          heatRatio
+          tempRatio
         );
 
         if (isActive) {
-          // Shimmer: animate vertices for heat distortion
+          // ── Shimmer: vertex distortion scaled by temp ──
           const positions = shimmer.geometry.attributes.position;
           for (let i = 0; i < positions.count; i++) {
             const i3 = i * 3;
             const ox = shimmerVerts[i3];
             const oy = shimmerVerts[i3 + 1];
-            positions.setZ(i, Math.sin(t * 6 + ox * 3 + oy * 4) * 0.04
-                              + Math.cos(t * 4 + ox * 5) * 0.03);
+            positions.setZ(i,
+              Math.sin(t * 6 + ox * 3 + oy * 4) * shimmerAmp +
+              Math.cos(t * 4 + ox * 5) * shimmerAmp * 0.75
+            );
           }
           positions.needsUpdate = true;
-          shimmerMat.opacity = lerp(shimmerMat.opacity, 0.35, 0.05);
+          shimmerMat.opacity = lerp(shimmerMat.opacity, 0.55 + tempRatio * 0.35, 0.08);
           shimmerMat.color.copy(heatColor);
 
-          // Glow ring: pulsing red-hot
+          // ── Glow ring: pulse rate tied to tempC ──
           glowMat.emissive.copy(heatColor);
+          const pulseRate = 2.5 * freqMult * (1 + tempRatio * 0.8);
           glowMat.emissiveIntensity = lerp(
             glowMat.emissiveIntensity,
-            2.5 + 1.5 * Math.abs(Math.sin(t * 3 * freqMult)),
-            0.1
+            (glowAmp + 1.2) + ((glowAmp + 1.2) * 0.8) * Math.abs(Math.sin(t * pulseRate)),
+            0.15
           );
 
-          // Heat waves: expand outward
+          // ── Heat waves: expand speed driven by temp ──
           heatWaves.forEach((wave) => {
-            const phase = ((t * 0.6 + wave.userData.phase) % 1);
-            const scale = 0.4 + phase * 2.0;
+            const phase = ((t * waveSpeed + wave.userData.phase) % 1);
+            const scale = 0.4 + phase * 2.8;
             wave.scale.set(scale, scale, 1);
             const wmat = wave.material as THREE.MeshBasicMaterial;
-            wmat.opacity = (1 - phase) * 0.5;
+            wmat.opacity = (1 - phase) * (0.65 + tempRatio * 0.35);
             wmat.color.copy(heatColor);
           });
 
-          // Rising heat particles
+          // ── Particles: spiral convection + upward acceleration ──
           heatParticles.forEach((p) => {
-            const lifeT = ((t * 0.7 + p.userData.lifeOffset) % 1);
-            const angle = p.userData.angle + lifeT * 0.3;
-            const r = p.userData.radius;
-            p.position.set(Math.cos(angle) * r, 0.95 + lifeT * 1.5, Math.sin(angle) * r);
+            const lifeT = ((t * (0.6 + tempRatio * 0.5) + p.userData.lifeOffset) % 1);
+            // Spiral: angle drifts over lifetime in spiral direction
+            const spiral = p.userData.spiralDir * lifeT * 1.2;
+            const angle = p.userData.angle + spiral;
+            const r = p.userData.radius * (0.8 + lifeT * 0.4);
+            // Accelerate upward: quadratic rise
+            const yRise = MODULE_FLOOR_Y + 0.25 + lifeT * lifeT * 2.5;
+            p.position.set(Math.cos(angle) * r, yRise, Math.sin(angle) * r);
             const pmat = p.material as THREE.MeshBasicMaterial;
-            pmat.opacity = Math.sin(lifeT * Math.PI) * 0.7;
+            // Fade out near top
+            pmat.opacity = Math.sin(lifeT * Math.PI) * (0.75 + tempRatio * 0.5) * (1 - lifeT * 0.4);
             pmat.color.copy(heatColor);
           });
 
+          // ── Settling pulse: bright ring on first 0.5s ──
+          if (settleAlive) {
+            const sp = settleAge / 0.5;           // 0→1 over 0.5s
+            const sScale = 0.5 + sp * 2.5;
+            settlePulse.scale.set(sScale, sScale, 1);
+            settleMat.opacity = (1 - sp) * 1.0;
+          } else {
+            settleMat.opacity = lerp(settleMat.opacity, 0, 0.08);
+          }
+
         } else {
-          // Fade out all heat effects
+          // ── Fade out all heat effects ──
           shimmerMat.opacity = lerp(shimmerMat.opacity, 0, 0.08);
           glowMat.emissiveIntensity = lerp(glowMat.emissiveIntensity, 0.2, 0.06);
+          settleMat.opacity = lerp(settleMat.opacity, 0, 0.1);
           heatWaves.forEach((wave) => {
-            const wmat = wave.material as THREE.MeshBasicMaterial;
-            wmat.opacity = lerp(wmat.opacity, 0, 0.1);
+            (wave.material as THREE.MeshBasicMaterial).opacity =
+              lerp((wave.material as THREE.MeshBasicMaterial).opacity, 0, 0.1);
           });
           heatParticles.forEach((p) => {
-            const pmat = p.material as THREE.MeshBasicMaterial;
-            pmat.opacity = lerp(pmat.opacity, 0, 0.1);
+            (p.material as THREE.MeshBasicMaterial).opacity =
+              lerp((p.material as THREE.MeshBasicMaterial).opacity, 0, 0.1);
           });
         }
 
@@ -35737,34 +36245,29 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
         const heatMat = grp.userData.heatMaterial as THREE.MeshStandardMaterial;
         if (heatMat) {
           const isPAB = grp.userData.isPAB === true;
-          const activeMin = isPAB ? 4.5 : 3.5;
-          const activeAmp = isPAB ? 2.2 : 1.8;
+          const activeMin = isPAB ? 6.5 : 5.5;
+          const activeAmp = isPAB ? 3.5 : 2.8;
           heatMat.emissiveIntensity = isActive
             ? activeMin + activeAmp * Math.sin(t * 3.5 * freqMult)
-            : (isPAB ? 0.9 : 0.6) + 0.2 * Math.sin(t * 1.2);
+            : (isPAB ? 1.2 : 0.9) + 0.3 * Math.sin(t * 1.2);
           if (isActive) heatMat.emissive.copy(heatColor);
         }
 
         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial;
         const redMat = grp.userData.redLight as THREE.MeshStandardMaterial;
         if (greenMat && redMat) {
-          if (isActive) {
-            greenMat.emissiveIntensity = 3.5 + 1.0 * Math.sin(t * 4);
-            redMat.emissiveIntensity = 0.3;
-          } else {
-            greenMat.emissiveIntensity = 0.3;
-            redMat.emissiveIntensity = 2.0 + 0.8 * Math.sin(t * 2);
-          }
+          greenMat.emissiveIntensity = isActive ? 5.5 + 1.5 * Math.sin(t * 4) : 0.5;
+          redMat.emissiveIntensity = isActive ? 0.5 : 3.5 + 1.2 * Math.sin(t * 2);
         }
 
         const pl = grp.userData.processLight as THREE.PointLight;
         if (pl) {
-          pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(t * 4) : 0.4;
+          pl.intensity = isActive ? 5.5 + 2.5 * Math.sin(t * 4) : 0.6;
           if (isActive) pl.color.copy(heatColor);
         }
       };
 
-     animateGlbHotPlate('dehy', 1.0);
+      animateGlbHotPlate('dehy', 1.0);
       animateGlbHotPlate('pab', 1.1);
       animateGlbHotPlate('hardbake', 1.2);
 
@@ -35779,8 +36282,8 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
         const idx = ALL_STEPS.findIndex(s => s.id === 'prcoat');
         const isActive = this.wSMs.some(
           (sm) => sm.launched && !sm.done &&
-                  sm.stepIdx === idx &&
-                  sm.state === 'processing'
+            sm.stepIdx === idx &&
+            sm.state === 'processing'
         );
 
         // Spin the chuck (fast during coating, slow drift when idle)
@@ -35861,10 +36364,10 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
         }
 
         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-        const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+        const redMat = grp.userData.redLight as THREE.MeshStandardMaterial | undefined;
         if (greenMat && redMat) {
           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-          redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+          redMat.emissiveIntensity = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
         }
 
         const pl = grp.userData.processLight as THREE.PointLight | undefined;
@@ -35880,27 +36383,44 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
         const isActive = this.wSMs.some(
           (sm) => sm.launched && !sm.done && sm.stepIdx === idx && sm.state === 'processing'
         );
+        const sm = this.wSMs.find(
+          (sm) => sm.launched && !sm.done && sm.stepIdx === idx
+        );
+        const isSpinning = sm?.state === 'processing';
         const t = this.simTime;
 
         // ── Initialize enhanced rinse effects (once) ──
         if (!grp.userData._rinseFXInit) {
           grp.userData._rinseFXInit = true;
 
-          // 1. Water column (falling stream from nozzle)
+          // 1. Water column: segmented stream (open-ended cylinder = visible inner flow)
           const waterColumn = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.05, 0.10, 1.2, 12, 1, true),
+            new THREE.CylinderGeometry(0.05, 0.10, 1.2, 12, 6, true),
             new THREE.MeshPhysicalMaterial({
               color: 0x88ccff, transparent: true, opacity: 0,
               transmission: 0.7, roughness: 0.05, metalness: 0,
               ior: 1.33, side: THREE.DoubleSide, depthWrite: false,
             })
           );
-          waterColumn.position.set(0, 1.5, 0);
+          waterColumn.position.set(0, MODULE_FLOOR_Y + 2.5, 0);
           waterColumn.name = '__rinseWaterColumn';
           grp.add(waterColumn);
           grp.userData._waterColumn = waterColumn;
 
-          // 2. Water ripples on wafer (3 expanding rings)
+          // 2. Spray fan arc — thin flat plane that sweeps over the wafer
+          const fanGeo = new THREE.PlaneGeometry(1.6, 0.06, 1, 1);
+          const fanMat = new THREE.MeshBasicMaterial({
+            color: 0xaaeeff, transparent: true, opacity: 0,
+            side: THREE.DoubleSide, depthWrite: false,
+            blending: THREE.AdditiveBlending,
+          });
+          const sprayFan = new THREE.Mesh(fanGeo, fanMat);
+          sprayFan.rotation.x = -Math.PI / 2;
+          sprayFan.position.set(0, MODULE_FLOOR_Y + 0.35, 0);
+          grp.add(sprayFan);
+          grp.userData._sprayFan = sprayFan;
+
+          // 3. Water ripples on wafer (3 expanding rings)
           const ripples: THREE.Mesh[] = [];
           for (let i = 0; i < 3; i++) {
             const ripple = new THREE.Mesh(
@@ -35911,31 +36431,38 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
               })
             );
             ripple.rotation.x = -Math.PI / 2;
-            ripple.position.set(0, 0.95, 0);
+            ripple.position.set(0, MODULE_FLOOR_Y + 0.20, 0);
             ripple.userData.phase = i / 3;
             grp.add(ripple);
             ripples.push(ripple);
           }
           grp.userData._ripples = ripples;
 
-          // 3. Splash droplets (24 small spheres flying outward)
+          // 4. Splash droplets — vary size, some arc outward with gravity
           const droplets: THREE.Mesh[] = [];
-          const dropGeo = new THREE.SphereGeometry(0.022, 6, 6);
-          for (let i = 0; i < 24; i++) {
-            const drop = new THREE.Mesh(dropGeo, new THREE.MeshPhysicalMaterial({
-              color: 0xaaeeff, transparent: true, opacity: 0,
-              transmission: 0.6, roughness: 0.1, ior: 1.33,
-              emissive: 0x224466, emissiveIntensity: 0.4,
-            }));
-            drop.userData.angle = (i / 24) * Math.PI * 2;
-            drop.userData.radius = 0.3 + Math.random() * 0.4;
+          for (let i = 0; i < 36; i++) {
+            const sz = 0.018 + Math.random() * 0.022;
+            const drop = new THREE.Mesh(
+              new THREE.SphereGeometry(sz, 6, 6),
+              new THREE.MeshPhysicalMaterial({
+                color: 0xaaeeff, transparent: true, opacity: 0,
+                transmission: 0.6, roughness: 0.08, ior: 1.33,
+                emissive: 0x335577, emissiveIntensity: 0.5,
+                depthWrite: false,
+              })
+            );
+            drop.userData.angle = (i / 36) * Math.PI * 2;
+            drop.userData.radius = 0.25 + Math.random() * 0.6;
             drop.userData.lifeOffset = Math.random();
+            drop.userData.arcH = 0.12 + Math.random() * 0.4; // arc height
+            drop.userData.gravity = i % 3 === 0;                 // every 3rd drops with gravity
+            drop.userData.baseOpacity = 0.7 + Math.random() * 0.3;
             grp.add(drop);
             droplets.push(drop);
           }
           grp.userData._droplets = droplets;
 
-          // 4. Water pool on wafer (thin disc)
+          // 5. Water pool — radial gradient fade at edge (inner disc + outer fade ring)
           const pool = new THREE.Mesh(
             new THREE.CircleGeometry(0.92, 48),
             new THREE.MeshPhysicalMaterial({
@@ -35945,63 +36472,106 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
             })
           );
           pool.rotation.x = -Math.PI / 2;
-          pool.position.set(0, 0.96, 0);
+          pool.position.set(0, MODULE_FLOOR_Y + 0.22, 0);
           grp.add(pool);
           grp.userData._pool = pool;
+
+          // Edge fade ring on pool
+          const poolEdge = new THREE.Mesh(
+            new THREE.RingGeometry(0.78, 0.94, 48),
+            new THREE.MeshBasicMaterial({
+              color: 0xbbddff, transparent: true, opacity: 0,
+              side: THREE.DoubleSide, depthWrite: false,
+              blending: THREE.AdditiveBlending,
+            })
+          );
+          poolEdge.rotation.x = -Math.PI / 2;
+          poolEdge.position.set(0, MODULE_FLOOR_Y + 0.23, 0);
+          grp.add(poolEdge);
+          grp.userData._poolEdge = poolEdge;
         }
 
         const waterColumn = grp.userData._waterColumn as THREE.Mesh;
+        const sprayFan = grp.userData._sprayFan as THREE.Mesh;
         const ripples = grp.userData._ripples as THREE.Mesh[];
         const droplets = grp.userData._droplets as THREE.Mesh[];
         const pool = grp.userData._pool as THREE.Mesh;
+        const poolEdge = grp.userData._poolEdge as THREE.Mesh;
 
         if (isActive) {
-          // Water column: fade in + slight flow animation
+          // ── Water column: UV-scroll illusion via Y-position oscillation of segments ──
           const waterMat = waterColumn.material as THREE.MeshPhysicalMaterial;
-          waterMat.opacity = lerp(waterMat.opacity, 0.55, 0.08);
-          waterColumn.scale.x = 1 + Math.sin(t * 18) * 0.08;
-          waterColumn.scale.z = waterColumn.scale.x;
+          waterMat.opacity = lerp(waterMat.opacity, 0.75, 0.12);
+          // Turbulent width jitter
+          const jitter = 1 + Math.sin(t * 22) * 0.06 + Math.sin(t * 37) * 0.04;
+          waterColumn.scale.x = jitter;
+          waterColumn.scale.z = jitter;
+          // Scroll: shift column slightly downward each frame (resets at bottom)
+          waterColumn.position.y = 2.8 - ((t * 1.8) % 0.4);
 
-          // Pool: fade in
+          // ── Spray fan: sweeps in sync with chuck spin ──
+          const fanMat = sprayFan.material as THREE.MeshBasicMaterial;
+          fanMat.opacity = lerp(fanMat.opacity, 0.7, 0.12);
+          // Rotate fan to simulate nozzle sweeping over wafer
+          sprayFan.rotation.z = isSpinning ? t * 2.4 : 0;
+
+          // ── Pool: fade in ──
           const poolMat = pool.material as THREE.MeshPhysicalMaterial;
-          poolMat.opacity = lerp(poolMat.opacity, 0.45, 0.05);
+          const edgeMat = poolEdge.material as THREE.MeshBasicMaterial;
+          poolMat.opacity = lerp(poolMat.opacity, 0.55, 0.08);
+          // Edge pulses gently to simulate liquid film shimmer
+          edgeMat.opacity = lerp(edgeMat.opacity, 0.35 + 0.15 * Math.sin(t * 5), 0.08);
 
-          // Ripples: animate expansion from center
+          // ── Ripples: expand from center ──
           ripples.forEach((ripple) => {
-            const phase = ((t * 0.8 + ripple.userData.phase) % 1);
-            const scale = 0.3 + phase * 2.5;
+            const phase = ((t * 0.9 + ripple.userData.phase) % 1);
+            const scale = 0.3 + phase * 3.2;
             ripple.scale.set(scale, scale, 1);
             const rmat = ripple.material as THREE.MeshBasicMaterial;
-            rmat.opacity = (1 - phase) * 0.6;
+            rmat.opacity = (1 - phase) * 0.85;
           });
 
-          // Droplets: orbital + spray motion
+          // ── Droplets: mixed arc/orbital with gravity on some ──
           droplets.forEach((drop) => {
-            const lifeT = ((t * 1.5 + drop.userData.lifeOffset) % 1);
-            const angle = drop.userData.angle + lifeT * 0.5;
-            const r = drop.userData.radius * (0.5 + lifeT * 1.5);
-            drop.position.set(
-              Math.cos(angle) * r,
-              0.96 + Math.sin(lifeT * Math.PI) * 0.25,
-              Math.sin(angle) * r
-            );
+            const lifeT = ((t * 1.6 + drop.userData.lifeOffset) % 1);
+            const angle = drop.userData.angle + (isSpinning ? t * 1.8 : 0);
+            const r = drop.userData.radius * (0.4 + lifeT * 1.8);
+
+            let yPos: number;
+            if (drop.userData.gravity) {
+              // Parabolic arc that falls back down
+              yPos = MODULE_FLOOR_Y + 0.25 + drop.userData.arcH * Math.sin(lifeT * Math.PI) - lifeT * lifeT * 0.4;
+            } else {
+              yPos = MODULE_FLOOR_Y + 0.25 + Math.sin(lifeT * Math.PI) * drop.userData.arcH;
+            }
+
+            drop.position.set(Math.cos(angle) * r, yPos, Math.sin(angle) * r);
+
             const dmat = drop.material as THREE.MeshPhysicalMaterial;
-            dmat.opacity = Math.sin(lifeT * Math.PI) * 0.9;
+            // Vary opacity over lifetime with per-drop base
+            dmat.opacity = Math.sin(lifeT * Math.PI) * drop.userData.baseOpacity * 1.3;
+            // Shrink near end of life
+            const lifeFade = 1 - Math.pow(lifeT, 2.0);
+            drop.scale.setScalar(lifeFade * 1.1 + 0.15);
           });
 
         } else {
-          // Fade out
+          // ── Fade out everything ──
           const waterMat = waterColumn.material as THREE.MeshPhysicalMaterial;
           waterMat.opacity = lerp(waterMat.opacity, 0, 0.1);
-          const poolMat = pool.material as THREE.MeshPhysicalMaterial;
-          poolMat.opacity = lerp(poolMat.opacity, 0, 0.08);
+          (sprayFan.material as THREE.MeshBasicMaterial).opacity =
+            lerp((sprayFan.material as THREE.MeshBasicMaterial).opacity, 0, 0.1);
+          (pool.material as THREE.MeshPhysicalMaterial).opacity =
+            lerp((pool.material as THREE.MeshPhysicalMaterial).opacity, 0, 0.08);
+          (poolEdge.material as THREE.MeshBasicMaterial).opacity =
+            lerp((poolEdge.material as THREE.MeshBasicMaterial).opacity, 0, 0.08);
           ripples.forEach((ripple) => {
-            const rmat = ripple.material as THREE.MeshBasicMaterial;
-            rmat.opacity = lerp(rmat.opacity, 0, 0.1);
+            (ripple.material as THREE.MeshBasicMaterial).opacity =
+              lerp((ripple.material as THREE.MeshBasicMaterial).opacity, 0, 0.1);
           });
           droplets.forEach((drop) => {
-            const dmat = drop.material as THREE.MeshPhysicalMaterial;
-            dmat.opacity = lerp(dmat.opacity, 0, 0.1);
+            (drop.material as THREE.MeshPhysicalMaterial).opacity =
+              lerp((drop.material as THREE.MeshPhysicalMaterial).opacity, 0, 0.1);
           });
         }
 
@@ -36009,24 +36579,24 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
         const bowlMat = grp.userData.bowlMaterial as THREE.MeshStandardMaterial | undefined;
         if (bowlMat) {
           bowlMat.emissiveIntensity = isActive
-            ? 2.5 + 1.2 * Math.abs(Math.sin(t * 4))
-            : 0.3 + 0.1 * Math.sin(t * 0.8);
+            ? 4.0 + 1.8 * Math.abs(Math.sin(t * 4))
+            : 0.4 + 0.15 * Math.sin(t * 0.8);
         }
         const nozzleMat = grp.userData.nozzleMaterial as THREE.MeshStandardMaterial | undefined;
         if (nozzleMat) {
-          nozzleMat.emissiveIntensity = isActive ? 1.5 + 0.8 * Math.sin(t * 5) : 0.2;
+          nozzleMat.emissiveIntensity = isActive ? 2.5 + 1.2 * Math.sin(t * 5) : 0.3;
         }
         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-        const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+        const redMat = grp.userData.redLight as THREE.MeshStandardMaterial | undefined;
         if (greenMat && redMat) {
           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(t * 4) : 0.3;
-          redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(t * 2);
+          redMat.emissiveIntensity = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(t * 2);
         }
         const pl = grp.userData.processLight as THREE.PointLight | undefined;
         if (pl) pl.intensity = isActive ? 3.0 + 1.2 * Math.abs(Math.sin(t * 4)) : 0.3;
       };
       if (anyActive) animateDIWaterRinse();
-    
+
       const animatePostBake = () => {
         const grp = this.modObjs['peb'];
         if (!grp?.userData.loaded) return;
@@ -36041,10 +36611,10 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
             : 0.6 + 0.2 * Math.sin(this.simTime * 1.2);
         }
         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-        const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+        const redMat = grp.userData.redLight as THREE.MeshStandardMaterial | undefined;
         if (greenMat && redMat) {
           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-          redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+          redMat.emissiveIntensity = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
         }
         const pl = grp.userData.processLight as THREE.PointLight | undefined;
         if (pl) pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(this.simTime * 4) : 0.4;
@@ -36065,10 +36635,10 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
             : 0.4 + 0.1 * Math.sin(this.simTime * 0.8);
         }
         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-        const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+        const redMat = grp.userData.redLight as THREE.MeshStandardMaterial | undefined;
         if (greenMat && redMat) {
           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-          redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+          redMat.emissiveIntensity = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
         }
         const pl = grp.userData.processLight as THREE.PointLight | undefined;
         if (pl) pl.intensity = isActive ? 3.5 + 1.5 * Math.sin(this.simTime * 3) : 0.3;
@@ -36094,10 +36664,10 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
           lensMat.emissiveIntensity = isActive ? 3.5 + 2.0 * Math.abs(Math.sin(this.simTime * 10)) : 0.8;
         }
         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-        const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+        const redMat = grp.userData.redLight as THREE.MeshStandardMaterial | undefined;
         if (greenMat && redMat) {
           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-          redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+          redMat.emissiveIntensity = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
         }
         const pl = grp.userData.processLight as THREE.PointLight | undefined;
         if (pl) pl.intensity = isActive ? 5.0 + 2.0 * Math.abs(Math.sin(this.simTime * 8)) : 0.4;
@@ -36132,10 +36702,10 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
           finMat.emissiveIntensity = isActive ? 1.2 + 0.5 * Math.sin(this.simTime * 3) : 0.4;
         }
         const greenMat = grp.userData.greenLight as THREE.MeshStandardMaterial | undefined;
-        const redMat   = grp.userData.redLight   as THREE.MeshStandardMaterial | undefined;
+        const redMat = grp.userData.redLight as THREE.MeshStandardMaterial | undefined;
         if (greenMat && redMat) {
           greenMat.emissiveIntensity = isActive ? 3.5 + Math.sin(this.simTime * 4) : 0.3;
-          redMat.emissiveIntensity   = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
+          redMat.emissiveIntensity = isActive ? 0.3 : 2.0 + 0.8 * Math.sin(this.simTime * 2);
         }
         const pl = grp.userData.processLight as THREE.PointLight | undefined;
         if (pl) pl.intensity = isActive ? 2.8 + 1.0 * Math.sin(this.simTime * 3) : 0.3;
@@ -36170,10 +36740,10 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
         Object.values(this.modObjs).forEach((grp) => animateChuckLights(grp as THREE.Group));
       }
     }
-    
+
     // ── Nameplate LED pulse ──
     tickNamePlateLEDs(this.modObjs, this.busy, this.simTime);
-    
+
     this._animRobots(dt); this._updateCamera(); this.onUI(this._buildUI());
     this.renderer.render(this.scene, this.camera);
   };
@@ -36181,7 +36751,7 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
   start() {
     this._lastT = performance.now();
     this._loop();
-    
+
     // ── Narration: announce process start ──
     if (this.narration) {
       this.narration.announceProcessStart();
@@ -36239,7 +36809,7 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
     this.paused = true;
     this._pauseAllAnimators();
     this._cancelActiveTransfers();
-    
+
     // ── Narration: announce jump to step ──
     if (this.narration) {
       this._narratedSteps.clear(); // Clear tracking so it'll narrate next arrival
@@ -36287,7 +36857,17 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
       if (anchors?.[slotIx]) anchors[slotIx].getWorldPosition(out);
       else out.set(step.x + 5.0, 3.0, step.z);
     } else if (step.id === "scanner") {
-      out.set(step.x, WAFER_TRANSFER_Y, step.z - 3.3);
+      // ── Use the real slot anchor position (same as animation) ──
+      const scannerGrp = this.modObjs["scanner"];
+      const slotAnchor = (scannerGrp?.userData?.slotAnchor
+        ?? scannerGrp?.userData?.waferAnchor
+        ?? scannerGrp?.userData?.pickupAnchor) as THREE.Object3D | undefined;
+      if (slotAnchor) {
+        slotAnchor.getWorldPosition(out);
+      } else {
+        // Fallback only if anchors are missing
+        out.set(step.x, WAFER_TRANSFER_Y, step.z);
+      }
     } else {
       const modGrp = this.modObjs[step.id];
       const wa = modGrp?.userData?.waferAnchor as THREE.Object3D | undefined;
@@ -36393,7 +36973,7 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
   }
 
   reset() {
-   this.spinCoat.stopCoat(); this._activeCoatWI = -1;
+    this.spinCoat.stopCoat(); this._activeCoatWI = -1;
     this.devLiquid.stopDev(); this._activeDevWI = -1;
     this.prCoatOverlay?.stop();
     this.devOverlay?.stop();
@@ -36420,12 +37000,12 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
     try { this._parkRobotNearStep(0); } catch (e) { /* ignore */ }
 
     // clear any resume-related caches that could allow resuming mid-flow
-    try { delete (this as any).resumePosition; } catch (e) {}
-    try { delete (this as any).savedTimelinePosition; } catch (e) {}
-    try { delete (this as any).processHistory; } catch (e) {}
+    try { delete (this as any).resumePosition; } catch (e) { }
+    try { delete (this as any).savedTimelinePosition; } catch (e) { }
+    try { delete (this as any).processHistory; } catch (e) { }
     this._notifyStepChange(0);
     this._addLog("--- SIMULATION RESET ---", "");
-    
+
     // ── Narration: announce reset ──
     if (this.narration) {
       this.narration.reset(); // Clear queued audio and reset step tracking
@@ -36453,7 +37033,7 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
 
     // Notify UI components that a full reset occurred so they can clear any cached resume state
     if (typeof window !== 'undefined') {
-      try { window.dispatchEvent(new CustomEvent('sim:reset', { detail: {} })); } catch (e) {}
+      try { window.dispatchEvent(new CustomEvent('sim:reset', { detail: {} })); } catch (e) { }
     }
   }
 
@@ -36536,15 +37116,15 @@ this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
 // ─── UI COMPONENTS ────────────────────────────────────────────────────────────
 
 const T = {
-  bg:         "rgba(2,6,18,.97)",
-  border:     "rgba(0,180,255,.10)",
-  title:      "#00d8ff",
-  text:       "#c8eeff",
-  textDim:    "rgba(140,200,255,.38)",
+  bg: "rgba(2,6,18,.97)",
+  border: "rgba(0,180,255,.10)",
+  title: "#00d8ff",
+  text: "#c8eeff",
+  textDim: "rgba(140,200,255,.38)",
   textBright: "#e8f8ff",
-  accent:     "#00d8ff",
-  green:      "#00ff88",
-  orange:     "#ffcc00",
+  accent: "#00d8ff",
+  green: "#00ff88",
+  orange: "#ffcc00",
 };
 
 function Panel({ title, children, style }: { title: string; children: React.ReactNode; style?: React.CSSProperties }) {
@@ -36607,26 +37187,26 @@ function JointPanel({ title, joints, prefix }: { title: string; joints: JointDat
 export default function EFEMSimulator() {
   const router = useRouter();
   const mountRef = useRef<HTMLDivElement>(null);
-  const simRef   = useRef<Sim | null>(null);
-  const [simulationState, setSimulationState] = useState<"BOOT"|"INITIALIZING"|"READY"|"RUNNING"|"ERROR">("BOOT");
-  const [loading, setLoading]   = useState(true);
-  const [loadPct, setLoadPct]   = useState(0);
-  const [loadMsg, setLoadMsg]   = useState("INITIALIZING...");
-  const [paused, setPaused]     = useState(false);
-  const [speed, setSpeed]       = useState(1);
+  const simRef = useRef<Sim | null>(null);
+  const [simulationState, setSimulationState] = useState<"BOOT" | "INITIALIZING" | "READY" | "RUNNING" | "ERROR">("BOOT");
+  const [loading, setLoading] = useState(true);
+  const [loadPct, setLoadPct] = useState(0);
+  const [loadMsg, setLoadMsg] = useState("INITIALIZING...");
+  const [paused, setPaused] = useState(false);
+  const [speed, setSpeed] = useState(1);
   const [iframeUrl, setIframeUrl] = useState<string | null>(null);
   const [iframeTitle, setIframeTitle] = useState<string>("");
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [showCoatWidget, setShowCoatWidget] = useState(false);
   const [coatWidgetData, setCoatWidgetData] = useState<{ module: "prcoat" | "develop"; start: number; duration: number } | null>(null);
-  const [ui, setUI]             = useState<UIState>({ wafers: [], simTime: 0, fps: 60, active: 0, completed: 0, jointsEFEM: null });
-  const [logs, setLogs]         = useState<LogEntry[]>([]);
-  const [tooltip, setTooltip]   = useState<TooltipState>({ visible: false, x: 0, y: 0, name: "", temp: "", meta: "", tempColor: "" });
+  const [ui, setUI] = useState<UIState>({ wafers: [], simTime: 0, fps: 60, active: 0, completed: 0, jointsEFEM: null });
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [tooltip, setTooltip] = useState<TooltipState>({ visible: false, x: 0, y: 0, name: "", temp: "", meta: "", tempColor: "" });
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"flow"|"log"|"joints">("flow");
+  const [activeTab, setActiveTab] = useState<"flow" | "log" | "joints">("flow");
   const [navStep, setNavStep] = useState(0);
   const [navStepName, setNavStepName] = useState(ALL_STEPS[0]?.name ?? "");
-  const [showComponentInfo, setShowComponentInfo] = useState(false);
+  const [showComponentInfo, setShowComponentInfo] = useState(true); // AUTO-ENABLED on load
 
   const addLog = useCallback((entry: LogEntry) => { setLogs((prev) => [entry, ...prev].slice(0, 30)); }, []);
   const handleTooltip = useCallback((tt: TooltipState) => setTooltip(tt), []);
@@ -36744,25 +37324,36 @@ export default function EFEMSimulator() {
     return () => window.clearInterval(poll);
   }, [loading]);
 
+  const triggerResume = () => {
+    setPaused(false);
+    if (simRef.current) {
+      simRef.current.paused = false;
+      if (simRef.current.narration) {
+        simRef.current.narration.announceResume();
+        simRef.current.narration.resume();
+      }
+    }
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
         e.preventDefault();
         simRef.current?.rewindStep();
-        setPaused(true);
+        triggerResume();
       } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
         e.preventDefault();
         simRef.current?.forwardStep();
-        setPaused(true);
+        triggerResume();
       } else if (e.key === "Home") {
         e.preventDefault();
         simRef.current?.jumpToStart();
-        setPaused(true);
+        triggerResume();
       } else if (e.key === "End") {
         e.preventDefault();
         simRef.current?.jumpToEnd();
-        setPaused(true);
+        triggerResume();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -36774,7 +37365,7 @@ export default function EFEMSimulator() {
     setPaused(np);
     if (simRef.current) {
       simRef.current.paused = np;
-      
+
       // ── Narration: announce pause/resume ──
       if (simRef.current.narration) {
         if (np) {
@@ -36793,6 +37384,7 @@ export default function EFEMSimulator() {
     if (!simRef.current) return;
 
     simRef.current.speed = ns;
+    triggerResume();
 
     if (ns !== 1) {
       if (simRef.current.narration?.isEnabled?.()) {
@@ -36825,20 +37417,20 @@ export default function EFEMSimulator() {
       window.dispatchEvent(new CustomEvent('sim:narration-enabled', { detail: { enabled: narrationEnabled } }));
     }
   };
-  const handleNavRewind = () => { simRef.current?.rewindStep(); setPaused(true); };
-  const handleNavForward = () => { simRef.current?.forwardStep(); setPaused(true); };
-  const handleNavStart = () => { simRef.current?.jumpToStart(); setPaused(true); };
-  const handleNavEnd = () => { simRef.current?.jumpToEnd(); setPaused(true); };
-  const handleJumpToStep = (idx: number) => { simRef.current?.jumpToStep(idx); setPaused(true); };
+  const handleNavRewind = () => { simRef.current?.rewindStep(); triggerResume(); };
+  const handleNavForward = () => { simRef.current?.forwardStep(); triggerResume(); };
+  const handleNavStart = () => { simRef.current?.jumpToStart(); triggerResume(); };
+  const handleNavEnd = () => { simRef.current?.jumpToEnd(); triggerResume(); };
+  const handleJumpToStep = (idx: number) => { simRef.current?.jumpToStep(idx); triggerResume(); };
 
   const navTotal = ALL_STEPS.length;
   const navAtStart = navStep <= 0;
   const navAtEnd = navStep >= navTotal - 1;
 
   const LEGEND = [
-    { label: "EFEM Robot",            color: "#00d8ff", shape: "robot" },
-    { label: "Process Stations",      color: "#ffcc00", shape: "rect"  },
-    { label: "Scanner",               color: "#ee00cc", shape: "drop"  },
+    { label: "EFEM Robot", color: "#00d8ff", shape: "robot" },
+    { label: "Process Stations", color: "#ffcc00", shape: "rect" },
+    { label: "Scanner", color: "#ee00cc", shape: "drop" },
   ];
 
   return (
@@ -36855,13 +37447,13 @@ export default function EFEMSimulator() {
         @keyframes slideInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
       `}</style>
 
-      <div 
-        ref={mountRef} 
-        style={{ 
-          position: "absolute", 
+      <div
+        ref={mountRef}
+        style={{
+          position: "absolute",
           inset: 0,
           visibility: iframeUrl ? "hidden" : "visible",
-        }} 
+        }}
       />
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at center, transparent 45%, rgba(160,190,220,.35) 100%)", zIndex: 5 }} />
 
@@ -36885,86 +37477,86 @@ export default function EFEMSimulator() {
 
 
       {loading && (
-  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#e8f2fa,#f0f5ff 50%,#e4f0e8)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#e8f2fa,#f0f5ff 50%,#e4f0e8)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
 
-    {/* Company logo top-left */}
-    <div style={{ position: "absolute", top: 24, left: 28, display: "flex", alignItems: "center", gap: 12 }}>
-      <img
-        src="/1681701746297.png"
-        alt="Semantic Skills Junction LLP"
-        style={{
-          width: 48, height: 48, borderRadius: 10,
-          objectFit: "contain",
-          border: "1px solid rgba(0,80,180,0.15)",
-          boxShadow: "0 2px 10px rgba(0,80,180,0.12)",
-          background: "#fff",
-        }}
-      />
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#0055cc", letterSpacing: 0.5 }}>
-          Semantic Skills Junction LLP
-        </span>
-        
-          <a
-            href="https://in.linkedin.com/company/semantic-skills-junction-llp"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: 9, color: "#0077b5", textDecoration: "none", display: "flex", alignItems: "center", gap: 3, marginTop: 2 }}
-          >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="#0077b5">
-            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-          </svg>
-          View on LinkedIn
-        </a>
-      </div>
-    </div>
+          {/* Company logo top-left */}
+          <div style={{ position: "absolute", top: 24, left: 28, display: "flex", alignItems: "center", gap: 12 }}>
+            <img
+              src="/1681701746297.png"
+              alt="Semantic Skills Junction LLP"
+              style={{
+                width: 48, height: 48, borderRadius: 10,
+                objectFit: "contain",
+                border: "1px solid rgba(0,80,180,0.15)",
+                boxShadow: "0 2px 10px rgba(0,80,180,0.12)",
+                background: "#fff",
+              }}
+            />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#0055cc", letterSpacing: 0.5 }}>
+                Semantic Skills Junction LLP
+              </span>
 
-    {/* Center logo + title */}
-    <img
-      src="/1681701746297.png"
-      alt="SSJ Logo"
-      style={{
-        width: 88, height: 88, borderRadius: 18,
-        objectFit: "contain",
-        border: "2px solid rgba(0,80,180,0.12)",
-        boxShadow: "0 6px 28px rgba(0,80,200,0.18)",
-        background: "#fff",
-        marginBottom: 20,
-      }}
-    />
+              <a
+                href="https://in.linkedin.com/company/semantic-skills-junction-llp"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 9, color: "#0077b5", textDecoration: "none", display: "flex", alignItems: "center", gap: 3, marginTop: 2 }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="#0077b5">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                </svg>
+                View on LinkedIn
+              </a>
+            </div>
+          </div>
 
-    <div style={{ fontSize: 46, letterSpacing: 14, color: "#0055cc", fontWeight: "bold", textShadow: "0 2px 24px rgba(0,80,200,0.2)", marginBottom: 4 }}>
-      SMaRT Simulator
-    </div>
-    <div style={{ fontSize: 12, color: "#3a6ea8", letterSpacing: 5, marginBottom: 2 }}>
-      SEMICONDUCTOR MANUFACTURING READINESS TRAINING
-    </div>
-    <div style={{ fontSize: 7.5, color: "#8aaccc", letterSpacing: 4, marginBottom: 36 }}>
-      300mm PHOTOLITHOGRAPHY · EFEM + COATER/DEVELOPER · v13.0
-    </div>
+          {/* Center logo + title */}
+          <img
+            src="/1681701746297.png"
+            alt="SSJ Logo"
+            style={{
+              width: 88, height: 88, borderRadius: 18,
+              objectFit: "contain",
+              border: "2px solid rgba(0,80,180,0.12)",
+              boxShadow: "0 6px 28px rgba(0,80,200,0.18)",
+              background: "#fff",
+              marginBottom: 20,
+            }}
+          />
 
-    {/* Progress bar */}
-    <div style={{ width: 440 }}>
-      <div style={{ height: 2, background: "rgba(0,100,200,0.10)", borderRadius: 2, overflow: "hidden", marginBottom: 9 }}>
-        <div style={{ height: "100%", width: `${Math.min(loadPct, 100)}%`, background: "linear-gradient(90deg,#0066ee,#8844ff,#00cc88)", borderRadius: 2, boxShadow: "0 0 12px #0066ee", transition: "width .05s" }} />
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 7.5, color: "#8aaccc", letterSpacing: 2 }}>
-        <span>{loadMsg}</span><span>{Math.min(Math.round(loadPct), 100)}%</span>
-      </div>
-    </div>
+          <div style={{ fontSize: 46, letterSpacing: 14, color: "#0055cc", fontWeight: "bold", textShadow: "0 2px 24px rgba(0,80,200,0.2)", marginBottom: 4 }}>
+            SMaRT Simulator
+          </div>
+          <div style={{ fontSize: 12, color: "#3a6ea8", letterSpacing: 5, marginBottom: 2 }}>
+            SEMICONDUCTOR MANUFACTURING READINESS TRAINING
+          </div>
+          <div style={{ fontSize: 7.5, color: "#8aaccc", letterSpacing: 4, marginBottom: 36 }}>
+            300mm PHOTOLITHOGRAPHY · EFEM + COATER/DEVELOPER · v13.0
+          </div>
 
-    {/* Footer */}
-    <div style={{ position: "absolute", bottom: 22, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-      <span style={{ fontSize: 10, letterSpacing: 4, color: "#6688aa" }}>
-        POWERED BY SEMANTIC SKILLS JUNCTION 
-      </span>
-      {/* <span style={{ fontSize: 7, letterSpacing: 3, color: "#b0c8dc" }}>
+          {/* Progress bar */}
+          <div style={{ width: 440 }}>
+            <div style={{ height: 2, background: "rgba(0,100,200,0.10)", borderRadius: 2, overflow: "hidden", marginBottom: 9 }}>
+              <div style={{ height: "100%", width: `${Math.min(loadPct, 100)}%`, background: "linear-gradient(90deg,#0066ee,#8844ff,#00cc88)", borderRadius: 2, boxShadow: "0 0 12px #0066ee", transition: "width .05s" }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 7.5, color: "#8aaccc", letterSpacing: 2 }}>
+              <span>{loadMsg}</span><span>{Math.min(Math.round(loadPct), 100)}%</span>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ position: "absolute", bottom: 22, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 10, letterSpacing: 4, color: "#6688aa" }}>
+              POWERED BY SEMANTIC SKILLS JUNCTION
+            </span>
+            {/* <span style={{ fontSize: 7, letterSpacing: 3, color: "#b0c8dc" }}>
         ISO-5 CLEANROOM · GENESIS EDUCATIONAL VISUALIZATION · v13.0
       </span> */}
-    </div>
+          </div>
 
-  </div>
-)}
+        </div>
+      )}
 
 
       {!loading && (
@@ -36977,121 +37569,121 @@ export default function EFEMSimulator() {
             <span style={{ fontSize: 12, color: "#3a5588", letterSpacing: 1.5, maxWidth: 380 }}>300mm wafer Photoresist Coater Developer Track</span>
             <div style={{ flex: 1 }} />
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-  <NarrationControls simRef={simRef} />
-  
-  <ComponentInfoToggle
-    enabled={showComponentInfo}
-    onToggle={() => setShowComponentInfo(!showComponentInfo)}
-  />
-  
-  <button
-    onClick={() => router.push("/Failure")}
-    style={{
-      padding: "7px 14px",
-      borderRadius: 8,
-      border: `1px solid ${T.border}`,
-      background: "rgba(255,255,255,0.95)",
-      color: "#0055cc",
-      fontSize: 10,
-      fontWeight: 700,
-      letterSpacing: 1.2,
-      cursor: "pointer",
-      transition: "all .2s ease",
-      boxShadow: "0 2px 8px rgba(0,80,180,0.10)"
-    }}
-  >
-    ALARM
-  </button>
+              <NarrationControls simRef={simRef} />
 
-  <button
-    onClick={() => router.push("/Recipe")}
-    style={{
-      padding: "7px 14px",
-      borderRadius: 8,
-      border: `1px solid ${T.border}`,
-      background: "rgba(255,255,255,0.95)",
-      color: "#0055cc",
-      fontSize: 10,
-      fontWeight: 700,
-      letterSpacing: 1.2,
-      cursor: "pointer",
-      transition: "all .2s ease",
-      boxShadow: "0 2px 8px rgba(0,80,180,0.10)"
-    }}
-  >
-    RECIPE
-  </button>
+              <ComponentInfoToggle
+                enabled={showComponentInfo}
+                onToggle={() => setShowComponentInfo(!showComponentInfo)}
+              />
 
-  {/* PR Coat animation button */}
-  <button
-    onClick={() => showInlineVideo(
-      '/pr_coat_anim.mp4',
-      'PR Coat Process Animation',
-      simRef.current
-    )}
-    style={{
-      padding: '8px 14px',
-      background: 'linear-gradient(135deg, #ff44cc 0%, #cc1177 100%)',
-      color: '#fff',
-      border: 'none',
-      borderRadius: '8px',
-      fontSize: '11px',
-      fontWeight: 600,
-      cursor: 'pointer',
-      letterSpacing: '0.5px',
-      textTransform: 'uppercase',
-      boxShadow: '0 2px 8px rgba(255, 68, 204, 0.3)',
-      transition: 'transform 0.15s, box-shadow 0.15s',
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateY(-1px)';
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 68, 204, 0.5)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 2px 8px rgba(255, 68, 204, 0.3)';
-    }}
-  >
-    ▶ PR COAT ANIM
-  </button>
+              <button
+                onClick={() => router.push("/Failure")}
+                style={{
+                  padding: "7px 14px",
+                  borderRadius: 8,
+                  border: `1px solid ${T.border}`,
+                  background: "rgba(255,255,255,0.95)",
+                  color: "#0055cc",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 1.2,
+                  cursor: "pointer",
+                  transition: "all .2s ease",
+                  boxShadow: "0 2px 8px rgba(0,80,180,0.10)"
+                }}
+              >
+                ALARM
+              </button>
 
-  {/* Developer animation button */}
-  <button
-    onClick={() => showInlineVideo(
-      '/developeranimation.mp4',
-      'Developer Module Animation',
-      simRef.current
-    )}
-    style={{
-      padding: '8px 14px',
-      background: 'linear-gradient(135deg, #33ccee 0%, #0099dd 100%)',
-      color: '#fff',
-      border: 'none',
-      borderRadius: '8px',
-      fontSize: '11px',
-      fontWeight: 600,
-      cursor: 'pointer',
-      letterSpacing: '0.5px',
-      textTransform: 'uppercase',
-      boxShadow: '0 2px 8px rgba(51, 204, 238, 0.3)',
-      transition: 'transform 0.15s, box-shadow 0.15s',
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateY(-1px)';
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(51, 204, 238, 0.5)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 2px 8px rgba(51, 204, 238, 0.3)';
-    }}
-  >
-    ▶ DEVELOPER ANIM
-  </button>
+              <button
+                onClick={() => router.push("/Recipe")}
+                style={{
+                  padding: "7px 14px",
+                  borderRadius: 8,
+                  border: `1px solid ${T.border}`,
+                  background: "rgba(255,255,255,0.95)",
+                  color: "#0055cc",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 1.2,
+                  cursor: "pointer",
+                  transition: "all .2s ease",
+                  boxShadow: "0 2px 8px rgba(0,80,180,0.10)"
+                }}
+              >
+                RECIPE
+              </button>
 
- 
+              {/* PR Coat animation button */}
+              <button
+                onClick={() => showInlineVideo(
+                  '/pr_coat_anim.mp4',
+                  'PR Coat Process Animation',
+                  simRef.current
+                )}
+                style={{
+                  padding: '8px 14px',
+                  background: 'linear-gradient(135deg, #ff44cc 0%, #cc1177 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                  boxShadow: '0 2px 8px rgba(255, 68, 204, 0.3)',
+                  transition: 'transform 0.15s, box-shadow 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 68, 204, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(255, 68, 204, 0.3)';
+                }}
+              >
+                ▶ PR COAT ANIM
+              </button>
+
+              {/* Developer animation button */}
+              <button
+                onClick={() => showInlineVideo(
+                  '/developeranimation.mp4',
+                  'Developer Module Animation',
+                  simRef.current
+                )}
+                style={{
+                  padding: '8px 14px',
+                  background: 'linear-gradient(135deg, #33ccee 0%, #0099dd 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                  boxShadow: '0 2px 8px rgba(51, 204, 238, 0.3)',
+                  transition: 'transform 0.15s, box-shadow 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(51, 204, 238, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(51, 204, 238, 0.3)';
+                }}
+              >
+                ▶ DEVELOPER ANIM
+              </button>
 
 
-</div>
+
+
+            </div>
             <span style={{ fontSize: 12, color: T.accent, letterSpacing: 1, fontWeight: 600 }}>{fmtClock(ui.simTime)}</span>
             <span style={{ fontSize: 8, color: T.textDim, letterSpacing: 2 }}>{ui.fps} FPS</span>
             <ProfileMenu />
@@ -37102,60 +37694,60 @@ export default function EFEMSimulator() {
           <div style={{ position: "absolute", left: 10, top: 60, display: "flex", flexDirection: "column", gap: 6, maxHeight: "calc(100vh - 120px)", pointerEvents: "auto", animation: "fadeIn .4s ease" }}>
             {/* Process Flow Sidebar */}
             <div style={{ width: 238, display: "flex", flexDirection: "column", gap: 6, overflowY: "auto" }}>
-            <div style={{ display: "flex", gap: 3, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: 4 }}>
-              {(["flow", "log", "joints"] as const).map((tab) => (
-                <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: 1, padding: "5px 0", borderRadius: 5, border: "none", cursor: "pointer", fontSize: 9, letterSpacing: 1.5, fontWeight: 700, textTransform: "uppercase" as const, background: activeTab === tab ? "rgba(0,100,200,0.15)" : "transparent", color: activeTab === tab ? T.accent : T.textDim, transition: "all .15s" }}>{tab}</button>
-              ))}
-            </div>
+              <div style={{ display: "flex", gap: 3, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: 4 }}>
+                {(["flow", "log", "joints"] as const).map((tab) => (
+                  <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: 1, padding: "5px 0", borderRadius: 5, border: "none", cursor: "pointer", fontSize: 9, letterSpacing: 1.5, fontWeight: 700, textTransform: "uppercase" as const, background: activeTab === tab ? "rgba(0,100,200,0.15)" : "transparent", color: activeTab === tab ? T.accent : T.textDim, transition: "all .15s" }}>{tab}</button>
+                ))}
+              </div>
 
-            {activeTab === "flow" && (
-              <Panel title="Process Flow  ↕ scroll">
-                {ALL_STEPS.map((step, i) => {
-                  const active = navStep === i || ui.wafers.some((w) => w.stepIdx === i && w.state !== "idle");
-                  const done   = ui.wafers.some((w) => w.launched && w.stepIdx > i);
-                  const isSelected = selectedComp === step.id;
-                  
-                  // COLOR LOGIC: Active=Green (#00ff00), Completed=Grey (#808080), Future=White
-                  const textColor = active ? "#00ff00" : done ? "#808080" : "#ffffff";
-                  
-                  return (
-                    <div key={`step-${step.id}`} onClick={() => { handleJumpToStep(i); setSelectedComp(step.id); }}
-                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "3.5px 5px", borderRadius: 4, fontSize: 11, border: `1px solid ${isSelected ? "rgba(100,60,220,.55)" : active ? "rgba(0,255,0,.30)" : "transparent"}`, background: isSelected ? "rgba(80,30,180,.10)" : active ? "rgba(0,255,0,.06)" : "transparent", marginBottom: 1, transition: "all .2s", cursor: "pointer" }}>
-                      <span style={{ fontSize: 9, color: "rgba(80,120,160,.7)", minWidth: 18, fontWeight: 700 }}>{String(i + 1).padStart(2, "0")}</span>
-                      <span style={{ width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: isSelected ? "#8844ff" : active ? "#00ff00" : done ? "#808080" : "rgba(120,160,200,.18)", boxShadow: isSelected ? "0 0 5px #8844ff" : active ? "0 0 5px #00ff00" : "none", display: "inline-block" }} />
-                      <span style={{ 
-                              flex: 1, 
-                              overflow: "hidden", 
-                             textOverflow: "ellipsis", 
-                             whiteSpace: "nowrap",
-                             color: textColor,
-                             fontWeight: active ? 700 : 600,
-                            textShadow: active ? "0 0 8px rgba(0,255,0,0.4)" : "none",
-                            }}>{step.name}</span>
-                      {step.temp != null && <span style={{ fontSize: 9, color: active ? "#00ff00" : step.temp > 50 ? "#cc4400" : "#0066cc", fontWeight: 800 }}>{step.temp}°</span>}
-                    </div>
-                  );
-                })}
-              </Panel>
-            )}
+              {activeTab === "flow" && (
+                <Panel title="Process Flow  ↕ scroll">
+                  {ALL_STEPS.map((step, i) => {
+                    const active = navStep === i || ui.wafers.some((w) => w.stepIdx === i && w.state !== "idle");
+                    const done = ui.wafers.some((w) => w.launched && w.stepIdx > i);
+                    const isSelected = selectedComp === step.id;
 
-            {activeTab === "log" && (
-              <Panel title="Transfer Log">
-                <div style={{ maxHeight: 380, overflowY: "auto", fontSize: 11, letterSpacing: 0.3, lineHeight: 1.85, fontWeight: 600 }}>
-                  {logs.map((l) => (
-                    <div key={l.id} style={{ padding: "1px 0", borderBottom: `1px solid rgba(0,100,180,.06)`, color: l.cls === "pick" ? T.green : l.cls === "place" ? T.accent : l.cls === "move" ? T.orange : T.textDim }}>
-                      {l.msg}
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-            )}
+                    // COLOR LOGIC: Active=Green (#00ff00), Completed=Grey (#808080), Future=White
+                    const textColor = active ? "#00ff00" : done ? "#808080" : "#ffffff";
 
-            {activeTab === "joints" && (
-              <>
-                <JointPanel title="EFEM Robot" joints={ui.jointsEFEM} prefix="efem" />
-              </>
-            )}
+                    return (
+                      <div key={`step-${step.id}`} onClick={() => { handleJumpToStep(i); setSelectedComp(step.id); }}
+                        style={{ display: "flex", alignItems: "center", gap: 5, padding: "3.5px 5px", borderRadius: 4, fontSize: 11, border: `1px solid ${isSelected ? "rgba(100,60,220,.55)" : active ? "rgba(0,255,0,.30)" : "transparent"}`, background: isSelected ? "rgba(80,30,180,.10)" : active ? "rgba(0,255,0,.06)" : "transparent", marginBottom: 1, transition: "all .2s", cursor: "pointer" }}>
+                        <span style={{ fontSize: 9, color: "rgba(80,120,160,.7)", minWidth: 18, fontWeight: 700 }}>{String(i + 1).padStart(2, "0")}</span>
+                        <span style={{ width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: isSelected ? "#8844ff" : active ? "#00ff00" : done ? "#808080" : "rgba(120,160,200,.18)", boxShadow: isSelected ? "0 0 5px #8844ff" : active ? "0 0 5px #00ff00" : "none", display: "inline-block" }} />
+                        <span style={{
+                          flex: 1,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          color: textColor,
+                          fontWeight: active ? 700 : 600,
+                          textShadow: active ? "0 0 8px rgba(0,255,0,0.4)" : "none",
+                        }}>{step.name}</span>
+                        {step.temp != null && <span style={{ fontSize: 9, color: active ? "#00ff00" : step.temp > 50 ? "#cc4400" : "#0066cc", fontWeight: 800 }}>{step.temp}°</span>}
+                      </div>
+                    );
+                  })}
+                </Panel>
+              )}
+
+              {activeTab === "log" && (
+                <Panel title="Transfer Log">
+                  <div style={{ maxHeight: 380, overflowY: "auto", fontSize: 11, letterSpacing: 0.3, lineHeight: 1.85, fontWeight: 600 }}>
+                    {logs.map((l) => (
+                      <div key={l.id} style={{ padding: "1px 0", borderBottom: `1px solid rgba(0,100,180,.06)`, color: l.cls === "pick" ? T.green : l.cls === "place" ? T.accent : l.cls === "move" ? T.orange : T.textDim }}>
+                        {l.msg}
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+              )}
+
+              {activeTab === "joints" && (
+                <>
+                  <JointPanel title="EFEM Robot" joints={ui.jointsEFEM} prefix="efem" />
+                </>
+              )}
             </div>
           </div>
 
@@ -37266,9 +37858,9 @@ export default function EFEMSimulator() {
               {LEGEND.map((item, li) => (
                 <div key={li} style={{ display: "flex", alignItems: "center", gap: 5 }}>
                   {item.shape === "robot" ? (
-                    <svg width="16" height="16" viewBox="0 0 16 16"><rect x="4" y="2" width="8" height="9" rx="2" fill={item.color}/><rect x="6" y="11" width="4" height="3" rx="1" fill={item.color}/><circle cx="6" cy="5" r="1.5" fill="#fff"/><circle cx="10" cy="5" r="1.5" fill="#fff"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 16 16"><rect x="4" y="2" width="8" height="9" rx="2" fill={item.color} /><rect x="6" y="11" width="4" height="3" rx="1" fill={item.color} /><circle cx="6" cy="5" r="1.5" fill="#fff" /><circle cx="10" cy="5" r="1.5" fill="#fff" /></svg>
                   ) : item.shape === "drop" ? (
-                    <svg width="14" height="16" viewBox="0 0 14 16"><path d="M7 1 C7 1 1 8 1 11 a6 6 0 0 0 12 0 C13 8 7 1 7 1Z" fill={item.color}/></svg>
+                    <svg width="14" height="16" viewBox="0 0 14 16"><path d="M7 1 C7 1 1 8 1 11 a6 6 0 0 0 12 0 C13 8 7 1 7 1Z" fill={item.color} /></svg>
                   ) : (
                     <span style={{ width: 14, height: 14, borderRadius: 2, background: item.color, display: "inline-block" }} />
                   )}
