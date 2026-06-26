@@ -30723,8 +30723,97 @@ function buildPostBakeGLB(
   return placeholder;
 }
 
+// function positionInterfaceWaferAnchor(
+//   placeholder: THREE.Group,
+//   glbRoot: THREE.Object3D,
+//   modId: string
+// ): THREE.Object3D {
+//   const existing = placeholder.userData.waferAnchor as THREE.Object3D | undefined;
+//   if (existing) placeholder.remove(existing);
 
+//   placeholder.updateWorldMatrix(true, true);
+//   glbRoot.updateWorldMatrix(true, true);
 
+//   const placeholderWorldPos = new THREE.Vector3();
+//   placeholder.getWorldPosition(placeholderWorldPos);
+
+//   const namedParts: Record<string, THREE.Object3D> = {};
+//   glbRoot.traverse((obj) => {
+//     namedParts[obj.name] = obj;
+//   });
+
+//   const faceNode =
+//     (modId === 'iface_out'
+//       ? namedParts['IF_out'] || namedParts['if_out'] || namedParts['IFout'] || namedParts['IF_in'] || namedParts['if_in'] || namedParts['IFin']
+//       : namedParts['IF_in'] || namedParts['if_in'] || namedParts['IFin'] || namedParts['IF_out'] || namedParts['if_out'] || namedParts['IFout']);
+
+//   const waferAnchor = new THREE.Group();
+//   waferAnchor.name = 'ModuleWaferAnchor';
+
+//   if (faceNode) {
+//     const faceWorldPos = new THREE.Vector3();
+//     faceNode.getWorldPosition(faceWorldPos);
+//     const localPos = faceWorldPos.clone().sub(placeholderWorldPos);
+//     waferAnchor.position.set(localPos.x, WAFER_TRANSFER_Y - placeholderWorldPos.y, localPos.z);
+//   } else {
+//     const faceZOffset = modId === 'iface_out' ? 1.25 : -1.25;
+//     waferAnchor.position.set(0, WAFER_TRANSFER_Y - placeholderWorldPos.y, faceZOffset);
+//   }
+
+//   placeholder.add(waferAnchor);
+//   placeholder.userData.waferAnchor = waferAnchor;
+//   return waferAnchor;
+// }
+
+function positionInterfaceWaferAnchor(
+  placeholder: THREE.Group,
+  glbRoot: THREE.Object3D,
+  modId: string
+): THREE.Object3D {
+  const existing = placeholder.userData.waferAnchor as THREE.Object3D | undefined;
+  if (existing) placeholder.remove(existing);
+
+  placeholder.updateWorldMatrix(true, true);
+  glbRoot.updateWorldMatrix(true, true);
+
+  const placeholderWorldPos = new THREE.Vector3();
+  placeholder.getWorldPosition(placeholderWorldPos);
+
+  // ── Measure the module's real bounding box (world space) and use its
+  //    CENTER in X/Z so the wafer sits on the module's top-center, not the
+  //    placeholder origin (which lands at the front edge). ──
+  const box = new THREE.Box3().setFromObject(glbRoot);
+  const center = new THREE.Vector3();
+  box.getCenter(center);
+
+  // Fine nudges if the top-center still needs a small shift (defaults 0)
+  const ANCHOR_X = 0;          // ← sideways nudge on the module top
+  const ANCHOR_Z = 0;          // ← forward/back nudge on the module top
+  const IFACE_WAFER_LIFT = 0.5; // ← extra HEIGHT off the floor for IF wafers (raise this)
+
+  const waferAnchor = new THREE.Group();
+  waferAnchor.name = 'ModuleWaferAnchor';
+
+  // Convert the world-space center into placeholder-LOCAL coords for X/Z,
+  // keep the wafer at transfer height (+ IF lift) for Y.
+  waferAnchor.position.set(
+    center.x - placeholderWorldPos.x + ANCHOR_X,
+    WAFER_TRANSFER_Y - placeholderWorldPos.y + IFACE_WAFER_LIFT,
+    center.z - placeholderWorldPos.z + ANCHOR_Z
+  );
+
+  placeholder.add(waferAnchor);
+  placeholder.userData.waferAnchor = waferAnchor;
+
+  console.log('[IFACE-WAFER]', modId,
+    'centerX=', center.x.toFixed(2),
+    'centerZ=', center.z.toFixed(2),
+    'localX=', (center.x - placeholderWorldPos.x).toFixed(2),
+    'localZ=', (center.z - placeholderWorldPos.z).toFixed(2),
+    'lift=', IFACE_WAFER_LIFT.toFixed(2));
+
+  return waferAnchor;
+}
 
 
 function buildInterfaceGLB(
@@ -30832,7 +30921,7 @@ function buildInterfaceGLB(
       placeholder.userData.glbRoot = root;
       placeholder.userData.loaded = true;
 
-      positionWaferAnchorAboveChuck(placeholder, root);
+      positionInterfaceWaferAnchor(placeholder, root, mod.id);
 
       if (onReady) onReady(placeholder);
     },
@@ -32603,7 +32692,7 @@ function addPlinthNameplates(scene: THREE.Scene): void {
 
     const isIface = mod.id === 'iface_in' || mod.id === 'iface_out';
 
-    const makeNameplateMesh = (width = 2.8, height = 1.4): THREE.Mesh => {
+    const makeNameplateMesh = (width = 2.6, height = 1.4): THREE.Mesh => {
       const CW = 1024, CH = 300;
       const canvas = document.createElement('canvas');
       canvas.width = CW;

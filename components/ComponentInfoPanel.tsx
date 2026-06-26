@@ -20,15 +20,48 @@ const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isReady, setIsReady] = useState(false);
 
-  // ── Initialize with Step 0 on mount ──
+  const resolveActiveStepIndex = () => {
+    const sim = simRef.current;
+    if (!sim) return null;
+
+    try {
+      const wafers = sim.wSMs;
+      if (Array.isArray(wafers)) {
+        const activeIndices = wafers
+          .filter((sm: any) => sm && sm.launched && !sm.done && ['processing', 'moving', 'idle'].includes(sm.state))
+          .map((sm: any) => Number(sm.stepIdx ?? 0))
+          .filter((n: number) => Number.isFinite(n));
+
+        if (activeIndices.length > 0) {
+          return Math.max(...activeIndices);
+        }
+      }
+    } catch (e) {
+      // Fall back to the navigation step below
+    }
+
+    try {
+      const navIndex = sim.getCurrentStep?.();
+      if (Number.isFinite(navIndex)) return navIndex;
+    } catch (e) {
+      // Ignore
+    }
+
+    return null;
+  };
+
+  // ── Initialize with the active process step on mount ──
   useEffect(() => {
     const initializeStepInfo = () => {
       if (!simRef.current) return;
-      
-      // Get Step 0 from the simulator
-      const currentStep = simRef.current.getCurrentStepInfo?.();
-      const currentIndex = simRef.current.getCurrentStep?.() ?? 0;
-      
+
+      const currentIndex = resolveActiveStepIndex() ?? 0;
+      let currentStep = simRef.current.getCurrentStepInfo?.();
+
+      if (!currentStep && typeof window !== 'undefined' && (window as any).ALL_STEPS) {
+        currentStep = (window as any).ALL_STEPS[currentIndex];
+      }
+
       if (currentStep) {
         updateStepInfo(currentIndex, currentStep);
         setIsReady(true);
@@ -115,30 +148,14 @@ const ComponentInfoPanel: React.FC<Props> = ({ simRef }) => {
       if (!simRef.current) return;
 
       try {
-        // Method 1: Check simulator's navigation step
-        const currentIndex = simRef.current.getCurrentStep?.() ?? 0;
-        const currentStep = simRef.current.getCurrentStepInfo?.();
-        
-        // Method 2: Check for active wafers and their current step
-        let activeWaferStepIdx = -1;
-        try {
-          const wafers = simRef.current.wSMs;
-          if (wafers && Array.isArray(wafers)) {
-            for (const sm of wafers) {
-              if (sm && sm.launched && !sm.done && sm.state === 'processing') {
-                activeWaferStepIdx = sm.stepIdx;
-                break;
-              }
-            }
-          }
-        } catch (e) {
-          // Silent fail - Method 2 optional
+        const currentIndex = resolveActiveStepIndex() ?? 0;
+        let currentStep = simRef.current.getCurrentStepInfo?.();
+
+        let stepIdxToShow = currentIndex;
+        if (stepIdxToShow === null || stepIdxToShow === undefined) {
+          stepIdxToShow = simRef.current.getCurrentStep?.() ?? 0;
         }
 
-        // Use active wafer step if available, otherwise use navigation step
-        const stepIdxToShow = activeWaferStepIdx >= 0 ? activeWaferStepIdx : currentIndex;
-        
-        // Get the step info
         let stepToShow = currentStep;
         try {
           if (typeof window !== 'undefined' && (window as any).ALL_STEPS) {
