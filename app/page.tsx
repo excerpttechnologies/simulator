@@ -34402,7 +34402,7 @@ class Sim {
     const TRANSFER_MIN_Y = 0.8;
     const WAFER_HALF_T = 0.0175;
     const PICK_CLEARANCE = 0.003;
-    const SAFE_HEIGHT = 9.5;
+    const SAFE_HEIGHT = WAFER_TRANSFER_Y + 3.0; 
     const SAFE_TRAVEL_Y = WAFER_TRANSFER_Y + 1.2;
     const Z_LIFT_HIGH = 0.8;
     const Z_LIFT_LOW = 0.0;
