@@ -56,7 +56,7 @@
 import type { Metadata } from 'next'
 import { JetBrains_Mono, Rajdhani } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-import { Providers } from '@/components/Providers'
+import { Providers } from '@/lib/components/Providers'
 import './globals.css'
 
 const jetbrainsMono = JetBrains_Mono({ 

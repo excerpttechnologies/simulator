@@ -9,10 +9,10 @@ import {
   toggleNamePlates,
   tickNamePlateLEDs,
 } from '../lib/buildNamePlate';
-import ComponentInfoPanel from '../components/ComponentInfoPanel';
-import ComponentInfoToggle from '../components/ComponentInfoToggle';
-import NarrationControls from '../components/NarrationControls';
-import { ProfileMenu } from '../components/ProfileMenu';
+import ComponentInfoPanel from '../lib/components/ComponentInfoPanel';
+import ComponentInfoToggle from '../lib/components/ComponentInfoToggle';
+import NarrationControls from '../lib/components/NarrationControls';
+import { ProfileMenu } from '../lib/components/ProfileMenu';
 
 // // ═══════════════════════════════════════════════════════════════════════════════
 // // TYPES & DATA
