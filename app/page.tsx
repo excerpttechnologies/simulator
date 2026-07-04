@@ -24144,6 +24144,7 @@ const SP = 3.8;
 const TOP_Z = -SP;
 const BOT_Z = SP;
 const WAFER_TRANSFER_Y = 3.35;
+const PLINTH_TOP_Y = 2.7;  // World Y of plinth top surface (box center 1.1 + H/2 1.6)
 /** Belt top: just below module floor constant (embedded track). */
 const CONVEYOR_SURFACE_Y = MODULE_FLOOR_Y - 0.05;
 /** Wafer centroid while riding the belt. */
@@ -24686,6 +24687,41 @@ function addWaferChuck(
   grp.renderOrder = 10;
 
   const R = 0.96;
+
+  // ── ADD SUPPORT POST/STAND ──
+  // Cylindrical post connecting chuck to module base
+  const glbRoot = parentGroup.userData.glbRoot;
+  if (glbRoot) {
+    const baseBox = new THREE.Box3().setFromObject(glbRoot);
+    const baseSize = new THREE.Vector3();
+    baseBox.getSize(baseSize);
+
+    // Position stand at corner (back-right: +X, -Z) FLUSH with base edges (zero gap)
+    const standRadius = 0.12;
+    const standHeight = localY - (MODULE_FLOOR_Y + baseSize.y / 2);
+    const cornerX = (baseSize.x / 2) - standRadius;  // Zero gap - flush with edge
+    const cornerZ = -(baseSize.z / 2) + standRadius;  // Zero gap - flush with edge
+
+    const standPost = new THREE.Mesh(
+      new THREE.CylinderGeometry(standRadius, standRadius * 1.2, standHeight, 24),
+      new THREE.MeshStandardMaterial({
+        color: 0x445566,
+        roughness: 0.18,
+        metalness: 0.95,
+        emissive: 0x112233,
+        emissiveIntensity: 0.3
+      })
+    );
+    standPost.position.set(cornerX, -localY + standHeight / 2, cornerZ);
+    
+    // Add 45-degree rotation for proper orientation
+    standPost.rotation.y = Math.PI / 4;  // 45 degrees
+    
+    standPost.castShadow = true;
+    grp.add(standPost);
+
+    console.log(`[CHUCK] Added support stand at corner: X=${cornerX.toFixed(2)}, Z=${cornerZ.toFixed(2)}, Height=${standHeight.toFixed(2)}, Rotation=45°`);
+  }
 
   if (chuckType === "chill") {
     const plate = new THREE.Mesh(
@@ -25953,9 +25989,9 @@ class DevLiquidAnimator {
   poolGroup!: THREE.Group;
   poolSpin = 0;
 
-  readonly POST_X = 0.0;
-  readonly POST_Z = 1.2;
-  readonly BAR_LENGTH = 1.4;
+  readonly POST_X = 1.2;   // + moves stand to +X corner (was 0.0, centered)
+  readonly POST_Z = 1.4;   // more positive = further back (was 1.2)
+  readonly BAR_LENGTH = 1.85;  // lengthened to reach center from corner (was 1.4)
   readonly NOZZLE_DROP = 0.30;
   readonly TIP_DROP = 0.10;
 
@@ -25965,7 +26001,7 @@ class DevLiquidAnimator {
   phaseDur = 1;
 
   readonly SWING_PARKED = -Math.PI / 2;
-  readonly SWING_OVER = Math.PI / 2;
+  readonly SWING_OVER = Math.PI / 2 + Math.PI / 4;  // +45° more travel past center to reach from corner
   swingAngle = -Math.PI / 2;
 
   constructor(scene: THREE.Scene) {
@@ -26508,13 +26544,13 @@ class SpinCoatAnimator {
   private _matUpdateAccum = 0;
 
   readonly SWING_PARKED = Math.PI / 2;
-  readonly SWING_OVER = -Math.PI / 2;
+  readonly SWING_OVER = -Math.PI / 2 - Math.PI / 4;  // +45° more travel past center to reach from corner
   swingAngle = Math.PI / 2;
 
   readonly CHUCK_Y = 0.35;
-  readonly POST_X = 0.0;
-  readonly POST_Z = -1.2;
-  readonly BAR_LENGTH = 1.4;
+  readonly POST_X = 1.2;   // + moves stand to +X corner (was 0.0, centered)
+  readonly POST_Z = -1.4;  // more negative = further back (was -1.2)
+  readonly BAR_LENGTH = 1.85;  // lengthened to reach center from corner (was 1.4)
   readonly NOZZLE_DROP = 0.10;
   readonly TIP_DROP = 0.30;
 
@@ -29460,7 +29496,7 @@ function normalizeAngle(angle: number): number {
 function positionWaferAnchorAboveChuck(
   placeholder: THREE.Group,
   glbRoot: THREE.Object3D,
-  extraClearance: number = 0.05
+  extraClearance: number = 0.02  // Reduced from 0.05
 ): THREE.Object3D {
   glbRoot.updateWorldMatrix(true, true);
 
@@ -29482,9 +29518,9 @@ function positionWaferAnchorAboveChuck(
     console.log(`[ANCHOR] ${placeholder.userData.id}: using GLB top Y=${chuckTopY.toFixed(3)} (no chuck)`);
   }
 
-  // ── Step 3: Wafer center sits at chuck top + half wafer thickness + tiny gap ──
+  // ── Step 3: Wafer center sits at chuck top + half wafer thickness + minimal gap ──
   const WAFER_HALF_THICKNESS = 0.035;          // wafer is 0.07 thick
-  const SEATING_GAP = 0.002;                    // 2mm visible gap (looks "placed" not "floating")
+  const SEATING_GAP = 0.001;                    // 1mm gap (reduced from 2mm)
   const anchorWorldY = chuckTopY + WAFER_HALF_THICKNESS + SEATING_GAP + extraClearance;
 
   // ── Step 4: Convert world Y to local Y relative to placeholder ──
@@ -29537,8 +29573,7 @@ function buildDehydrationGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      const FLOOR_Y = 3.0;
-      root.position.y = FLOOR_Y - box.min.y;
+      root.position.y = PLINTH_TOP_Y - box.min.y;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -29609,11 +29644,7 @@ function buildDehydrationGLB(
       addModuleLabel(placeholder, mod);
       // ── ADD VISIBLE HOT PLATE CHUCK (force on top of GLB body) ──
       const chuck = addWaferChuck(placeholder, 'hotplate');
-      // Force chuck Y to sit on top of GLB module body
-      const glbBox = new THREE.Box3().setFromObject(root);
-      const moduleTopY = glbBox.max.y;
-      chuck.position.y = moduleTopY + 0.05;
-      console.log(`[CHUCK] ${mod.id}: forced to Y=${chuck.position.y.toFixed(2)} (GLB top=${moduleTopY.toFixed(2)})`);
+      // Chuck is already positioned correctly by addWaferChuck - no override needed
       positionWaferAnchorAboveChuck(placeholder, root);
 
       if (onReady) onReady(placeholder);
@@ -29655,8 +29686,7 @@ function buildHardBakeGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      const FLOOR_Y = 2;
-      root.position.y = FLOOR_Y - box.min.y;
+      root.position.y = PLINTH_TOP_Y - box.min.y;
       const afterBox = new THREE.Box3().setFromObject(root);
       const afterCenter = new THREE.Vector3();
       afterBox.getCenter(afterCenter);
@@ -29766,8 +29796,7 @@ function buildPrCoatGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      const FLOOR_Y = 3.0;
-      root.position.y = FLOOR_Y - box.min.y;
+      root.position.y = PLINTH_TOP_Y - box.min.y;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -30306,8 +30335,7 @@ function buildChillPlateGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      // root.position.y = -0.5 - box.min.y;
-      root.position.y = MODULE_FLOOR_Y - box.min.y;
+      root.position.y = PLINTH_TOP_Y - box.min.y;
 
       const namedParts: Record<string, THREE.Object3D> = {};
       root.traverse((obj) => {
@@ -30532,8 +30560,8 @@ function buildHMDSGLB(
       root.rotation.y = Math.PI;
 
       const box = new THREE.Box3().setFromObject(root);
-      // Place GLB so its base aligns with module floor
-      root.position.y = MODULE_FLOOR_Y - box.min.y;
+      // Seat GLB flush on plinth top surface
+      root.position.y = PLINTH_TOP_Y - box.min.y;
 
       // ── Recenter X and Z after rotation (rotation shifts pivot) ──
       const afterBox = new THREE.Box3().setFromObject(root);
@@ -30641,8 +30669,8 @@ function buildPostBakeGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      // Slight upward offset to ensure the developer module sits above the plinth
-      root.position.y = 2 - box.min.y + 0.15;
+      // Seat flush on plinth top
+      root.position.y = PLINTH_TOP_Y - box.min.y;
 
       // Center X only — no Z offset
       const afterBox = new THREE.Box3().setFromObject(root);
@@ -30959,8 +30987,8 @@ function buildDIWaterRinseGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      // Align DI water rinse model with module floor and add small visual offset
-      root.position.y = MODULE_FLOOR_Y - box.min.y - 1.0;
+      // Seat flush on plinth top
+      root.position.y = PLINTH_TOP_Y - box.min.y;
 
       // Center X only — no Z offset
       const afterBox = new THREE.Box3().setFromObject(root);
@@ -30990,6 +31018,34 @@ function buildDIWaterRinseGLB(
         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
       const lightRed =
         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+      // ── REPOSITION STAND TO CORNER WITH ZERO GAP AND 45° ROTATION ──
+      const stand =
+        namedParts['Stand'] || namedParts['Post'] || namedParts['Support'] ||
+        namedParts['Pedestal'] || namedParts['Base'] || namedParts['Column'];
+
+      if (stand) {
+        // Get base dimensions from the scaled GLB
+        const baseBox = new THREE.Box3().setFromObject(root);
+        const baseSize = new THREE.Vector3();
+        baseBox.getSize(baseSize);
+
+        // Get stand dimensions
+        const standBox = new THREE.Box3().setFromObject(stand);
+        const standSize = new THREE.Vector3();
+        standBox.getSize(standSize);
+
+        // Position stand at corner (back-right: +X, -Z) FLUSH with base edges (zero gap)
+        const cornerX = (baseSize.x / 2) - (standSize.x / 2);
+        const cornerZ = -(baseSize.z / 2) + (standSize.z / 2);
+
+        stand.position.set(cornerX, stand.position.y, cornerZ);
+        
+        // Add 45-degree rotation for proper orientation
+        stand.rotation.y = Math.PI / 4;  // 45 degrees
+        
+        console.log(`[RINSE] Stand repositioned to corner: X=${cornerX.toFixed(2)}, Z=${cornerZ.toFixed(2)}, Rotation=45°`);
+      }
 
       const scheme = { base: 0x001428, emissive: 0x0088ff, light: 0x00aaff, pl: 0x0077ff };
 
@@ -31083,8 +31139,8 @@ function buildDeveloperModuleGLB(
       root.scale.setScalar(scale);
 
       const box = new THREE.Box3().setFromObject(root);
-      // Small upward offset for post-bake plinth alignment
-      root.position.y = MODULE_FLOOR_Y - box.min.y + 0.05;
+      // Seat flush on plinth top
+      root.position.y = PLINTH_TOP_Y - box.min.y;
 
       // Center X only — no Z offset
       const afterBox = new THREE.Box3().setFromObject(root);
@@ -31114,6 +31170,31 @@ function buildDeveloperModuleGLB(
         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
       const lightRed =
         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+      // ── REPOSITION STAND TO CORNER ──
+      const stand =
+        namedParts['Stand'] || namedParts['Post'] || namedParts['Support'] ||
+        namedParts['Pedestal'] || namedParts['Base'] || namedParts['Column'];
+
+      if (stand) {
+        // Get base dimensions from the scaled GLB
+        const baseBox = new THREE.Box3().setFromObject(root);
+        const baseSize = new THREE.Vector3();
+        baseBox.getSize(baseSize);
+
+        // Get stand dimensions
+        const standBox = new THREE.Box3().setFromObject(stand);
+        const standSize = new THREE.Vector3();
+        standBox.getSize(standSize);
+
+        // Position stand at corner (back-right: +X, -Z) flush with base edges
+        // Using half dimensions to position from center
+        const cornerX = (baseSize.x / 2) - (standSize.x / 2);
+        const cornerZ = -(baseSize.z / 2) + (standSize.z / 2);
+
+        stand.position.set(cornerX, stand.position.y, cornerZ);
+        console.log(`[DEVELOPER] Stand repositioned to corner: X=${cornerX.toFixed(2)}, Z=${cornerZ.toFixed(2)}`);
+      }
 
       const scheme = { base: 0x001a0a, emissive: 0x00ff88, light: 0x00dd66, pl: 0x00cc77 };
 
@@ -31358,7 +31439,7 @@ function placeWaferAnchorOnChuck(
 
 
 function buildModulePlinth(scene: THREE.Scene, mod: ProcessStep): THREE.Mesh {
-  const W = 5, D = 3.4, H = 3.2;
+  const W = 6.25, D = 3.4, H = 3.2;  // W increased by 25% (5 → 6.25)
   const nudgeZ = mod.type === "iface" ? IFACE_LOCAL_Z[mod.id] ?? 0 : 0;
 
   // ── BASE COLOR LOGIC ──
@@ -32956,6 +33037,21 @@ function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
   const grp = modObjs['scanner'];
   if (!grp) return;
 
+  // Keep this idempotent for repeated re-tries.
+  grp.children.filter((c) => c.userData?.__scannerPlate).forEach((c) => grp.remove(c));
+
+  const sBox = new THREE.Box3().setFromObject(grp);
+  if (sBox.isEmpty()) {
+    console.warn('[SCAN-PLATE] scanner group bounds empty, retry later');
+    return;
+  }
+
+  const sMin = grp.worldToLocal(sBox.min.clone());
+  const sMax = grp.worldToLocal(sBox.max.clone());
+  const localMinZ = Math.min(sMin.z, sMax.z);
+  const localMaxZ = Math.max(sMin.z, sMax.z);
+  const localMidY = (sMin.y + sMax.y) / 2;
+
   const CW = 1024, CH = 300;
   const canvas = document.createElement('canvas');
   canvas.width = CW;
@@ -33059,13 +33155,17 @@ function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
     })
   );
 
-  // ── Position on scanner front face (LOCAL coords — tunes here) ──
-  const PLATE_Y = 2.0;   // height up the front face — raise/lower to taste
-  const FRONT_Z = -4.2;  // toward the slot/front face (scanner front is −Z side)
-  plate.position.set(0, PLATE_Y, FRONT_Z);
+  const FACE_CLEARANCE = 0.05;
+  const Y_NUDGE = 0.0;
+  plate.position.set(0, localMidY + Y_NUDGE, localMinZ - FACE_CLEARANCE);
   plate.rotation.y = Math.PI; // face −Z toward camera/front
   plate.renderOrder = 50;
+  plate.userData.__scannerPlate = true;
   grp.add(plate);
+
+  console.log('[SCAN-PLATE] minZ=', localMinZ.toFixed(2),
+    'maxZ=', localMaxZ.toFixed(2), 'midY=', localMidY.toFixed(2),
+    'scale=', grp.scale.x.toFixed(3));
 }
 
 // ── tiny helper — canvas rounded-rect path ──────────────────────────────────
@@ -33386,10 +33486,12 @@ class Sim {
     // synchronous geometry settle.
     setTimeout(() => {
       attachAllNamePlates(this.modObjs, ALL_STEPS);
+      addScannerNameplate(this.modObjs);
 
       // Re-attach after another delay for GLBs that load slowly
       setTimeout(() => {
         attachAllNamePlates(this.modObjs, ALL_STEPS);
+        addScannerNameplate(this.modObjs);
       }, 2000);
     }, 1200);
 
@@ -37473,6 +37575,10 @@ export default function EFEMSimulator() {
     if (!simRef.current) return;
 
     simRef.current.speed = ns;
+    
+    // Dispatch speed change event for NarrationControls to track
+    window.dispatchEvent(new CustomEvent('sim:speed', { detail: { speed: ns } }));
+    
     triggerResume();
 
     if (ns !== 1) {
