@@ -29,11 +29,17 @@ const PLATE_LOCAL_Y = PLINTH_Y0 + PLINTH_H * 0.5; // = 1.1, same height as regul
 
 // ── Per-IF placement — tune each row independently ──
 // iface_out = top row → scanner; iface_in = second/bottom row ← scanner
+
+// Texture aspect ratio from canvas (1024:300) — must match plane geometry
+// to prevent text/graphics from appearing squashed or stretched
+const TEXTURE_ASPECT = 1024 / 300;  // ≈ 3.41:1
+
 const IFACE_CFG: Record<string, {
   frontOffset: number; backOffset: number; width: number; height: number;
 }> = {
-  iface_out: { frontOffset: 1.6, backOffset: 3.1, width: 3.1, height: 1.1 }, // TOP row
-  iface_in:  { frontOffset: 3.8, backOffset: 1.1, width: 3.1, height: 0.9 }, // SECOND row ← give it different dims here
+  // Width calculated from height × aspect ratio to maintain proper proportions
+  iface_out: { frontOffset: 1.6, backOffset: 3.1, height: 1.1, width: 1.1 * TEXTURE_ASPECT }, // ≈3.75 (TOP row)
+  iface_in:  { frontOffset: 3.8, backOffset: 1.1, height: 0.9, width: 0.9 * TEXTURE_ASPECT }, // ≈3.07 (SECOND row)
 };
 
 const IFACE_IDS = new Set(['iface_in', 'iface_out']);

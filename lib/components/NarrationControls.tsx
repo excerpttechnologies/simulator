@@ -9,17 +9,31 @@ const NarrationControls: React.FC<Props> = ({ simRef }) => {
   const [volume, setVolume] = useState(0.85);
   const [rate, setRate] = useState(0.95);
   const [showSettings, setShowSettings] = useState(false);
+  const [currentSpeed, setCurrentSpeed] = useState(1);
   
   // ── Init from sim once available ──
   useEffect(() => {
     const check = setInterval(() => {
       if (simRef.current?.narration) {
         setEnabled(simRef.current.narration.isEnabled());
+        setCurrentSpeed(simRef.current.speed || 1);
         clearInterval(check);
       }
     }, 100);
     return () => clearInterval(check);
   }, [simRef]);
+
+  // ── Track simulation speed changes ──
+  useEffect(() => {
+    const onSpeedChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ speed: number }>).detail;
+      if (typeof detail?.speed === 'number') {
+        setCurrentSpeed(detail.speed);
+      }
+    };
+    window.addEventListener('sim:speed', onSpeedChange as EventListener);
+    return () => window.removeEventListener('sim:speed', onSpeedChange as EventListener);
+  }, []);
 
   // ── Allow external controls (speed changes) to update the button state ──
   useEffect(() => {
@@ -40,16 +54,46 @@ const NarrationControls: React.FC<Props> = ({ simRef }) => {
         try { setEnabled(sim.narration.isEnabled()); } catch (e) {}
       }
       // Ensure UI shows speed 1 if sim reset
-      try { if (sim) { sim.speed = 1; window.dispatchEvent(new CustomEvent('sim:speed', { detail: { speed: 1 } })); } } catch (e) {}
+      try { if (sim) { sim.speed = 1; setCurrentSpeed(1); window.dispatchEvent(new CustomEvent('sim:speed', { detail: { speed: 1 } })); } } catch (e) {}
     };
     window.addEventListener('sim:reset', onSimReset as EventListener);
-    return () => window.removeEventListener('sim:narration-enabled', onNarrationEnabled as EventListener);
+    return () => {
+      window.removeEventListener('sim:narration-enabled', onNarrationEnabled as EventListener);
+      window.removeEventListener('sim:reset', onSimReset as EventListener);
+    };
   }, []);
   
   const handleToggle = () => {
     const newState = !enabled;
+    
+    // ════════════════════════════════════════════════════════════════════════════
+    // NARRATION SPEED LOCK: Narration only works at 1x speed
+    // If enabling narration while speed > 1x, automatically switch to 1x first
+    // ════════════════════════════════════════════════════════════════════════════
+    if (newState && currentSpeed !== 1) {
+      // Switch to 1x speed before enabling narration
+      if (simRef.current) {
+        simRef.current.speed = 1;
+        setCurrentSpeed(1);
+        window.dispatchEvent(new CustomEvent('sim:speed', { detail: { speed: 1 } }));
+      }
+    }
+    
     setEnabled(newState);
     simRef.current?.narration?.setEnabled(newState);
+    
+    // Announce the narration state change
+    if (newState && simRef.current?.narration) {
+      const step = simRef.current.getActiveProcessStepInfo?.() ?? simRef.current.getCurrentStepInfo();
+      if (step) {
+        import('../../lib/narrationScripts').then(({ getStepNarration }) => {
+          const script = getStepNarration(step.id);
+          if (script?.starting) {
+            simRef.current?.narration?.speak(`Narration enabled at ${step.name}. ${script.starting}`, 'high');
+          }
+        }).catch(() => {});
+      }
+    }
   };
   
   const handleVolume = (v: number) => {
@@ -62,64 +106,85 @@ const NarrationControls: React.FC<Props> = ({ simRef }) => {
     simRef.current?.narration?.setRate(r);
   };
   
+  // Disable narration toggle when speed > 1x
+  const isDisabled = currentSpeed !== 1;
+  
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
       {/* ── Toggle button ── */}
       <button
         onClick={handleToggle}
+        disabled={isDisabled}
         onContextMenu={(e) => {
           e.preventDefault();
-          setShowSettings(!showSettings);
+          if (!isDisabled) {
+            setShowSettings(!showSettings);
+          }
         }}
-        title="Click to toggle narration. Right-click for settings."
+        title={
+          isDisabled 
+            ? `Narration is only available at 1× speed. Current speed: ${currentSpeed}×` 
+            : "Click to toggle narration. Right-click for settings."
+        }
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
           padding: '7px 14px',
-          background: enabled
+          background: isDisabled
+            ? 'rgba(120,120,120,0.3)'
+            : enabled
             ? 'linear-gradient(135deg, #0066ee 0%, #0099ff 100%)'
             : 'rgba(255,255,255,0.95)',
-          color: enabled ? '#fff' : '#0055cc',
-          border: enabled ? '1px solid #0099ff' : '1px solid rgba(0,80,180,0.20)',
+          color: isDisabled 
+            ? '#888' 
+            : enabled ? '#fff' : '#0055cc',
+          border: isDisabled
+            ? '1px solid rgba(120,120,120,0.3)'
+            : enabled ? '1px solid #0099ff' : '1px solid rgba(0,80,180,0.20)',
           borderRadius: '8px',
-          cursor: 'pointer',
+          cursor: isDisabled ? 'not-allowed' : 'pointer',
           fontSize: '10px',
           fontWeight: 700,
           letterSpacing: '1.2px',
           transition: 'all 0.2s ease',
-          boxShadow: enabled 
+          boxShadow: isDisabled
+            ? 'none'
+            : enabled 
             ? '0 2px 12px rgba(0, 102, 238, 0.4)' 
             : '0 2px 8px rgba(0,80,180,0.10)',
+          opacity: isDisabled ? 0.5 : 1,
         }}
       >
         <span style={{
           fontSize: '14px',
         }}>
-          {enabled ? '🔊' : '🔇'}
+          {isDisabled ? '🔇' : enabled ? '🔊' : '🔇'}
         </span>
         <span>NARRATION</span>
         <span style={{ fontSize: '9px', opacity: 0.85, fontWeight: 600 }}>
-          {enabled ? '● ON' : 'OFF'}
+          {isDisabled ? `${currentSpeed}×` : enabled ? '● ON' : 'OFF'}
         </span>
-        <span
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowSettings(!showSettings);
-          }}
-          style={{
-            marginLeft: '4px',
-            padding: '0 4px',
-            cursor: 'pointer',
-            opacity: 0.7,
-          }}
-        >
-          ⚙
-        </span>
+        {!isDisabled && (
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSettings(!showSettings);
+            }}
+            style={{
+              marginLeft: '4px',
+              padding: '0 4px',
+              cursor: 'pointer',
+              opacity: 0.7,
+            }}
+          >
+            ⚙
+          </span>
+        )}
       </button>
       
       {/* ── Settings popup ── */}
-      {showSettings && (
+      {showSettings && !isDisabled && (
         <div style={{
           position: 'absolute',
           top: 'calc(100% + 6px)',
