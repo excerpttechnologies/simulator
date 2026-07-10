@@ -24185,7 +24185,7 @@ const ALL_STEPS: ProcessStep[] = [
   { id: "pab", name: "Post-Apply Bake 90°C", short: "PAB", temp: 90, time: 3, color: 0xff5500, type: "hot", x: 9, z: TOP_Z },
   { id: "chill2", name: "Chill Plate #2  22°C", short: "CP-2", temp: 22, time: 2, color: 0x00aaee, type: "cold", x: 14, z: TOP_Z },
   { id: "iface_out", name: "Interface → Scanner", short: "IF→", temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19, z: -3 },
-  { id: "scanner", name: "Scanner 193nm Exposure", short: "SCAN", temp: null, time: 5, color: 0xee00cc, type: "scan", x: 38, z: 0 },
+  { id: "scanner", name: "Scanner 193nm Exposure", short: "SCAN", temp: null, time: 5, color: 0xee00cc, type: "scan", x: 30, z: 0 },
   { id: "iface_in", name: "Interface ← Scanner", short: "IF←", temp: null, time: 2, color: 0xffaa00, type: "iface", x: 19, z: 3 },
   { id: "peb", name: "Post-Exposure Bake 120°C", short: "PEB", temp: 120, time: 3, color: 0xff3300, type: "hot", x: 14, z: BOT_Z },
   { id: "develop", name: "Developer Module (DEV)", short: "DEV", temp: null, time: 4, color: 0x00ff88, type: "wet", x: 9, z: BOT_Z },
