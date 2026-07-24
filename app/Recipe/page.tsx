@@ -798,7 +798,7 @@ export function RecipeSequencer({ onComplete }: { onComplete?: () => void }) {
                 className="recipe-module-btn"
                 onClick={() => router.push("/Failure")}
               >
-                Alarama Handling
+                Alarm Handling
               </button>
 
             </div>

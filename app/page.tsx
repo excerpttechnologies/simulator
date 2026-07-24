@@ -33934,6 +33934,9 @@ class Sim {
   speed: number; paused: boolean; simTime: number; fps: number;
   onUI: (ui: UIState) => void; onLog: (entry: LogEntry) => void; onTooltip: (tt: TooltipState) => void;
   private _frm = 0; private _lastFpsT = 0; private _lastT = 0; private _animId = 0; private _logSeq = 0;
+  // Fixed-timestep accumulator — ensures simulation runs at the same speed on all devices
+  private _accumulator = 0;
+  private static readonly FIXED_STEP = 1 / 60; // 60 Hz simulation step (device-independent)
   orbit = { theta: Math.PI * 0.11, phi: 0.36, radius: 48, tT: Math.PI * 0.11, tP: 0.36, tR: 48, cx: 4, cy: 0.2, cz: 0, tcx: 4, tcy: 0.2, tcz: 0, drag: false, btn: -1, sx: 0, sy: 0 };
   modObjs: Record<string, THREE.Group> = {}; busy: Record<string, number> = {};
   robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: RobotObject; robotD!: RobotObject;
@@ -35806,6 +35809,9 @@ class Sim {
               target.processTimer = 0;
               this._onProcessStart(target, dropStep);
               this.busy[dropStep.id] = target.wi;
+              
+              // ── Notify React panel NOW — wafer has arrived at station ──
+              if (target.wi === 0) this._notifyStepChange(target.stepIdx);
             }
 
             // Choose retract phase based on destination
@@ -35949,7 +35955,8 @@ class Sim {
     const currentStep = ALL_STEPS[sm.stepIdx];
     const isScannerStage = currentStep?.id === 'scanner' || currentStep?.type === 'iface';
     const waferSpeed = isScannerStage ? Math.max(this.speed, 10) : this.speed;
-    if (sm.spinning && !this.paused) { sm.spin += dt * waferSpeed * 8; w.rotation.y = sm.spin; }
+    // dt is raw FIXED_STEP — spinning multiplies by waferSpeed (which includes this.speed)
+    if (sm.spinning) { sm.spin += dt * waferSpeed * 8; w.rotation.y = sm.spin; }
 
     const sDt = dt * waferSpeed;
 
@@ -36056,6 +36063,9 @@ class Sim {
           sm.processTimer = 0;
           this._onProcessStart(sm, mod);
           this._addLog(`[${WAFER_NAMES[sm.wi]}] PLACE @ ${mod.short}`, "place");
+          
+          // ── Notify React panel NOW — wafer has arrived at station via belt ──
+          if (sm.wi === 0) this._notifyStepChange(sm.stepIdx);
         }
         break;
       }
@@ -36162,8 +36172,8 @@ class Sim {
             // Robot picks up — advance to next step normally
             sm.stepIdx++; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
 
-            // ── Notify React panel of step advance (wafer 0 drives the UI) ──
-            if (sm.wi === 0) this._notifyStepChange(sm.stepIdx);
+            // ── DON'T notify UI yet — wait until robot places wafer at next station ──
+            // UI notification now happens in _animRobots when wafer is placed
 
             if (sm.wi === 0 && this.narration) {
               this.narration.updateProcessPosition(sm.stepIdx);
@@ -36195,8 +36205,8 @@ class Sim {
           sm.timer = 0;
           sm.processTimer = 0;
 
-          // ── Notify React panel of belt-exit advance (wafer 0 drives the UI) ──
-          if (sm.wi === 0) this._notifyStepChange(sm.stepIdx);
+          // ── DON'T notify UI yet — wait until robot places wafer at next station ──
+          // UI notification now happens in _animRobots when wafer is placed
 
           if (sm.wi === 0 && this.narration) {
             this.narration.updateProcessPosition(sm.stepIdx);
@@ -36782,62 +36792,59 @@ class Sim {
     };
   }
 
-  private _loop = () => {
-    this._animId = requestAnimationFrame(this._loop);
-    const now = performance.now();
-    const rawDt = Math.min((now - this._lastT) / 1000, 0.05); this._lastT = now;
-
-    // ── SKIP ENTIRE FRAME if video popup is open (massive perf boost)
-    if ((this as any)._videoOpen) {
-      // Render at ~10fps to keep UI responsive while video plays
-      if (now - ((this as any)._lastVideoFrame || 0) < 100) return;
-      (this as any)._lastVideoFrame = now;
-      this.renderer.render(this.scene, this.camera);
-      return;
+  /**
+   * Core simulation update — called at a FIXED rate (FIXED_STEP seconds per call).
+   *
+   * rawStep = FIXED_STEP (device-independent wall-clock step, always 1/60 s).
+   * Subsystems that internally multiply by this.speed receive rawStep.
+   * simTime advances by rawStep * this.speed so it stays in "sim-time" units.
+   *
+   * Speed multiplier (1×/2×/5×/10×) only ever changes this.speed — never the
+   * rAF rate and never rawStep — so simulation runs identically on all devices.
+   */
+  private _updateSimulation(rawStep: number) {
+    // Advance simulation clock in speed-scaled units
+    this.simTime += rawStep * this.speed;
+    // Alias for subsystems that expect a raw dt (they multiply by this.speed internally)
+    const dt = rawStep;
+    
+    // Refresh keep-out boxes once GLBs finish loading.
+    const foup = this.modObjs["foup"];
+    if (foup) this._blockBoxes["foup"] = new THREE.Box3().setFromObject(foup).expandByScalar(2.5);
+    const scanner = this.modObjs["scanner"];
+    if (scanner) this._blockBoxes["scanner"] = new THREE.Box3().setFromObject(scanner).expandByScalar(0.15);
+    if (!this._shadowFixApplied) {
+      this._disableAllShadows();
+      this._shadowFixApplied = true;
     }
+    this.conveyorSegments.forEach((belt, i) => {
+      const isTop = i < 7;
+      belt.tick(dt, this.speed, isTop ? 1 : -1);
+    });
+    this.n2Particles.tick(dt, this.speed);
+    this.waterParticles.tick(dt, this.speed);
+    this.hmdsFog.tick(dt, this.speed, this.simTime);
+    Object.values(this.heatVapors).forEach(v => v.tick(dt, this.speed));
+    this.prCoatOverlay?.tick(dt, this.speed);
+    this.devOverlay?.tick(dt, this.speed);
+    if (this.gantryRail && this.robotEFEM) {
+      tickGantryRail(this.gantryRail, this.robotEFEM.group.position.x, this.simTime);
+    }
+    const nextIdx = this.wSMs.findIndex((sm) => !sm.launched);
+    if (nextIdx >= 0) {
+      const prev = this.wSMs[nextIdx - 1];
+      // Launch next wafer once previous has moved past DEHY (step 1 done)
+      const canLaunch = nextIdx === 0 || (prev && prev.launched && prev.stepIdx >= 2);
+      if (canLaunch) this._launchWafer(nextIdx);
+    }
+    // ── 1. Tick every wafer state machine ──
+    this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
 
-    this._frm++;
-    if (now - this._lastFpsT > 1000) { this.fps = Math.round(this._frm * 1000 / (now - this._lastFpsT)); this._frm = 0; this._lastFpsT = now; }
-    const dt = this.paused ? 0 : rawDt;
-    if (!this.paused) this.simTime += dt * this.speed;
-    if (!this.paused) {
-      // Refresh keep-out boxes once GLBs finish loading.
-      const foup = this.modObjs["foup"];
-      if (foup) this._blockBoxes["foup"] = new THREE.Box3().setFromObject(foup).expandByScalar(2.5);
-      const scanner = this.modObjs["scanner"];
-      if (scanner) this._blockBoxes["scanner"] = new THREE.Box3().setFromObject(scanner).expandByScalar(0.15);
-      if (!this._shadowFixApplied) {
-        this._disableAllShadows();
-        this._shadowFixApplied = true;
-      }
-      this.conveyorSegments.forEach((belt, i) => {
-        const isTop = i < 7;
-        belt.tick(dt, this.speed, isTop ? 1 : -1);
-      });
-      this.n2Particles.tick(dt, this.speed);
-      this.waterParticles.tick(dt, this.speed);
-      this.hmdsFog.tick(dt, this.speed, this.simTime);
-      Object.values(this.heatVapors).forEach(v => v.tick(dt, this.speed));
-      this.prCoatOverlay?.tick(dt, this.speed);
-      this.devOverlay?.tick(dt, this.speed);
-      if (this.gantryRail && this.robotEFEM) {
-        tickGantryRail(this.gantryRail, this.robotEFEM.group.position.x, this.simTime);
-      }
-      const nextIdx = this.wSMs.findIndex((sm) => !sm.launched);
-      if (nextIdx >= 0) {
-        const prev = this.wSMs[nextIdx - 1];
-        // Launch next wafer once previous has moved past DEHY (step 1 done)
-        const canLaunch = nextIdx === 0 || (prev && prev.launched && prev.stepIdx >= 2);
-        if (canLaunch) this._launchWafer(nextIdx);
-      }
-      // ── 1. Tick every wafer state machine ──
-      this.wSMs.forEach((sm) => this._tickWafer(sm, dt));
+    // ── 2. Carried wafers follow the gripper in world space ──
+    // ── 2. Carried wafers — visibility only; transform handled by parent (gripper) ──
+    // ── Carried wafers: parented to gripper via attach(); no per-frame position lerp ──
 
-      // ── 2. Carried wafers follow the gripper in world space ──
-      // ── 2. Carried wafers — visibility only; transform handled by parent (gripper) ──
-      // ── Carried wafers: parented to gripper via attach(); no per-frame position lerp ──
-
-      // ── 3. GLB module animations ──
+    // ── 3. GLB module animations ──
 
       // ── Animate Dehydration Bake GLB ──
       // ── Animate GLB hot-plate modules (dehy + hardbake) ──
@@ -37544,12 +37551,52 @@ class Sim {
       if (anyActive) {
         Object.values(this.modObjs).forEach((grp) => animateChuckLights(grp as THREE.Group));
       }
-    }
 
     // ── Nameplate LED pulse ──
     tickNamePlateLEDs(this.modObjs, this.busy, this.simTime);
 
-    this._animRobots(dt); this._updateCamera(); this.onUI(this._buildUI());
+    this._animRobots(dt);
+  }
+
+  private _loop = () => {
+    this._animId = requestAnimationFrame(this._loop);
+    const now = performance.now();
+    // Cap raw delta at 100 ms to prevent spiral-of-death on tab re-focus / slow frames
+    const rawDt = Math.min((now - this._lastT) / 1000, 0.1);
+    this._lastT = now;
+
+    // ── FPS counter (visual only — not used for simulation timing) ──
+    this._frm++;
+    if (now - this._lastFpsT > 1000) {
+      this.fps = Math.round(this._frm * 1000 / (now - this._lastFpsT));
+      this._frm = 0; this._lastFpsT = now;
+    }
+
+    // ── SKIP simulation + render while video popup is open ──
+    if ((this as any)._videoOpen) {
+      if (now - ((this as any)._lastVideoFrame || 0) < 100) return;
+      (this as any)._lastVideoFrame = now;
+      this._updateCamera(); this.onUI(this._buildUI());
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
+
+    if (!this.paused) {
+      // ── Fixed-timestep accumulator ──
+      // Accumulate real elapsed time. Drain in discrete FIXED_STEP increments so
+      // simulation speed is identical on 30 fps, 60 fps, 144 fps, or any frame rate.
+      // speedMultiplier (this.speed) only affects the simulation dt — never the rAF rate.
+      const STEP = Sim.FIXED_STEP;
+      this._accumulator += rawDt;
+      while (this._accumulator >= STEP) {
+        // Pass raw FIXED_STEP — _updateSimulation scales internally by this.speed
+        this._updateSimulation(STEP);
+        this._accumulator -= STEP;
+      }
+    }
+
+    // ── Camera + render run every frame regardless of simulation pace ──
+    this._updateCamera(); this.onUI(this._buildUI());
     this.renderer.render(this.scene, this.camera);
   };
 
