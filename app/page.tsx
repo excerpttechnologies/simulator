@@ -33937,6 +33937,10 @@ class Sim {
   // Fixed-timestep accumulator — ensures simulation runs at the same speed on all devices
   private _accumulator = 0;
   private static readonly FIXED_STEP = 1 / 60; // 60 Hz simulation step (device-independent)
+  // FPS limiting for integrated graphics — prevents simulation from running too fast
+  private static readonly TARGET_FPS = 60;
+  private static readonly FRAME_MIN_TIME = 1000 / Sim.TARGET_FPS; // 16.67ms per frame
+  private _lastFrameTime = 0;
   orbit = { theta: Math.PI * 0.11, phi: 0.36, radius: 48, tT: Math.PI * 0.11, tP: 0.36, tR: 48, cx: 4, cy: 0.2, cz: 0, tcx: 4, tcy: 0.2, tcz: 0, drag: false, btn: -1, sx: 0, sy: 0 };
   modObjs: Record<string, THREE.Group> = {}; busy: Record<string, number> = {};
   robotA!: RobotObject; robotEFEM!: RobotObject; robotB!: RobotObject; robotC!: RobotObject; robotD!: RobotObject;
@@ -33980,9 +33984,10 @@ class Sim {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       import('../lib/NarrationManager').then(({ NarrationManager }) => {
         this.narration = new NarrationManager({
-          rate: 0.95,
-          pitch: 1.0,
-          volume: 0.85,
+          voiceName: 'Microsoft Guy Online (Natural) - English (United States)',
+          rate: 0.90,
+          pitch: 0.9,
+          volume: 0.90,
         });
         console.log('[SIM] Narration system initialized');
       }).catch(err => {
@@ -37561,6 +37566,16 @@ class Sim {
   private _loop = () => {
     this._animId = requestAnimationFrame(this._loop);
     const now = performance.now();
+    
+    // ── FPS LIMITER: Skip frames that arrive too quickly ──
+    // On high-refresh displays or integrated graphics (120-144 FPS), this ensures
+    // the loop only runs at 60 FPS maximum, preventing simulation speed-up.
+    const elapsed = now - this._lastFrameTime;
+    if (elapsed < Sim.FRAME_MIN_TIME) return; // skip frame if too soon
+    
+    // Compensate for frame time quantization (prevents drift)
+    this._lastFrameTime = now - (elapsed % Sim.FRAME_MIN_TIME);
+    
     // Cap raw delta at 100 ms to prevent spiral-of-death on tab re-focus / slow frames
     const rawDt = Math.min((now - this._lastT) / 1000, 0.1);
     this._lastT = now;

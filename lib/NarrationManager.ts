@@ -38,7 +38,7 @@ export class NarrationManager {
     this._initVoice();
   }
   
-  /** Initialize the voice — try to match avatar's preferred voice */
+  /** Initialize the voice — try to match MALE voices only */
   private _initVoice() {
     // Voices may load asynchronously
     const tryLoad = () => {
@@ -48,39 +48,49 @@ export class NarrationManager {
         return;
       }
       
-      // ── Priority order for voice selection ──
-      // 1. Exact name match (if specified)
-      // 2. High-quality English voices (Google, Microsoft, Apple premium)
-      // 3. Any English voice
+      // ── Priority order for MALE voice selection ──
+      // 1. Exact name match (if user-specified)
+      // 2. High-quality male voices (Microsoft Guy, Daniel, etc.)
+      // 3. Keyword fallback (male, guy, david, daniel, james, mark)
       // 4. Default voice
       
-      const preferred = [
-        this.config.voiceName,                                     // user-specified
-        'Google US English',                                       // Chrome
-        'Microsoft Aria Online (Natural) - English (United States)', // Edge premium
-        'Microsoft Jenny Online (Natural) - English (United States)',
-        'Microsoft Guy Online (Natural) - English (United States)',
-        'Samantha',                                                // macOS / iOS
-        'Karen',                                                   // macOS
-        'Daniel',                                                  // macOS
+      const MALE_VOICES = [
+        this.config.voiceName,                                        // user-specified (if any)
+        'Microsoft Guy Online (Natural) - English (United States)',   // Edge Windows ⭐⭐⭐⭐⭐
+        'Microsoft David - English (United States)',                  // Edge/Windows fallback
+        'Microsoft James - English (United Kingdom)',                 // Edge UK
+        'Google UK English Male',                                     // Chrome
+        'Daniel',                                                     // macOS Safari
+        'Alex',                                                       // macOS alternative
+        'Fred',                                                       // macOS alternative
+        'Microsoft David Desktop',                                    // Windows SAPI
       ].filter(Boolean);
       
-      for (const name of preferred) {
+      // Try exact name match first
+      for (const name of MALE_VOICES) {
         const found = voices.find((v) => v.name === name);
         if (found) {
           this.voice = found;
-          console.log('[NARRATION] Using voice:', found.name);
+          console.log('[NARRATION] Using male voice:', found.name);
           return;
         }
       }
       
-      // Fallback: any English voice that sounds natural
-      this.voice = voices.find((v) => 
-        v.lang.startsWith('en') &&
-        (v.name.includes('Natural') || v.name.includes('Premium') || v.name.includes('Enhanced'))
-      ) || voices.find((v) => v.lang.startsWith('en')) || voices[0];
+      // Keyword fallback: find any voice with male keywords
+      const fallback = voices.find((v) => 
+        ['male', 'david', 'guy', 'daniel', 'james', 'mark', 'alex', 'fred'].some(keyword =>
+          v.name.toLowerCase().includes(keyword)
+        )
+      );
+      if (fallback) {
+        this.voice = fallback;
+        console.log('[NARRATION] Using male voice (keyword match):', fallback.name);
+        return;
+      }
       
-      console.log('[NARRATION] Fallback voice:', this.voice?.name);
+      // Absolute last resort: use first available voice
+      this.voice = voices[0] || null;
+      console.log('[NARRATION] Using default voice (no male voice found):', this.voice?.name);
     };
     
     if (this.synth.getVoices().length > 0) {
