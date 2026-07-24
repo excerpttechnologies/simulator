@@ -27465,9 +27465,29 @@ function buildModule(mod: ProcessStep): THREE.Group {
   grp.position.set(mod.x, 0, mod.z + nudgeZ);
   grp.userData.id = mod.id;
 
-  const W = 2.9, D = 2.9, H = 2.7;
+  // ── FOUP: handled entirely here, no procedural box/disc/panel geometry ──
+  if (mod.type === "foup") {
+    // Override position for FOUP (unchanged — keeps IK working)
+    grp.position.y = 3.0;
+    grp.rotation.set(0, -Math.PI / 2, 0);
+    grp.rotateY(Math.PI);
+    grp.position.x += 0.12;
 
-  // All base colors are now grey
+    const foupPickupAnchor = new THREE.Group();
+    foupPickupAnchor.name = "FoupPickupPoint";
+    foupPickupAnchor.position.set(0, 1.15, 2.2);
+    grp.add(foupPickupAnchor);
+    grp.userData.pickupAnchor = foupPickupAnchor;
+
+    // ── (FOUP shell + wafers built below in the second foup block) ──
+    // Fall through to the `if (mod.type === "foup")` section that
+    // builds the transparent shell — we just skip all the grey box code.
+    // Return early after the shell is built (handled at the bottom).
+  }
+
+  // ── For non-FOUP modules, build the procedural body ──
+  if (mod.type !== "foup") {
+  const W = 2.9, D = 2.9, H = 2.7;
   const themes_UNIFORM_GREY: Record<string, { base: number; edge: number; glass: number }> = {
     hot: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
     cold: { base: 0x5a5a5a, edge: 0x6a6a6a, glass: 0x808080 },
@@ -27640,6 +27660,8 @@ function buildModule(mod: ProcessStep): THREE.Group {
     grp.add(drain);
   }
 
+  } // end if (mod.type !== "foup")
+
   // FOUP special handling
   //   if (mod.type === "foup") {
   //     // Override position for FOUP
@@ -27702,128 +27724,221 @@ function buildModule(mod: ProcessStep): THREE.Group {
 
 
   if (mod.type === "foup") {
-    // Override position for FOUP
-    grp.position.y = 3.0;
-    grp.rotation.set(0, -Math.PI / 2, 0);
-    grp.rotateY(Math.PI);
-    grp.position.x += 0.12;
+    // Shell + wafers built here (position/pickupAnchor already set above)
 
-    const foupPickupAnchor = new THREE.Group();
-    foupPickupAnchor.name = "FoupPickupPoint";
-    foupPickupAnchor.position.set(0, 1.15, 2.2);
-    grp.add(foupPickupAnchor);
-    grp.userData.pickupAnchor = foupPickupAnchor;
+    // ── OPEN-FRONT FOUP  (5-panel shell, +Z = front/opening side) ──
+    // ══════════════════════════════════════════════════════════════
 
-    // ── FOUP BODY (black plastic like real FOUP) ──
-    const foupBody = new THREE.Mesh(
-      new THREE.BoxGeometry(3.2, 5.5, 2.8),
-      new THREE.MeshStandardMaterial({
-        color: 0x0a0a0c, metalness: 0.25, roughness: 0.55,
-      })
+    // ─── FOUP dimensions (scene units ≈ ×10 real-world mm) ───────
+    const FW  = 3.2;   // width  (X)
+    const FH  = 5.5;   // height (Y)
+    const FD  = 2.8;   // depth  (Z, back→front)
+    const T   = 0.08;  // panel thickness
+
+    // Anchor: bottom of shell sits at local Y=0, centred at X=0, Z=0.
+    // The GROUP itself is already placed in world-space by grp.position above.
+    const BY = 0.0;                   // bottom of shell (local Y)
+    const CY = BY + FH / 2;           // centre Y
+    const BACK_Z  = -(FD / 2);        // back face centre Z  (−Z = back)
+    const FRONT_Z =  (FD / 2);        // front opening       (+Z = open side)
+
+    // ─── Shell material — transparent amber acrylic ───────────────
+    const shellMat = new THREE.MeshPhysicalMaterial({
+      color: 0xD4700A,
+      transparent: true,
+      opacity: 0.55,
+      roughness: 0.05,
+      metalness: 0.0,
+      transmission: 0.5,
+      thickness: 0.4,
+      ior: 1.5,
+      clearcoat: 0.4,
+      clearcoatRoughness: 0.04,
+      side: THREE.DoubleSide,         // visible from inside too
+    });
+
+    // Helper: add a shell panel
+    const addPanel = (w: number, h: number, d: number, px: number, py: number, pz: number, rx = 0, ry = 0) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), shellMat);
+      m.position.set(px, py, pz);
+      m.rotation.set(rx, ry, 0);
+      grp.add(m);
+    };
+
+    // TOP panel
+    addPanel(FW, T, FD, 0, CY + FH / 2, 0);
+    // BOTTOM panel
+    addPanel(FW, T, FD, 0, CY - FH / 2, 0);
+    // LEFT panel  (−X side)
+    addPanel(T, FH, FD, -(FW / 2), CY, 0);
+    // RIGHT panel (+X side)
+    addPanel(T, FH, FD,  (FW / 2), CY, 0);
+    // BACK panel  (−Z face)
+    addPanel(FW, FH, T,  0, CY, BACK_Z);
+    // FRONT is intentionally OPEN — no geometry
+
+    // ─── Opaque dark base plate ───────────────────────────────────
+    const baseMat = new THREE.MeshStandardMaterial({
+      color: 0x111111, roughness: 0.45, metalness: 0.75,
+    });
+    const basePlate = new THREE.Mesh(
+      new THREE.BoxGeometry(FW + 0.14, 0.14, FD + 0.14), baseMat
     );
-    foupBody.position.y = 1.7;
-    foupBody.castShadow = true;
-    grp.add(foupBody);
+    basePlate.position.set(0, BY - 0.07, 0);
+    grp.add(basePlate);
 
-    // ── DOOR ──
-    const door = new THREE.Mesh(
-      new THREE.BoxGeometry(2.4, 2.8, 0.08),
-      new THREE.MeshStandardMaterial({
-        color: 0x141418, metalness: 0.35, roughness: 0.45,
-      })
-    );
-    door.position.set(0, 1.7, 1.35);
-    grp.add(door);
+    // ─── Front opening frame — 4 thin bar edges ───────────────────
+    const frameMat = new THREE.MeshStandardMaterial({
+      color: 0xB85C00, roughness: 0.25, metalness: 0.6,
+    });
+    const FB = 0.07;   // frame bar cross-section
+    // top bar
+    const fTop  = new THREE.Mesh(new THREE.BoxGeometry(FW + FB, FB, FB), frameMat);
+    fTop.position.set(0, CY + FH / 2, FRONT_Z);
+    grp.add(fTop);
+    // bottom bar
+    const fBot  = new THREE.Mesh(new THREE.BoxGeometry(FW + FB, FB, FB), frameMat);
+    fBot.position.set(0, CY - FH / 2, FRONT_Z);
+    grp.add(fBot);
+    // left bar
+    const fLeft = new THREE.Mesh(new THREE.BoxGeometry(FB, FH + FB, FB), frameMat);
+    fLeft.position.set(-(FW / 2), CY, FRONT_Z);
+    grp.add(fLeft);
+    // right bar
+    const fRight = new THREE.Mesh(new THREE.BoxGeometry(FB, FH + FB, FB), frameMat);
+    fRight.position.set( (FW / 2), CY, FRONT_Z);
+    grp.add(fRight);
+
+    // ─── Side handles ─────────────────────────────────────────────
+    const handleMat = shellMat.clone();
+    const handleGeom = new THREE.BoxGeometry(0.30, 0.80, 0.60);
+    [-(FW / 2) - 0.15, (FW / 2) + 0.15].forEach((hx) => {
+      const h = new THREE.Mesh(handleGeom, handleMat);
+      h.position.set(hx, CY + 0.4, 0);
+      grp.add(h);
+    });
 
     // ══════════════════════════════════════════════════════════════
-    // ── VISIBLE WAFER STACK (seated INSIDE the FOUP, no backside poke) ──
+    // ── WAFER STACK (25 wafers, open front shows ~20% of each disk) ─
     // ══════════════════════════════════════════════════════════════
-    const VISIBLE_WAFERS = 20;        // ← plate count
-    const VIS_START_Y = 0.55;
-    const VIS_END_Y   = 4.10;
-    const VIS_SPACING = (VIS_END_Y - VIS_START_Y) / (VISIBLE_WAFERS - 1);
-    const WAFER_RADIUS = 1.05;        // ← slightly smaller so edge stays inside body
-    const WAFER_THICK  = 0.022;
 
-    // ── KEY KNOB ──────────────────────────────────────────────
-    // FOUP body front face is at local z = +1.4, door at z = 1.35.
-    // 1.05 (old value) pushed discs almost to the door → looked like
-    // they were sticking out / showing from the back.
-    // Pull them back to sit cleanly inside the cassette.
-    const WAFER_Z = 0.35;             // ← decrease to push deeper in, increase to bring forward
-    // ──────────────────────────────────────────────────────────
+    const NUM_WAFERS   = 25;
+    const W_RADIUS     = 1.15;    // wafer radius (scene units)
+    const W_THICK      = 0.030;   // wafer disc height
+    const W_GAP        = 0.140;   // centre-to-centre spacing
+    const STACK_SPAN   = (NUM_WAFERS - 1) * W_GAP;
 
-    for (let v = 0; v < VISIBLE_WAFERS; v++) {
-      const wY = VIS_START_Y + v * VIS_SPACING;
+    // Centre the stack vertically inside the shell
+    const STACK_BASE_Y = CY - STACK_SPAN / 2;
 
-      // Silicon wafer disc (dark grey, polished)
-      const waferDisc = new THREE.Mesh(
-        new THREE.CylinderGeometry(WAFER_RADIUS, WAFER_RADIUS, WAFER_THICK, 96),
-        new THREE.MeshPhysicalMaterial({
-          color: 0xc8ccd0,
-          metalness: 0.88,
-          roughness: 0.22,
-          clearcoat: 0.5,
-          clearcoatRoughness: 0.15,
-          emissive: 0x0a0a0c,
-          emissiveIntensity: 0.05,
-        })
+    // Push discs toward the back so only ~20% of the diameter
+    // (the front edge arc) peeks out at the open front.
+    // Shell inner back face is at BACK_Z + T/2 ≈ -1.36.
+    // Wafer center needs to be ~(0.8 × W_RADIUS) behind the front opening
+    // so that front 20% of circumference is exposed.
+    // 20% visibility → disk centre offset = FRONT_Z − (W_RADIUS × 0.6)
+    const WAFER_Z_CENTER = FRONT_Z - W_RADIUS * 0.60;   // −Z = into shell
+
+    const waferMat = new THREE.MeshPhysicalMaterial({
+      color: 0x0d0d1a,
+      metalness: 0.95,
+      roughness: 0.08,
+      iridescence: 1.0,
+      iridescenceIOR: 2.0,
+      iridescenceThicknessRange: [150, 500],
+      clearcoat: 0.6,
+      clearcoatRoughness: 0.05,
+      side: THREE.DoubleSide,
+    });
+
+    const waferGeom = new THREE.CylinderGeometry(W_RADIUS, W_RADIUS, W_THICK, 64);
+
+    for (let i = 0; i < NUM_WAFERS; i++) {
+      const wy = STACK_BASE_Y + i * W_GAP;
+
+      const wafer = new THREE.Mesh(waferGeom, waferMat);
+      wafer.position.set(0, wy, WAFER_Z_CENTER);
+      grp.add(wafer);
+
+      // Polished edge ring — catches lighting at the open front
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(W_RADIUS, 0.013, 8, 64),
+        new THREE.MeshStandardMaterial({ color: 0x4466aa, metalness: 0.99, roughness: 0.06 })
       );
-      waferDisc.position.set(0, wY, WAFER_Z);
-      grp.add(waferDisc);
-
-      // Polished silver edge ring
-      const edgeRing = new THREE.Mesh(
-        new THREE.TorusGeometry(WAFER_RADIUS, 0.011, 8, 64),
-        new THREE.MeshStandardMaterial({
-          color: 0x888888,
-          metalness: 0.98,
-          roughness: 0.1,
-        })
-      );
-      edgeRing.rotation.x = Math.PI / 2;
-      edgeRing.position.set(0, wY, WAFER_Z);
-      grp.add(edgeRing);
-
-      // NOTE: amberCoat pie-wedge removed — it was the arc poking out
-      // the front/back of the FOUP. The flat resist tint is now baked
-      // into a full thin disc that never extends past the wafer edge.
-      const resistTint = new THREE.Mesh(
-        new THREE.CylinderGeometry(WAFER_RADIUS * 0.96, WAFER_RADIUS * 0.96, 0.003, 96),
-        new THREE.MeshPhysicalMaterial({
-          color: 0xb8bcc0,
-          metalness: 0.35,
-          roughness: 0.30,
-          clearcoat: 0.85,
-          clearcoatRoughness: 0.08,
-          transparent: true,
-          opacity: 0.5,
-        })
-      );
-      resistTint.position.set(0, wY + WAFER_THICK / 2 + 0.002, WAFER_Z);
-      grp.add(resistTint);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(0, wy, WAFER_Z_CENTER);
+      grp.add(ring);
     }
 
+    // ─── Slot dividers (horizontal dark planes between wafers) ────
+    const slotDivMat = new THREE.MeshStandardMaterial({
+      color: 0x1a1a1a, transparent: true, opacity: 0.6,
+      roughness: 0.5, metalness: 0.3, side: THREE.DoubleSide,
+    });
+    // Divider spans full shell interior width; depth goes from back to front opening
+    const DIV_W = FW - T * 2 - 0.04;
+    const DIV_D = FD - T - 0.04;    // back wall to just inside front frame
+    const divGeom = new THREE.PlaneGeometry(DIV_W, DIV_D);
+
+    for (let i = 0; i < NUM_WAFERS; i++) {
+      const dy = STACK_BASE_Y + i * W_GAP - W_THICK / 2 - 0.005;
+      const div = new THREE.Mesh(divGeom, slotDivMat);
+      div.rotation.x = -Math.PI / 2;
+      div.position.set(0, dy, BACK_Z / 2 + T / 2);  // centred between back wall and front
+      grp.add(div);
+    }
+
+    // ─── FOUP label on bottom front frame bar ─────────────────────
+    const lcv = document.createElement('canvas');
+    lcv.width = 256; lcv.height = 72;
+    const lctx = lcv.getContext('2d')!;
+    lctx.fillStyle = '#0a0a14';
+    lctx.fillRect(0, 0, 256, 72);
+    lctx.strokeStyle = '#D4700A';
+    lctx.lineWidth = 2.5;
+    lctx.strokeRect(3, 3, 250, 66);
+    lctx.fillStyle = '#ffffff';
+    lctx.font = 'bold 36px "Courier New", monospace';
+    lctx.textAlign = 'center';
+    lctx.textBaseline = 'middle';
+    lctx.shadowColor = '#ff9933';
+    lctx.shadowBlur = 10;
+    lctx.fillText('FOUP', 128, 36);
+
+    const labelTex  = new THREE.CanvasTexture(lcv);
+    const labelMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.6, 0.45),
+      new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, depthWrite: false })
+    );
+    // Attach to bottom front frame bar, facing outward (+Z direction)
+    labelMesh.position.set(0, CY - FH / 2 + 0.05, FRONT_Z + 0.05);
+    grp.add(labelMesh);
+
     // ══════════════════════════════════════════════════════════════
-    // ── OPERATIONAL SLOTS (just 6 for robot pick/place logic) ──
+    // ── OPERATIONAL SLOT ANCHORS (robot IK / wafer transfer) ──────
     // ══════════════════════════════════════════════════════════════
     const slotAnchors: THREE.Object3D[] = [];
     for (let s = 0; s < 6; s++) {
-      const slotY = 0.55 + s * 0.42;
+      const sy = STACK_BASE_Y + s * (STACK_SPAN / 5);
       const anchor = new THREE.Group();
       anchor.name = `FoupSlot_${s + 1}`;
-      anchor.position.set(0, slotY, WAFER_Z);   // ← was 1.05, now matches stack
+      anchor.position.set(0, sy, WAFER_Z_CENTER);
       grp.add(anchor);
       slotAnchors.push(anchor);
     }
     grp.userData.slotAnchors = slotAnchors;
-    grp.userData.slotCount = slotAnchors.length;
+    grp.userData.slotCount   = slotAnchors.length;
 
-    // ── INTERIOR LIGHT ──
-    const foupPL = new THREE.PointLight(0xffaa55, 0.4, 4);
-    foupPL.position.set(0, 2.5, 1.2);
+    // ─── Interior lighting — warms up the iridescent wafers ───────
+    const foupPL = new THREE.PointLight(0xffcc88, 1.2, 6.0);
+    foupPL.position.set(0, CY, WAFER_Z_CENTER);
     grp.add(foupPL);
     grp.userData.processLight = foupPL;
+
+    // Subtle fill so wafer faces aren't pitch-black
+    const foupAL = new THREE.PointLight(0xaabbff, 0.5, 4.5);
+    foupAL.position.set(0, CY + 1.0, FRONT_Z - 0.5);
+    grp.add(foupAL);
   }
 
 
@@ -27839,7 +27954,7 @@ function buildModule(mod: ProcessStep): THREE.Group {
     return grp;     // ← exit early, no floating sprite created
   }
 
-  const labelHeight = mod.type === "scan" ? MODULE_BASE_Y + H * 6.0 : MODULE_BASE_Y + H + 2.4;
+  const labelHeight = mod.type === "scan" ? 0.5 + 2.7 * 6.0 : 0.5 + 2.7 + 2.4;
 
   const nc = document.createElement("canvas");
   nc.width = 512;
@@ -28807,7 +28922,8 @@ function buildRobotGLB(
   basePos: THREE.Vector3,
   ledColor = 0x00ff88,
   scale = 0.35,
-  onReady: (robot: RobotObject) => void
+  onReady: (robot: RobotObject) => void,
+  onError?: () => void
 ): void {
   const loader = new GLTFLoader();
   loader.load(
@@ -29480,7 +29596,7 @@ function buildRobotGLB(
     (p: any) => {
       if (p.total > 0) console.log('GLB loading:', Math.round(p.loaded / p.total * 100) + '%');
     },
-    (err: any) => console.error('GLB FAILED:', err)
+    (err: any) => { console.error('GLB FAILED:', err); onError?.(); }
   );
 }
 
@@ -29652,6 +29768,7 @@ function buildDehydrationGLB(
     undefined,
     (err: any) => {
       console.error('Dehydration GLB failed to load:', err);
+      if (onReady) onReady(placeholder);
     }
   );
 
@@ -29760,7 +29877,7 @@ function buildHardBakeGLB(
       if (onReady) onReady(placeholder);
     },
     undefined,
-    (err: any) => console.error('HardBake GLB failed to load:', err)
+    (err: any) => { console.error('HardBake GLB failed to load:', err); if (onReady) onReady(placeholder); }
   );
 
   return placeholder;
@@ -29876,11 +29993,435 @@ function buildPrCoatGLB(
       if (onReady) onReady(placeholder);
     },
     undefined,
-    (err: any) => console.error('PR Coat GLB failed to load:', err)
+    (err: any) => { console.error('PR Coat GLB failed to load:', err); if (onReady) onReady(placeholder); }
   );
 
   return placeholder;
 }
+
+
+// function buildScannerGLB(
+//   scene: THREE.Scene,
+//   mod: ProcessStep,
+//   onReady?: (group: THREE.Group) => void
+// ): THREE.Group {
+//   const placeholder = new THREE.Group();
+//   placeholder.position.set(mod.x, 0, mod.z);
+//   placeholder.userData.id = mod.id;
+//   scene.add(placeholder);
+
+//   const loader = new GLTFLoader();
+//   loader.load(
+//     '/scaner.glb',
+//     (gltf: any) => {
+//       const root = gltf.scene as THREE.Group;
+
+//       const tempBox = new THREE.Box3().setFromObject(root);
+//       const size = new THREE.Vector3();
+//       tempBox.getSize(size);
+
+//       // Scanner is bigger — target 4.1 wide to match procedural housing
+//       const targetW = 12;
+//       const currentMax = Math.max(size.x, size.z);
+//       const scale = targetW / currentMax;
+//       root.scale.setScalar(scale);
+
+//       const box = new THREE.Box3().setFromObject(root);
+//       const SCANNER_FLOOR_DROP = 1.5;   // ← increase to sink the scanner lower
+//       root.position.y = 0 - box.min.y - SCANNER_FLOOR_DROP;
+//       root.updateWorldMatrix(true, true);
+//       const rootWorldBox = new THREE.Box3().setFromObject(root);
+
+//       // Compute front Z excluding Floor and Cassette_Body (which are hidden later)
+//       const rootBoxFilter = new THREE.Box3();
+//       let hasValidMesh = false;
+//       root.traverse((obj) => {
+//         if ((obj as THREE.Mesh).isMesh) {
+//           const name = obj.name;
+//           if (name !== 'Floor' && name !== 'Cassette_Body' && name !== 'Cube.001') {
+//             rootBoxFilter.expandByObject(obj);
+//             hasValidMesh = true;
+//           }
+//         }
+//       });
+//       const scannerFrontZ  = hasValidMesh ? rootBoxFilter.max.z : rootWorldBox.max.z;
+//       const scannerBackZ   = hasValidMesh ? rootBoxFilter.min.z : rootWorldBox.min.z;
+//       const scannerCenterZ = (scannerFrontZ + scannerBackZ) / 2;
+
+//       // ════════════════════════════════════════════════════════════════
+//       // DIRECT SLOT POSITION OFFSETS (local Z, measured from body center)
+//       // Body center is GUARANTEED inside the scanner. Add a small +/- to
+//       // slide the wafer toward whichever face is the opening.
+//       //   • Wafer too far FORWARD / poking out → make SCANNER_SLOT_OFFSET
+//       //     MORE NEGATIVE (e.g. -1, -2) to pull it back into the body.
+//       //   • Wafer buried / want it nearer the opening → make it more positive.
+//       // ════════════════════════════════════════════════════════════════
+//       const SCANNER_SLOT_OFFSET   = -100.8;   // ← wafer rest depth from center
+//       const SCANNER_PICKUP_OFFSET = 1.0;   // ← pickup point, relative to slot (toward opening)
+
+//       const scannerSlotZ   = scannerCenterZ + SCANNER_SLOT_OFFSET;
+//       const scannerTunnelZ = scannerSlotZ + SCANNER_PICKUP_OFFSET * 0.5;
+//       const scannerPickupZ = scannerSlotZ + SCANNER_PICKUP_OFFSET;
+
+//       console.log('[SCANNER] center=', scannerCenterZ.toFixed(2),
+//         'slotZ=', scannerSlotZ.toFixed(2),
+//         'depth=', (scannerFrontZ - scannerBackZ).toFixed(2));
+
+//       const namedParts: Record<string, THREE.Object3D> = {};
+//       root.traverse((obj) => {
+//         namedParts[obj.name] = obj;
+//         if ((obj as THREE.Mesh).isMesh) {
+//           obj.castShadow = false;
+//           obj.receiveShadow = true;
+//         }
+//         if (obj.name.startsWith('Dot_6_2')) {
+//           obj.visible = false;
+//         }
+//       });
+
+//       console.log('ALL Scanner GLB nodes:', Object.keys(namedParts));
+//       console.log('[SCANNER] frontZ=', scannerFrontZ.toFixed(3), 'pickupZ=', scannerPickupZ.toFixed(3), 'slotZ=', scannerSlotZ.toFixed(3));
+
+//       // ── HIDE BACKSIDE PLATES + floating top panels ──
+//       [
+//         'Vent_Panel', 'Base_Louvre_0', 'Base_Louvre_1', 'Base_Louvre_2', 'Base_Louvre_3', 'Base_Louvre_4',
+//         'Top', 'Top_Panel', 'TopPanel', 'Top_Cover', 'TopCover', 'Lid', 'Cover',
+//         'Top_Plate', 'TopPlate', 'Roof', 'Hood', 'Cap', 'Upper_Panel', 'UpperPanel',
+//         'Top_Housing', 'TopHousing', 'Top_Shell', 'TopShell',
+//         'Stage_Slab', 'Cassette_Body', 'Cube.001', 'Floor',
+//         'Btn_0', 'Btn_1', 'Handle_-0.28', 'Handle_0.28',
+//         // Hide back-side slot elements
+//         'BackSlot', 'Back_Slot', 'RearSlot', 'Rear_Slot', 'SlotBack', 'Slot_Back',
+//         'BackOpening', 'Back_Opening', 'RearOpening', 'Rear_Opening',
+//       ].forEach((name) => {
+//         if (namedParts[name]) namedParts[name].visible = false;
+//       });
+
+//       // Also hide any slot-like geometry on the back (-Z side)
+//       root.traverse((obj) => {
+//         if (!(obj as THREE.Mesh).isMesh) return;
+//         const mesh = obj as THREE.Mesh;
+//         const name = obj.name.toLowerCase();
+
+//         // Hide any object with "slot", "opening", "port" in its name that isn't the main one
+//         if ((name.includes('slot') || name.includes('opening') || name.includes('port')) &&
+//           !name.includes('anchor')) {
+//           const worldPos = new THREE.Vector3();
+//           mesh.getWorldPosition(worldPos);
+
+//           // If it's on the back (-Z) side relative to the scanner front, hide it
+//           if (worldPos.z < scannerFrontZ - 5) {
+//             mesh.visible = false;
+//           }
+//         }
+//       });
+
+//       // Also hide any mesh that is very flat (thin in Y) and positioned high — catches unnamed floating plates
+//       root.traverse((obj) => {
+//         if (!(obj as THREE.Mesh).isMesh) return;
+//         const mesh = obj as THREE.Mesh;
+//         const geo = mesh.geometry;
+//         if (!geo.boundingBox) geo.computeBoundingBox();
+//         const bb = geo.boundingBox!;
+//         const worldPos = new THREE.Vector3();
+//         mesh.getWorldPosition(worldPos);
+//         const sizeY = (bb.max.y - bb.min.y) * mesh.getWorldScale(new THREE.Vector3()).y;
+//         const sizeX = (bb.max.x - bb.min.x) * mesh.getWorldScale(new THREE.Vector3()).x;
+//         const sizeZ = (bb.max.z - bb.min.z) * mesh.getWorldScale(new THREE.Vector3()).z;
+//         // A "floating plate": very thin in Y, wide in X and Z, positioned above y=3
+//         if (sizeY < 0.5 && sizeX > 3 && sizeZ > 3 && worldPos.y > 3) {
+//           mesh.visible = false;
+//         }
+//       });
+
+//       // Try to find UV lens / beam emitter (NOT 'Top' — that's the cover panel)
+//       const lens =
+//         namedParts['Lens'] || namedParts['UVLens'] || namedParts['Beam'] ||
+//         namedParts['Emitter'];
+
+//       // Indicator lights
+//       const lightGreen =
+//         namedParts['LightGreen'] || namedParts['Light_Green'] || namedParts['LED_Green'];
+//       const lightRed =
+//         namedParts['LightRed'] || namedParts['Light_Red'] || namedParts['LED_Red'];
+
+//       // Magenta/UV scheme for scanner
+//       // Line ~45
+//       const scheme = { base: 0x1a1400, emissive: 0xffcc00, light: 0xffdd00, pl: 0xffaa00 };
+
+//       if (lens && (lens as THREE.Mesh).isMesh) {
+//         const lensMat = new THREE.MeshStandardMaterial({
+//           color: scheme.base,
+//           emissive: scheme.emissive,
+//           emissiveIntensity: 2.5,
+//           roughness: 0.05,
+//           metalness: 0.7,
+//         });
+//         (lens as THREE.Mesh).material = lensMat;
+//         placeholder.userData.lensMaterial = lensMat;
+//         placeholder.userData.colorScheme = scheme;
+//       }
+
+//       if (lightGreen && (lightGreen as THREE.Mesh).isMesh) {
+//         const greenMat = new THREE.MeshStandardMaterial({
+//           color: 0x002200, emissive: 0x00ff44, emissiveIntensity: 4.0, roughness: 0.4,
+//         });
+//         (lightGreen as THREE.Mesh).material = greenMat;
+//         placeholder.userData.greenLight = greenMat;
+//       }
+
+//       if (lightRed && (lightRed as THREE.Mesh).isMesh) {
+//         const redMat = new THREE.MeshStandardMaterial({
+//           color: 0x220000, emissive: 0xff0033, emissiveIntensity: 1.0, roughness: 0.4,
+//         });
+//         (lightRed as THREE.Mesh).material = redMat;
+//         placeholder.userData.redLight = redMat;
+//       }
+
+//       // UV beam cone (synthetic — placed even if GLB has no beam mesh)
+//       const beam = new THREE.Mesh(
+//         new THREE.CylinderGeometry(0.06, 0.32, 2.2, 20, 1, true),
+//         new THREE.MeshStandardMaterial({
+//           color: 0xffcc00, emissive: 0xffaa00, emissiveIntensity: 2.2,
+//           transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false,
+//         })
+//       );
+//       beam.position.set(0, 1.1, 0);
+//       root.add(beam);
+//       placeholder.userData.uvBeam = beam;
+
+//       // Explicit scanner port pickup point (front opening / interface).
+//       const scannerPickupAnchor = new THREE.Group();
+//       scannerPickupAnchor.name = "ScannerPickupPoint";
+//       scannerPickupAnchor.position.set(0, WAFER_TRANSFER_Y, scannerPickupZ);
+//       placeholder.add(scannerPickupAnchor);
+//       placeholder.userData.pickupAnchor = scannerPickupAnchor;
+
+//       const pl = new THREE.PointLight(scheme.pl, 0, 10);
+//       pl.position.set(0, 2.0, 0);
+//       root.add(pl);
+//       placeholder.userData.processLight = pl;
+
+//       //   placeholder.add(root);
+//       //   placeholder.userData.glbRoot = root;
+//       //   placeholder.userData.loaded = true;
+
+
+//       // ── RECTANGULAR WAFER SLOT on front face of scanner ──
+//       const SLOT_W = 1.8;   // ← width of slot opening
+//       const SLOT_H = 0.25;  // ← height of slot opening  
+//       const SLOT_D = 0;   // ← depth of slot tunnel
+
+//       // Slot tunnel (dark interior — gives depth illusion)
+//       const slotTunnel = new THREE.Mesh(
+//         new THREE.BoxGeometry(SLOT_W, SLOT_H, SLOT_D),
+//         new THREE.MeshStandardMaterial({
+//           color: 0x050508,
+//           roughness: 0.9,
+//           metalness: 0.1,
+//           emissive: 0x000510,
+//           emissiveIntensity: 0.5,
+//         })
+//       );
+//       slotTunnel.position.set(0, WAFER_TRANSFER_Y, scannerTunnelZ);
+//       placeholder.add(slotTunnel);
+
+//       // Slot frame — metallic border around opening
+//       const slotFrameMat = new THREE.MeshStandardMaterial({
+//         color: 0x778899,
+//         roughness: 0.15,
+//         metalness: 0.95,
+//         emissive: 0xffcc00,
+//         emissiveIntensity: 0.15,
+//       });
+
+//       // Top border
+//       const slotTop = new THREE.Mesh(
+//         new THREE.BoxGeometry(SLOT_W + 0.15, 0.06, 0.06),
+//         slotFrameMat
+//       );
+//       slotTop.position.set(0, WAFER_TRANSFER_Y + SLOT_H / 2 + 0.03, scannerSlotZ);
+//       placeholder.add(slotTop);
+
+//       // Bottom border
+//       const slotBot = new THREE.Mesh(
+//         new THREE.BoxGeometry(SLOT_W + 0.15, 0.06, 0.06),
+//         slotFrameMat.clone()
+//       );
+//       slotBot.position.set(0, WAFER_TRANSFER_Y - SLOT_H / 2 - 0.03, scannerSlotZ);
+//       placeholder.add(slotBot);
+
+//       // Left border
+//       const slotLeft = new THREE.Mesh(
+//         new THREE.BoxGeometry(0.06, SLOT_H + 0.12, 0.06),
+//         slotFrameMat.clone()
+//       );
+//       slotLeft.position.set(-SLOT_W / 2 - 0.03, WAFER_TRANSFER_Y, scannerSlotZ);
+//       placeholder.add(slotLeft);
+
+//       // Right border
+//       const slotRight = new THREE.Mesh(
+//         new THREE.BoxGeometry(0.06, SLOT_H + 0.12, 0.06),
+//         slotFrameMat.clone()
+//       );
+//       slotRight.position.set(SLOT_W / 2 + 0.03, WAFER_TRANSFER_Y, scannerSlotZ);
+//       placeholder.add(slotRight);
+
+//       // Slot glow strip inside (yellow indicator light)
+//       const slotGlow = new THREE.Mesh(
+//         new THREE.BoxGeometry(SLOT_W - 0.1, 0.02, 0.02),
+//         new THREE.MeshStandardMaterial({
+//           color: 0xffcc00,
+//           emissive: 0xffcc00,
+//           emissiveIntensity: 3.0,
+//           roughness: 0.3,
+//         })
+//       );
+//       slotGlow.position.set(0, WAFER_TRANSFER_Y - SLOT_H / 2 + 0.02, scannerSlotZ);
+//       placeholder.add(slotGlow);
+//       placeholder.userData.slotGlow = slotGlow;
+
+//       // Sensor dots on each side of slot
+//       const sensorMat = new THREE.MeshStandardMaterial({
+//         color: 0x00ff88,
+//         emissive: 0x00ff88,
+//         emissiveIntensity: 4.0,
+//         roughness: 0.3,
+//       });
+//       [-SLOT_W / 2 - 0.15, SLOT_W / 2 + 0.15].forEach((sx) => {
+//         const sensor = new THREE.Mesh(
+//           new THREE.SphereGeometry(0.04, 8, 8),
+//           sensorMat.clone()
+//         );
+//         sensor.position.set(sx, WAFER_TRANSFER_Y, scannerSlotZ);
+//         placeholder.add(sensor);
+//       });
+
+//       // ── WAFER PICKUP ANCHOR inside the slot — Y matches global transfer height ──
+//       const scannerSlotAnchor = new THREE.Group();
+//       scannerSlotAnchor.name = "ScannerSlotAnchor";
+//       scannerSlotAnchor.position.set(0, WAFER_TRANSFER_Y, scannerSlotZ);
+//       placeholder.add(scannerSlotAnchor);
+//       placeholder.userData.slotAnchor = scannerSlotAnchor;
+
+//       placeholder.add(root);
+//       placeholder.userData.glbRoot = root;
+//       placeholder.userData.loaded = true;
+//       // Update keep-out box once the GLB is present (prevents TCP entering scanner).
+//       placeholder.userData._bbox = new THREE.Box3().setFromObject(placeholder).expandByScalar(0.15);
+
+//       // ── Scanner has no nameplate and no visible chuck ──
+//       // Add the wafer anchor at the computed slot position.
+//       const scannerWaferAnchor = new THREE.Group();
+//       scannerWaferAnchor.name = "ModuleWaferAnchor";
+//       scannerWaferAnchor.position.set(0, WAFER_TRANSFER_Y, scannerSlotZ);
+//       placeholder.add(scannerWaferAnchor);
+//       placeholder.userData.waferAnchor = scannerWaferAnchor;
+
+//       // ── Scanner front-face nameplate (parented to placeholder in local space) ──
+//       (() => {
+//         const CW = 1024, CH = 300;
+//         const nc = document.createElement('canvas');
+//         nc.width = CW; nc.height = CH;
+//         const ctx = nc.getContext('2d')!;
+
+//         const metalGrad = ctx.createLinearGradient(0, 0, 0, CH);
+//         metalGrad.addColorStop(0, '#dde2e8');
+//         metalGrad.addColorStop(0.12, '#f0f4f7');
+//         metalGrad.addColorStop(0.45, '#c8ced4');
+//         metalGrad.addColorStop(0.88, '#e4e8ec');
+//         metalGrad.addColorStop(1, '#adb4bc');
+//         ctx.fillStyle = metalGrad;
+//         ctx.fillRect(0, 0, CW, CH);
+
+//         ctx.globalAlpha = 0.045;
+//         ctx.strokeStyle = '#ffffff';
+//         ctx.lineWidth = 1;
+//         for (let y = 2; y < CH; y += 3) {
+//           ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+//         }
+//         ctx.globalAlpha = 1;
+
+//         // Bevels
+//         ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, CW, 7); ctx.fillRect(0, 0, 7, CH);
+//         ctx.fillStyle = '#555c64'; ctx.fillRect(0, CH - 7, CW, 7); ctx.fillRect(CW - 7, 0, 7, CH);
+
+//         const innerGrad = ctx.createLinearGradient(0, 12, 0, CH - 12);
+//         innerGrad.addColorStop(0, '#b0b8c0');
+//         innerGrad.addColorStop(0.25, '#d0d8de');
+//         innerGrad.addColorStop(0.75, '#c8d0d6');
+//         innerGrad.addColorStop(1, '#a0a8b0');
+//         ctx.fillStyle = innerGrad;
+//         ctx.fillRect(11, 11, CW - 22, CH - 22);
+
+//         // Color accent stripe (scanner is magenta/ee00cc)
+//         ctx.fillStyle = `rgb(238,0,204)`;
+//         ctx.fillRect(11, 11, 14, CH - 22);
+//         ctx.fillStyle = 'rgba(255,255,255,0.5)';
+//         ctx.fillRect(11, 11, 5, CH - 22);
+
+//         // Short code
+//         ctx.font = "bold 120px 'Arial Black', Arial, sans-serif";
+//         ctx.textAlign = 'left';
+//         ctx.textBaseline = 'alphabetic';
+//         ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillText('SCAN', 48, 168);
+//         ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.fillText('SCAN', 46, 166);
+//         ctx.fillStyle = '#1a2028'; ctx.fillText('SCAN', 47, 167);
+
+//         // Full name
+//         ctx.font = "bold 44px Arial, sans-serif";
+//         ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillText('Scanner 193nm Exposure', 48, 234);
+//         ctx.fillStyle = '#1a2030'; ctx.fillText('Scanner 193nm Exposure', 47, 233);
+
+//         // Rivets
+//         const drawRivet = (rx: number, ry: number) => {
+//           ctx.fillStyle = 'rgba(0,0,0,0.3)';
+//           ctx.beginPath(); ctx.arc(rx + 2, ry + 2, 10, 0, Math.PI * 2); ctx.fill();
+//           const rg = ctx.createRadialGradient(rx - 3, ry - 3, 0, rx, ry, 10);
+//           rg.addColorStop(0, '#eef2f6'); rg.addColorStop(0.4, '#a8b0b8'); rg.addColorStop(1, '#707880');
+//           ctx.fillStyle = rg;
+//           ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
+//         };
+//         drawRivet(28, 28); drawRivet(CW - 28, 28); drawRivet(28, CH - 28); drawRivet(CW - 28, CH - 28);
+
+//         const tex = new THREE.CanvasTexture(nc);
+//         tex.minFilter = THREE.LinearFilter;
+//         tex.magFilter = THREE.LinearFilter;
+//         tex.anisotropy = 8;
+
+//         const plate = new THREE.Mesh(
+//           new THREE.PlaneGeometry(4.0, 1.0),
+//           new THREE.MeshBasicMaterial({
+//             map: tex, transparent: false,
+//             depthTest: true, depthWrite: true,
+//             side: THREE.DoubleSide,
+//           })
+//         );
+
+//         // ── Stick plate to the -X face (process/FOUP-facing side of scanner) ──
+//         // The scanner is at world x=38; the process line is at lower X, so -X is the front.
+//         // Use local coordinates: localMinX = rootWorldBox.min.x - placeholder.position.x
+//         const localMinX = rootWorldBox.min.x - placeholder.position.x;
+//         const PLATE_Y = WAFER_TRANSFER_Y + 6.5;  // ↑ raise/lower on the face
+//         const PLATE_X = localMinX + 39;         // just proud of the -X face
+//         const PLATE_Z = 0;                         // centered along Z on the face
+//         plate.position.set(PLATE_X, PLATE_Y, PLATE_Z);
+//         // Rotate so the plate faces -X (toward the process line / FOUP)
+//         plate.rotation.set(0, -Math.PI / 2, 0);
+//         plate.renderOrder = 100;
+//         placeholder.add(plate);
+
+//         console.log('[SCANNER NAMEPLATE] x=', PLATE_X.toFixed(2), 'y=', PLATE_Y.toFixed(2));
+//       })();
+
+//       if (onReady) onReady(placeholder);
+//     },
+//     undefined,
+//     (err: any) => console.error('Scanner GLB failed:', err)
+//   );
+
+//   return placeholder;
+// }
 
 
 function buildScannerGLB(
@@ -30281,32 +30822,36 @@ function buildScannerGLB(
           })
         );
 
-        // ── Stick plate to the -X face (process/FOUP-facing side of scanner) ──
-        // The scanner is at world x=38; the process line is at lower X, so -X is the front.
-        // Use local coordinates: localMinX = rootWorldBox.min.x - placeholder.position.x
-        const localMinX = rootWorldBox.min.x - placeholder.position.x;
-        const PLATE_Y = WAFER_TRANSFER_Y + 6.5;  // ↑ raise/lower on the face
-        const PLATE_X = localMinX + 39;         // just proud of the -X face
-        const PLATE_Z = 0;                         // centered along Z on the face
+            // ── Stick plate to the -X face (process/FOUP-facing side of scanner) ──
+        // Bounds must be taken AFTER root is under placeholder; earlier rootWorldBox is
+        // in scene-root space and must not subtract mod.x (+39 was hiding the plate inside the hull).
+        root.updateWorldMatrix(true, true);
+        const scannerBounds = new THREE.Box3().setFromObject(root);
+        const localMinX = scannerBounds.min.x - placeholder.position.x;
+        const localMinY = scannerBounds.min.y - placeholder.position.y;
+        const localMaxY = scannerBounds.max.y - placeholder.position.y;
+        const localCenterZ = (scannerBounds.min.z + scannerBounds.max.z) * 0.8 - placeholder.position.z;
+        const PLATE_FACE_OUTSET = -1.5;  // was 0.22 — bring it closer to scanner face
+        const PLATE_X = localMinX - PLATE_FACE_OUTSET;
+        const PLATE_Y = localMinY + (localMaxY - localMinY) * 0.40;  // was 0.52 — push down
+        const PLATE_Z = localCenterZ;
         plate.position.set(PLATE_X, PLATE_Y, PLATE_Z);
-        // Rotate so the plate faces -X (toward the process line / FOUP)
         plate.rotation.set(0, -Math.PI / 2, 0);
         plate.renderOrder = 100;
         placeholder.add(plate);
 
-        console.log('[SCANNER NAMEPLATE] x=', PLATE_X.toFixed(2), 'y=', PLATE_Y.toFixed(2));
+        console.log('[SCANNER NAMEPLATE] localMinX=', localMinX.toFixed(2),
+          'x=', PLATE_X.toFixed(2), 'y=', PLATE_Y.toFixed(2), 'z=', PLATE_Z.toFixed(2));
       })();
 
       if (onReady) onReady(placeholder);
     },
     undefined,
-    (err: any) => console.error('Scanner GLB failed:', err)
+    (err: any) => { console.error('Scanner GLB failed:', err); if (onReady) onReady(placeholder); }
   );
 
   return placeholder;
 }
-
-
 
 
 function buildChillPlateGLB(
@@ -30421,7 +30966,7 @@ function buildChillPlateGLB(
       if (onReady) onReady(placeholder);
     },
     undefined,
-    (err: any) => console.error(`Chill plate GLB (${mod.id}) failed:`, err)
+    (err: any) => { console.error(`Chill plate GLB (${mod.id}) failed:`, err); if (onReady) onReady(placeholder); }
   );
 
   return placeholder;
@@ -30636,7 +31181,7 @@ function buildHMDSGLB(
       if (onReady) onReady(placeholder);
     },
     undefined,
-    (err: any) => console.error('HMDS GLB failed:', err)
+    (err: any) => { console.error('HMDS GLB failed:', err); if (onReady) onReady(placeholder); }
   );
 
   return placeholder;
@@ -30745,7 +31290,7 @@ function buildPostBakeGLB(
       if (onReady) onReady(placeholder);
     },
     undefined,
-    (err: any) => console.error('PostBake GLB failed:', err)
+    (err: any) => { console.error('PostBake GLB failed:', err); if (onReady) onReady(placeholder); }
   );
 
   return placeholder;
@@ -30954,7 +31499,7 @@ function buildInterfaceGLB(
       if (onReady) onReady(placeholder);
     },
     undefined,
-    (err: any) => console.error('Interface GLB failed to load:', err)
+    (err: any) => { console.error('Interface GLB failed to load:', err); if (onReady) onReady(placeholder); }
   );
 
   return placeholder;
@@ -31107,7 +31652,7 @@ function buildDIWaterRinseGLB(
       if (onReady) onReady(placeholder);
     },
     undefined,
-    (err: any) => console.error('DIWaterRinse GLB failed:', err)
+    (err: any) => { console.error('DIWaterRinse GLB failed:', err); if (onReady) onReady(placeholder); }
   );
 
   return placeholder;
@@ -31250,7 +31795,7 @@ function buildDeveloperModuleGLB(
       if (onReady) onReady(placeholder);
     },
     undefined,
-    (err: any) => console.error('DeveloperModule GLB failed:', err)
+    (err: any) => { console.error('DeveloperModule GLB failed:', err); if (onReady) onReady(placeholder); }
   );
 
   return placeholder;
@@ -33040,17 +33585,21 @@ function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
   // Keep this idempotent for repeated re-tries.
   grp.children.filter((c) => c.userData?.__scannerPlate).forEach((c) => grp.remove(c));
 
+  // Update world matrices for accurate bounds calculation
+  grp.updateWorldMatrix(true, true);
+  
   const sBox = new THREE.Box3().setFromObject(grp);
   if (sBox.isEmpty()) {
     console.warn('[SCAN-PLATE] scanner group bounds empty, retry later');
     return;
   }
 
-  const sMin = grp.worldToLocal(sBox.min.clone());
-  const sMax = grp.worldToLocal(sBox.max.clone());
-  const localMinZ = Math.min(sMin.z, sMax.z);
-  const localMaxZ = Math.max(sMin.z, sMax.z);
-  const localMidY = (sMin.y + sMax.y) / 2;
+  // Convert world bounds to local coordinates relative to grp
+  const localMinX = sBox.min.x - grp.position.x;
+  const localMaxX = sBox.max.x - grp.position.x;
+  const localMinY = sBox.min.y - grp.position.y;
+  const localMaxY = sBox.max.y - grp.position.y;
+  const localMaxZ = sBox.max.z - grp.position.z;  // front face Z
 
   const CW = 1024, CH = 300;
   const canvas = document.createElement('canvas');
@@ -33145,7 +33694,7 @@ function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
   tex.anisotropy = 8;
 
   const plate = new THREE.Mesh(
-    new THREE.PlaneGeometry(3.4, 1.0),
+    new THREE.PlaneGeometry(0, 1.0),
     new THREE.MeshBasicMaterial({
       map: tex,
       transparent: false,
@@ -33155,17 +33704,18 @@ function addScannerNameplate(modObjs: Record<string, THREE.Group>): void {
     })
   );
 
-  const FACE_CLEARANCE = 0.05;
-  const Y_NUDGE = 0.0;
-  plate.position.set(0, localMidY + Y_NUDGE, localMinZ - FACE_CLEARANCE);
-  plate.rotation.y = Math.PI; // face −Z toward camera/front
-  plate.renderOrder = 50;
+  // Calculate proper plate position at bottom near front face
+  const PLATE_Y = localMinY + (localMaxY - localMinY) * 0.12;  // near bottom
+  const PLATE_X = (localMinX + localMaxX) * 0.5;               // centered X
+  const PLATE_Z = localMaxZ + 0.01;                             // flush on front face
+  
+  plate.position.set(PLATE_X, PLATE_Y, PLATE_Z);
+  plate.rotation.set(0, 0, 0);   // face forward (Z axis), not sideways
+  plate.renderOrder = 100;
   plate.userData.__scannerPlate = true;
   grp.add(plate);
 
-  console.log('[SCAN-PLATE] minZ=', localMinZ.toFixed(2),
-    'maxZ=', localMaxZ.toFixed(2), 'midY=', localMidY.toFixed(2),
-    'scale=', grp.scale.x.toFixed(3));
+  console.log('[SCANNER NAMEPLATE] x=', PLATE_X.toFixed(2), 'y=', PLATE_Y.toFixed(2), 'z=', PLATE_Z.toFixed(2));
 }
 
 // ── tiny helper — canvas rounded-rect path ──────────────────────────────────
@@ -33411,6 +33961,12 @@ class Sim {
   narration: any;
   private _narratedSteps = new Set<string>();
 
+  // ── GLB load tracking ──
+  private _glbsPending = 0;   // incremented per loader, decremented on onLoad/onError
+  private _glbsReady   = false; // flips true once all GLBs have fired their callback
+  private _startPending = false; // start() was called before GLBs finished
+  private _onAllGlbsReady: (() => void) | null = null;
+
   constructor(renderer: THREE.WebGLRenderer, onUI: (ui: UIState) => void, onLog: (e: LogEntry) => void, onTooltip: (tt: TooltipState) => void) {
     this.renderer = renderer; this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(44, renderer.domElement.clientWidth / renderer.domElement.clientHeight, 0.08, 350);
@@ -33442,33 +33998,69 @@ class Sim {
 
   private _addLog(msg: string, cls: LogEntry["cls"] = "") { this.onLog({ id: ++this._logSeq, msg, cls }); }
 
+  /** Call before firing each GLTFLoader.load() to register a pending load */
+  private _glbLoadStart() {
+    this._glbsPending++;
+  }
+
+  /** Call inside each GLTFLoader onLoad AND onError callback to decrement the counter.
+   *  When the last pending load fires, flushes any deferred start(). */
+  private _glbLoadDone() {
+    this._glbsPending = Math.max(0, this._glbsPending - 1);
+    if (this._glbsPending === 0 && !this._glbsReady) {
+      this._glbsReady = true;
+      console.log('[SIM] All GLBs loaded — scene ready');
+      // Flush a deferred start() if start() was called before GLBs finished
+      if (this._startPending) {
+        this._startPending = false;
+        this._doStart();
+      }
+    }
+  }
+
+  /** Internal: actually kicks off the loop + narration */
+  private _doStart() {
+    this._lastT = performance.now();
+    this._loop();
+    if (this.narration) {
+      this.narration.announceProcessStart();
+      this._narratedSteps.clear();
+    }
+  }
+
   private _build() {
     setupLighting(this.scene);
     buildEnv(this.scene);
     ALL_STEPS.forEach((mod) => {
       if (mod.id === 'output') return; // single FOUP only
 
+      // ── Track this GLB as pending ──
+      const isGlbModule = ['dehy','pab','hardbake','prcoat','hmds','peb','rinse','develop','scanner','iface_out','iface_in'].includes(mod.id)
+        || mod.type === 'cold';
+      if (isGlbModule) this._glbLoadStart();
+      const glbDone = isGlbModule ? () => this._glbLoadDone() : undefined;
+
       let grp: THREE.Group;
       if (mod.id === 'dehy' || mod.id === 'pab') {
-        grp = buildDehydrationGLB(this.scene, mod);
+        grp = buildDehydrationGLB(this.scene, mod, glbDone);
       } else if (mod.id === 'hardbake') {
-        grp = buildHardBakeGLB(this.scene, mod);
+        grp = buildHardBakeGLB(this.scene, mod, glbDone);
       } else if (mod.id === 'prcoat') {
-        grp = buildPrCoatGLB(this.scene, mod);
+        grp = buildPrCoatGLB(this.scene, mod, glbDone);
       } else if (mod.id === 'hmds') {
-        grp = buildHMDSGLB(this.scene, mod);
+        grp = buildHMDSGLB(this.scene, mod, glbDone);
       } else if (mod.id === 'peb') {
-        grp = buildPostBakeGLB(this.scene, mod);
+        grp = buildPostBakeGLB(this.scene, mod, glbDone);
       } else if (mod.id === 'rinse') {
-        grp = buildDIWaterRinseGLB(this.scene, mod);
+        grp = buildDIWaterRinseGLB(this.scene, mod, glbDone);
       } else if (mod.id === 'develop') {
-        grp = buildDeveloperModuleGLB(this.scene, mod);
+        grp = buildDeveloperModuleGLB(this.scene, mod, glbDone);
       } else if (mod.id === 'scanner') {
-        grp = buildScannerGLB(this.scene, mod);
+        grp = buildScannerGLB(this.scene, mod, glbDone);
       } else if (mod.id === 'iface_out' || mod.id === 'iface_in') {
-        grp = buildInterfaceGLB(this.scene, mod);
+        grp = buildInterfaceGLB(this.scene, mod, glbDone);
       } else if (mod.type === 'cold') {
-        grp = buildChillPlateGLB(this.scene, mod);
+        grp = buildChillPlateGLB(this.scene, mod, glbDone);
       } else {
         grp = buildModule(mod);
         this.scene.add(grp);
@@ -33524,6 +34116,7 @@ class Sim {
     // is on one side and the robot reaches modules from the other.
     // Place robot between FOUP (x=-20) and DEHY (x=-11), at midpoint x=-15.5
     // Scale 1.0 is correct — the GLB already has proper dimensions
+    this._glbLoadStart(); // track robot GLB
     buildRobotGLB(this.scene, new THREE.Vector3(-16, 0, 0), 0x00d8ff, 4, (r) => {
       this.robotEFEM = r;
       this.robotA = r;
@@ -33536,7 +34129,8 @@ class Sim {
       r.group.userData.baseY = 0;      // override whatever GLB baked in
       r.group.userData.zLiftY = 0;
       console.log('[ROBOT] loaded at', r.basePos.toArray(), 'scale 1.0');
-    });
+      this._glbLoadDone(); // robot ready
+    }, () => this._glbLoadDone()); // robot error — still unblock narration
 
     this._buildRailTrack();   // ← add rail track system
 
@@ -33603,6 +34197,20 @@ class Sim {
       this._disableAllShadows();
       this._shadowFixApplied = true;
     }, 1000);
+
+    // ── Fallback: if any GLB loader silently times out (no onLoad/onError),
+    //    force _glbsReady after 12s so narration/start are never permanently blocked ──
+    setTimeout(() => {
+      if (!this._glbsReady) {
+        console.warn('[SIM] GLB load timeout — forcing ready after 12s. Pending:', this._glbsPending);
+        this._glbsPending = 0;
+        this._glbsReady = true;
+        if (this._startPending) {
+          this._startPending = false;
+          this._doStart();
+        }
+      }
+    }, 12000);
 
     // ── Preload micro-videos so they play instantly on demand ──
     this._preloadVideos();
@@ -35554,6 +36162,9 @@ class Sim {
             // Robot picks up — advance to next step normally
             sm.stepIdx++; sm.state = "idle"; sm.timer = 0; sm.processTimer = 0;
 
+            // ── Notify React panel of step advance (wafer 0 drives the UI) ──
+            if (sm.wi === 0) this._notifyStepChange(sm.stepIdx);
+
             if (sm.wi === 0 && this.narration) {
               this.narration.updateProcessPosition(sm.stepIdx);
             }
@@ -35583,6 +36194,9 @@ class Sim {
           sm.state = "idle";
           sm.timer = 0;
           sm.processTimer = 0;
+
+          // ── Notify React panel of belt-exit advance (wafer 0 drives the UI) ──
+          if (sm.wi === 0) this._notifyStepChange(sm.stepIdx);
 
           if (sm.wi === 0 && this.narration) {
             this.narration.updateProcessPosition(sm.stepIdx);
@@ -36940,14 +37554,15 @@ class Sim {
   };
 
   start() {
-    this._lastT = performance.now();
-    this._loop();
-
-    // ── Narration: announce process start ──
-    if (this.narration) {
-      this.narration.announceProcessStart();
-      this._narratedSteps.clear(); // Reset tracking for new run
+    // If GLBs are still loading, defer _doStart() until they finish.
+    // This prevents narration from firing before the 3D scene is visible.
+    if (!this._glbsReady) {
+      console.log('[SIM] start() deferred — waiting for GLBs to finish loading');
+      this._startPending = true;
+      this._loop();  // start the render loop immediately so the scene draws progressively
+      return;
     }
+    this._doStart();
   }
 
   // ── Step navigation (rewind / forward / jump) ───────────────────────────────
@@ -37286,7 +37901,7 @@ class Sim {
         while (obj && !obj.userData.id) obj = obj.parent;
         const mod = obj ? ALL_STEPS.find((m) => m.id === obj!.userData.id) : null;
         if (mod) {
-          this.onTooltip({ visible: true, x: e.clientX, y: e.clientY, name: mod.name, temp: mod.temp ? mod.temp + "°C" : "—", tempColor: mod.temp ? (mod.temp > 50 ? "#ff6030" : "#0099ff") : "#445566", meta: `TYPE: ${mod.type.toUpperCase()} · DURATION: ${mod.time}s` });
+          this.onTooltip({ visible: true, x: e.clientX, y: e.clientY, name: mod.name, temp: mod.temp ? mod.temp + "°C" : "—", tempColor: mod.temp ? (mod.temp > 50 ? "#ff6030" : "#0099ff") : "#445566", meta: `` });
           return;
         }
       }
@@ -37906,7 +38521,12 @@ export default function EFEMSimulator() {
                     const textColor = active ? "#00ff00" : done ? "#808080" : "#ffffff";
 
                     return (
-                      <div key={`step-${step.id}`} onClick={() => { handleJumpToStep(i); setSelectedComp(step.id); }}
+                      <div key={`step-${step.id}`} onClick={() => {
+                        handleJumpToStep(i);
+                        setSelectedComp(step.id);
+                        setNavStep(i);                    // immediately update panel content
+                        setShowComponentInfo(true);       // open panel if it was closed
+                      }}
                         style={{ display: "flex", alignItems: "center", gap: 5, padding: "3.5px 5px", borderRadius: 4, fontSize: 11, border: `1px solid ${isSelected ? "rgba(100,60,220,.55)" : active ? "rgba(0,255,0,.30)" : "transparent"}`, background: isSelected ? "rgba(80,30,180,.10)" : active ? "rgba(0,255,0,.06)" : "transparent", marginBottom: 1, transition: "all .2s", cursor: "pointer" }}>
                         <span style={{ fontSize: 9, color: "rgba(80,120,160,.7)", minWidth: 18, fontWeight: 700 }}>{String(i + 1).padStart(2, "0")}</span>
                         <span style={{ width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: isSelected ? "#8844ff" : active ? "#00ff00" : done ? "#808080" : "rgba(120,160,200,.18)", boxShadow: isSelected ? "0 0 5px #8844ff" : active ? "0 0 5px #00ff00" : "none", display: "inline-block" }} />
@@ -37946,47 +38566,21 @@ export default function EFEMSimulator() {
             </div>
           </div>
 
-          {/* RIGHT PANEL — Component Info panels */}
-          <div style={{ position: "absolute", right: 70, top: 60, display: "flex", flexDirection: "column", gap: 12, maxHeight: "calc(100vh - 120px)", pointerEvents: "auto", zIndex: 50 }}>
-
-            {/* Component Info Panel - appears on right when a component is selected */}
-            {selectedComp && COMPONENT_INFO[selectedComp] && (() => {
-              const d = COMPONENT_INFO[selectedComp];
-              const step = ALL_STEPS.find(s => s.id === selectedComp);
-              return (
-                <div style={{
-                  width: '300px',
-                  animation: "slideInFromRight 0.3s ease-out",
-                }}>
-                  <Panel title="Component Info" style={{ borderColor: "rgba(100,60,220,.40)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#ccaaff", marginBottom: 2 }}>{step?.name}</div>
-                    <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#8866cc", marginBottom: 7, textTransform: "uppercase" as const }}>{d.section}</div>
-                    <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 2, textTransform: "uppercase" as const }}>Hardware</div>
-                    <div style={{ fontSize: 10, color: "#b8cfe4", lineHeight: 1.55, marginBottom: 7 }}>{d.hardware}</div>
-                    <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 2, textTransform: "uppercase" as const }}>Process</div>
-                    <div style={{ fontSize: 10, color: "#b8cfe4", lineHeight: 1.55, marginBottom: 7 }}>{d.process}</div>
-                    <div style={{ fontSize: 9, letterSpacing: 2, color: "#4488bb", marginBottom: 4, textTransform: "uppercase" as const }}>Specs</div>
-                    {Object.entries(d.specs).map(([k, v]) => (
-                      <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", borderBottom: "1px solid rgba(0,100,180,.10)", fontSize: 10 }}>
-                        <span style={{ color: "#6699bb" }}>{k}</span>
-                        <span style={{ color: "#ddeeff", fontWeight: 600 }}>{v}</span>
-                      </div>
-                    ))}
-                    <div onClick={() => setSelectedComp(null)} style={{ marginTop: 8, fontSize: 9, color: "#8866cc", cursor: "pointer", textAlign: "center" as const, letterSpacing: 1 }}>✕ CLOSE</div>
-                  </Panel>
-                </div>
-              );
-            })()}
-
-            {/* Live Component Info Panel - appears on right when toggle is ON */}
-            {showComponentInfo && (
-              <div style={{
-                animation: "slideInFromRight 0.3s ease-out",
-              }}>
-                <ComponentInfoPanel simRef={simRef} />
-              </div>
-            )}
-          </div>
+          {/* RIGHT PANEL — single Component Info panel, toggled by navbar button */}
+          {showComponentInfo && (
+            <div style={{
+              position: "absolute", right: 70, top: 60,
+              pointerEvents: "auto", zIndex: 50,
+              animation: "slideInFromRight 0.3s ease-out",
+            }}>
+              <ComponentInfoPanel
+                stepIndex={navStep}
+                componentInfo={COMPONENT_INFO}
+                allSteps={ALL_STEPS}
+                onClose={() => setShowComponentInfo(false)}
+              />
+            </div>
+          )}
 
           {/* BOTTOM CONTROLS — single row: Playback | Steps | Speed | View */}
           <div style={{
@@ -38073,7 +38667,6 @@ export default function EFEMSimulator() {
         <div style={{ position: "fixed", zIndex: 60, left: tooltip.x + 18, top: tooltip.y - 32, background: "rgba(18,24,38,.98)", border: "1px solid rgba(60,120,200,.40)", borderRadius: 7, padding: "10px 14px", fontSize: 10.5, pointerEvents: "none", boxShadow: "0 8px 36px rgba(0,0,0,.55)" }}>
           <div style={{ fontSize: 13, color: "#60aaff", marginBottom: 4, fontWeight: 700 }}>{tooltip.name}</div>
           <div style={{ fontFamily: "'Courier New',monospace", fontSize: 11.5, color: tooltip.tempColor, fontWeight: 700 }}>{tooltip.temp}</div>
-          <div style={{ fontSize: 8, color: "#7a9bbb", marginTop: 4, letterSpacing: 1 }}>{tooltip.meta}</div>
         </div>
       )}
       {iframeUrl && (
