@@ -24177,22 +24177,22 @@ const GRIPPER_OFFSET_EULER = new THREE.Euler(0, 0, 0);  // no offset — bones a
 const EFEM_X = -15;
 const EFEM_Z = 0;
 const ALL_STEPS: ProcessStep[] = [
-  { id: "foup", name: "FOUP Input", short: "FOUP", temp: null, time: 1, color: 0x4488ff, type: "foup", x: -20, z: 0 },
-  { id: "dehy", name: "Dehydration Bake 150°C", short: "DEHY", temp: 150, time: 8, color: 0xff2200, type: "hot", x: -11, z: TOP_Z },
-  { id: "hmds", name: "HMDS Vapor Prime", short: "HMDS", temp: 110, time: 2, color: 0xff8800, type: "hot", x: -6, z: TOP_Z },
-  { id: "chill1", name: "Chill Plate #1  22°C", short: "CP-1", temp: 22, time: 3, color: 0x00ccff, type: "cold", x: -1, z: TOP_Z },
-  { id: "prcoat", name: "PR Coat (COT)", short: "COT", temp: null, time: 5, color: 0xcc00ff, type: "coat", x: 4, z: TOP_Z },
-  { id: "pab", name: "Post-Apply Bake 90°C", short: "PAB", temp: 90, time: 3, color: 0xff5500, type: "hot", x: 9, z: TOP_Z },
-  { id: "chill2", name: "Chill Plate #2  22°C", short: "CP-2", temp: 22, time: 2, color: 0x00aaee, type: "cold", x: 14, z: TOP_Z },
-  { id: "iface_out", name: "Interface → Scanner", short: "IF→", temp: null, time: 2, color: 0xffdd00, type: "iface", x: 19, z: -3 },
-  { id: "scanner", name: "Scanner 193nm Exposure", short: "SCAN", temp: null, time: 5, color: 0xee00cc, type: "scan", x: 30, z: 0 },
-  { id: "iface_in", name: "Interface ← Scanner", short: "IF←", temp: null, time: 2, color: 0xffaa00, type: "iface", x: 19, z: 3 },
-  { id: "peb", name: "Post-Exposure Bake 120°C", short: "PEB", temp: 120, time: 3, color: 0xff3300, type: "hot", x: 14, z: BOT_Z },
-  { id: "develop", name: "Developer Module (DEV)", short: "DEV", temp: null, time: 4, color: 0x00ff88, type: "wet", x: 9, z: BOT_Z },
-  { id: "rinse", name: "DI Water Rinse", short: "RINSE", temp: null, time: 3, color: 0x0088ff, type: "wet", x: 4, z: BOT_Z },
-  { id: "spindry", name: "Spin Dry + N₂ Purge", short: "DRY", temp: null, time: 3, color: 0x00eeff, type: "dry", x: -1, z: BOT_Z },
-  { id: "chill3", name: "Chill Plate #3  22°C", short: "CP-3", temp: 22, time: 2, color: 0x22ddbb, type: "cold", x: -6, z: BOT_Z },
-  { id: "hardbake", name: "Hard Bake  130°C", short: "HBAK", temp: 130, time: 3, color: 0xff1100, type: "hot", x: -11, z: BOT_Z },
+  { id: "foup", name: "FOUP Input", short: "FOUP", temp: null, time: 5, color: 0x4488ff, type: "foup", x: -20, z: 0 },
+  { id: "dehy", name: "Dehydration Bake 150°C", short: "DEHY", temp: 150, time: 15, color: 0xff2200, type: "hot", x: -11, z: TOP_Z },
+  { id: "hmds", name: "HMDS Vapor Prime", short: "HMDS", temp: 110, time: 8, color: 0xff8800, type: "hot", x: -6, z: TOP_Z },
+  { id: "chill1", name: "Chill Plate #1  22°C", short: "CP-1", temp: 22, time: 8, color: 0x00ccff, type: "cold", x: -1, z: TOP_Z },
+  { id: "prcoat", name: "PR Coat (COT)", short: "COT", temp: null, time: 12, color: 0xcc00ff, type: "coat", x: 4, z: TOP_Z },
+  { id: "pab", name: "Post-Apply Bake 90°C", short: "PAB", temp: 90, time: 10, color: 0xff5500, type: "hot", x: 9, z: TOP_Z },
+  { id: "chill2", name: "Chill Plate #2  22°C", short: "CP-2", temp: 22, time: 8, color: 0x00aaee, type: "cold", x: 14, z: TOP_Z },
+  { id: "iface_out", name: "Interface → Scanner", short: "IF→", temp: null, time: 8, color: 0xffdd00, type: "iface", x: 19, z: -3 },
+  { id: "scanner", name: "Scanner 193nm Exposure", short: "SCAN", temp: null, time: 12, color: 0xee00cc, type: "scan", x: 30, z: 0 },
+  { id: "iface_in", name: "Interface ← Scanner", short: "IF←", temp: null, time: 8, color: 0xffaa00, type: "iface", x: 19, z: 3 },
+  { id: "peb", name: "Post-Exposure Bake 120°C", short: "PEB", temp: 120, time: 10, color: 0xff3300, type: "hot", x: 14, z: BOT_Z },
+  { id: "develop", name: "Developer Module (DEV)", short: "DEV", temp: null, time: 12, color: 0x00ff88, type: "wet", x: 9, z: BOT_Z },
+  { id: "rinse", name: "DI Water Rinse", short: "RINSE", temp: null, time: 10, color: 0x0088ff, type: "wet", x: 4, z: BOT_Z },
+  { id: "spindry", name: "Spin Dry + N₂ Purge", short: "DRY", temp: null, time: 10, color: 0x00eeff, type: "dry", x: -1, z: BOT_Z },
+  { id: "chill3", name: "Chill Plate #3  22°C", short: "CP-3", temp: 22, time: 8, color: 0x22ddbb, type: "cold", x: -6, z: BOT_Z },
+  { id: "hardbake", name: "Hard Bake  130°C", short: "HBAK", temp: 130, time: 10, color: 0xff1100, type: "hot", x: -11, z: BOT_Z },
 ];
 
 const WAFER_COLORS = [0xffaa00, 0x00eeff, 0xdd44ff, 0x44ffaa];
@@ -33938,8 +33938,8 @@ class Sim {
   private _accumulator = 0;
   private static readonly FIXED_STEP = 1 / 60; // 60 Hz simulation step (device-independent)
   // FPS limiting for integrated graphics — prevents simulation from running too fast
-  private static readonly TARGET_FPS = 30;
-  private static readonly FRAME_MIN_TIME = 1000 / 30; // 33.33ms per frame
+  private static readonly TARGET_FPS = 20;
+  private static readonly FRAME_MIN_TIME = 1000 / 20; // 50ms per frame
   private _lastFrameTime = 0;
   orbit = { theta: Math.PI * 0.11, phi: 0.36, radius: 48, tT: Math.PI * 0.11, tP: 0.36, tR: 48, cx: 4, cy: 0.2, cz: 0, tcx: 4, tcy: 0.2, tcz: 0, drag: false, btn: -1, sx: 0, sy: 0 };
   modObjs: Record<string, THREE.Group> = {}; busy: Record<string, number> = {};
@@ -33977,7 +33977,7 @@ class Sim {
   constructor(renderer: THREE.WebGLRenderer, onUI: (ui: UIState) => void, onLog: (e: LogEntry) => void, onTooltip: (tt: TooltipState) => void) {
     this.renderer = renderer; this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(44, renderer.domElement.clientWidth / renderer.domElement.clientHeight, 0.08, 350);
-    this.speed = 1; this.paused = false; this.simTime = 0; this.fps = 60;
+    this.speed = 0.5; this.paused = false; this.simTime = 0; this.fps = 60;
     this.onUI = onUI; this.onLog = onLog; this.onTooltip = onTooltip;
 
     // ── Initialize narration ──
@@ -35288,8 +35288,7 @@ class Sim {
     // ── Smooth rail movement ──
     const railSpeed = 8.0;
     const isPathToScanner = isInterfaceDrop || isScannerDrop;
-    // FIXED: removed Math.max(this.speed, 10) speed multiplier — scanner steps now use same speed as all other steps
-    const actionSpeed = this.speed;
+    const actionSpeed = isPathToScanner ? Math.max(this.speed, 10) : this.speed;
     const actionDt = dt * actionSpeed;
     const currentRailX = ud.railX as number;
     const dxRail = railTargetX - currentRailX;
@@ -35959,8 +35958,8 @@ class Sim {
 
     const w = sm.mesh;
     const currentStep = ALL_STEPS[sm.stepIdx];
-    // FIXED: removed Math.max(this.speed, 10) speed multiplier — scanner steps now use same speed as all other steps
-    const waferSpeed = this.speed;
+    const isScannerStage = currentStep?.id === 'scanner' || currentStep?.type === 'iface';
+    const waferSpeed = isScannerStage ? Math.max(this.speed, 10) : this.speed;
     // dt is raw FIXED_STEP — spinning multiplies by waferSpeed (which includes this.speed)
     if (sm.spinning) { sm.spin += dt * waferSpeed * 8; w.rotation.y = sm.spin; }
 
@@ -37864,7 +37863,7 @@ class Sim {
       if (m.userData.innerRing) ((m.userData.innerRing as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 2.5;
     });
     this.navStepIndex = 0;
-    this.simTime = 0; this.paused = false; this.speed = 1;
+    this.simTime = 0; this.paused = false; this.speed = 0.5;
     // move robot to home (near step 0) to ensure canonical start pose
     try { this._parkRobotNearStep(0); } catch (e) { /* ignore */ }
 
