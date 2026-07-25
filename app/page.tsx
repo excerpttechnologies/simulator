@@ -33938,8 +33938,8 @@ class Sim {
   private _accumulator = 0;
   private static readonly FIXED_STEP = 1 / 60; // 60 Hz simulation step (device-independent)
   // FPS limiting for integrated graphics — prevents simulation from running too fast
-  private static readonly TARGET_FPS = 60;
-  private static readonly FRAME_MIN_TIME = 1000 / Sim.TARGET_FPS; // 16.67ms per frame
+  private static readonly TARGET_FPS = 30;
+  private static readonly FRAME_MIN_TIME = 1000 / 30; // 33.33ms per frame
   private _lastFrameTime = 0;
   orbit = { theta: Math.PI * 0.11, phi: 0.36, radius: 48, tT: Math.PI * 0.11, tP: 0.36, tR: 48, cx: 4, cy: 0.2, cz: 0, tcx: 4, tcy: 0.2, tcz: 0, drag: false, btn: -1, sx: 0, sy: 0 };
   modObjs: Record<string, THREE.Group> = {}; busy: Record<string, number> = {};
