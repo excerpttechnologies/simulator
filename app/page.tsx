@@ -35287,8 +35287,8 @@ class Sim {
 
     // ── Smooth rail movement ──
     const railSpeed = 8.0;
-    const isPathToScanner = isInterfaceDrop || isScannerDrop;
-    const actionSpeed = isPathToScanner ? Math.max(this.speed, 10) : this.speed;
+    // FIXED: Removed Math.max(this.speed, 10) - scanner steps now use same speed as all other steps
+    const actionSpeed = this.speed;
     const actionDt = dt * actionSpeed;
     const currentRailX = ud.railX as number;
     const dxRail = railTargetX - currentRailX;
@@ -35958,8 +35958,8 @@ class Sim {
 
     const w = sm.mesh;
     const currentStep = ALL_STEPS[sm.stepIdx];
-    const isScannerStage = currentStep?.id === 'scanner' || currentStep?.type === 'iface';
-    const waferSpeed = isScannerStage ? Math.max(this.speed, 10) : this.speed;
+    // FIXED: Removed Math.max(this.speed, 10) - scanner steps now use same speed as all other steps
+    const waferSpeed = this.speed;
     // dt is raw FIXED_STEP — spinning multiplies by waferSpeed (which includes this.speed)
     if (sm.spinning) { sm.spin += dt * waferSpeed * 8; w.rotation.y = sm.spin; }
 
