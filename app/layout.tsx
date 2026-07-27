@@ -1,78 +1,29 @@
-// import type { Metadata } from 'next'
-// import { JetBrains_Mono, Rajdhani } from 'next/font/google'
-// import { Analytics } from '@vercel/analytics/next'
-// import './globals.css'
-
-// const jetbrainsMono = JetBrains_Mono({ 
-//   subsets: ["latin"],
-//   variable: '--font-mono'
-// });
-
-// const rajdhani = Rajdhani({ 
-//   subsets: ["latin"],
-//   weight: ['300', '400', '500', '600', '700'],
-//   variable: '--font-display'
-// });
-
-// export const metadata: Metadata = {
-//   title: 'PR Coater-Developer Track Simulator',
-//   description: 'Semiconductor process training tool for engineering students',
-//   generator: 'v0.app',
-//   icons: {
-//     icon: [
-//       {
-//         url: '/icon-light-32x32.png',
-//         media: '(prefers-color-scheme: light)',
-//       },
-//       {
-//         url: '/icon-dark-32x32.png',
-//         media: '(prefers-color-scheme: dark)',
-//       },
-//       {
-//         url: '/icon.svg',
-//         type: 'image/svg+xml',
-//       },
-//     ],
-//     apple: '/apple-icon.png',
-//   },
-// }
-
-// export default function RootLayout({
-//   children,
-// }: Readonly<{
-//   children: React.ReactNode
-// }>) {
-//   return (
-//     <html lang="en" className={`${jetbrainsMono.variable} ${rajdhani.variable}`}>
-//       <body className="font-mono antialiased bg-hmi-dark text-hmi-text">
-//         {children}
-//         {process.env.NODE_ENV === 'production' && <Analytics />}
-//       </body>
-//     </html>
-//   )
-// }
-
-
-import type { Metadata } from 'next'
-import { JetBrains_Mono, Rajdhani } from 'next/font/google'
+﻿import type { Metadata } from 'next'
+import { Inter, Poppins } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-import { Providers } from '@/lib/components/Providers'
+import { Toaster } from '@/components/ui/toaster'
+import { SmoothScroll } from '@/components/landing/smooth-scroll'
+import { ChatbotWidget } from '@/components/chatbot/ChatbotWidget'
 import './globals.css'
 
-const jetbrainsMono = JetBrains_Mono({ 
-  subsets: ["latin"],
-  variable: '--font-mono'
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-inter',
+  display: 'swap',
 });
 
-const rajdhani = Rajdhani({ 
-  subsets: ["latin"],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-display'
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['700', '800'],
+  variable: '--font-poppins',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'PR Coater-Developer Track Simulator',
-  description: 'Semiconductor process training tool for engineering students',
+  title: 'AccountIn — Advanced Tax Simulation & Accounting Practice Platform',
+  description: 'Become job-ready through real-time tax & accounting simulations. Master GST, TDS, Income Tax, EPFO, Payroll, UAE VAT and accounting processes for training institutes, colleges, and universities.',
+  keywords: ['GST simulation', 'TDS training', 'tax simulation platform', 'accounting education', 'institution training', 'white label EdTech', 'CA coaching', 'UAE VAT training'],
   generator: 'v0.app',
   icons: {
     icon: [
@@ -99,9 +50,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${jetbrainsMono.variable} ${rajdhani.variable}`}>
-      <body className="font-mono antialiased bg-slate-50 text-hmi-text">
-        <Providers>{children}</Providers>
+    <html lang="en" data-scroll-behavior="smooth" className={`bg-background ${inter.variable} ${poppins.variable}`}>
+      <body className="antialiased min-h-screen font-sans">
+        <SmoothScroll>{children}</SmoothScroll>
+        <Toaster />
+        <ChatbotWidget />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

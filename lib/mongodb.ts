@@ -1,34 +1,47 @@
-import mongoose from "mongoose";
+import { MongoClient, Db } from "mongodb"
+import dns from "dns"
 
-const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error("Please define MONGODB_URI in .env.local");
+// Override DNS servers in Node.js to bypass local SRV resolution failures
+try {
+  dns.setServers(["8.8.8.8", "8.8.4.4"]);
+} catch (e) {
+  console.warn("Failed to set DNS servers:", e);
 }
 
-interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-}
 
-declare global {
-  // eslint-disable-next-line no-var
-  var _mongoose: MongooseCache | undefined;
-}
+const dbName = process.env.MONGODB_DB || "saa_accounting_platform"
 
-const cached: MongooseCache = global._mongoose ?? { conn: null, promise: null };
-if (!global._mongoose) global._mongoose = cached;
+let client: MongoClient | null = null
+let db: Db | null = null
 
-export async function connectDB(): Promise<typeof mongoose> {
-  if (cached.conn) return cached.conn;
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, { bufferCommands: false });
+export async function getDb(): Promise<Db> {
+  if (db) return db
+
+  const uri = process.env.MONGODB_URI
+  if (!uri) {
+    throw new Error(
+      "MONGODB_URI environment variable is not set. Add it to your .env.local file."
+    )
   }
+
+  if (!client) {
+    client = new MongoClient(uri, {
+      // Reasonable timeouts so errors surface quickly
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+    })
+  }
+
   try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
+    await client.connect()
+    db = client.db(dbName)
+    return db
+  } catch (error) {
+    // Reset so next call retries with a fresh client
+    client = null
+    db = null
+    throw new Error(
+      `Failed to connect to MongoDB: ${error instanceof Error ? error.message : String(error)}`
+    )
   }
-  return cached.conn;
 }

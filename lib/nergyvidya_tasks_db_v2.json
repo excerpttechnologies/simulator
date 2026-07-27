@@ -1,0 +1,1431 @@
+{
+  "total": 98,
+  "tasks": {
+    "GST_TRN_017AQA": {
+      "task_id": "GST_TRN_017AQA",
+      "course_id": "299",
+      "duration": 20,
+      "scenario": "GST_TRN_017AQA\n\nAbdul Aziz started an enterprise in Hooghly, West Bengal. He named the enterprise Abdul Aziz & Sons. He wanted to register his business for GST. He is a normal taxpayer. Abdul Aziz is seeking advice on GST registration.\n\n\n\n\nLegal Name: Abdul Aziz\nPAN No: BJKXL7688K\nState: West Bengal\nDistrict: Hooghly\nEmail ID: azizab@nergymail.com\nPhone No: 2356435665",
+      "credentials": {
+        "pan": "BJKXL7688K"
+      },
+      "data": {},
+      "course_name": "GST - TRN Generation",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_TRN_014ANA": {
+      "task_id": "GST_TRN_014ANA",
+      "course_id": "299",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "GST - TRN Generation",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_TRN_023AWA": {
+      "task_id": "GST_TRN_023AWA",
+      "course_id": "299",
+      "duration": 20,
+      "scenario": "GST_TRN_023AWA\n\nMr. CA Ajay Ghosh is an unregistered person under GST, has his place of profession in Jaipur, Rajasthan, and supplies taxable services to Wipro Ltd., a registered person under GST in Chennai. Mr. Ajay Ghosh's turnover crosses threshold limit as per GST Act 2017. Hence, registration is made mandatory to meet various compliance requirements with different legal authorities. Mr. CA Ajay Ghosh is seeking your advice to obtain GST registration for his business as a normal taxpayer.\n\n\n\n\nLegal Name: Ajay Ghosh \nPAN No: JGSXD7587X\nState: Rajasthan\nDistrict: Jaipur\nEmail ID: ajaigosh@nergymail.com\nPhone No: 2354354567",
+      "credentials": {
+        "pan": "JGSXD7587X"
+      },
+      "data": {},
+      "course_name": "GST - TRN Generation",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_TRN_019ASA": {
+      "task_id": "GST_TRN_019ASA",
+      "course_id": "299",
+      "duration": 20,
+      "scenario": "GST_TRN_019ASA\n\nMr. Hardik Dalal of Himachal Pradesh is a farmer with an annual turnover of ₹ 76,00,000/- from agriculture. Since this income is from agriculture, the turnover is exempt from GST. However, Mr. Hardik Dalal also supplies plastic bags worth ₹ 2,50,000/- (taxable goods) along with his crop and charges this separately. Hardik Dalal is required to register under the GST. Advise him to complete the GST registration. \n\n\n\n\nLegal Name: Hardik Dalal\nPAN No: LKDXF2376F\nState: Himachal Pradesh\nDistrict: Bilaspur\nEmail ID: hdkdalal@nergymail.com\nPhone No: 2356786588",
+      "credentials": {
+        "pan": "LKDXF2376F"
+      },
+      "data": {},
+      "course_name": "GST - TRN Generation",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_TRN_013AMA": {
+      "task_id": "GST_TRN_013AMA",
+      "course_id": "299",
+      "duration": 20,
+      "scenario": "GST_TRN_013AMA\n\n Mr Rahul Chandran is doing business in Delhi named Rahul AGENCIES. He wanted to take GST registration. He is a normal taxpayer. He is seeking advice to take GST registration.\n\nAadhar Number: 4119 3090 4780\n\nPAN Number: CBFXH6387F\n\nEmail ID: rahul@nergymail.com\n\nMobile No: 2329987490\n\nState: Delhi\n\nDistrict: North Delhi\n\nYou are required to generate a TRN number for Registration.",
+      "credentials": {
+        "pan": "CBFXH6387F"
+      },
+      "data": {},
+      "course_name": "GST - TRN Generation",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RGN_016APA": {
+      "task_id": "GST_RGN_016APA",
+      "course_id": "300",
+      "duration": 20,
+      "scenario": "GST_RGN_016APA\n\nMr. Sanath Sunder has a mission to establish an LED bulb manufacturing factory under the brand name \"SUDHARSHANA POWERS\". To ensure compliance with regulatory requirements, he aims to obtain GST registration. Mr. Sunder has completed the initial stage of registration and received a temporary reference number (TRN). However, he has encountered challenges during the GST registration process and has sought your assistance in completing the registration as a normal taxpayer. As a GST practitioner, it is your role to guide and support Mr. Sanath Sunder in successfully completing the GST registration process. Further details are given below.\n\n\nTemporary reference number\t148583297298TRN\nReason to obtain registration\tVoluntary basis\nDate of the commencement of business\t25-06-2016\nDetails of the Proprietor\nName of the Proprietor\tSanath Sunder\nFather's Name\tJayasankar\nPAN\tDVIXP2288Y\nAadhaar Number\t551152086810\nMobile Number\t2398597454\nDOB\t12/09/1986\nEmail ID\tsanat5454@nergymail.com\nResidential Address\nRoom No.\tNo. 51\nFlat or building\tPlanet Block 7\nStreet, City\tBandra\nDistrict\tMumbai\nState\tMaharashtra\nPin Code\t400050\nBusiness Address\nRoom No.\t38/VI\nFlat or building\tSindur Vihar\nStreet, City\tSindhur Nagar\nDistrict\tMumbai\nState\tMaharashtra\nPin Code\t400654\nEmail ID\tsudharshanapowers@nergymail.com\nSector\t37\nCommissionerate\tMumbai\nDivision\t4\nRange\tMumbai\nWard\t18\nHSN\tManufacturing products- 94052090 (HSN)",
+      "credentials": {
+        "pan": "DVIXP2288Y"
+      },
+      "data": {},
+      "course_name": "GST - Registration (via TRN)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RGN_024AXA": {
+      "task_id": "GST_RGN_024AXA",
+      "course_id": "300",
+      "duration": 20,
+      "scenario": "GST_RGN_024AXA\n\nMr. Aswin Kumar commenced a chocolate manufacturing factory in Mumbai, in the name of Choco Street. He wants to register for GST to meet regulatory compliance. He tried to register for GST and completed the first stage of registration, and a temporary reference number (TRN) was generated. Due to difficulties in the GST registration process, he contacted you for completing GST registration as a normal taxpayer. As a GST practitioner, you are required to complete the GST registration process.\n\n\n\n\nTemporary Reference Number\t544723213574TRN\nReason to obtain Registration\tVoluntary basis\nDate of the commencement of business\t16-05-2022\nDetails of the Proprietor\nName of the Proprietor\tAswin Kumar\nFather's Name\tRaghav Kumar\nPAN\tSDFXH5478K\nAadhaar Number\t126876145574\nMobile Number\t2355857920\nDate of Birth\t11-05-1990\nEmail ID\taswin@nergymail.com\nResidential Address\nRoom No.\tNo. 45\nFlat or building\t15th Floor\nStreet, City\tMahim west\nDistrict\tMumbai\nState\tMaharashtra\nPIN Code\t400016\nBusiness Address\nRoom No.\tRK/135A\nFlat or building\tNandhanam complex\nStreet, City\tMahim west\nDistrict\tMumbai\nState\tMaharashtra\nPIN Code\t400016\nEmail ID\tchocostreet@nergymail.com\nSector\t24\nCommissionerate\tMumbai\nDivision\t12\nRange\tMumbai\nWard\t25\nHSN \t1806",
+      "credentials": {
+        "pan": "SDFXH5478K"
+      },
+      "data": {},
+      "course_name": "GST - Registration (via TRN)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RGN_027BAA": {
+      "task_id": "GST_RGN_027BAA",
+      "course_id": "300",
+      "duration": 20,
+      "scenario": "GST_RGN_027BAA\n\nMrs. Lincy Johnson started a leather manufacturing factory named Leather World in Chennai. She wants to register for GST to meet regulatory compliance. She has already begun the registration process and has been assigned a Temporary Reference Number (TRN). As a GST practitioner, you are required to assist in completing the GST registration process as a normal taxpayer.\n\n\n\nTemporary Reference Number: \t234578651957TRN\nReason to obtain Registration:\tVoluntary basis\nDate of the commencement of business:\t09-02-2022\nDetails of the Proprietor\nName of the Proprietor\tLincy Johnson\nFather's Name\tJohnson\nPAN\tACDXP3241Z\nAadhaar Number\t354667098778\nMobile Number\t2365432109\nDate of Birth\t10-10-1995\nEmail ID\tlincy123@nergymail.com\nResidential Address\nRoom No.\tNo. 11\nFlat or Building\tKR Building\nStreet, City\tChennai\nDistrict\tChennai\nState\tTamil Nadu\nPIN Code\t600001\nBusiness Address\nRoom No.\t12/X\nFlat or building\tSky Building\nStreet, City\tCoimbatore\nDistrict\tCoimbatore\nState\tTamil Nadu\nPIN Code\t631027\nMail ID\tleatherworld@nergymail.com\nSector\t17\nCommissionerate\tCoimbatore\nDivision\t28\nRange\tCoimbatore\nWard\t11\nHSN \t6404",
+      "credentials": {
+        "pan": "ACDXP3241Z"
+      },
+      "data": {},
+      "course_name": "GST - Registration (via TRN)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RGN_021AUA": {
+      "task_id": "GST_RGN_021AUA",
+      "course_id": "300",
+      "duration": 20,
+      "scenario": "GST_RGN_021AUA\n\nMr. Deepak Mishra took the initiative to set up an advertising company in Bengaluru and named it Rainbows. He wants to obtain GST registration to comply with the rules and regulations. He tried to register GST by himself and completed the first stage of registration, drawing a temporary reference number (TRN) out of his registration. However, due to difficulties in the GST registration process, he contacted you for assistance in completing the registration process as a normal taxpayer. As a GST practitioner, you are required to complete the GST registration process. Further details are given below.\n\n\nTemporary Reference Number\t451278983745TRN\nReason to obtain Registration\tVoluntary basis\nDate of the commencement of business\t10/05/2022\nNature of Business\tSupplier of services\nDetails of the Proprietor\nName of the Proprietor\tDeepak Mishra\nFather's Name\tAjay Mishra\nPAN\tAFRXG4569K\nMobile Number\t2354719621\nDate of birth\t21-08-1991\nEmail ID\tdeepak91@nergymail.com\nAadhaar Number\t456987968585\n\nResidential Address\nRoom No.\tNo. 586\nFlat or Building\tSkyline\nStreet, City\tKoramangala\nDistrict\tBengaluru\nState\tKarnataka\nPIN Code\t560034\nBusiness Address\nRoom No.\tSW/178\nFlat or Building\tAGR south\nStreet, City\tKoramangala\nDistrict\tBengaluru\nState\tKarnataka\nPIN Code\t560034\nEmail ID\trainbows@nergymail.com\nSector\t46\nCommissionerate\tBengaluru\nDivision\t15\nRange\tBengaluru\nWard\t26\nHSN (services)\t998361",
+      "credentials": {
+        "pan": "AFRXG4569K"
+      },
+      "data": {},
+      "course_name": "GST - Registration (via TRN)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RGN_011AKA": {
+      "task_id": "GST_RGN_011AKA",
+      "course_id": "300",
+      "duration": 20,
+      "scenario": "GST_RGN_011AKA\n\nMr. Parthiv commences a manufacturing factory in Uttar Pradesh under the name of Castor Enterprises. He wants to register for GST to meet regulatory compliance. He tried to register for GST and completed the first stage of registration, and a temporary reference number (TRN) was generated. Due to difficulties in the GST registration process, he contacted you for completing the GST registration as a normal taxpayer. As a GST practitioner, you are required to complete the GST registration process. \n\n\nTemporary reference number\t556886893142TRN\nReason to obtain registration\tVoluntary basis\nDate of the commencement of business\t16-07-2022\nDetails of the Proprietor\nName of the Proprietor\tParthiv Das\nFather's Name\tRam Das\nPAN\tHDSXD1863O\nAadhaar Number\t1796 6357 4896\nMobile Number\t2389652364\nDOB\t27-08-1983\nEmail ID\tparthiv45@nergymail.com\nResidential Address\nRoom No.\tNo. 46, 15th Floor\nFlat or building\tSkyline\nStreet, City\tMG Road, Noida\nDistrict\tGautam Buddh Nagar\nState\tUttar Pradesh\nPin Code\t201309\nBusiness Address\nRoom No\t1435\nFlat or building\t14th floor, JM Complex\nStreet, City\tMG Road, Noida\nDistrict\tGautam Buddh Nagar\nState\tUttar Pradesh\nPin Code\t201309\nEmail ID\tcastorenterprise@nergymail.com\nSector\t58\nCommissionerate\tNoida\nDivision\t56\nRange\tNoida\nWard\t15\nHSN\tManufacturing products- 9201 (HSN)",
+      "credentials": {
+        "pan": "HDSXD1863O"
+      },
+      "data": {},
+      "course_name": "GST - Registration (via TRN)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN0_023AWA": {
+      "task_id": "GST_RTN0_023AWA",
+      "course_id": "302",
+      "duration": 20,
+      "scenario": "GST_RTN0_023AWA\nMr. Aravind established a hotel named Food Mall in Chennai, Tamil Nadu, on April 1, 2023, starting it as a small business. However, the business flourished within two years. Since the location is in a congested area without customer parking, he decided to shift his hotel to a better place and also inform his customers about this through notice. The hotel was closed for one month due to relocation. As the due date for filing GST Return approached, Mr. Aravind approached you for assistance in filing GST Return for the month of May 2025. Help him to file GSTR-1 and GSTR-3B for the month of May 2025.                                                                                                                                \n\n            \n\n\nUser ID: STAR\n\nPassword: Food4u\n\nGSTIN: 33AABXT5589K2ZN",
+      "credentials": {
+        "user_id": "STAR",
+        "password": "Food4u",
+        "gstin": "33AABXT5589K2ZN"
+      },
+      "data": {},
+      "course_name": "GST - Nil Returns",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN0_020ATA": {
+      "task_id": "GST_RTN0_020ATA",
+      "course_id": "302",
+      "duration": 15,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "GST - Nil Returns",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN0_011AKA": {
+      "task_id": "GST_RTN0_011AKA",
+      "course_id": "302",
+      "duration": 15,
+      "scenario": "GST_RTN0_011AKA\nMr. Syed started a spare parts manufacturing company in the name of Good Will Spare Parts, in the month of December 2025 in Kolkata, West Bengal. After completing the legal procedures, the company obtained the GST registration on December 10th 2025. The operations of the company started on 15th January 2026 due to initial financial difficulties. On the due date for filing GST returns, Mr. Syed sought help in filing GSTR-1.\t\t\t\t\nYou are required to file NIL GSTR-1 and GSTR-3B for the month of December 2025 on or before the due date.\n\n\n\n\nUser ID: GOODWILL\n\nPassword: Goodwill@123\n\nGSTIN: 19BBDHS4713J1Z2",
+      "credentials": {
+        "user_id": "GOODWILL",
+        "password": "Goodwill@123",
+        "gstin": "19BBDHS4713J1Z2"
+      },
+      "data": {},
+      "course_name": "GST - Nil Returns",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN0_024AXA": {
+      "task_id": "GST_RTN0_024AXA",
+      "course_id": "302",
+      "duration": 15,
+      "scenario": "GST_RTN0_024AXA\nHuckleberry is a retail bakery shop started by Ms. Anusha in Bengaluru, Karnataka. She started its operations in September 2024 after completing all legal procedures, including GST registration. Unfortunately, she struggled to achieve success in  her business due to insufficient research and the absence of a proper business plan. So she shut down her bakery in February 2025. When the due date for filing GST Return approached, Ms. Anusha sought your assistance in filing GST Nil Return for the month of February 2025. Help her to file GSTR-1 and GSTR-3B for the month of February 2025.  \n\n\nUser ID: Huckleberry\n\nPassword: Berryb\n\nGSTIN: 29AABXT5589K2ZN",
+      "credentials": {
+        "user_id": "Huckleberry",
+        "password": "Berryb",
+        "gstin": "29AABXT5589K2ZN"
+      },
+      "data": {},
+      "course_name": "GST - Nil Returns",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN0_025AYA": {
+      "task_id": "GST_RTN0_025AYA",
+      "course_id": "302",
+      "duration": 15,
+      "scenario": "GST_RTN0_025AYA\nMr. Govind started a successful yogurt production mini factory named Tasty Treats in Lucknow, Uttar Pradesh. The business thrived for 10 years. However, in August 2025, due to an illness affecting the cows,  the supply of milk was reduced. So he couldn't produce yogurt as its production requires a substantial amount of milk. Consequently, Govind decided to temporarily close his factory in August 2025. Govind has requested you to file a GST Nil Return for the month of August 2025. Help him to file GSTR-1 and GSTR-3B for the month of August 2025.                                                                                                                               \n\n\n\n\nUser ID: Treats\n\nPassword: Tasty\n\nGSTIN: 09AADXT5589H2ZN",
+      "credentials": {
+        "user_id": "Treats",
+        "password": "Tasty",
+        "gstin": "09AADXT5589H2ZN"
+      },
+      "data": {},
+      "course_name": "GST - Nil Returns",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN3B_006AF": {
+      "task_id": "GST_RTN3B_006AF",
+      "course_id": "301",
+      "duration": 20,
+      "scenario": "GST_RTN3B_006AF\n\nJJ Traders Pvt. Ltd. is a registered dealer in Maharashtra. Their sales and purchase details for the month of April 2026 are given below.\n\nSales Details\nDate\tInvoice Number\tRecipient GST Number\tRecipient Name\tTaxable Value\tGST Rate\tInvoice Value\n05-04-2026\t132\t29DFGXJ4563G1Z2\tSS Polymers\t4,300\t12%\t4,816\n08-04-2026\t133\t27ACWXR4697K1ZQ\tRegal Super Market\t7,600\t12%\t8,512\n10-04-2026\t134\t\n\tVedhika (Goa)\t2,56,000\t18%\t3,02,080\n15-04-2026\t135\t\n\tJoseph (Maharashtra)\t34,000\t5%\t35,700\n\n\n\n\nPurchase details as per GSTR-2B\nDate\tInvoice Number\tSupplier GST Number\tSupplier Name\tTaxable Value\tGST Rate\tInvoice Value\n10-04-2026\tI-568\t29AFGXE7964J1Z2\tSBC Pvt. Ltd.\t12,000\t28%\t15,360\n\n\n\n\nYou are required to file both GSTR-1 and GSTR-3B for the month of April 2026.\n\n\t\n\t\n\t\n\nUser ID: JJtraders\t\n\t\n\nPassword: Jj@2023",
+      "credentials": {
+        "user_id": "JJtraders",
+        "password": "Jj@2023"
+      },
+      "data": {},
+      "course_name": "GST - Returns (GSTR-1 & 3B)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN3B_012ALA": {
+      "task_id": "GST_RTN3B_012ALA",
+      "course_id": "301",
+      "duration": 20,
+      "scenario": "GST_RTN3B_012ALA\n\nMitra is the proprietor of a fashion design studio in Maharashtra. You are required to file GSTR-1 and GSTR-3B for the month of November 2025. Details are provided below.\n\nSales Details   \nDate \tInvoice Number\tRecipient GST Number \tRecipient Name \tTaxable Value\tGST Rate\tInvoice Value\n10-11-2025\tA634\t29PKCXR5302H2ZC\tSee Textiles\t5,23,000\t12%\t5,85,760\n15-11-2025\tA635\t \tPridha (Madhya Pradesh)\t25,000\t18%\t29,500\n16-11-2025\tA636\t\n\tGeeta (Maharashtra)\t5,000\t18%\t5,900\n19-11-2025\tA637\t27DARXC5914J1ZX\tFashions\t8,73,000\t12%\t9,77,760\n26-11-2025\tA638\t27KBFXA4821L2ZK\tBlueberry Textiles\t6,65,000\t12%\t7,44,800\n\n\n\n\nPurchase Details\nDate\tInvoice Number\tSupplier GST Number\tSupplier Name\tTaxable Value\tGST Rate\tInvoice Value\n02-11-2025\tH - 1257\t08TOPXD5481GTWZ\tJolly Silks\t55,000\t12%\t61,600\n03-11-2025\tI - 300\t29TQAXR4618HITZ\tSarees Mart\t1,25,000\t12%\t1,40,000\n07-11-2025\tINV - 210\t33KOMXF2496H1WZ\tVijaya Silks\t4,51,000\t12%\t5,05,120\n\n\n\n\nThe GST portal generated the GSTR-2B details for the month of November on December 13th, 2022. The details are given below:\nDate\tInvoice Number\tSupplier GST Number\tSupplier Name\tTaxable Value\tGST Rate\tInvoice Value\n02-11-2025\tH - 1257\t27TOPXD5481GTWZ\tJolly Silks\t55,000\t12%\t61,600\n03-11-2025\tI - 300\t29TQAXR4618HITZ\tSarees Mart\t1,25,000\t12%\t1,40,000\n\n\n\n\nUser ID: Mitrafashions\nPassword: Mitra@23",
+      "credentials": {
+        "user_id": "Mitrafashions",
+        "password": "Mitra@23"
+      },
+      "data": {},
+      "course_name": "GST - Returns (GSTR-1 & 3B)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN3B_032BFA": {
+      "task_id": "GST_RTN3B_032BFA",
+      "course_id": "301",
+      "duration": 20,
+      "scenario": "GST_RTN3B_032BFA\n\nKitchen World Pvt. Ltd. is a kitchen utensil shop located in Maharashtra. You are required to file GSTR-1 and GSTR-3B for February 2025. Invoice details are provided below.\n\nSales Details   \nDate \tInvoice Number\tRecipient GST Number \tRecipient Name \tTaxable Value\tGST Rate \tInvoice Value\n02-02-2025\tINV-635\t33AQCXF4595J2ZC\tRiya Steels\t6,75,000\t12%\t7,56,000\n04-02-2025\tINV-636\t\n\tSarang (Maharashtra)\t4,900\t18%\t5,782\n13-02-2025\tINV-637\t\n\tKrishna (Maharashtra)\t4,600\t12%\t5,152\n18-02-2025\tINV-638\t27KPYXN2300N2ZP\tMetal Plaza\t7,12,000\t18%\t8,40,160\n24-02-2025\tINV-639\t\n\tAbdul (Maharashtra)\t1,400\t18%\t1,652\n25-02-2025\tINV-640\t33TYMXD6734F8ZC\tDelight Enterprise\t3,85,000\t18%\t4,54,300\n\n\n\n\nInward supplies as per GSTR-2B.\n\nPurchase Details\nDate \tInvoice Number\tSupplier GST Number\tSupplier Name\tTaxable Value\tGST Rate \tInvoice Value\n05-02-2025\tG-974\t27JOSXG5730F1ZC\tAccadia Gallery\t4,50,000\t18%\t5,31,000\n16-02-2025\tINV000856\t27NARXF6452B2ZD\tSincere Trading Co.\t6,43,000\t5%\t6,75,150\n24-02-2025\tGST/INV/630\t32OPQXN2362N1ZC\tAKP Metals & Steels\t2,68,000\t18%\t3,16,240\n\n\n\n\nUser ID: Kitchenworld\nPassword: Kitchen@65",
+      "credentials": {
+        "user_id": "Kitchenworld",
+        "password": "Kitchen@65"
+      },
+      "data": {},
+      "course_name": "GST - Returns (GSTR-1 & 3B)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN3B_029BCA": {
+      "task_id": "GST_RTN3B_029BCA",
+      "course_id": "301",
+      "duration": 20,
+      "scenario": "GST_RTN3B_029BCA\n\nPriya (a proprietor) runs a bakery and cake shop in Karnataka. You are required to file GSTR-1 and GSTR-3B for April 2025. Outward and inward supplies are provided below.\n\nSales Details   \nDate \tInvoice Number\tRecipient GST Number \tRecipient Name \tTaxable Value\tGST Rate \tInvoice Value\n08-04-2025\tK-2863\t\n\tAtmaj (Karnataka)\t4,000\t5%\t4,200\n10-04-2025\tK-2864\t\n\tRahul (Karnataka)\t1,200\t18%\t1,416\n11-04-2025\tK-2865\t29BINXD7450A1ZT\tCups and Cakes\t2,35,000\t12%\t2,63,200\n18-04-2025\tK-2866\t\n\tManu (Karnataka)\t2,500\t12%\t2,800\n20-04-2025\tK-2867\t29APSXF6475G1ZC\tKomala Bakery\t1,27,000\t12%\t1,42,240\n23-04-2025\tK-2868\t\n\tAbeer (Karnataka)\t83,000\t18%\t97,940\n25-04-2025\tK-2869\t29RAVXS2399P1ZB\tMango Bakery\t13,000\t5%\t13,650\n\n\n\n\nInward supplies as per GSTR-2B.\n\nPurchase Details\nDate \tInvoice Number\tSupplier GST Number\tSupplier Name\tTaxable Value\tGST Rate \tInvoice Value\n01-04-2025\tP-4561\t29KINXG5603JB7F\tMeera Super Market\t2,46,000\t18%\t2,90,280\n\n\n\n\nUser ID: Priya\nPassword: Priya@67",
+      "credentials": {
+        "user_id": "Priya",
+        "password": "Priya@67"
+      },
+      "data": {},
+      "course_name": "GST - Returns (GSTR-1 & 3B)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_RTN3B_043BQA": {
+      "task_id": "GST_RTN3B_043BQA",
+      "course_id": "301",
+      "duration": 20,
+      "scenario": "GST_RTN3B_043BQA\nDas Woodpark is a registered wholesale furniture dealer in Chennai, Tamil Nadu. Their December-month sales and purchase details are given below. You are required to file GSTR-1 and GSTR-3B before the due date.\n\n\n\n\nSales Details\nDate\tInvoice Number\tRecipient GST Number\tRecipient Name\tTaxable Value\tGST Rate\tInvoice Value\n05-12-2025\tGST-560\t33DFGXJ4563G1Z2\tSS Furniture\t16,500\t12%\t18,480\n08-12-2025\tGST-561\t33ACWXR4697K1ZQ\tRegal Woods\t18,400\t12%\t20,608\n10-12-2025\tGST-562\t \tVedhika (Kerala)\t5,500\t12%\t6,160\n15-12-2025\tGST-563\t \tJoseph (Karnataka)\t6,200\t12%\t6,944\n\n\n\n\nThe purchase details are given below, and the same is also reflected in GSTR-2B.​\n\n\n\nGSTR-2B\nDate\tInvoice Number\tRecipient GST Number\tSupplier Name\tTaxable Value\tGST Rate\tInvoice Value\n15-12-2025\tA/524\t33SDJXK5214G1Z3\tSJ Wood\t5,200\t12%\t5,824\n22-12-2025\tTTV/569\t32FGHX2134D1Z2\tRK Furniture\t18,650\t12%\t20,888\n\n\n\n\nUser ID: WOOD\n\nPassword: Das@2022",
+      "credentials": {
+        "user_id": "WOOD",
+        "password": "Das@2022"
+      },
+      "data": {},
+      "course_name": "GST - Returns (GSTR-1 & 3B)",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_CMP08_014ANA": {
+      "task_id": "GST_CMP08_014ANA",
+      "course_id": "303",
+      "duration": 20,
+      "scenario": "GST_CMP08_014ANA\n\nMahadev Enterprises, a sole proprietorship firm, recently established a supermarket in Kochi, Kerala. Initially, the proprietor was registered as a regular taxpayer but later opted for the composition scheme at the start of the financial year 2025-26. As per the scheme, Mahadev Enterprises was required to pay GST at a rate of 1% on their turnover and file CMP-08 for each quarter. The turnover details for the quarter ending June 2025, have been provided below. Your assistance is requested to prepare CMP-08 for Mahadev Enterprises based on this information.\n\n\n\nPeriod\tInvoice Number \tInvoice Value \nApril\tINV150-INV362\t67,000\nMay\tINV363-INV522\t1,21,000\nJune\tINV523-INV891\t1,77,600\nTotal\t3,65,600\n\n\n\n\n\n\nUsername\tMahadev\nPassword\tenterprise456",
+      "credentials": {
+        "user_id": "Mahadev",
+        "password": "enterprise456"
+      },
+      "data": {},
+      "course_name": "GST - CMP-08 Composition",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_CMP08_024AXA": {
+      "task_id": "GST_CMP08_024AXA",
+      "course_id": "303",
+      "duration": 20,
+      "scenario": "GST_CMP08_024AXA\n\nSindhi & Associates is a team of skilled creative designers who are passionate about delivering visually captivating and impactful designs, providing their services all over Kerala. Sindhi and Associates opted to avail the benefits of the composition scheme for services under GST. In the preceding financial year (2023-2024), they had a turnover of Rs. 25,60,000/-. Sindhi and Associates failed to file GST CMP-08 and pay taxes at a rate of 6% for the quarter that ended March 2025. On May 15th, 2025, Sindhi & Associates approached you to file the belated return and pay taxes with an interest rate of 18%. Turnover details for the quarter that ended in March 2025 have been given below. You are required to declare the interest for the late filing within this month itself and ignore any applicable late fees.\n\n\n\n\nPeriod\tInvoice Number \tInvoice Value \nJanuary\tINV456-INV567\t1,23,000\nFebruary\tINV568-INV630\t1,54,700\nMarch\tINV631-INV722\t1,76,800\nTotal\t4,54,500\n\n\n\n\nUsername\tSindhi\nPassword\tAsso989",
+      "credentials": {
+        "user_id": "Sindhi",
+        "password": "Asso989"
+      },
+      "data": {},
+      "course_name": "GST - CMP-08 Composition",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_CMP08_019ASA": {
+      "task_id": "GST_CMP08_019ASA",
+      "course_id": "303",
+      "duration": 20,
+      "scenario": "GST_CMP08_019ASA\n\nHeera and Sons is a registered company in Karnataka and is engaged in the manufacturing and trading of soft toys. They provide a wide variety of toys for kids. The company converted from a regular taxpayer to composition taxation under GST during the year 2025-2026 to reduce compliance costs in the regular tax regime. You are requested to help M/s Heera and Sons file CMP-08 for the June quarter and to pay tax at a rate of 1%. The turnover details for the June quarter have been provided below.\n\n\n\nPeriod\tInvoice Number \tInvoice Value \nApril\tHS456-HS643\t76,000\nMay\tHS644-HS802\t45,700\nJune\tHS803-HS1018\t56,700\nTotal\t1,78,400\n\n\n\n\n\n\nUsername\tSons789\nPassword\tHeera236",
+      "credentials": {
+        "user_id": "Sons789",
+        "password": "Heera236"
+      },
+      "data": {},
+      "course_name": "GST - CMP-08 Composition",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_CMP08_023AWA": {
+      "task_id": "GST_CMP08_023AWA",
+      "course_id": "303",
+      "duration": 20,
+      "scenario": "GST_CMP08_023AWA\n\nEvent Masters is a premier event service provider that specialises in orchestrating a wide range of weddings and social events in Maharashtra. They have opted for the composition scheme for services in the current financial year 2025-2026. They are obliged to pay taxes at a rate of 6% and file GST CMP-08 for every quarter. You are required to file GST CMP-08 for the quarter that ended June 2025. The turnover details for the quarter are given below.\n\n\n\n\nPeriod\tInvoice Number \tInvoice Value \nApril\tEM/1203-EM/1456\t4,55,600\nMay\tEM/1457-EM/1511\t5,23,450\nJune\tEM/1512-EM/1589\t4,67,800\nTotal\t14,46,850\n\n\n\n\n\n\nUsername\tEventteam\nPassword\tMaster51",
+      "credentials": {
+        "user_id": "Eventteam",
+        "password": "Master51"
+      },
+      "data": {},
+      "course_name": "GST - CMP-08 Composition",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "GST_CMP08_017AQA": {
+      "task_id": "GST_CMP08_017AQA",
+      "course_id": "303",
+      "duration": 20,
+      "scenario": "GST_CMP08_017AQA\n\nBJ Ltd. is a distributor of mobile phones in Kochi. It has opted for the composition scheme of registration under GST. The turnover recorded during the previous financial year, 2024-2025, was Rs. 64,70,000. During the financial year, they also started providing sales and repair services for mobile phones. The turnover details for the quarter ended December 2025 have been provided below. You are required to pay GST at a rate of 1% and file CMP-08 for the 3rd quarter before the due date.\n\nPeriod\tInvoice Number \tInvoice Value \nOctober\tINV823-INV1045\t1,27,000\nNovember\tINV1046-INV1202\t98,990\nDecember\tINV1203-INV1456\t65,700\nTotal\t2,91,690\n\n\n\n\nUsername\tAJ12345\nPassword\tAJ@12345",
+      "credentials": {
+        "user_id": "AJ12345",
+        "password": "AJ@12345"
+      },
+      "data": {},
+      "course_name": "GST - CMP-08 Composition",
+      "portal_name": "GST Portal",
+      "portal_url": "https://www.gst.gov.in"
+    },
+    "E-Way_020ATA": {
+      "task_id": "E-Way_020ATA",
+      "course_id": "304",
+      "duration": 20,
+      "scenario": "E-Way_020ATA\n\nJ&J Agencies in Coimbatore supplied 10 inverter air conditioners worth Rs. 2,46,400/- to A To Z Electricals. The payment for this purchase was made online. J&J Agencies is now preparing for the road transfer of these goods to the buyer and requires an E-way bill to be generated. Your role involves creating the E-way bill based on the sales invoice provided.\n\n  \n\nAdditional Information:\nTransporter Document No. & Date: 8578 & August 15th, 2022\nVehicle Type: Regular\nTransporter ID: 33AFRXS5216J1ZQ\n\n\n\n\nUser ID: STAR\n\nPassword: Star@26",
+      "credentials": {
+        "user_id": "STAR",
+        "password": "Star@26"
+      },
+      "data": {},
+      "course_name": "GST - E-Way Bill",
+      "portal_name": "E-Way Bill Portal",
+      "portal_url": "https://ewaybillgst.gov.in"
+    },
+    "E-Way_012ALA": {
+      "task_id": "E-Way_012ALA",
+      "course_id": "304",
+      "duration": 20,
+      "scenario": "E-Way_012ALA\n\nSolo Green bought Solar Systems valued at Rs. 2,18,400/- from Omega Solar Solution in Chennai. Following the settlement of the invoice, Omega solutions commenced the process of shipping the goods to the buyer. As a GST practitioner, they are now seeking your guidance regarding the generation of an E-way bill.\n\n \n\nAdditional Information:\n\nTransporter Document No. & Date: SW8001 & August 25th, 2022\n\nVehicle Type: Regular\n\nTransporter ID: 33ASDXS5625J1ZQ\n\n\nUser ID: OMEGA\n\nPassword: OMEGA@22",
+      "credentials": {
+        "user_id": "OMEGA",
+        "password": "OMEGA@22"
+      },
+      "data": {},
+      "course_name": "GST - E-Way Bill",
+      "portal_name": "E-Way Bill Portal",
+      "portal_url": "https://ewaybillgst.gov.in"
+    },
+    "E-Way_013AMA": {
+      "task_id": "E-Way_013AMA",
+      "course_id": "304",
+      "duration": 20,
+      "scenario": "E-Way_013AMA\n\nInfo Solutions purchased four generator Systems worth Rs. 1,32,160/- from Elite Engineering Company. The payment for this transaction was completed online. Elite is now ready to transfer these goods to Info Solutions and has requested the creation of an e-Way bill for road transportation. Your task is to generate the necessary E-way bill using the provided sales invoice.\n\n \n\nAdditional Information:\n\nTransporter Document No. & Date: G1512 & October 15th, 2022\n\nVehicle Type: Regular\n\nTransporter ID: 32ASDXS5625J1ZQ\n\n\nUser ID: ELITE\n\nPassword: ELITE@200",
+      "credentials": {
+        "user_id": "ELITE",
+        "password": "ELITE@200"
+      },
+      "data": {},
+      "course_name": "GST - E-Way Bill",
+      "portal_name": "E-Way Bill Portal",
+      "portal_url": "https://ewaybillgst.gov.in"
+    },
+    "E-Way_025AYA": {
+      "task_id": "E-Way_025AYA",
+      "course_id": "304",
+      "duration": 20,
+      "scenario": "E-Way_025AYA\n\n​Fix It Cement Company supplied a bulk of  cement bags worth Rs.64,000/- to ACC Ltd. The entire payment was made online. Fix It Cement Company has requested you to generate an E-Way bill based on the provided sales invoice.\n\n \n\nAdditional Information:\nTransporter Document No. & Date: 2540 & July 10th, 2023\nVehicle Type: Regular\nTransporter ID: 24GFRXS5415J1Z2\n\n\n\n\nUser ID: CEMENT\n\nPassword: Cement@560",
+      "credentials": {
+        "user_id": "CEMENT",
+        "password": "Cement@560"
+      },
+      "data": {},
+      "course_name": "GST - E-Way Bill",
+      "portal_name": "E-Way Bill Portal",
+      "portal_url": "https://ewaybillgst.gov.in"
+    },
+    "E-Way_018ARA": {
+      "task_id": "E-Way_018ARA",
+      "course_id": "304",
+      "duration": 20,
+      "scenario": "E-Way_018ARA\n\nQuilting Queen purchased T-shirts and other vests worth Rs.1,68,000/- from Colorful Waves Kakkanad, Eranakulam. The entire payment was made online. Colorful Waves is now preparing to transport these goods to Quilting Queen and needs to generate an E-way bill for the road transfer. Your responsibility is to generate the E-Way bill based on the provided sales invoice.\n\nAdditional Information:\n﻿﻿Transporter Document No. & Date: G7200 &May 5th, 2022\nVehicle Type: Regular\nTransporter ID: 32DSAXS5656J1ZQ\n\n\n\n\nUser ID: COLOR\n\nPassword: Color@22",
+      "credentials": {
+        "user_id": "COLOR",
+        "password": "Color@22"
+      },
+      "data": {},
+      "course_name": "GST - E-Way Bill",
+      "portal_name": "E-Way Bill Portal",
+      "portal_url": "https://ewaybillgst.gov.in"
+    },
+    "EPAN_009AIA": {
+      "task_id": "EPAN_009AIA",
+      "course_id": "305",
+      "duration": 15,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - PAN Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "EPAN_010AJA": {
+      "task_id": "EPAN_010AJA",
+      "course_id": "305",
+      "duration": 15,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - PAN Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "EPAN_016APA": {
+      "task_id": "EPAN_016APA",
+      "course_id": "305",
+      "duration": 15,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - PAN Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "EPAN_007AGA": {
+      "task_id": "EPAN_007AGA",
+      "course_id": "305",
+      "duration": 15,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - PAN Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "EPAN_008AHA": {
+      "task_id": "EPAN_008AHA",
+      "course_id": "305",
+      "duration": 15,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - PAN Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITREG_020ATA": {
+      "task_id": "ITREG_020ATA",
+      "course_id": "306",
+      "duration": 20,
+      "scenario": "ITREG_020ATA\n\nShivani Chauhan is a salaried employee with additional incomes. Until last year, she was not liable to file the tax return as she was below the threshold limit. During the current year, she has become eligible to file an income tax return. Her other income also includes income from agriculture, which is an exempt income. You are required to advise her on how to register for income tax.\n\n\n\nDetails for Registration\nPAN:\tPGDXH4589F\nLegal Status:\tIndividual\nName:\tShivani Chauhan\nGender:\tFemale\nResidential Status:\tResident\nDate of Birth:\tAugust 18, 1992\nMobile No:\t2387456142\nE-mail ID:\tshivani123@nergymail.com\nPostal Address:\tFlat/Door/Building:\tRoyal Vesta\nRoad/Street/Block/Sector:\tMalviya Road\nPost Office:\tAhmedabad\nArea/Locality:\tDalod\nTown/City/District:\tAhmedabad\nState:\tGujarat\nPin Code:\t382130",
+      "credentials": {
+        "pan": "PGDXH4589F"
+      },
+      "data": {},
+      "course_name": "Income Tax - IT Portal Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITREG_022AVA": {
+      "task_id": "ITREG_022AVA",
+      "course_id": "306",
+      "duration": 20,
+      "scenario": "ITREG_022AVA\n\nRevi Varma is an individual with various sources of income that exceed the basic exemption limit. He needs to register with the income tax department. By registering on the e-Filing portal, he will gain access to various functionalities and tax-related services provided by the portal. So, he provided the necessary details below. As a tax practitioner, advise him to proceed with the registration under income tax.\n\n\n\n\nDetails for Registration\nPAN:\tHMTXJ2870A\nLegal Status:\tIndividual\nName:\tRevi Varma\nGender:\tMale\nResidential Status:\tResident\nDate of Birth:\tAugust 27, 1989\nMobile No:\t2336987415\nE-mail ID:\trevivarma123@nergymail.com\nPostal Address:\tFlat/Door/Building:\tJMK Tower\nRoad/Street/Block/Sector:\tMGM Road\nPost Office:\tBhojpur PO\nArea/Locality:\tMuzaffarpur\nTown/City/District:\tAurangabad\nState:\tBihar\nPin Code:\t824101",
+      "credentials": {
+        "pan": "HMTXJ2870A"
+      },
+      "data": {},
+      "course_name": "Income Tax - IT Portal Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITREG_026AZA": {
+      "task_id": "ITREG_026AZA",
+      "course_id": "306",
+      "duration": 20,
+      "scenario": "ITREG_026AZA\n\nAnkit Chauhan is a salaried employee with additional incomes. Until last year, he was not liable to file the tax return as he was below the threshold limit. During this year, he became eligible to file an income tax return. You are required to advise him on how to register for income tax.\n\n\n\nDetails for Registration \nPAN:\tNHWXC8714Z\nLegal Status:\tIndividual\nName:\tAnkit Chauhan\nGender:\tMale\nResidential Status:\tResident\nDate of Birth:\tSeptember 18, 1983\nMobile No:\t2318471056\nE-mail ID:\tankit123@nergymail.com\nPostal Address:\tFlat/Door/Building:\tFlat No. 202, Shree Apartment\nRoad/Street/Block/Sector:\tSector 18, Noida Expressway\nPost Office:\tSector 18 PO\nArea/Locality:\tSector 18\nTown/City/District:\tNoida, Gautam Buddh Nagar\nState:\tUttar Pradesh\nPin Code:\t201301",
+      "credentials": {
+        "pan": "NHWXC8714Z"
+      },
+      "data": {},
+      "course_name": "Income Tax - IT Portal Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITREG_030BDA": {
+      "task_id": "ITREG_030BDA",
+      "course_id": "306",
+      "duration": 20,
+      "scenario": "ITREG_030BDA\n\nSidharth Abhimanyu is an LIC agent who earns an income of more than ₹ 8,00,000/- per year.  As you are a tax practitioner, he has approached you for filing IT returns. Since Sidharth is a first-time user, advise him on how to register for income tax.\n\n\n\nDetails for Registration\nPAN:\tHJGXD5578G\nLegal Status:\tIndividual\nName:\tSidharth Abhimanyu\nGender:\tMale\nResidential Status:\tResident\nDate of Birth:\tAugust 25th, 1994\nMobile No:\t2345639525\nE-mail ID:\tsidharth@nergymail.com\nPostal Address:\tFlat/Door/Building:\tSunshine Place\nRoad/Street/Block/Sector:\tRohtak Road\nPost Office:\tLakhan Marja \nArea/Locality:\tLakhan Marja\nTown/City/District:\tRohtak\nState:\tHaryana\nPin Code:\t124001",
+      "credentials": {
+        "pan": "HJGXD5578G"
+      },
+      "data": {},
+      "course_name": "Income Tax - IT Portal Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITREG_013AMA": {
+      "task_id": "ITREG_013AMA",
+      "course_id": "306",
+      "duration": 20,
+      "scenario": "ITREG_013AMA\n\nAditya Kashyap is a software developer working as a freelancer. His contractors had deducted TDS from his payments. He needs to get a refund for those payments. For this purpose, he needs to file an IT return and requires your assistance for registration as a new user in the IT portal.\n\n\n\n\nDetails for Registration\nPAN:\tGHTXR4578G\nLegal Status:\tIndividual\nName:\tAditya Kashyap\nGender:\tMale\nResidential Status:\tResident\nDate of Birth:\tAugust 09, 1992\nMobile No:\t2378123695\nE-mail ID:\tkashyap@nergymail.com\nPostal Address:\tFlat/Door/Building:\tSummer Breeze\nRoad/Street/Block/Sector:\tMG Road\nPost Office:\tKhumna\nArea/Locality:\tKhumna\nTown/City/District:\tFatehgarh Sahib\nState:\tPunjab\nPin Code:\t147203",
+      "credentials": {
+        "pan": "GHTXR4578G"
+      },
+      "data": {},
+      "course_name": "Income Tax - IT Portal Registration",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1-007AG": {
+      "task_id": "ITR1-007AG",
+      "course_id": "307",
+      "duration": 20,
+      "scenario": "ITR1-007AG\nMr. Dhaval Rana, a central government employee at National Fertilizers Limited, earns a salary of ₹12,67,000. Along with his salary, he receives an entertainment allowance of ₹8,500. The company has deducted ₹2,05,000 as TDS from his salary (TAN PPPX01234P). In addition to his salary, he receives interest on a Fixed Deposit of ₹3,45,970 and interest on a Savings Account of ₹24,121. He paid ₹2,500 as professional tax.\n\n\nDhaval invests ₹1,40,000 in the Provident Fund account.\nHe paid ₹75,000 for the treatment of cancer of his son. His daughter is physically challenged with 75% disability and has a medical expenditure of ₹2,00,000. He paid a donation by cheque to Scientific Research of ₹1,000. (PAN: AQPXS8807A, Name: Hyderabad University, City: Hyderabad, PIN: 500047, Address: Hyderabad Central University Road, Hyderabad, Telangana 500047, State Code: 040).\n\n\nCompute taxable income, tax liability, and interest thereon for the assessment year 2024-2025, assuming that Mr. Dhaval filed his return on 31/07/2024.\nPAN: ABGXV9123A\nPassword: abgxv9123a@",
+      "credentials": {
+        "password": "abgxv9123a@",
+        "pan": "AQPXS8807A"
+      },
+      "data": {},
+      "course_name": "Income Tax - ITR-1 Filing (Salaried)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1-006AF": {
+      "task_id": "ITR1-006AF",
+      "course_id": "307",
+      "duration": 20,
+      "scenario": "ITR1-006AF\nMr. Vikas Gupta works at Ocean View Ventures Pvt. Ltd., earning a basic salary of ₹15,50,000 which includes a bonus of ₹56,000. His employer has deducted ₹2,28,000 as TDS from her salary (TAN AAAX12344A). In addition to his salary, he is entitled to several allowances. He receives HRA ₹35,000 but resides in his own house and pays no rent. Additionally, he gets a leave travel allowance of ₹19,000, with ₹12,000 of that amount being exempt. His employer distributed ₹4,500 worth of gifts during the year. The company reimbursed Vikas ₹26,000 for his medical treatment expenses at private hospital. He paid a professional tax of ₹2,050, out of which ₹1,050 was paid by his employer.\n\nVikas also earns income from let-out property of ₹9,500 per month, of which ₹2,500 is paid as property tax. In June 2023, he took a housing loan of ₹15,00,000 from ICICI Bank and paid ₹1,13,923 as interest and ₹67,777 towards the principal.\n\nAdditionally, he earned ₹17,543 in fixed deposit interest, and ₹5,015 in savings bank interest.\nHe donated ₹10,000 to National Children's Fund via NEFT, which is eligible for a 100% deduction without any qualifying limits. The donee's PAN is AAAXA6808E, and address is Siri Institutional Area, Hauz Khas, New Delhi, Pin Code: 110016, State Code: 07, NEFT: AAAA111111222222222, IFSC: AAAA0111AAA. He has LIC policies in his and his wife's name, with total premiums amounting to ₹1,25,300.\n\n\nCompute taxable income, tax liability, and balance tax payable or refund for Mr. Vikas Gupta for the assessment year 2024-2025.\nVikas return filed on: 02-07-2024\nPAN: ABCXE0003A\nPassword: abcxe0003a@",
+      "credentials": {
+        "password": "abcxe0003a@",
+        "pan": "ABCXE0003A"
+      },
+      "data": {},
+      "course_name": "Income Tax - ITR-1 Filing (Salaried)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1-011AKT": {
+      "task_id": "ITR1-011AKT",
+      "course_id": "307",
+      "duration": 45,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - ITR-1 Filing (Salaried)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1-004AD": {
+      "task_id": "ITR1-004AD",
+      "course_id": "307",
+      "duration": 45,
+      "scenario": "ITR1-004AD\nMr. Nitin Malhotra is a central government employee drawing a salary of ₹8,75,000. His employer has deducted ₹1,00,171 as TDS from his salary (TAN AAAX12444B and Name of Employer: Coal India Limited).\nHe also receives the following:\nInterest on Fixed Deposit: ₹3,55,771.\nInterest on Savings Account: ₹14,320.\nHe paid a donation by cheque to Scientific Research of ₹1,000 (PAN: FPXPS6807U, Name: Hyderabad University, City: Hyderabad, PIN: 500046, Address: CR Rao Road, Hyderabad Central University Road., Gachibowli, Hyderabad, Telangana 500046, State Code: 040)\nHe paid ₹75,000 for the treatment of cancer of his son.\nHis daughter is physically challenged with 75% disability and has a medical expenditure of ₹2,00,000 (PAN of dependent: ABIXV9123A).\nNitin invests ₹1,50,000 in Provident Fund account.\nCompute taxable income, tax liability, and interest thereon for the assessment year 2024-2025, assuming that Mr. Nitin Malhotra filed his return on 30/06/2024.\nPAN: ABGXV9123A\nPassword: abgxv9123a@",
+      "credentials": {
+        "password": "abgxv9123a@",
+        "pan": "FPXPS6807U"
+      },
+      "data": {},
+      "course_name": "Income Tax - ITR-1 Filing (Salaried)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1-016APA": {
+      "task_id": "ITR1-016APA",
+      "course_id": "307",
+      "duration": 45,
+      "scenario": "ITR1-016APA\nMr. Dathan Sharma, a resident individual, works for HDFC Bank in Pune and draws a salary of ₹8,86,500. His employer has deducted tax (TDS) of ₹35,433 (TAN:AAAX12345A). In addition to his basic salary, he received ₹23,000 as a bonus and ₹13,500 as a special allowance.\nHe earned ₹25,600 as interest from a fixed deposit and ₹5,653 as interest from savings bank.\n\n\n\n\nAdditionally, he made the following expenditures:\nProfessional Tax of ₹1,250\nDeposited in PPF of ₹1,25,000 and ₹10,000 invested in the Sukanya samridhi account.\nLIC Premium paid of ₹33,000 additionally he paid Medical insurance premium for his wife name: ₹14,500.\nHe had incurred an expense of ₹1,40,000 for the treatment of his daughter with a severe disability. \n\n\nCompute the taxable income, tax liability, and balance tax payable or refund, if any, for Mr. Dathan Sharma for the assessment year 2024-2025. He filed his return on 30-07-2024.\nPAN: ABXXV9123A\nPassword: abxxv9123a@",
+      "credentials": {
+        "password": "abxxv9123a@",
+        "pan": "ABXXV9123A"
+      },
+      "data": {},
+      "course_name": "Income Tax - ITR-1 Filing (Salaried)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1N-021AUA": {
+      "task_id": "ITR1N-021AUA",
+      "course_id": "308",
+      "duration": 20,
+      "scenario": "ITR1N-021AUA\nMr. Manish Gupta is a resident individual working at UrbanClap Pvt. Ltd. and draws a salary of ₹3,87,800. He also gets the following perquisites and allowances:\nDiwali Bonus of ₹18,000, Car of  ₹18,000, Library Membership of ₹1,850 and Mobile Phone of ₹1,500.\nHe received ₹85,000 worth of Sodexo gift coupons from the employer and used them to purchase an iPhone.\nIn addition to his Salary income he receives the following:\nInterest on Fixed Deposit of ₹6,700, Interest on savings bank of ₹1,000 and agricultural Income of ₹3,100\n\n\nMr. Manish paid the following expenses:\nProfessional Tax: ₹1,500.\nContribution to NPS: ₹44,000.\nPayment of the LIC Premium: ₹10,550.\nMutual Fund (Tax Saver): ₹22,200.\nAmount paid for preventive health check-ups for his parents ₹4,750.\n\n\n\n\nCompute the taxable income of Manish Gupta under Default tax regime and also find out the tax payable or refund of tax, if any, for the assessment year 2024-2025. He filed return on 28/07/2024.\nPAN: ABCXE0041A\nPassword: abcxe0041a@",
+      "credentials": {
+        "password": "abcxe0041a@",
+        "pan": "ABCXE0041A"
+      },
+      "data": {},
+      "course_name": "Income Tax - ITR-1 (Complex/NR)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1N-014ANA": {
+      "task_id": "ITR1N-014ANA",
+      "course_id": "308",
+      "duration": 20,
+      "scenario": "ITR1N-014ANA\nMr. Milkha Singh is employed at ICICI Bank in Amritsar, receiving an annual salary of ₹4,00,000. In addition to his salary, he also received a bonus of ₹25,000. Further details about his income and deductions are as follows:\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nHe generates income from a property he has rented out, earning ₹7,000 per month and ₹1,400 paid as property tax. He has a housing loan on such property and paid ₹26,300 as interest.\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nAdditionally, Milkha earns income from the following sources:\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n   Interest on savings bank: ₹2,000.\t\t\t\t\t\t\t\t\t\t\t\t\n   Interest on Fixed Deposit: ₹1,410.\t\t\t\t\t\t\t\t\t\t\t\t\t\n   Income from family pension: ₹2,100.\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n₹16,000 was deducted from the salary for NPS and was also deposited, along with the employer's equal contribution.\t\t\t\t\nFurthermore, Mr. Milkha Singh incurred an expense of ₹8,000 for a preventive checkup for himself and also has medical insurance (self) costing ₹26,000.\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nCompute the taxable income of Milkha Singh under Default tax regime and also find out the tax payable or refund of tax, if any, for the assessment year 2024-2025. \n​Date of filing of return: 21/07/2024.\t\t\t\t\t\t\t\t\t\t\t\t\t\nPAN: ABCXE0038A\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nPassword: abcxe0038a@",
+      "credentials": {
+        "password": "abcxe0038a@",
+        "pan": "ABCXE0038A"
+      },
+      "data": {},
+      "course_name": "Income Tax - ITR-1 (Complex/NR)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1N-017AQA": {
+      "task_id": "ITR1N-017AQA",
+      "course_id": "308",
+      "duration": 20,
+      "scenario": "ITR1N-017AQA\nMs. Jyoti Baruais earns an annual salary of ₹18,00,000 and is employed as a civil engineer working at Mountain Edge Constructions Pvt. Ltd., located in Himachal Pradesh. Her salary includes a House Rent Allowance of ₹1,80,000 (with an exemption of ₹60,000 under Section 10(13A)) and a Dearness Allowance of ₹1,20,000. The company has deducted ₹2,18,600 as TDS from her salary (TAN PPPX01234P). The company reimbursed Jyoti ₹27,000 for his medical treatment expenses at private hospital and she paid professional tax of ₹2,050, out of which ₹1,550 was paid by her employer. In May 2019, she took a housing loan of ₹15,00,000 from the State Bank of India for her residential property. In April 2023, she rented out the property and received rental income of ₹16,000 per month during the previous year. She repaid ₹1,47,400 which included ₹64,560 towards the interest. She received ₹9,000 as a family pension and ₹32,000 as fixed deposit interest.  \nEmployer and employee ₹65,000 contributed to NPS, additionally, she contributed ₹9,000 per month towards the recognised provident fund. \n\n\nCompute the taxable income of Jyoti Baruais under Section 115BAC and also find out the tax payable or refund of tax, if any, for the Assessment Year 2024-2025. \nDate of filing of return: 16/05/2024\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nPAN: BUKXB8128B\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nPassword: bukxb8128b@",
+      "credentials": {
+        "password": "bukxb8128b@",
+        "pan": "BUKXB8128B"
+      },
+      "data": {},
+      "course_name": "Income Tax - ITR-1 (Complex/NR)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1N-023AWA": {
+      "task_id": "ITR1N-023AWA",
+      "course_id": "308",
+      "duration": 20,
+      "scenario": "ITR1N-023AWA\nDr. Deepak Thakur is employed as a senior surgeon at Sanati Hospital in Delhi. His annual salary is ₹28,00,000, from which ₹6,00,000 has been deducted as TDS (TAN AAAX12366S). He used his car for official purposes for three months during the previous year, incurring actual expenses of ₹16,500, which his employer reimbursed. Additionally, he has invested ₹54,000 in the National Pension Scheme (NPS), and his employer has provided a matching contribution of the same amount. In addition to his salary income, he received rental income of ₹21,500 per month during the previous year April to October, along with ₹36,000 as arrears rent during the financial year 2022-23. Mr. Bhavik paid ₹7,500 in municipal taxes for this property during the previous year.\nHis other income details for the Financial Year 2023-24 are as follows:\nDividend received: ₹6,050.\nInterest from Savings Accounts: ₹73,221.\nInterest from Fixed Deposits: ₹1,01,156.\nHe received a cheque for ₹49,000 as a gift from his friend for his birthday celebration.\t\t\t\t\t\t\t\t\t\t\t\t\t\n\n\n\n\nCompute the taxable income of  Dr. Deepak Thakur, under Section 115BAC, and also find out the tax payable or refund of tax, if any, for the Assessment Year 2024-2025. Date of filing of return: 10/07/2024\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nPAN: ABOXB4121A\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nPassword: aboxb4121a@\t\t\t\t\t\t\t\t\t\t\t\t\t\t​",
+      "credentials": {
+        "password": "aboxb4121a@\t\t\t\t\t\t\t\t\t\t\t\t\t\t​",
+        "pan": "ABOXB4121A"
+      },
+      "data": {},
+      "course_name": "Income Tax - ITR-1 (Complex/NR)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "ITR1N-013AMA": {
+      "task_id": "ITR1N-013AMA",
+      "course_id": "308",
+      "duration": 20,
+      "scenario": "ITR1N-013AMA\nMr. Arun Mishra, aged 28, is employed as a Senior Data Expert at Code Crafters Pvt. Ltd., located in Lucknow. He earned a salary of ₹73,650 per month until August 2023, after which he received an increment of 18%. The company has deducted ₹44,570 as TDS from his salary (TAN LKOX01234A).In September 2023, he obtained a housing loan with an annual interest payment of ₹1,83,560. Additionally, he has a life insurance policy in his name with a premium of ₹13,500. He contributed ₹48,000 to the National Pension Scheme (NPS), and his company matched this contribution with an equal amount on his behalf.\t\n\t\t\t\t\t\t\t\t\t\t\t\t\nHis other income details for the Financial Year 2023-24 are as follows:\t\t\t\t\t\t\t\t\t\t\nDividend received during the Financial Year 2023-24: ₹53,990.\t\t\t\t\t\t\t\t\t\t\t\nInterest from Savings Accounts: ₹3,320.\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nInterest from Fixed Deposits: ₹67,842.\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\n\nCompute the taxable income of Mr. Arun under Section 115BAC and also determine the tax payable or refund of tax, if any, for the Assessment Year 2024-2025.\n​Date of filing of return: 21/07/2024\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nPAN: CIYXP9342K\t\t\t\t\t\t\t\t\t\t\t\t\t\t\nPassword: ciyxp9342k@",
+      "credentials": {
+        "password": "ciyxp9342k@",
+        "pan": "CIYXP9342K"
+      },
+      "data": {},
+      "course_name": "Income Tax - ITR-1 (Complex/NR)",
+      "portal_name": "IT e-Filing Portal",
+      "portal_url": "https://www.incometax.gov.in"
+    },
+    "TDS_041BOA": {
+      "task_id": "TDS_041BOA",
+      "course_id": "309",
+      "duration": 20,
+      "scenario": "TDS_041BOA\n\nArjun Dev is a practicing-chartered accountant, who is liable to file tax returns on behalf of his clients. The following transactions require TDS (Tax Deducted at Source) compliance. He has less experience in TDS compliance and is seeking your expertise on the following transactions.\n\n\n\nSl No.\tNature of Payment\tPayee's Name\tPayee's Legal Status\tGross\namount\n1\tPayment to a contractors for the work done.\tJB Constructions\tFirm\t50,000\n2\tPayment was made towards the purchase of timber.\tNitin Ramachandran\tIndividual\t4,25,000\n3\tPaid annual rent towards the usage of building.\tJhanvi Singh\tIndividual\t2,16,000\n4\tAmount of winning from horse race was paid to G Racing.\tG Racing \tCompany\t50,000\n5\tPayment was made for providing technical services.\tTech 5 Pvt.Ltd.\tCompany\t60,000\n6\tPayment on transfer of agricultural land.\tMK Family\tHUF\t25,00,000\n7\tPaid to interior designer for the implementation of new plant.\tAkshay Balakrishnan\tIndividual\t75,000\n8\tPayment of compensation for the acquisition of land.\tBG Ltd.\tFirm\t10,00,000\n9\tPaid commission on sales of Lotteries.\tMohit Kumar\tIndividual\t1,50,000\n10\tPaid commission, but recipient's PAN was not provided.\tNikhita Pawar\tIndividual\t35,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TDS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "TDS_022AVT": {
+      "task_id": "TDS_022AVT",
+      "course_id": "309",
+      "duration": 20,
+      "scenario": "TDS_022AVT\n\nBCD India Pvt. Ltd., a construction company based in Mumbai, has made the following payments. The accountant seeks your advice in determining the applicable TDS section, TDS rate, and the amount of TDS to be deducted on these payments.\n\nSl. No.\tNature of Payment\tPayee's Name\tPayee's Legal Status\tGross Amount\n1\tPayment of dividend.\tXYZ Capital Management Pvt. Ltd.\tCompany\t80,000 \n2\tInterest on securities.\tTata Capital\tCompany\t6,00,000\n3\tPayment of fees for conducting audit.\tCA Mohan Shah\tIndividual\t2,00,000\n4\tPayment to subcontractors.\tAsset Contractors Pvt. Ltd.\tCompany\t50,000 \n5\tPayment towards winning the card game conducted on the annual day celebration.\tRadha Krishnan\tIndividual\t75,00,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TDS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "TDS_032BFA": {
+      "task_id": "TDS_032BFA",
+      "course_id": "309",
+      "duration": 20,
+      "scenario": "TDS_032BFA\n\nST Ltd. is engaged in various businesses across the country and is legally obligated to file TDS returns. They need your expertise on TDS filing. You are required to help them with the relevant sections, rates, and amount to be paid by going through the following transactions made by the company during the relevant year.\n\n\n\nSl. No.\tNature of Payment\tPayee's Name\tPayee's Legal Status\tGross amount\n1\tPayment of rent for the branch office.\tAbhinav Mishra\tIndividual\t3,60,000\n2\tPaid commission on sale of tickets under lottery business.\tHarish Pant\tIndividual\t20,000\n3\tPayment of compensation for the acquisition of immovable property.\tPK Traders\tHUF\t8,00,000\n4\tThe insurance policy has been paid.\tNanda Kumar Sen\tIndividual\t1,35,000\n5\tPayment was made towards the transfer of non-agricultural land.\tRakesh Malhotra\tIndividual\t1,30,00,000\n6\tPaid to the International Swimming Association, located in Sri Lanka.\tInternational Swimming Association\tTrust\t5,00,000\n7\tPaid amount for the purchase of goods (ignore TCS).\n\tWoodsbay Enterprise\tFirm\t6,20,000\n8\tPayment of the dividend to one of the employees of the company.\tNirmala Sen\tIndividual\t12,000\n9\tPayment of fee to the Legal advisor.\tAdv. Manisha Kaur\tIndividual\t50,000\n10\tPaid to the construction company for constructing a new building.\tJ&J Construction Contracts\tCompany\t15,31,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TDS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "TDS_020ATA": {
+      "task_id": "TDS_020ATA",
+      "course_id": "309",
+      "duration": 20,
+      "scenario": "TDS_020ATA\nXYZ Corporation is a diverse media conglomerate based in India, engaging in operations across multiple platforms, including print, digital, and radio. The company is currently required to fulfil specific TDS compliance obligations, while their accounting team has limited knowledge about TDS compliance. Your assistance is sought to help them meet their TDS obligations by providing information regarding TDS sections, rates, and the corresponding TDS amounts.​\n\nSl. No.\tNature of Payment\tPayee's Name\tPayee's Legal Status\tGross amount\n1\tPaid a professional interior designer for the design and installation of the new office.\tK&K Associates\tFirm\t50,00,000 \n2\tPayment of dividends.\tPriya Patel\tIndividual\t20,000 \n3\tA payment is being made to the contractor for the construction of a new branch.\tSSS India Ltd.\tCompany\t65,00,000 \n4\tPaid interest on debentures.\tAmit Gupta\tIndividual\t24,800 \n5\tFee paid to a legal advisor.\tNeeta Mishra\tIndividual\t2,50,000 \n6\tPayment of technical charges for computer and software maintenance.\tGreat Soft Teck Ltd.\tCompany\t70,000 \n7\tAudit fee paid.\tCA Riya Agarwal\tFirm\t35,000 \n8\tPayment of monthly rent for the branch office.\tAmitabh Choudhary\tIndividual\t1,50,000\n9\tPayment of an interest-free loan to an employee (The employee's salary is below the taxable limit).\tRahul Sharma\tIndividual\t6,000 \n10\tPayment made to the International Gymnastics Federation, Sri Lanka, for participation in a gymnastics event held in India.\n\tInternational Gymnastics Federation\tTrust\t2,50,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TDS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "TDS_021AUT": {
+      "task_id": "TDS_021AUT",
+      "course_id": "309",
+      "duration": 20,
+      "scenario": "TDS_021AUT\n\nXYZ India Pvt. Ltd., a construction company based in Maharashtra, has made the following payments. The accountant seeks your advice in determining the applicable TDS section, TDS rate, and the amount of TDS to be deducted on these payments.\n\nSl. No.\tNature of Payment\tPayee's Name\tPayee's Legal Status\tGross Amount\n1\tPayment of fees for conducting the audit.\tCA Haritha Associates\tFirm\t1,20,000\n2\t\n\nCash prizes will be awarded through a coupon-based selection process to promote sales during the festival season.\n\n\tVinay Modi\tIndividual\t50,00,000 \n3\tPayment of dividend.\tABC Capital Management Pvt. Ltd.\tCompany\t75,000 \n4\tPayment to subcontractors.\tConfident Contractors Pvt. Ltd.\tCompany\t45,000 \n5\tInterest on securities.\tInfo Tech Ltd.\tCompany\t5,00,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TDS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "TCS_014ANA": {
+      "task_id": "TCS_014ANA",
+      "course_id": "310",
+      "duration": 20,
+      "scenario": "TCS_014ANA\n\nMr. Sourabh Solanki is a staff member at VKG Associates, a CA firm providing services to various clients. The clients have doubts regarding TCS compliance. Please help them determine the applicable TCS section, TCS rate and TCS amount for the following transactions.\n\nSl. No.\tNature of the Receipt\tPayer's Name\tPayer's Legal Status\tTaxable  Amount\n1\tReceipts were received from Prabhath Ltd. for the granting of a mining licence.\tPrabhath Ltd.\tCompany\t56,89,000 \n2\tTanisha purchased a car from Krisha Motors Pvt. Ltd. for a specified consideration.\tTanisha\tIndividual\t12,80,000 \n3\tYellow Ltd. received a toll plaza licence from ICT Ltd. for a certain amount.\tYellow Ltd.\tCompany\t58,00,000 \n4\tReceived an audit fee from APK Ltd.\tAPK Ltd.\tCompany\t80,000 \n5\tTARC received consideration for the sale of coal.\tSBL Private Ltd.\tCompany\t84,00,000 \n6\tFejin Motors received consideration from Livin for the sale of a car.\tLivin\tIndividual\t9,00,000 \n7\tTarun remitted an amount for his overseas studies, which he had taken as a loan from Canara Bank.\tTarun\tIndividual\t4,57,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TCS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "TCS_013AMA": {
+      "task_id": "TCS_013AMA",
+      "course_id": "310",
+      "duration": 20,
+      "scenario": "TCS_013AMA\n\nACG Group India Limited is an India-based company engaged in the manufacture and sale of furniture and tendu leaves. They have some TCS compliance requirements to meet, and the accounts team has limited knowledge about TCS compliances. You are required to assist them in meeting their TCS compliance. Provide information such as TCS sections, TCS rates and TCS amounts.\n\n  SI. No.\tNature of the Receipt\tPayer's Name\tPayer's Legal Status\tTaxable  Amount\n1\tSale of timber to Vel Pvt. Ltd.\tVel Pvt. Ltd.\tCompany\t7,30,000 \n2\tThe company sold the leftover materials from the furniture sale as scrap.\n\tMNO Ltd.\tCompany\t2,00,000 \n3\tSold timber, which was obtained under a forest lease, to STU Ltd.\tSTU Ltd.\tCompany\t24,80,000 \n4\tA receipt for the amount was received from Raj for the sale of tendu leaves.\tRaj\tIndividual\t4,40,000 \n5\tAn amount was received for the sale of timber to Arun.\tArun\tIndividual\t6,00,000 \n6\tThe company sold the remaining materials, which were left over after the sale of furniture, as scrap.\tRahul\tIndividual\t1,50,000 \n7\tThe amount received from Riya towards the sale of tendu leaves.\tRiya\tIndividual\t60,000 \n8\tThe amount was received from Ganesh in exchange for the sale of scrap materials.\tGanesh\tIndividual\t1,50,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TCS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "TCS_020ATA": {
+      "task_id": "TCS_020ATA",
+      "course_id": "310",
+      "duration": 20,
+      "scenario": "TCS_020ATA\n\nSwati Varma is a staff member of one of the big 4 companies, which provides services to various clients. So, you're required to help her to determine the TCS rate, amount, and the applicable sections. \n\nSl. No.\tNature of the Receipt\tPayer's Name\tPayer's Legal Status\tTaxable Amount\n1\tA receipt was received from Swaroop for the sale of timber.\tSwaroop\tIndividual\t4,20,000\n2\tShreya remitted an amount as educational fees for higher education in the UK, which she had borrowed as a loan from SBI.\tShreya\tIndividual\t4,00,000\n3\tSuzuki has sold a motor vehicle to Vinod Kumar.\tVinod Kumar\tIndividual\t12,50,000\n4\tReceived audit fee from YKO Ltd.\tYKO Ltd.\tCompany\t85,000\n5\tSQ Pvt. Ltd. has paid consideration for the sale of iron ore.\tSQ Pvt. Ltd.\tCompany\t81,00,000\n6\tAmith has purchased tendu leaves from Woodsy Ltd.\tAmith\tIndividual\t1,20,000\n7\tPQ Bar paid Bevco for alcoholic liquor for human consumption.\tPQ Bar\tCompany\t72,000\n8\tB Ltd. paid consideration to Z Ltd. for obtaining a parking lot licence.\tB Ltd.\tCompany\t78,00,000\n9\tMaruti has sold a motor vehicle to Surjith.\tSurjith\tIndividual\t13,25,000\n10\tAiswarya has paid RK Travels to obtain a Sikkim tour package.\tAiswarya\tIndividual\t32,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TCS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "TCS_015AOA": {
+      "task_id": "TCS_015AOA",
+      "course_id": "310",
+      "duration": 20,
+      "scenario": "TCS_015AOA\n\nMr. Kishore is a staff member at a tax practitioners' firm that provides services to various clients. Please assist him in determining the applicable TCS section, TCS rate and TCS amount for the following transactions.\n\nSl. No.\tNature of the Receipt\tPayer's Name\tPayer's Legal Status\tTaxable  Amount\n1\tJJ Stores sold the remaining scrap materials to Manoj.\tManoj\tIndividual\t4,52,000 \n2\tHMT Ltd. exported goods to Freddy in America at market value.\tFreddy\tIndividual\t87,00,000 \n3\tPai Pvt. Ltd. purchased coal from Coal Ltd. for a specified amount.\tPai Pvt. Ltd.\tCompany\t37,50,000 \n4\tSumeet remitted an amount as educational fees for higher education abroad, which he had borrowed as a loan from ESAF Bank.\tSumeet\tIndividual\t5,20,000 \n5\tReceipts were received from Greenfield Ltd. for the granting of a mining licence.\tGreenfield Ltd.\tCompany\t45,60,000 \n6\tMaruti sold a motor vehicle to Vidya.\tVidya\tIndividual\t13,00,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TCS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "TCS_018ARA": {
+      "task_id": "TCS_018ARA",
+      "course_id": "310",
+      "duration": 20,
+      "scenario": "TCS_018ARA\n\nAnamika is a staff member of one of the big four companies that provides their services to various clients. So, you're required to help her to determine the TCS section, TCS rate and TCS amount.\n\nSl. No.\tNature of the Receipt\tPayer's Name\tPayer's Legal Status\tTaxable Amount\n1\tABC Ltd. granted a quarry licence to Wise Ltd.\tWise Ltd.\tCompany\t15,00,000 \n2\tReceived audit fee from Zinko Ltd.\tZinko Ltd.\tCompany\t65,000 \n3\tSQ Ltd. provided consideration for the sale of coal and minerals.\tSQ Ltd.\tCompany\t78,50,000 \n4\tPrabir provided consideration to Dreamy Travels for Norway tour package.\tPrabir\tIndividual\t5,00,000 \n5\tArpith made the payment to Z Ltd. for the purchase of sandalwood (forest produce).\tArpith\tIndividual\t9,40,000 \n6\tMaruti sold a motor vehicle to Rahul.\tRahul\tIndividual\t12,30,000 \n7\tAiswarya remitted an amount for her higher education abroad, which she had borrowed as a loan from SBI.\tAiswarya\tIndividual\t5,50,000 \n8\tAnil sold timber to Leeway Ltd. without providing a PAN.\tLeeway Ltd.\tCompany\t42,65,000 \n9\tPK Ltd. has granted a quarry licence to Choice Ltd.\tChoice Ltd.\tCompany\t43,00,000 \n10\tReceived consideration from Abhinand for the sale of a motor vehicle.\tAbhinand\tIndividual\t8,75,000",
+      "credentials": {},
+      "data": {},
+      "course_name": "Income Tax - TCS Compliance",
+      "portal_name": "TRACES Portal",
+      "portal_url": "https://www.tdscpc.gov.in"
+    },
+    "EPFO_017AQA": {
+      "task_id": "EPFO_017AQA",
+      "course_id": "311",
+      "duration": 20,
+      "scenario": "EPFO_017AQA\nMrs. Rakhi Ramachandran is running a sole proprietorship 'Sparxes Solutions', for providing professional education services. As the organisation progressed, the firm exceeded the maximum number of employee limit specified by the Employee's Provident Funds and Miscellaneous Provisions Act, 1952 (EPFO). Now Rakhi is obligated to register her business under the provisions of the EPFO Act. This will help her to facilitate the efficient management of labour-related activities. You are required to assist Mrs. Rakhi throughout the registration process and ensure it's successful completion.﻿﻿\n\n\nUser ID: Rakhi\nPassword: Rakhi03*\n\n​\n\n\nDetails of the Office:\n\nEstablishment Name: Sparxes Solutions\nPremise Name: Teakwood Arcade\nAddress: 7 Street,\nNear Lal Square, Navsari\nDistrict: Navsari\nState: Gujarat\nPin Code: 396421\nSetup Date: 05-09-2019\nNearest Police Station: Navsari\nEstablishment Category: Commercial Establishment\nEmail ID: rakhi22@nergymail.com\nMobile No: 2365567724\nOwnership Type: Proprietary Firms \nName of the Income Tax Ward: Gujarat\nPAN: BTWXL0439R\n\nSupporting Documents:\n\nIdentifier Details:-\nGST No: 24BTWXL0439R0Z8\nName as on Identifier: Rakhi\nGST Issue Date: 12-11-2019\nIssued by: GST Council of India\nGST Issue Place: Gujarat\tDetails of the Proprietor:\n\nName of the Proprietor: Rakhi Ramachandran\nFather's Name: Ramachandran\nDOB: 14th March, 1986\nGender: Female\nAddress: Rose Villa\nJawali Nagar, Navsari\nDistrict: Navsari\nState: Gujarat\nPin Code: 396421\n\n\n \n\n\n\n\n\nAdditional Information:\n\nAttachment: GST Licence\nPrimary Business Activity: College\nEmployee Details:-\nTotal number of employees (including excluded employees): 18\nNumber of excluded employees: 0\nDate on which the employee strength exceeded 19: 14-02-2021\nDate from which in position: 05-09-2019\nDo the EPF and MP Acts apply to the establishment: Yes\n\n​",
+      "credentials": {
+        "user_id": "Rakhi",
+        "password": "Rakhi03*",
+        "pan": "BTWXL0439R"
+      },
+      "data": {},
+      "course_name": "Labour Laws - EPFO Registration",
+      "portal_name": "EPFO Unified Portal",
+      "portal_url": "https://unifiedportal-emp.epfindia.gov.in"
+    },
+    "EPFO_022AVA": {
+      "task_id": "EPFO_022AVA",
+      "course_id": "311",
+      "duration": 20,
+      "scenario": "EPFO_022AVA\nMr. Noven R established Noven Communication Services as a sole proprietorship that provides communication services. Currently, his organisation has 10 employees, which is below the prescribed threshold set by the Employees' Provident Funds and Miscellaneous Provisions Act, 1952 (EPFO Act) of 20 employees. Therefore, Noven is not required to register his organisation under the EPFO Act. However, he understands the importance of providing benefits to his employees and wishes to extend certain benefits to them voluntarily. By doing so, Noven aims to ensure the well-being and financial security of his employees, even though his organisation is not legally obligated to comply with the EPFO Act. This proactive approach demonstrates Noven's commitment to his employees welfare and underscores his dedication as a responsible employer. You are required to provide guidance and support to Noven regarding the registration process for EPFO.\n\n\nUser ID: Noven\nPassword: Noven%32\n\n\nDetails of the Office:\n\nEstablishment Name: Noven Communication Services\nPremise Name: Genix Tower\nAddress: Gama Street\nAligonda, Mohana\nDistrict: Gajapati\nState: Odisha\nPin Code: 761217\nSetup Date: 13-03-2023\nNearest Police Station: Gajapati City Police Station\nEstablishment Category: Commercial Establishment\nEmail ID: noven01@nergymail.com\nMobile No: 2323654280\nOwnership Type: Proprietary Firms\nName of the Income Tax Ward: Gajapati\nPAN Number: HGSXT4210N\n\nSupporting Documents:\n\nIdentifier Details:-\nGST No: 21HGSXT4210N3Z5\nName as on Identifier: Noven R\nGST Issue Date: 15-05-2023\nIssued by: GST Council of India\nGST Issue Place: Odisha\tDetails of the Proprietor:\n\nName of the Proprietor: Noven R\nFather's Name: Ramachandra\nDOB: 10th September, 1987\nGender: Male\nAddress: Noven's Home, No. 243, Anguru, Udayagiri\nDistrict: Gajapati\nState: Odisha\nPin Code: 761016\n\nAdditional Information:\n\nAttachment: GST Licence\nPrimary Business Activity: Others\nEmployee Details:-\nTotal number of employees (including excluded employees): 15\nNumber of excluded employees: 6\nDate on which the employee strength exceeded 19: NIL\nDate from which in position: 17-03-2023\nDo the EPF and MP Acts apply to the establishment: Voluntary Coverage Application\nDate of agreement between the employer and the majority of employees: 24-06-2023\nAny subsequent date mentioned in the agreement: 24-06-2023",
+      "credentials": {
+        "user_id": "Noven",
+        "password": "Noven%32",
+        "pan": "HGSXT4210N"
+      },
+      "data": {},
+      "course_name": "Labour Laws - EPFO Registration",
+      "portal_name": "EPFO Unified Portal",
+      "portal_url": "https://unifiedportal-emp.epfindia.gov.in"
+    },
+    "EPFO_015AOA": {
+      "task_id": "EPFO_015AOA",
+      "course_id": "311",
+      "duration": 20,
+      "scenario": "EPFO_015AOA\n﻿﻿\nMr. Mukesh Yadav is running a sole proprietorship named 'Krishna Textiles', which provides textile services in Dhori, Jharkhand. Given that the proprietorship has exceeded the limit prescribed under the EPF Act, it is now mandatory for him to register for EPF for his establishment as per EPF rules. Please refer to the information below for assistance with EPF registration.​\n\n\nUser ID: Mukesh\nPassword: Mukesh@123\n\n\n\n\nDetails of the Office:\n\nEstablishment Name: Krishna Textiles\nPremise Name:  Druva Complex\nAddress: Main Road, Near Hospital Road,\nDhori\nDistrict: Bokaro\nState: Jharkhand\nPin Code: 825102\nSetup Date: 13-09-2021\nNearest Police Station: Bokaro Police Station\nEstablishment Category: Commercial Establishment\nEmail ID: mukesh1979@nergymail.com\nMobile No: 2311964789\nOwnership Type: Proprietary Firms\nName of the Income Tax Ward: Bokaro\nPAN: SEQXM5463Y\n\nSupporting Documents:\n\nIdentifier Details:-\nGST No: 20SEQXM5463Y1Z5\nName as on Identifier: Mukesh Yadav\nGST Issue Date: 17-11-2021\nIssued by: GST Council of India\nGST Issue Place: Jharkhand\tDetails of the Proprietor:\n\nName of the Proprietor: Mukesh Yadav\nFather's Name: Rajnath Yadav\nDOB: 6th December, 1979\nGender: Male \nAddress: No. 12 D  Sravya Apartment,\nHanus Street\nMaliachak\nDistrict: Bokaro\nState: Jharkhand\nPin Code: 814155\n\n\n\n\n\n\n\nAdditional Information:\n\nAttachment: GST Licence\nPrimary Business Activity: Others\nEmployee Details:-\nTotal number of employees (including excluded employees): 25\nNumber of excluded employees: 6\nDate on which the employment strength exceeded 19: 11-03-2023\nDate from which in position: 13-09-2021\nDo the EPF and MP Acts apply to establishment: Yes\n\n\n\n\n​",
+      "credentials": {
+        "user_id": "Mukesh",
+        "password": "Mukesh@123",
+        "pan": "SEQXM5463Y"
+      },
+      "data": {},
+      "course_name": "Labour Laws - EPFO Registration",
+      "portal_name": "EPFO Unified Portal",
+      "portal_url": "https://unifiedportal-emp.epfindia.gov.in"
+    },
+    "EPFO_029BCA": {
+      "task_id": "EPFO_029BCA",
+      "course_id": "311",
+      "duration": 20,
+      "scenario": "EPFO_029BCA\nMrs. Thanooja H, who is involved in the coir making business using coconut fibres, synthetic materials, and cotton, operates under the name KNOT FIBERS. As her business has surpassed the employee threshold set by the EPFO Act, she is now obligated to register with the Employees' Provident Fund Organisation in order to provide her employees with the benefits of EPF. We kindly request your advice and guidance to assist Mrs. Thanooja throughout the registration process.\n\n\nUser ID: thanoojah83\nPassword: Thanooja@231\n\n\n\n\nDetails of the Office:\n\nEstablishment Name: KNOT FIBERS\nPremise Name: TH Estate\nAddress: 3rd Line Road,\nEdulamaddali, Pedaparupudi\nDistrict: Krishna\nState: Andhra Pradesh\nPIN Code: 521148\nSetup Date: 10-09-2020\nNearest Police Station: Info Park Police Station\nEstablishment Category: Commercial Establishment\nEmail ID: thanoojah@nergymail.com\nMobile No: 2365567724\nOwnership Type: Proprietary Firms \nName of the Income Tax Ward: Krishna\nPAN: TKLXO7128K\n\nSupporting Documents:\n\nIdentifier Details:-\nGST No: 37TKLXO7128K0Z5\nName as on Identifier: Thanooja H\nGST Issue Date: 15-11-2020\nIssued by: GST Council of India\nGST Issue Place: Krishna\n \tDetails of the Proprietor:\n\nName of the Proprietor: Thanooja H\nFather's Name: Haridas A\nDOB: 11th September, 1998\nGender: Female\nAddress: 101 Maya Apartments,\nBalive P.O, Krishna\nDistrict: Krishna\nState: Andhra Pradesh\nPIN Code: 521207\n\nAdditional Information:\n\nAttachment: GST Licence\nPrimary Business Activity: Coir\nEmployee Details:-\nTotal number of employees (including excluded employees): 20\nNumber of excluded employees: 0\nDate on which the employee strength exceeded 19: 24-07-2021\nDate from which in position: 10-09-2020\nDo the EPF and MP Acts apply to the establishment: Yes",
+      "credentials": {
+        "user_id": "thanoojah83",
+        "password": "Thanooja@231",
+        "pan": "TKLXO7128K"
+      },
+      "data": {},
+      "course_name": "Labour Laws - EPFO Registration",
+      "portal_name": "EPFO Unified Portal",
+      "portal_url": "https://unifiedportal-emp.epfindia.gov.in"
+    },
+    "EPFO_027BAA": {
+      "task_id": "EPFO_027BAA",
+      "course_id": "311",
+      "duration": 20,
+      "scenario": "EPFO_027BAA\nMr. Ravishankar M S, a youthful entrepreneur, is the proprietor of \"K R Biscuits.\" Currently, his company has not reached the employee threshold specified by the EPFO Act. However, Mr. Ravishankar voluntarily desires to register his firm in order to provide PF benefits to his employees. Your assistance is requested to aid Mr. Ravishankar in completing the registration process.\n\n\nUser ID: ravishankar123\nPassword: Ravi@123\n\n\nDetails of the Office:\n\nEstablishment Name: K R Biscuits\nPremise Name: K R Buildings\nAddress: No. 24, 3rd Block, Rajaji Road\nCyberabad, Shaikpet\nDistrict: Hyderabad\nState: Telangana\nPIN Code: 500081\nSetup Date: 05-11-2020\nNearest Police Station: Hyderabad City Police Station\nEstablishment Category: Commercial Establishment\nEmail ID: ravishankarms@nergymail.com\nMobile No: 2365535728\nOwnership Type: Proprietary Firms \nName of the Income Tax Ward: Hyderabad\nPAN: KJSXO5121Q\n\nSupporting Documents:\n\nIdentifier Details:-\nGST No: 36KJSXO5121Q1Z3\nName as on Identifier: Ravishankar M S\nGST Issue Date: 13-12-2020\nIssued by: GST Council of India\nGST Issue Place: Hyderabad\n \tDetails of the Proprietor:\n\nName of the Proprietor: Ravishankar M S\nFather's Name: Shankar Das M\nDOB: 10th July, 1978\nGender: Male\nAddress: Shankar Vilas, No.26, Jaya Nagar,\nErragadda, Ameerpet\nDistrict: Hyderabad\nState: Telangana\nPIN Code: 500018\n\nAdditional Information:\n\nAttachment: GST Licence\nPrimary Business Activity: Biscuit Making\nEmployee Details:-\nTotal Number of Employees (including excluded employees): 18\nNumber of Excluded Employees: 1\nDate on which the employee strength exceeded 19: NIL\nDate from which in position: 05-11-2020\nDo the EPF and MP Acts apply to establishment: Voluntary Coverage Application\nDate of agreement between employer and employees majority: 04-06-2022\nAny subsequent date mentioned in the agreement: 04-06-2022",
+      "credentials": {
+        "user_id": "ravishankar123",
+        "password": "Ravi@123",
+        "pan": "KJSXO5121Q"
+      },
+      "data": {},
+      "course_name": "Labour Laws - EPFO Registration",
+      "portal_name": "EPFO Unified Portal",
+      "portal_url": "https://unifiedportal-emp.epfindia.gov.in"
+    },
+    "ESIC_006AFA": {
+      "task_id": "ESIC_006AFA",
+      "course_id": "312",
+      "duration": 20,
+      "scenario": "ESIC_006AFA\nMr. Aarav, who is the proprietor of Anjuna HR Consultancy, is currently in the process of setting up a branch in Mangaluru. As part of this expansion, he has already hired 8 individuals to join his office and he has further planned to recruit an additional 17 employees for various positions. However to ensure compliance with the regulations of the Employee's State Insurance Act,1948 (ESI), Aarav needs guidance on registering his business on the ESIC portal. You are required to provide the necessary assistance to Mr. Aarav in completing the registration process successfully. \n\n\nUser ID: Aarav\nPassword: Aarav#123\n\n\n\n\nDetails of the Office:\n\nName of the office: Anjuna HR Consultancy\nPremise Name: Hilite\nAddress: Sastri Building,\nDerebail, Konchady\nDistrict: Dakshina Kannada\nState: Karnataka\nPin Code: 575002\nSetup Date: 10-09-2021\nEstablishment Category: Commercial Establishment\nNearest Police Station: Mangalore\nEmail: aaravanjuna@nergymail.com\nMobile: 2392559090\nPAN: BSXXQ1172T\n\nSupporting Documents:\n\nGST Name or Identifier's Name: Aarav S Das\nGST Number: 29BSXXQ1172T1Z6\nIssued Authority: GST Council of India\nIssued Place: Mangalore\nDate of Issue: 12-12-2021\nAttachments: GST Licences\nDescribe the work carried out: Commercial Establishment\nNature of work: Commercial Establishment\nSub-Nature: Contractors Supplying Labour\nBuilding Type: Owned\nOwnership Type: Proprietary Firms\nRegistration Deed No.: 987/2021\nRegistration Place: Mangalore\nIssued by: Govt. of Karnataka\nDate of Issue: 12-07-2021\nName of the income tax ward: Mangalore\nWhether the establishment is hazardous\nor not: No\nESIC Code: Nil\nWhether the establishment is working with the aid of power: Yes\n\n\n\n\tDetails of the Proprietor:\n\nName of the Proprietor: Aarav S Das\nFather's Name: Aaditya S Das\nAddress: V-Guard Homes,\n1st Lane, Sky Park Apartments,\nMangalore, Dakshina Kannada,\nKarnataka\nPin Code: 575002\nDate of Birth: 4th September, 1990\nGender: Male\nDate from which in position: 10-09-2021\n\n\n\n\n\nAdditional Information:\n\nTotal Number of workers: 25\nRegular- Total: 15 (Male: 5, Female: 10)\nContractors- Total: 10 (Male: 5, Female: 5)\nNo. of Employees drawing wages ₹ 21,000 or Less: 18\nRegular- Total: 10 (Male: 4 , Female: 6)\nContractors- Total: 8 (Male: 4, Female: 4)\n\nTotal Wages:\nTo employees employed directly by the principal employer: ₹3,35,000\nTo employees employed through an immediate contractor: ₹2,10,000\n\nWages paid to employees drawing wages of ₹21,000/- or less:\nTo employees employed directly by the principal employer: ₹1,85,000\nTo employees employed through an immediate contractor: ₹1,60,000\n\nMaximum No. of persons that can be employed on any one day - as per licence: 2\nDate on which 10/20 persons were employed: 09-10-2023",
+      "credentials": {
+        "user_id": "Aarav",
+        "password": "Aarav#123",
+        "pan": "BSXXQ1172T"
+      },
+      "data": {},
+      "course_name": "Labour Laws - ESIC Registration",
+      "portal_name": "ESIC Portal",
+      "portal_url": "https://www.esic.in"
+    },
+    "ESIC_007AGA": {
+      "task_id": "ESIC_007AGA",
+      "course_id": "312",
+      "duration": 20,
+      "scenario": "ESIC_007AGA\nMr. Karthik Yadav has decided to start his own accounting firm called 'Oddy Motives'. As the sole proprietor, he is taking the responsibility to learn and understand the rules and regulations set by different government departments. He has plans to grow his business in various ways and recognises the significance of following the rules, especially when it comes to providing insurance benefits for his employees. Karthik understands that by complying with the regulations, he can ensure the well-being and security of his employees while also operating his business smoothly and responsibly. You are required to provide the necessary assistance to Mr. Karthik in completing the registration process successfully.\n\n\nUser ID: karthikyadav\nPassword: Karthik#123\n\n\nDetails of the Office:\n\nName of the office: Oddy Motives\nPremise Name: Star V\nAddress: Q-Vis Building,\nPublic Park, Rani Bazar\nDistrict: New Delhi\nState: Delhi (NCT)\nPin Code: 110001\nSetup Date: 03-03-2019\nEstablishment Category: Commercial Establishment\nNearest Police Station: Delhi\nEmail: karthikyadav56@nergymail.com\nMobile: 2324442223\nPAN: KSXXQ3172S\n\nSupporting Documents:\n\nGST Name or Identifier's Name: Karthik Yadav\nGST Number: 07KSXXQ3172S1Z7\nIssued Authority: GST Council of India\nIssued Place: Delhi\nDate of Issue: 23-05-2019\nDescribe The Work Carried Out: Commercial Establishment\nNature of work: Commercial Establishment\nSub-Nature of Work: Others\nBuilding Type: Owned\nName of the income tax ward: Delhi\nOwnership Type: Proprietary Firms\nRegistration Deed No.: 052/2018\nRegistration Place: Delhi\nIssued by: Govt. of Delhi\nDate of Issue: 09-12-2018\nWhether the establishment is hazardous\nor not: No \nESIC Code: Nil \nWhether the establishment is working with the aid of power: Yes\n\n\n\n\tDetails of the Proprietor:\n\nName of the  Proprietor: Karthik Yadav\nFather's Name: Makesh Yadav\nAddress: Saturn Villas,\nNo. 32, V.V. Road, Austin Road,\nDelhi,\nNew Delhi\nPin Code: 110003\nDate of Birth: 12th October, 1988\nGender: Male\nDate from which in position: 03-03-2019\n\n\n\n\n\nAdditional Information:\n\nTotal numbers of workers: 19\nRegular- Total:16 (Male: 8, Female: 8) \nContractors- Total: 3 (Male: 2, Female: 1)\nNo. of Employees drawing wages ₹ 21,000 or Less:15\nRegular- Total: 12 (Male: 6, Female: 6)\nContractors- Total: 3 (Male:2, Female:1)\n\nTotal Wages:\nTo employees employed directly by the principal employer: ₹4,00,000/- \nTo employees employed through an immediate contractor: ₹63,000/- \n\nWages paid to employees drawing wages of ₹21,000/- or less. \nTo employees employed directly by the principal employer: ₹2,40,000/- \nWages paid to contractors drawing wages: ₹63,000/-\n \nMaximum No. of persons that can be employed  on any one day, as per licence: 1 \nDate on which 10/20 persons were employed: 10-07-2023.",
+      "credentials": {
+        "user_id": "karthikyadav",
+        "password": "Karthik#123",
+        "pan": "KSXXQ3172S"
+      },
+      "data": {},
+      "course_name": "Labour Laws - ESIC Registration",
+      "portal_name": "ESIC Portal",
+      "portal_url": "https://www.esic.in"
+    },
+    "ESIC_008AHA": {
+      "task_id": "ESIC_008AHA",
+      "course_id": "312",
+      "duration": 20,
+      "scenario": "ESIC_008AHA\nMr. Jai Das has been operating SQS Solutions, a sole proprietorship specialising in software technologies, for the past two years. As the company has expanded, the number of employees has exceeded the threshold specified by the Employee's State Insurance Act, 1948 (ESI), making it mandatory for Jai to register the organization under the ESI Act. Your assistance is required to guide Mr. Jai through the registration process and ensure its successful completion.\n\n\nUser ID: Jai\nPassword: Jai*123\n\n\nDetails of the Office:\n\nName of the office: SQS Solutions\nPremise Name: 23/210\nAddress: No. 43/20- GG,\nIndira Bhawan, Civil Lines\nDistrict: Allahabad\nState: Uttar Pradesh\nPin Code: 211001\nSetup Date: 29-03-2021\nEstablishment Category: Commercial Establishment\nNearest Police Station: NCR \nEmail: jaisqssolutions@nergymail.com\nMobile: 2324442256\nPAN: JKXXQ1172R\n\nSupporting Documents:\n\nGST Name or Identifier's Name: Jai Das\nGST Number: 09JKXXQ1172R1Z7\nIssued Authority: GST Council of India\nIssued Place: Noida\nDate of Issue: 19-03-2022\nAttachments: GST Licences\nNature of work: Commercial Establishment\nSub-Nature: Computer Training Centres\nBuilding Type: Owned\nDescribe the work carried out: Commercial Establishment\nOwnership Type: Proprietary Firms\nRegistration Deed No.: 21/2020\nRegistration Place: Noida\nIssued By: Govt. of Uttar Pradesh\nDate of issue: 20-07-2020\nName of the income tax ward: Noida\nWhether the establishment is hazardous\nor not: No \nESIC Code: Nil\nWhether the establishment is working with the aid of power: Yes\n\n \n\n\tDetails of the Proprietor:\n\nName of the Properitor: Jai Das\nFather's Name: Sankar Das\nAddress: Ganga Apartments,\nNo. 5, Ganga Apartments, Gandhi Road,\nAllahabad,\nUttarpadesh\nPin Code: 211002\nDate of Birth: 20th January, 1982\nGender: Male\nDate from which in position: 29-03-2021\n \n\n\n\n\nAdditional Information:\n\nTotal Number of workers: 20\nRegular = Total:8 (Male:2, Female: 6)\nContractors = Total:12 (Male: 7, Female: 5)\nNo. of Employees drawing wages ₹ 21,000 or Less: 16\nRegular:4 (Male: 2, Female: 2)\nContractors - Total: 12 (Male: 7, Female: 5)\n\nTotal Wages \nTo employees employed directly by the principal employer: ₹1,92,000/-\nTo employees employed through an immediate contractor: ₹2,16,000/-\n\nWages paid to employees drawing wages of ₹21,000/- or less  \nTo employees employed directly by the principal employer - ₹76,000/-\nTo employees employed through an immediate contractor: ₹2,16,000/-\n\nMaximum No. of persons that can be employed  on any one day, as per licence: 1\nDate on which 10/20 persons were employed: 13-05-2023",
+      "credentials": {
+        "user_id": "Jai",
+        "password": "Jai*123",
+        "pan": "JKXXQ1172R"
+      },
+      "data": {},
+      "course_name": "Labour Laws - ESIC Registration",
+      "portal_name": "ESIC Portal",
+      "portal_url": "https://www.esic.in"
+    },
+    "MCA_Signup_010AJ": {
+      "task_id": "MCA_Signup_010AJ",
+      "course_id": "529",
+      "duration": 20,
+      "scenario": "MCA_Signup_010AJ\n\nMr. Ramiz Akthar, after completing the CMA Intermediate level, began his traineeship under the guidance of practising cost accountant Mr. Neeraj Madhav, who holds the status of a fellow member of ICMAI. Mr. Neeraj entrusted Mr. Ramiz with the work of filing the SPICe+ Form with MCA. In order to complete the work, he had directed him to make an account on the MCA V3 portal as a professional staff member. Assist Mr. Ramiz in creating an account on the MCA V3 portal.\n\n\n\nPersonal Information:\tContact Details:\nUser Category: Business User\tAddress Line 1: MRA 42, B4 Block\nPAN: CDSXA3990R\tAddress Line 2: Paschim Vihar, West Delhi,\nName: Ramiz Akthar\tDelhi, India, 110063\nDate of Birth: 20-04-2003\tArea/Locality: Paschim Vihar\nProfessional Details:\tTelephone Number (Residence): 23032502244\nMembership Type: Associate\tTelephone Number (Office): 23325446645\nProfessional Membership Institute: ICWAI\tMobile Number: 2304473762\nProfessional Membership Number: 1943\tEmail ID: ramizakthar57@nergymail.com",
+      "credentials": {
+        "pan": "CDSXA3990R"
+      },
+      "data": {},
+      "course_name": "MCA - V3 Portal Signup",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_Signup_011AK": {
+      "task_id": "MCA_Signup_011AK",
+      "course_id": "529",
+      "duration": 20,
+      "scenario": "MCA_Signup_011AK\n\nMs. Nisha Sharma recently completed her CA Intermediate exams and has begun her articleship under the guidance of Mr. Rajesh, a chartered accountant. Mr. Rajesh has assigned Ms. Sharma the task of submitting various filings for several client companies. To fulfil these responsibilities, Ms. Sharma must create a business user ID as a professional staff member on the MCA V3 portal. Guide Ms. Sharma through the process of registering for a business user ID.\n\n\n\nPersonal Information:\tContact Details:\nUser Category: Business User\tAddress Line 1: No. 22, White House\nPAN: GDPXA5990E\tAddress Line 2: Swami Vivekanand Rd, Amravati,\nName: Nisha Sharma\t444601, Maharashtra, India\nDate of Birth: 25/09/2002\tArea/Locality: Amravati\nProfessional Details:\tTelephone Number (Residence): 23196602244\nMembership Type: Fellow\tTelephone Number (Office): 233458866452\nProfessional Membership Institute: ICAI\tMobile Number: 2305673772\nProfessional Membership Number: 19425\tEmail ID: nishasharma47@nergymail.com",
+      "credentials": {
+        "pan": "GDPXA5990E"
+      },
+      "data": {},
+      "course_name": "MCA - V3 Portal Signup",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_Signup_013AM": {
+      "task_id": "MCA_Signup_013AM",
+      "course_id": "529",
+      "duration": 20,
+      "scenario": "MCA_Signup_013AM\n\nMr. Om Prakash, having recently accomplished her MBA with a specialisation in finance and compliance, has commenced an internship under the mentorship of Mr. Sudheer Babu, a Chartered Accountant. As part of his internship responsibilities, Mr. Prakash needs to establish an account on the MCA V3 portal to facilitate company filings and compliance tasks. Provide guidance to Mr. Prakash on completing the sign-up process on the MCA V3 portal as a professional staff member.\n\n\n\n\nPersonal Information:\tContact Details:\nUser Category: Business User\tAddress Line 1: C2-103 Jumbo Darshan, Jiva Mahale Marg\nPAN: BGCXE1234R\tAddress Line 2: Koladongri, Mumbai, Kolhapur,\nName: Om Prakash\t416001, Maharashtra\nDate of Birth: 07/09/2003\tArea/Locality: Kolhapur\nProfessional Details:\tTelephone Number (Residence): 234933392472\nMembership Type: Associate\tTelephone Number (Office): 234669365560\nProfessional Membership Institute: ICAI\tMobile Number: 2302622325\nProfessional Membership Number: 20109\tEmail ID: omprakash11@nergymail.com",
+      "credentials": {
+        "pan": "BGCXE1234R"
+      },
+      "data": {},
+      "course_name": "MCA - V3 Portal Signup",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_Signup_018AR": {
+      "task_id": "MCA_Signup_018AR",
+      "course_id": "529",
+      "duration": 20,
+      "scenario": "MCA_Signup_018AR\nMr. Arun Balagopal, who recently completed his BBA, has started an internship under the guidance of Mr. Hridik, a Chartered Accountant. As part of his internship duties, Mr. Arun is required to create an account on the MCA V3 portal to handle company filings and compliance tasks. Please provide guidance to Mr. Arun on completing the sign-up process on the MCA V3 portal as a professional staff member.\n\n\nPersonal Information:\tContact Details:\nUser Category: Business User\tAddress Line 1: C2-103 Jumbo Darshan, Jiva Mahale Marg\nPAN: HGCXE1234R\tAddress Line 2: Koladongri, Andheri East, Mumbai City,\nName: Arun Balagopal\tMaharashtra, 400500\nDate of Birth: 07/09/2003\tArea/Locality: Kolhapur\nProfessional Details:\tTelephone Number (Residence): 234933394441\nMembership Type: Fellow\tTelephone Number (Office): 234669362514\nProfessional Membership Institute: ICAI\tMobile Number: 2302621235\nProfessional Membership Number: 20114\tEmail ID: arun04@nergymail.com",
+      "credentials": {
+        "pan": "HGCXE1234R"
+      },
+      "data": {},
+      "course_name": "MCA - V3 Portal Signup",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_Signup_008AH": {
+      "task_id": "MCA_Signup_008AH",
+      "course_id": "529",
+      "duration": 20,
+      "scenario": "MCA_Signup_008AH\n\nMs. Neha Sharma, after completing her post-graduation from a renowed university, secured a job through campus placement as a junior compliance officer. To fulfil her responsibilities, she requires an account on the MCA V3 portal. Let's assist Ms. Sharma in the sign-up procedure.\n\n\n\nPersonal Information:\tContact Details:\nUser Category: Business User\tAddress Line 1: MN Subramanya, Stage 4\nUser Role: Manager/Secretary/Authorized Representative\tAddress Line 2: Kumaraswamy Layout, Bangalore Urban\nPAN: HSTXB1234S\tKarnataka, India, 560078\nName: Neha Sharma\tArea/Locality: Kumaraswamy Layout\nDate of Birth: 25-10-2002\tTelephone Number (Residence): 23496669247\n \tTelephone Number (Office): 234669695369\n \tMobile Number: 2375622325\n \tEmail ID: nehasharma@nergymail.com",
+      "credentials": {
+        "pan": "HSTXB1234S"
+      },
+      "data": {},
+      "course_name": "MCA - V3 Portal Signup",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIN_013AM": {
+      "task_id": "DIN_013AM",
+      "course_id": "531",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIN Application",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIN_015AO": {
+      "task_id": "DIN_015AO",
+      "course_id": "531",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIN Application",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIN_011AK": {
+      "task_id": "DIN_011AK",
+      "course_id": "531",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIN Application",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIN_006AF": {
+      "task_id": "DIN_006AF",
+      "course_id": "531",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIN Application",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIN_009AI": {
+      "task_id": "DIN_009AI",
+      "course_id": "531",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIN Application",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC WEB_014AN": {
+      "task_id": "DIR-3 KYC WEB_014AN",
+      "course_id": "1408",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Web",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC WEB_012AL": {
+      "task_id": "DIR-3 KYC WEB_012AL",
+      "course_id": "1408",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Web",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC WEB_016AP": {
+      "task_id": "DIR-3 KYC WEB_016AP",
+      "course_id": "1408",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Web",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC WEB_013AM": {
+      "task_id": "DIR-3 KYC WEB_013AM",
+      "course_id": "1408",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Web",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC WEB_011AK": {
+      "task_id": "DIR-3 KYC WEB_011AK",
+      "course_id": "1408",
+      "duration": 20,
+      "scenario": null,
+      "credentials": {},
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Web",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC_017AQ": {
+      "task_id": "DIR-3 KYC_017AQ",
+      "course_id": "532",
+      "duration": 20,
+      "scenario": "DIR-3 KYC_017AQ\nMr. Saurabh Agrawal, a lawyer, has recently assumed the role of director in a company. He is aware of the requirement to submit the DIR-3 KYC Form before September 30th of the next financial year following the recent allocation of a DIN. As a professional in corporate compliance, he needs your assistance in filing Form DIR-3 KYC with the MCA.\n\n\n\nUser ID: saurabhagarwal05@nergymail.com\n\nPassword: Saurabh@54\n\n\n\nDetails of the director\tPAN: CFDXN1242E\nName: Saurabh Agrawal\tAadhaar number: 999900001524\nDIN: 99990215\tVoter identity card number: KLM1234566\nFather’s name: Krishan Agarwal \tPassport number: X2382766\nD.O.B: 05/12/1985\tDriving licence number: TS06200400086\nResidential address: \tPersonal mobile number: 2341552622\nAddress 1: C-1, Jawan Arcade, A. S. Rao Nagar, Hyderabad district, Telangana, 500152\tPersonal email ID: saurabhagarwal05@nergymail.com\nWhether a citizen of india: Yes\tCertifying professional: Company Secretary (Associate)\nWhether a resident in India: Yes\tMembership number: 10254\nJurisdiction of police station: Kushaiguda\tCertificate of practice number: 12480",
+      "credentials": {
+        "user_id": "saurabhagarwal05@nergymail.com",
+        "password": "Saurabh@54",
+        "pan": "CFDXN1242E"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Filing",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC_016AP": {
+      "task_id": "DIR-3 KYC_016AP",
+      "course_id": "532",
+      "duration": 20,
+      "scenario": "DIR-3 KYC_016AP\nMr. Deepak Kapoor, who holds an active DIN, recently went through changes in personal information. Recognising the importance of compliance with MCA regulations, he has reached out to you for assistance in filing the DIR-3 form to submit his updated information. Please assist Mr. Kapoor with the submission of his DIR-3 KYC.\n\n\nUser ID: deepak06@nergymail.com\nPassword: Deepak@5112\n\n\nDetails of the director\tPAN: CDSXN3844E\nName: Deepak Kapoor\tAadhaar number: 999900004152\nDIN: 99990514\tVoter identity card number: CDS1234520\nFather’s name: Dinesh Kapoor\tPassport number: X2373762\nD.O.B: 12/05/1986\tDriving licence number: PB08200500029\nResidential address:\tPersonal mobile number: 2341552212\nAddress 1: No. 502, RK Property, 66 Feet Road, Vijay Colony, Jalandhar district, Punjab, 144001\tPersonal email ID: deepakkapoor03@nergymail.com\nWhether a citizen of India: Yes\tCertifying professional: Company Secretary (Associate)\nWhether a resident in India: Yes\tMembership number: 23001\nJurisdiction of police station: Jalandhar\tCertificate of practice number: 23551",
+      "credentials": {
+        "user_id": "deepak06@nergymail.com",
+        "password": "Deepak@5112",
+        "pan": "CDSXN3844E"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Filing",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC_009AI": {
+      "task_id": "DIR-3 KYC_009AI",
+      "course_id": "532",
+      "duration": 20,
+      "scenario": "DIR-3 KYC_009AI\n\nMr. Sharan Kumar, a marketing consultant, was recently allotted a DIN. Recognising the necessity to file the DIR-3 KYC form to furnish his details and adhere to regulatory requirements, Mr. Sharan seeks your professional assistance in filing Form DIR-3 KYC with the MCA.\n\nUser ID: sharankumar32@nergymail.com\n\nPassword: Sharan@969\n\n\n\nDetails of the director  \tPAN: CSDXN1234R\nName: Sharan Kumar\tAadhaar number: 999900005636\nDIN: 99993127\tVoter identity card number: JKL1234567\nFather’s name: Suresh Narayan\tPassport number: B2353760\nD.O.B: 15/06/1986\tDriving licence number: GJ06200400059\nResidential address:  \tPersonal mobile number: 2306511100\nAddress 1: No. 402, Aristo Aatman, Gota, Ahmedabad district, Gujarat, 382481\tPersonal email ID: sharankumar32@nergymail.com\nWhether a citizen of India: Yes\tCertifying professional: Chartered Accountant (Fellow)\nWhether resident in India: Yes\tMembership number: 16235\nJurisdiction of police station: Gota\tCertificate of practice number: 10021",
+      "credentials": {
+        "user_id": "sharankumar32@nergymail.com",
+        "password": "Sharan@969",
+        "pan": "CSDXN1234R"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Filing",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC_015AO": {
+      "task_id": "DIR-3 KYC_015AO",
+      "course_id": "532",
+      "duration": 20,
+      "scenario": "DIR-3 KYC_015AO\n\nMr. Abhishek Sharma, who holds an active DIN, recently went through changes in personal information. Recognising the importance of compliance with MCA regulations, he has reached out to you for assistance in filing the DIR-3 form to submit his updated information. Please assist Mr. Sharma with the submission of his DIR-3 KYC.\n\nUser ID: abhisheksharma21@nergymail.com\nPassword: Abhishek@360\n\n\nDetails of the director  \tPAN: VGDXN1234R\nName: Abhishek Sharma\tAadhaar number: 999900003656\nDIN: 99992560\tVoter identity card number: RFC1234566\nFather’s name: Sanjay Sharma\tPassport number: X2342766\nD.O.B: 21/07/1984\tDriving licence number: MH06200400085\nResidential address:\tPersonal mobile number: 2306569652\nAddress 1: No. 604, Golden Tower, Bansod, Nagpur district, Maharashtra, 440012\tPersonal email ID: abhisheksharma21@nergymail.com\nWhether a citizen of India: Yes\tCertifying professional: Company Secretary (Associate)\nWhether resident in India: Yes\tMembership number: 12244\nJurisdiction of police station: Bansod\tCertificate of practice number: 1005",
+      "credentials": {
+        "user_id": "abhisheksharma21@nergymail.com",
+        "password": "Abhishek@360",
+        "pan": "VGDXN1234R"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Filing",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "DIR-3 KYC_020AT": {
+      "task_id": "DIR-3 KYC_020AT",
+      "course_id": "532",
+      "duration": 20,
+      "scenario": "DIR-3 KYC_020AT\nSanjay Khanna, a successful designer, recently became a director of a company. He understands the importance of maintaining accurate and up-to-date information with the Ministry of Corporate Affairs (MCA). Mr. Khanna realises he must file the DIR-3 KYC form to provide his updated details and comply with the regulatory requirements. As a professional in corporate compliance, he needs your assistance in filing Form DIR-3 KYC with the MCA.\n\n\n\nUser ID: sanjay090@nergymail.com\n\nPassword: Sanjay@1449\n\n\nDetails of the director \tPAN: BSEXM3455R\nName: Sanjay Khanna\tAadhaar number: 999900001124\nDIN: 99991226\tVoter identity card number: NOP123456\nFather’s name: Rishi Khanna\tPassport number: X2372701\nD.O.B: 16/08/1985\tDriving licence number: MH06200500012\nResidential address: \tPersonal mobile number: 2354771200\nAddress 1: No 4, Eco City 1, New Chandigarh, Mohali district, 140103, Punjab\tPersonal email ID: sanjay090@nergymail.com\nWhether a citizen of India: Yes\tCertifying professional: Company Secretary (Fellow)\nWhether a resident in India: Yes\tMembership number: 19624\nJurisdiction of police station: Chandigarh\tCertificate of practice number: 14501",
+      "credentials": {
+        "user_id": "sanjay090@nergymail.com",
+        "password": "Sanjay@1449",
+        "pan": "BSEXM3455R"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-3 KYC Filing",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_NameRes_012AL": {
+      "task_id": "MCA_NameRes_012AL",
+      "course_id": "530",
+      "duration": 20,
+      "scenario": "MCA_NameRes_012AL\n\nMr. Manu Das, a trainee in your office, has been assigned the responsibility of submitting the SPICe+ Form for name reservation for a new company to the MCA. Given his lack of prior experience in filing the Spice+ Form, assist him with this task.\n\nUser ID: manudas45@nergymail.com\nPassword: Manudas@99#\n\n\nType of the Company\tNew Company Others\nClass of the Company\tPrivate\nCategory of the Company\tCompany Limited by Shares\nSubcategory\tNon-Government Company\nSearch and Industry Subclass: NIC \t53200\nParticulars of the proposed or approved name 1\tQuickship Express Private Limited\nParticulars of the proposed or approved name 2\tJetstream Express Private Limited",
+      "credentials": {
+        "user_id": "manudas45@nergymail.com",
+        "password": "Manudas@99#"
+      },
+      "data": {},
+      "course_name": "MCA - SPICe+ Name Reservation",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_NameRes_018AR": {
+      "task_id": "MCA_NameRes_018AR",
+      "course_id": "530",
+      "duration": 20,
+      "scenario": "MCA_NameRes_018AR\nMr. Abhilash Lal, currently pursuing CA Intermediate level, started his articleship under the mentorship of Mr. Ashok Kumar Gupta, a Fellow member of ICAI (Institute of Chartered Accountants of India). Mr. Gupta has delegated to Mr. Abhilash the responsibility of filing the SPICe+ Form (reserve name for new company incorporation). Let's offer Mr. Abhilash the required support in this endeavour.\n\n\nUser ID: abhilash01@nergymail.com\nPassword: Abhilash@004\n\n\nType of the Company\tNew Company Others\nClass of the Company\tPublic\nCategory of the Company\tCompany Limited by Shares\nSubcategory\tNon-Government Company\nSearch and Industry Subclass: NIC \t73100\nParticulars of the proposed or approved name 1\tAd Axis Solutions Private Limited\nParticulars of the proposed or approved name 2\tBright Brand Media Private Limited",
+      "credentials": {
+        "user_id": "abhilash01@nergymail.com",
+        "password": "Abhilash@004"
+      },
+      "data": {},
+      "course_name": "MCA - SPICe+ Name Reservation",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_NameRes_016AP": {
+      "task_id": "MCA_NameRes_016AP",
+      "course_id": "530",
+      "duration": 20,
+      "scenario": "MCA_NameRes_016AP\nMr. Rahul Chowdhri, preparing to launch a clothing business, has opted to register it as a private limited company in India. Before proceeding with the incorporation, he has sought your guidance for assistance with the name reservation process. Offer him support in navigating through the name reservation process.\n\n\n\nUser ID: rahulchowdhri01@nergymail.com\n\nPassword: Rahul@1141\n\n\n\nType of the Company\tNew Company Others\nClass of the Company\tPrivate\nCategory of the Company\tCompany Limited by Shares\nSubcategory\tNon-Government Company\nSearch and Industry Subclass: NIC \t46419\nParticulars of the proposed or approved name 1\tUrban Chic Wardrobe Private Limited\nParticulars of the proposed or approved name 2\tChic Cloth Creations Private Limited",
+      "credentials": {
+        "user_id": "rahulchowdhri01@nergymail.com",
+        "password": "Rahul@1141"
+      },
+      "data": {},
+      "course_name": "MCA - SPICe+ Name Reservation",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_NameRes_007AG": {
+      "task_id": "MCA_NameRes_007AG",
+      "course_id": "530",
+      "duration": 20,
+      "scenario": "MCA_NameRes_007AG\n\nMs. Anjana, planning to launch her own clothing business, has decided to register it as a private limited company in India. Before proceeding with the incorporation, she has reached out to you for assistance with the name reservation process. Assist her in the name reservation procedure.\n\n\nUser ID: anjana01@nergymail.com\nPassword: Anjana001#\n\n\nType of the Company\tNew Company Others\nClass of the Company\tPrivate\nCategory of the Company\tCompany Limited by Shares\nSubcategory\tNon-Government Company\nSearch and Industry Subclass: NIC \t46419\nParticulars of the proposed or approved name 1\tOld Skool Threads Private Limited\nParticulars of the proposed or approved name 2\tVintage Threads Private Limited",
+      "credentials": {
+        "user_id": "anjana01@nergymail.com",
+        "password": "Anjana001#"
+      },
+      "data": {},
+      "course_name": "MCA - SPICe+ Name Reservation",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_NameRes_013AM": {
+      "task_id": "MCA_NameRes_013AM",
+      "course_id": "530",
+      "duration": 20,
+      "scenario": "MCA_NameRes_013AM\n\nMr. Vijay Kumar, who is in the process of establishing a furniture restoration and repair company, has decided to register it as a private limited company in India. Before proceeding with the incorporation, he has reached out to you for assistance with the name reservation process. Offer him support in navigating through the name reservation procedure.\n\nUser ID: vijaykumar01@nergymail.com\nPassword: Vijay@015\n\n\nType of the Company\tNew Company Others\nClass of the Company\tPrivate\nCategory of the Company\tCompany Limited by Shares\nSubcategory\tNon-Government Company\nSearch and Industry Subclass: NIC \t95240\nParticulars of the proposed or approved name 1\tRevive Wood Private Limited\nParticulars of the proposed or approved name 2\tResto Craft Furniture Private Limited",
+      "credentials": {
+        "user_id": "vijaykumar01@nergymail.com",
+        "password": "Vijay@015"
+      },
+      "data": {},
+      "course_name": "MCA - SPICe+ Name Reservation",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_APP_015AO": {
+      "task_id": "MCA_APP_015AO",
+      "course_id": "534",
+      "duration": 20,
+      "scenario": "MCA_APP_015AO\nHumankind Pharma Ltd., a leading pharmaceutical company, aims to strengthen its Medical Affairs team by appointing Ms. Nisha Mather as the new director. Ms. Mather officially assumed the directorship role during the annual general meeting held on September 25, 2023. Your manager has entrusted you with the task of filing Form DIR-12 with the Ministry of Corporate Affairs (MCA) for Humankind Pharma Ltd.\n\n\n\nUser ID: udayshankar45@nergymail.com\n\nPassword: UdayShankar@50\n\n\n\nCompany details:\nName: Humankind Pharma Ltd.\nCIN: U12345KA1985PLC001234\n\nDetails of director:\nName: Nisha Mather\nDIN: 99996614\nDesignation: Director\nDate of appointment: 25/09/2023\nCategory: Professional (Executive)\nInterest in other entities: 0\tAuthorised director:\nName: Abhinav Bindra\nDIN: 99996959\nDesignation: Director\nResolution number: 4\n\nCertifying professional details:\nName: Uday Shankar\nCompany Secretary in whole-time practice (Fellow)\nCertificate of practice number: 16150",
+      "credentials": {
+        "user_id": "udayshankar45@nergymail.com",
+        "password": "UdayShankar@50"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-12 Appointment",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_APP_008AH": {
+      "task_id": "MCA_APP_008AH",
+      "course_id": "534",
+      "duration": 20,
+      "scenario": "MCA_APP_008AH\n\nVesla Motors Ltd., a major player in the car industry known for its innovative technology, plans to boost its product development team by appointing Mr. Akshay Das as the new director. Mr. Das assumed the directorship role at the annual general meeting held on August 25, 2023. Your manager assigned you to complete the Form DIR-12 (Appointment) filing with the Ministry of Corporate Affairs (MCA) for Vesla Motors Ltd. \n\nUser ID: manish09@nergymail.com\nPassword: Manish@0013\n\n\nCompany details:\nName: Vesla Motors Ltd.\nCIN: U12345MH1970PLC001234\n\nDetails of director:\nName: Akshay Das\nDIN: 99992512\nDesignation: Director \nDate of appointment: 25/08/2023\nCategory: Professional (Executive)\nInterest in other entities: 0\tAuthorised director:\nName: Rajat Kapoor\nDIN: 99993442\nDesignation: Director\nResolution number: 2\n\nCertifying professional details:\nName: Manish Chauhan\nChartered Accountant in whole-time practice (Fellow)\nMembership number: 1212",
+      "credentials": {
+        "user_id": "manish09@nergymail.com",
+        "password": "Manish@0013"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-12 Appointment",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_APP_014AN": {
+      "task_id": "MCA_APP_014AN",
+      "course_id": "534",
+      "duration": 20,
+      "scenario": "MCA_APP_014AN\nHannit Constructions Pvt. Ltd., a reputable company specialising in construction projects, has appointed Ms. Tanwita Ganguly as an independent director. The company ratified the appointment through a special resolution at a general meeting held on September 20, 2023. As an articled assistant in a CMA firm, your responsibility includes completing the filing of the Form DIR-12 with the Ministry of Corporate Affairs to formalise this appointment.\n\n\n\n\nUser ID: pradeep07@nergymail.com\nPassword: Pradeep@2557\n\n\nCompany details:\nName: Hannit Constructions Pvt. Ltd.\nCIN: U12345KA1990PTC001234\n\nDetails of director:\nName: Tanwita Ganguly\nDIN: 99996618\nDesignation: Director\nDate of appointment: 20/09/2023\nCategory: Independent (non-executive)\nInterest in other entities: 0\tAuthorised director:\nName: Rahul Vaswani\nDIN: 99992959\nDesignation: Director\nResolution number: 5\n\nCertifying professional details:\nName: Pradeep Shrivastava\nCost Accountant in whole-time practice (Associate)\nCertificate of practice number: 15752",
+      "credentials": {
+        "user_id": "pradeep07@nergymail.com",
+        "password": "Pradeep@2557"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-12 Appointment",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_APP_013AM": {
+      "task_id": "MCA_APP_013AM",
+      "course_id": "534",
+      "duration": 20,
+      "scenario": "MCA_APP_013AM\nTech Factory Pvt. Ltd., a well-established company engaged in diverse operations, found the need to appoint a new director, Mr. Bharat Sheth, as part of its business expansion. The company officially ratified Mr. Sheth's appointment through an ordinary resolution during its annual general meeting. You have been assigned by your principal to complete the filing of Form DIR-12 with the Ministry of Corporate Affairs (MCA) for Tech Factory Pvt. Ltd.\n\n\n\n\nUser ID: sanjeev45@nergymail.com\n\nPassword: Sanjeev@556\n\n\n\n\nCompany details:\nName: Tech Factory Pvt. Ltd.\nCIN: U12345PB1990PTC001234\n\nDetails of director:\nName: Bharat Sheth\nDIN: 99996618\nDesignation: Director\nDate of appointment: 30/09/2023\nCategory: Professional (Executive)\nInterest in other entities: 0\n\tAuthorised director:\nName: Abhinav Bindra\nDIN: 99996959\nDesignation: Director\nResolution number: 4\n\nCertifying professional details:\nName: Sanjay Singhania\nCompany Secretary in whole-time practice (Fellow)\nCertificate of practice number: 10155",
+      "credentials": {
+        "user_id": "sanjeev45@nergymail.com",
+        "password": "Sanjeev@556"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-12 Appointment",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    },
+    "MCA_APP_012AL": {
+      "task_id": "MCA_APP_012AL",
+      "course_id": "534",
+      "duration": 20,
+      "scenario": "MCA_APP_012AL\nMNX Technologies Pvt. Ltd., a digital solutions company, is looking to strengthen its engineering division by appointing Mr. Abhinav Mehta as a director. A resolution has been passed in the board meeting appointing him as an additional director. Your manager at the CMA firm has tasked you with completing the filing of Form DIR-12 with the Ministry of Corporate Affairs (MCA).\n\n\n\n\nUser ID: binod01@nergymail.com\n\nPassword: Binod@958\n\n\n\n\nCompany details:\nName: MNX Technologies Pvt. Ltd.\nCIN: U12345DL1972PTC001234\n\nDetails of director:\nName: Abhinav Mehta\nDIN: 99993218\nDesignation: Additional Director\nDate of appointment: 10/01/2023\nCategory: Professional (Executive)\nInterest in other entities: 0\tAuthorised director:\nName: Pradeep Kumar\nDIN: 99995564\nDesignation: Director\nResolution number: 6\n\nCertifying professional details:\nName: Binod Singh\nChartered Accountant in whole-time practice (Fellow)\nMembership number: 10132",
+      "credentials": {
+        "user_id": "binod01@nergymail.com",
+        "password": "Binod@958"
+      },
+      "data": {},
+      "course_name": "MCA - DIR-12 Appointment",
+      "portal_name": "MCA V3 Portal",
+      "portal_url": "https://www.mca.gov.in"
+    }
+  },
+  "by_course": {
+    "299": [
+      "GST_TRN_017AQA",
+      "GST_TRN_014ANA",
+      "GST_TRN_023AWA",
+      "GST_TRN_019ASA",
+      "GST_TRN_013AMA"
+    ],
+    "300": [
+      "GST_RGN_016APA",
+      "GST_RGN_024AXA",
+      "GST_RGN_027BAA",
+      "GST_RGN_021AUA",
+      "GST_RGN_011AKA"
+    ],
+    "302": [
+      "GST_RTN0_023AWA",
+      "GST_RTN0_020ATA",
+      "GST_RTN0_011AKA",
+      "GST_RTN0_024AXA",
+      "GST_RTN0_025AYA"
+    ],
+    "301": [
+      "GST_RTN3B_006AF",
+      "GST_RTN3B_012ALA",
+      "GST_RTN3B_032BFA",
+      "GST_RTN3B_029BCA",
+      "GST_RTN3B_043BQA"
+    ],
+    "303": [
+      "GST_CMP08_014ANA",
+      "GST_CMP08_024AXA",
+      "GST_CMP08_019ASA",
+      "GST_CMP08_023AWA",
+      "GST_CMP08_017AQA"
+    ],
+    "304": [
+      "E-Way_020ATA",
+      "E-Way_012ALA",
+      "E-Way_013AMA",
+      "E-Way_025AYA",
+      "E-Way_018ARA"
+    ],
+    "305": [
+      "EPAN_009AIA",
+      "EPAN_010AJA",
+      "EPAN_016APA",
+      "EPAN_007AGA",
+      "EPAN_008AHA"
+    ],
+    "306": [
+      "ITREG_020ATA",
+      "ITREG_022AVA",
+      "ITREG_026AZA",
+      "ITREG_030BDA",
+      "ITREG_013AMA"
+    ],
+    "307": [
+      "ITR1-007AG",
+      "ITR1-006AF",
+      "ITR1-011AKT",
+      "ITR1-004AD",
+      "ITR1-016APA"
+    ],
+    "308": [
+      "ITR1N-021AUA",
+      "ITR1N-014ANA",
+      "ITR1N-017AQA",
+      "ITR1N-023AWA",
+      "ITR1N-013AMA"
+    ],
+    "309": [
+      "TDS_041BOA",
+      "TDS_022AVT",
+      "TDS_032BFA",
+      "TDS_020ATA",
+      "TDS_021AUT"
+    ],
+    "310": [
+      "TCS_014ANA",
+      "TCS_013AMA",
+      "TCS_020ATA",
+      "TCS_015AOA",
+      "TCS_018ARA"
+    ],
+    "311": [
+      "EPFO_017AQA",
+      "EPFO_022AVA",
+      "EPFO_015AOA",
+      "EPFO_029BCA",
+      "EPFO_027BAA"
+    ],
+    "312": [
+      "ESIC_006AFA",
+      "ESIC_007AGA",
+      "ESIC_008AHA"
+    ],
+    "529": [
+      "MCA_Signup_010AJ",
+      "MCA_Signup_011AK",
+      "MCA_Signup_013AM",
+      "MCA_Signup_018AR",
+      "MCA_Signup_008AH"
+    ],
+    "531": [
+      "DIN_013AM",
+      "DIN_015AO",
+      "DIN_011AK",
+      "DIN_006AF",
+      "DIN_009AI"
+    ],
+    "1408": [
+      "DIR-3 KYC WEB_014AN",
+      "DIR-3 KYC WEB_012AL",
+      "DIR-3 KYC WEB_016AP",
+      "DIR-3 KYC WEB_013AM",
+      "DIR-3 KYC WEB_011AK"
+    ],
+    "532": [
+      "DIR-3 KYC_017AQ",
+      "DIR-3 KYC_016AP",
+      "DIR-3 KYC_009AI",
+      "DIR-3 KYC_015AO",
+      "DIR-3 KYC_020AT"
+    ],
+    "530": [
+      "MCA_NameRes_012AL",
+      "MCA_NameRes_018AR",
+      "MCA_NameRes_016AP",
+      "MCA_NameRes_007AG",
+      "MCA_NameRes_013AM"
+    ],
+    "534": [
+      "MCA_APP_015AO",
+      "MCA_APP_008AH",
+      "MCA_APP_014AN",
+      "MCA_APP_013AM",
+      "MCA_APP_012AL"
+    ]
+  }
+}
